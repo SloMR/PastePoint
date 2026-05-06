@@ -54,7 +54,7 @@ export class LanguageService implements ILanguageService {
     const stored = this.getLanguagePreference();
     this.logger.debug('initializeLanguage', 'Stored language from localStorage:', stored);
 
-    let preference: LanguageCode = DEFAULT_LANGUAGE;
+    let preference: LanguageCode;
     if (stored) {
       preference = stored;
     } else if (this.transferState.hasKey(this.LANGUAGE_STATE_KEY)) {

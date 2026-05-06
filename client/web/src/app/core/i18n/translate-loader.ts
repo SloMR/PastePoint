@@ -1,11 +1,6 @@
 import { TranslateLoader } from '@ngx-translate/core';
 import { Observable, of } from 'rxjs';
-import {
-  DEFAULT_LANGUAGE,
-  LanguageCode,
-  TranslationObject,
-  getLanguage,
-} from './languages';
+import { DEFAULT_LANGUAGE, LanguageCode, TranslationObject, getLanguage } from './languages';
 
 export type { LanguageCode } from './languages';
 

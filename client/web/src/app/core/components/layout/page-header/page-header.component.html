@@ -42,7 +42,7 @@
         <!-- language switcher -->
         <app-language-switcher
           [current]="currentLanguage"
-          (change)="switchLanguage.emit($event)"
+          (languageChange)="switchLanguage.emit($event)"
         />
       </div>
     </div>

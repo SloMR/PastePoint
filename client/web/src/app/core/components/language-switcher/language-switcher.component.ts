@@ -22,7 +22,7 @@ import { LANGUAGES, LanguageCode, getLanguage } from '../../i18n/languages';
 })
 export class LanguageSwitcherComponent {
   @Input() current: LanguageCode = 'en';
-  @Output() change = new EventEmitter<LanguageCode>();
+  @Output() languageChange = new EventEmitter<LanguageCode>();
 
   protected readonly languages = LANGUAGES;
   protected readonly isOpen = signal(false);
@@ -39,7 +39,7 @@ export class LanguageSwitcherComponent {
 
   protected select(code: LanguageCode): void {
     this.isOpen.set(false);
-    if (code !== this.current) this.change.emit(code);
+    if (code !== this.current) this.languageChange.emit(code);
   }
 
   @HostListener('document:click', ['$event'])
