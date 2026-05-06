@@ -11,7 +11,7 @@ import { NGXLogger } from 'ngx-logger';
 import { MigrationService } from '../../core/services/migration/migration.service';
 import { MetaService } from '../../core/services/ui/meta.service';
 import { LanguageService } from '../../core/services/ui/language.service';
-import { LanguageCode } from '../../core/i18n/translate-loader';
+import { LanguageCode, getLanguage } from '../../core/i18n/languages';
 import { THEME_PREFERENCE_KEY } from '../../utils/constants';
 
 @Component({
@@ -75,15 +75,14 @@ export class PrivacyAndTermsComponent implements OnInit {
     }
   }
 
-  switchLanguage(language: string) {
-    const languageCode = language as LanguageCode;
-    this.languageService.setLanguagePreference(languageCode);
-    this.currentLanguage = languageCode;
+  switchLanguage(language: LanguageCode) {
+    this.languageService.setLanguagePreference(language);
+    this.currentLanguage = language;
     this.cdr.detectChanges();
   }
 
   get isRTL(): boolean {
     if (!isPlatformBrowser(this.platformId)) return false;
-    return document.dir === 'rtl' || this.currentLanguage === 'ar';
+    return document.dir === 'rtl' || getLanguage(this.currentLanguage)?.direction === 'rtl';
   }
 }
