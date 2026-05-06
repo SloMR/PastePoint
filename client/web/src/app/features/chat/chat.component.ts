@@ -150,6 +150,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private isNavigatingIntentionally = false;
   private isInitialBootstrap = true;
+  private currentTransitionId = 0;
   private lastMessagesLength: number = 0;
   private connectionInitTimeouts: ReturnType<typeof setTimeout>[] = [];
   private navigationTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -853,6 +854,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   private async enterSession(code: string | null): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
 
+    const transitionId = ++this.currentTransitionId;
     this.logger.info('enterSession', `Switching to session: ${code ?? 'public'}`);
 
     // ---- Tear down previous session ----
@@ -900,7 +902,10 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     // ---- Connect to the new session ----
     try {
       await this.connect(this.SessionCode || undefined);
+      // Superseded by a newer transition — leave its state alone.
+      if (transitionId !== this.currentTransitionId) return;
     } catch (err) {
+      if (transitionId !== this.currentTransitionId) return;
       this.logger.error('enterSession', `Failed to connect to new session: ${err}`);
       if (code) {
         this.fallbackToPublic();
@@ -908,9 +913,9 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
         this.toaster.error(this.translate.instant('SERVER_CONNECTION_FAILED'));
       }
     } finally {
-      // Settle the navigation intent so beforeUnload semantics remain correct
-      // for whatever the user does next.
-      this.isNavigatingIntentionally = false;
+      if (transitionId === this.currentTransitionId) {
+        this.isNavigatingIntentionally = false;
+      }
     }
   }
 
@@ -1376,8 +1381,8 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
       this.isOpenEndSessionPopup = false;
       this.cdr.detectChanges();
       this.toaster.success(this.translate.instant('SESSION_ENDED_SUCCESS'));
-      // paramMap subscription detects the code change and calls enterSession(null),
-      // which tears down WebRTC/WS and reconnects to public.
+      // Cross-route nav: Angular tears down this component, ngOnDestroy
+      // handles cleanup, and the new instance at '/' connects to public.
       void this.router.navigateByUrl('/');
     });
   }
@@ -1385,10 +1390,9 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   /**
    * ==========================================================
    * OPEN CHAT SESSION
-   * Validates the code and triggers SPA navigation to /private/:code.
-   * The actual session-state teardown and reconnection is handled by
-   * the paramMap subscription -> enterSession() flow, so this method
-   * is only responsible for the navigation itself.
+   * Navigates to /private/:code. Cross-route transitions (public -> private)
+   * destroy/recreate the component; only same-route /private/A -> /private/B
+   * goes through the paramMap -> enterSession() path.
    * ==========================================================
    */
   private openChatSession(code: string): void {
@@ -1481,10 +1485,8 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   /**
-   * Called when joining a private session fails (invalid/expired code,
-   * network error, etc). The browser's WebSocket API doesn't expose the
-   * HTTP status of a failed upgrade, so we can't reliably distinguish
-   * "wrong code" from "server unreachable" — the toast covers both.
+   * The browser hides the HTTP status of a failed WS upgrade, so a join
+   * failure could be a bad code or an unreachable server — toast covers both.
    */
   private fallbackToPublic(): void {
     this.clearSessionCode();

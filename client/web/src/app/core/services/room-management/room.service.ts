@@ -46,10 +46,8 @@ export class RoomService implements IRoomService {
   }
 
   /**
-   * Clears all session-scoped state. Called during session transitions
-   * (entering/leaving a private session) so the singleton's BehaviorSubjects
-   * don't replay stale members/rooms from the previous session into the
-   * newly-mounted view.
+   * Resets singleton state on session transition so BehaviorSubjects don't
+   * replay the previous session's members/rooms into the new view.
    */
   public reset(): void {
     this.ngZone.run(() => {

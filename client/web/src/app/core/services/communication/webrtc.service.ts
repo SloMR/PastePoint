@@ -171,10 +171,6 @@ export class WebRTCService implements IWebRTCService {
     return this.communicationService.isConnected(targetUser);
   }
 
-  /**
-   * Closes connection with a single target user and cancels pending retries
-   * @param targetUser The user to disconnect from
-   */
   public closeConnection(targetUser: string): void {
     this.signalingService.closeConnection(targetUser);
   }

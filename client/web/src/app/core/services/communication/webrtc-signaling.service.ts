@@ -239,10 +239,8 @@ export class WebRTCSignalingService {
   }
 
   /**
-   * Fully stops WebRTC work for a peer that is no longer in the room.
-   * This is stronger than closing the current RTCPeerConnection because it
-   * also cancels pending retries and delayed connection requests.
-   * @param targetUser The user to stop connecting to
+   * Stronger than closePeerConnection — also cancels pending retries and
+   * queued requests. Use when the peer is gone for good (left the room).
    */
   public closeConnection(targetUser: string): void {
     this.closePeerConnection(targetUser, true);
