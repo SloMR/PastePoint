@@ -2,6 +2,7 @@
   "_COMMON_SECTION": "==== COMMON ====",
   "COPYRIGHT_NOTICE": "© 2026 PastePoint. All rights reserved.",
   "VERSION": "Version",
+  "CHANGE_LANGUAGE": "Change language",
 
   "_CHAT_SECTION": "==== CHAT ====",
   "TYPE_YOUR_MESSAGE": "Type your message",

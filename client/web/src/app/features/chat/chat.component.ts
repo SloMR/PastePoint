@@ -14,7 +14,7 @@ import {
 } from '@angular/core';
 import { combineLatest, Subscription } from 'rxjs';
 import { distinctUntilChanged, filter, map } from 'rxjs/operators';
-import { isPlatformBrowser, NgOptimizedImage, UpperCasePipe } from '@angular/common';
+import { isPlatformBrowser, NgOptimizedImage } from '@angular/common';
 
 import { ThemeService } from '../../core/services/ui/theme.service';
 import { ChatService } from '../../core/services/communication/chat.service';
@@ -47,7 +47,7 @@ import { NGXLogger } from 'ngx-logger';
 import { MigrationService } from '../../core/services/migration/migration.service';
 import { MetaService } from '../../core/services/ui/meta.service';
 import { LanguageService } from '../../core/services/ui/language.service';
-import { LanguageCode } from '../../core/i18n/translate-loader';
+import { LanguageCode, getLanguage } from '../../core/i18n/languages';
 import { Router } from '@angular/router';
 import { HotToastService } from '@ngxpert/hot-toast';
 import { PreviewService } from '../../core/services/ui/preview.service';
@@ -60,6 +60,7 @@ import { ConnectionWarningComponent } from './components/connection-warning/conn
 import { ChatInputComponent } from './components/chat-input/chat-input.component';
 import { ChatMessagesComponent } from './components/chat-messages/chat-messages.component';
 import { ChatSidebarComponent } from './components/chat-sidebar/chat-sidebar.component';
+import { LanguageSwitcherComponent } from '../../core/components/language-switcher/language-switcher.component';
 
 /**
  * ==========================================================
@@ -71,7 +72,6 @@ import { ChatSidebarComponent } from './components/chat-sidebar/chat-sidebar.com
   selector: 'app-chat',
   imports: [
     FormsModule,
-    UpperCasePipe,
     TranslateModule,
     NgOptimizedImage,
     RouterLink,
@@ -83,6 +83,7 @@ import { ChatSidebarComponent } from './components/chat-sidebar/chat-sidebar.com
     ChatInputComponent,
     ChatMessagesComponent,
     ChatSidebarComponent,
+    LanguageSwitcherComponent,
   ],
   providers: [FileSizePipe],
   templateUrl: './chat.component.html',
@@ -453,16 +454,12 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   /**
-   * ==========================================================
-   * LANGUAGE SWITCHER
-   * Allows runtime switching between English and Arabic.
-   * ==========================================================
+   * Runtime language switch — accepts any code from the registry.
    */
-  switchLanguage(language: string) {
+  switchLanguage(language: LanguageCode) {
     this.ngZone.run(() => {
-      const languageCode = language as LanguageCode;
-      this.languageService.setLanguagePreference(languageCode);
-      this.currentLanguage = languageCode;
+      this.languageService.setLanguagePreference(language);
+      this.currentLanguage = language;
       this.skipDrawerAnim = true;
       setTimeout(() => (this.skipDrawerAnim = false), 100);
       this.cdr.detectChanges();
@@ -1733,7 +1730,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
    */
   get isRTL(): boolean {
     if (!isPlatformBrowser(this.platformId)) return false;
-    return document.dir === 'rtl' || this.currentLanguage === 'ar';
+    return document.dir === 'rtl' || getLanguage(this.currentLanguage)?.direction === 'rtl';
   }
 
   /**

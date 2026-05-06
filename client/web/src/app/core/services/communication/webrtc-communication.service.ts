@@ -10,7 +10,6 @@ import {
 } from '../../../utils/constants';
 import { NGXLogger } from 'ngx-logger';
 import { HotToastService } from '@ngxpert/hot-toast';
-import { TranslateService } from '@ngx-translate/core';
 import { decodeChunk } from '../../../utils/chunk-protocol';
 
 @Injectable({
@@ -20,7 +19,6 @@ export class WebRTCCommunicationService {
   private zone = inject(NgZone);
   private logger = inject(NGXLogger);
   private toaster = inject(HotToastService);
-  private translate = inject(TranslateService);
   private platformId = inject(PLATFORM_ID);
 
   // =============== Properties ===============

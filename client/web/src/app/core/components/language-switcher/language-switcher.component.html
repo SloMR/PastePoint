@@ -1,0 +1,67 @@
+<div class="relative">
+  <button
+    type="button"
+    (click)="toggle()"
+    [attr.aria-label]="'CHANGE_LANGUAGE' | translate"
+    [attr.aria-expanded]="isOpen()"
+    aria-haspopup="menu"
+    title="{{ 'CHANGE_LANGUAGE' | translate }}"
+    class="flex cursor-pointer items-center justify-center rounded-lg border w-[44px] h-[44px] border-borderButton bg-pageBackground hover:bg-borderLight dark:bg-surfaceDark dark:border-borderDark dark:hover:bg-baseDark md:w-[56px] md:h-[56px] transition-colors"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.75"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="h-5 w-5 text-brand dark:text-brandDark"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="10"></circle>
+      <path d="M2 12h20"></path>
+      <path
+        d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
+      ></path>
+    </svg>
+  </button>
+
+  @if (isOpen()) {
+    <div
+      role="menu"
+      [attr.aria-label]="'CHANGE_LANGUAGE' | translate"
+      class="absolute end-0 md:start-0 md:end-auto top-full mt-2 z-50 min-w-[11rem] max-w-[calc(100vw-1rem)] overflow-hidden rounded-lg border border-borderLight bg-pageBackground py-1 shadow-lg dark:border-borderDark dark:bg-surfaceDark"
+    >
+      @for (lang of languages; track lang.code) {
+        <button
+          type="button"
+          role="menuitemradio"
+          [attr.aria-checked]="lang.code === current"
+          [attr.aria-label]="lang.englishName"
+          (click)="select(lang.code)"
+          class="flex w-full items-center justify-between gap-3 px-4 py-3 text-base text-content transition-colors hover:bg-borderLight active:bg-borderLight focus:bg-borderLight focus:outline-none dark:text-contentMuted dark:hover:bg-baseDark dark:active:bg-baseDark dark:focus:bg-baseDark md:px-3 md:py-1.5 md:text-sm"
+          [class.text-brand]="lang.code === current"
+          [class.dark:text-brandDark]="lang.code === current"
+        >
+          <span class="truncate">{{ lang.nativeName }}</span>
+          @if (lang.code === current) {
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="h-3.5 w-3.5 shrink-0"
+              aria-hidden="true"
+            >
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          }
+        </button>
+      }
+    </div>
+  }
+</div>
