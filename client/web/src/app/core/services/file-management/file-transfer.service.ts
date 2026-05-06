@@ -1,6 +1,5 @@
 import { Injectable, inject } from '@angular/core';
 import { WebRTCService } from '../communication/webrtc.service';
-import { TranslateService } from '@ngx-translate/core';
 import { NGXLogger } from 'ngx-logger';
 import { IFileTransferService } from '../../interfaces/file-transfer.interface';
 import { FileUploadService } from './file-upload.service';
@@ -13,7 +12,6 @@ import { FileTransferBaseService } from './file-transfer-base.service';
 })
 export class FileTransferService implements IFileTransferService {
   private webrtcService = inject(WebRTCService);
-  private translate = inject<TranslateService>(TranslateService);
   private logger = inject(NGXLogger);
   private fileUploadService = inject(FileUploadService);
   private fileDownloadService = inject(FileDownloadService);

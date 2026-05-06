@@ -1,7 +1,7 @@
 import { Component, ChangeDetectorRef, PLATFORM_ID, OnInit, inject } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { PageHeaderComponent } from '../../core/components/layout/page-header/page-header.component';
 import { PageFooterComponent } from '../../core/components/layout/page-footer/page-footer.component';
@@ -22,7 +22,6 @@ import { THEME_PREFERENCE_KEY } from '../../utils/constants';
 })
 export class NotFoundComponent implements OnInit {
   private platformId = inject(PLATFORM_ID);
-  protected translate = inject<TranslateService>(TranslateService);
   private cdr = inject(ChangeDetectorRef);
   private themeService = inject(ThemeService);
   private languageService = inject(LanguageService);

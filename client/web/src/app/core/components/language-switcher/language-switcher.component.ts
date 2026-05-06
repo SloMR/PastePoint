@@ -10,7 +10,7 @@ import {
   signal,
 } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
-import { LANGUAGES, LanguageCode, getLanguage } from '../../i18n/languages';
+import { LANGUAGES, LanguageCode } from '../../i18n/languages';
 
 @Component({
   selector: 'app-language-switcher',
@@ -28,10 +28,6 @@ export class LanguageSwitcherComponent {
   protected readonly isOpen = signal(false);
 
   private host = inject(ElementRef<HTMLElement>);
-
-  protected get currentLabel(): string {
-    return getLanguage(this.current)?.nativeName ?? this.current;
-  }
 
   protected toggle(): void {
     this.isOpen.update((open) => !open);
@@ -53,6 +49,6 @@ export class LanguageSwitcherComponent {
 
   @HostListener('document:keydown.escape')
   protected onEscape(): void {
-    this.isOpen.set(false);
+    if (this.isOpen()) this.isOpen.set(false);
   }
 }

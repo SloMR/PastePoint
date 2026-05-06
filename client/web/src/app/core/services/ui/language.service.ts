@@ -102,8 +102,18 @@ export class LanguageService implements ILanguageService {
   }
 
   private detectBrowserLanguage(): LanguageCode | null {
-    if (!isPlatformBrowser(this.platformId) || !navigator.languages) return null;
-    for (const tag of navigator.languages) {
+    if (!isPlatformBrowser(this.platformId)) return null;
+
+    // navigator.languages can be undefined or empty in some embedded /
+    // restricted browser environments; navigator.language is more widely
+    // available, so fall back to it before giving up.
+    const tags: readonly string[] = navigator.languages?.length
+      ? navigator.languages
+      : navigator.language
+        ? [navigator.language]
+        : [];
+
+    for (const tag of tags) {
       if (isSupportedLanguage(tag)) return tag;
       const base = tag.split('-')[0];
       if (isSupportedLanguage(base)) return base;
