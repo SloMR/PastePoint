@@ -172,6 +172,14 @@ export class WebRTCService implements IWebRTCService {
   }
 
   /**
+   * Closes connection with a single target user and cancels pending retries
+   * @param targetUser The user to disconnect from
+   */
+  public closeConnection(targetUser: string): void {
+    this.signalingService.closeConnection(targetUser);
+  }
+
+  /**
    * Closes all connections
    */
   public closeAllConnections(): void {

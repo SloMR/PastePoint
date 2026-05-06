@@ -265,9 +265,6 @@ export class WebSocketConnectionService implements OnDestroy {
         this.isConnecting = false;
         this.stopKeepAlive();
         this.socket = undefined;
-        if (this.reconnectAttempts === 0 && !this.manualDisconnect) {
-          this.toaster.error(this.translate.instant('SERVER_CONNECTION_FAILED'));
-        }
         reject(error);
       };
     });

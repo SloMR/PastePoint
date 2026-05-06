@@ -12,7 +12,8 @@ import {
   ViewChild,
   inject,
 } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { combineLatest, Subscription } from 'rxjs';
+import { distinctUntilChanged, filter, map } from 'rxjs/operators';
 import { isPlatformBrowser, NgOptimizedImage, UpperCasePipe } from '@angular/common';
 
 import { ThemeService } from '../../core/services/ui/theme.service';
@@ -296,13 +297,14 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
       })
     );
 
+    this.initializeChat();
+
     // Listen to changes in the user's name
     this.subscriptions.push(
       this.userService.user$.subscribe((username: unknown) => {
         if (username) {
           this.ngZone.run(() => {
             this.logger.info('ngOnInit', `Username is set to: ${username}`);
-            this.initializeChat();
           });
         }
       })
@@ -547,31 +549,54 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
 
     // Listen for current members in the room
     this.subscriptions.push(
-      this.roomService.members$.subscribe((allMembers: string[]) => {
-        this.ngZone.run(() => {
-          // Filter out the local user's own name
-          this.members = allMembers.filter((m) => m !== this.userService.user);
+      combineLatest([this.roomService.members$, this.userService.user$])
+        .pipe(
+          filter(([, currentUser]) => currentUser.trim().length > 0),
+          map(([allMembers, currentUser]) => allMembers.filter((m) => m !== currentUser)),
+          distinctUntilChanged(
+            (previous, current) =>
+              previous.length === current.length &&
+              previous.every((member, index) => member === current[index])
+          )
+        )
+        .subscribe((nextMembers: string[]) => {
+          this.ngZone.run(() => {
+            const previousMembers = this.members;
+            const departedMembers = previousMembers.filter(
+              (member) => !nextMembers.includes(member)
+            );
 
-          // Clean up timeouts for members who left
-          for (const [member, timeoutId] of this.connectionWarningTimeouts.entries()) {
-            if (!this.members.includes(member)) {
-              clearTimeout(timeoutId);
-              this.connectionWarningTimeouts.delete(member);
-            }
-          }
+            this.members = nextMembers;
 
-          // For new members, start a warning timeout
-          this.members.forEach((member) => {
-            if (!this.memberConnectionStatus.has(member)) {
-              this.memberConnectionStatus.set(member, false);
-              this.scheduleConnectionWarning(member);
+            departedMembers.forEach((member) => {
+              this.logger.info(
+                'members',
+                `Closing WebRTC connection for departed member: ${member}`
+              );
+              this.webrtcService.closeConnection(member);
+              this.memberConnectionStatus.delete(member);
+            });
+
+            // Clean up timeouts for members who left
+            for (const [member, timeoutId] of this.connectionWarningTimeouts.entries()) {
+              if (!this.members.includes(member)) {
+                clearTimeout(timeoutId);
+                this.connectionWarningTimeouts.delete(member);
+              }
             }
+
+            // For new members, start a warning timeout
+            this.members.forEach((member) => {
+              if (!this.memberConnectionStatus.has(member)) {
+                this.memberConnectionStatus.set(member, false);
+                this.scheduleConnectionWarning(member);
+              }
+            });
+
+            this.cdr.detectChanges();
+            this.initiateConnectionsWithMembers();
           });
-
-          this.cdr.detectChanges();
-          this.initiateConnectionsWithMembers();
-        });
-      })
+        })
     );
 
     // Listen for active file uploads
@@ -620,6 +645,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     this.subscriptions.push(
       this.webrtcService.peerDisconnected$.subscribe((member) => {
         this.ngZone.run(() => {
+          if (!this.members.includes(member)) return;
           this.memberConnectionStatus.set(member, false);
           this.scheduleConnectionWarning(member);
           this.cdr.detectChanges();
@@ -631,6 +657,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     this.subscriptions.push(
       this.webrtcService.peerConnected$.subscribe((member) => {
         this.ngZone.run(() => {
+          if (!this.members.includes(member)) return;
           this.memberConnectionStatus.set(member, true);
           this.clearConnectionWarning(member);
           this.cdr.detectChanges();
@@ -724,11 +751,14 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   ngAfterViewInit(): void {
     if (!isPlatformBrowser(this.platformId)) return;
 
-    if (this.SessionCode) {
-      this.connect(this.SessionCode);
-    } else {
-      void this.connect();
-    }
+    const attemptedCode = this.SessionCode;
+    this.connect(attemptedCode || undefined).catch(() => {
+      if (attemptedCode) {
+        this.fallbackToPublic();
+      } else {
+        this.toaster.error(this.translate.instant('SERVER_CONNECTION_FAILED'));
+      }
+    });
 
     document.addEventListener('visibilitychange', this.visibilityChangeListener);
     window.addEventListener('beforeunload', this.beforeUnloadHandler);
@@ -872,6 +902,11 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
       await this.connect(this.SessionCode || undefined);
     } catch (err) {
       this.logger.error('enterSession', `Failed to connect to new session: ${err}`);
+      if (code) {
+        this.fallbackToPublic();
+      } else {
+        this.toaster.error(this.translate.instant('SERVER_CONNECTION_FAILED'));
+      }
     } finally {
       // Settle the navigation intent so beforeUnload semantics remain correct
       // for whatever the user does next.
@@ -1446,6 +1481,18 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   /**
+   * Called when joining a private session fails (invalid/expired code,
+   * network error, etc). The browser's WebSocket API doesn't expose the
+   * HTTP status of a failed upgrade, so we can't reliably distinguish
+   * "wrong code" from "server unreachable" — the toast covers both.
+   */
+  private fallbackToPublic(): void {
+    this.clearSessionCode();
+    this.toaster.error(this.translate.instant('SESSION_JOIN_FAILED'));
+    void this.router.navigateByUrl('/');
+  }
+
+  /**
    * ==========================================================
    * WAIT FOR FILE TRANSFER CONNECTION
    * Waits for WebRTC connection to be ready for file transfer with retry logic
@@ -1483,17 +1530,23 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
    * ==========================================================
    */
   private initiateConnectionsWithMembers(): void {
+    // Clear any existing connection initialization timeouts before reacting
+    // to the latest membership snapshot.
+    this.connectionInitTimeouts.forEach((timeout) => clearTimeout(timeout));
+    this.connectionInitTimeouts = [];
+
     if (!this.members || this.members.length === 0) {
       this.logger.info(
         'initiateConnectionsWithMembers',
         'No members in the room, skipping WebRTC.'
       );
+
+      if (this.statusCheckIntervalId) {
+        clearInterval(this.statusCheckIntervalId);
+        this.statusCheckIntervalId = null;
+      }
       return;
     }
-
-    // Clear any existing connection initialization timeouts
-    this.connectionInitTimeouts.forEach((timeout) => clearTimeout(timeout));
-    this.connectionInitTimeouts = [];
 
     this.logger.info('initiateConnectionsWithMembers', 'Initiating connections with other members');
 
