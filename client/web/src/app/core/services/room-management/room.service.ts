@@ -45,6 +45,18 @@ export class RoomService implements IRoomService {
     this.wsService.send('[UserCommand] /list');
   }
 
+  /**
+   * Resets singleton state on session transition so BehaviorSubjects don't
+   * replay the previous session's members/rooms into the new view.
+   */
+  public reset(): void {
+    this.ngZone.run(() => {
+      this.rooms$.next([]);
+      this.members$.next([]);
+      this.currentRoom = 'main';
+    });
+  }
+
   public joinRoom(room: string): void {
     const sanitizedRoom = room
       .replace(/[^a-zA-Z0-9\-_ ]/g, '')

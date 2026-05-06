@@ -171,6 +171,10 @@ export class WebRTCService implements IWebRTCService {
     return this.communicationService.isConnected(targetUser);
   }
 
+  public closeConnection(targetUser: string): void {
+    this.signalingService.closeConnection(targetUser);
+  }
+
   /**
    * Closes all connections
    */

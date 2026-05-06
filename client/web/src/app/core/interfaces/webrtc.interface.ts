@@ -25,5 +25,6 @@ export interface IWebRTCService {
 
   initiateConnection(targetUser: string): void;
   sendData(data: DataChannelMessage, targetUser: string): void;
+  closeConnection(targetUser: string): void;
   closeAllConnections(): void;
 }

@@ -12,7 +12,8 @@ import {
   ViewChild,
   inject,
 } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { combineLatest, Subscription } from 'rxjs';
+import { distinctUntilChanged, filter, map } from 'rxjs/operators';
 import { isPlatformBrowser, NgOptimizedImage, UpperCasePipe } from '@angular/common';
 
 import { ThemeService } from '../../core/services/ui/theme.service';
@@ -148,6 +149,8 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   activeDownloads: FileDownload[] = [];
 
   private isNavigatingIntentionally = false;
+  private isInitialBootstrap = true;
+  private currentTransitionId = 0;
   private lastMessagesLength: number = 0;
   private connectionInitTimeouts: ReturnType<typeof setTimeout>[] = [];
   private navigationTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -220,15 +223,8 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     if (!isPlatformBrowser(this.platformId)) {
-      this.route.paramMap.subscribe((params) => {
-        const privateSession = params.get('code');
-
-        if (privateSession) {
-          this.metaService.updateChatMetadata(true);
-        } else {
-          this.metaService.updateChatMetadata(false);
-        }
-      });
+      const privateSession = this.route.snapshot.paramMap.get('code');
+      this.metaService.updateChatMetadata(!!privateSession);
       return;
     }
 
@@ -248,33 +244,61 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
       this.logger.debug('ngOnInit', `Flowbite loaded`);
     });
 
-    // Check if route has a session code in URL but don't connect yet
-    this.route.paramMap.subscribe((params) => {
-      this.ngZone.run(() => {
-        const sessionCode = params.get('code');
-        const storedSessionCode = localStorage.getItem(SESSION_CODE_KEY);
+    // Check if route has a session code in URL but don't connect yet.
+    // First emission seeds SessionCode for ngAfterViewInit's initial connect();
+    // subsequent emissions (from in-app navigation) trigger a full session
+    // transition via enterSession().
+    this.subscriptions.push(
+      this.route.paramMap.subscribe((params) => {
+        this.ngZone.run(() => {
+          const sessionCode = params.get('code');
+          const storedSessionCode = localStorage.getItem(SESSION_CODE_KEY);
 
-        if (sessionCode && this.sessionService.isValidSessionCode(sessionCode)) {
-          this.SessionCode = this.sessionService.sanitizeSessionCode(sessionCode);
-          this.metaService.updateChatMetadata(true);
-        } else if (storedSessionCode && this.sessionService.isValidSessionCode(storedSessionCode)) {
-          this.SessionCode = this.sessionService.sanitizeSessionCode(storedSessionCode);
-          this.metaService.updateChatMetadata(true);
-        } else {
-          if (sessionCode && !this.sessionService.isValidSessionCode(sessionCode)) {
-            this.logger.warn('ngOnInit', 'Invalid session code in URL, clearing');
+          if (this.isInitialBootstrap) {
+            this.isInitialBootstrap = false;
+
+            if (sessionCode && this.sessionService.isValidSessionCode(sessionCode)) {
+              const sanitized = this.sessionService.sanitizeSessionCode(sessionCode);
+              this.SessionCode = sanitized;
+              localStorage.setItem(SESSION_CODE_KEY, sanitized);
+              this.metaService.updateChatMetadata(true);
+            } else if (
+              storedSessionCode &&
+              this.sessionService.isValidSessionCode(storedSessionCode)
+            ) {
+              this.SessionCode = this.sessionService.sanitizeSessionCode(storedSessionCode);
+              this.metaService.updateChatMetadata(true);
+            } else {
+              if (sessionCode && !this.sessionService.isValidSessionCode(sessionCode)) {
+                this.logger.warn('ngOnInit', 'Invalid session code in URL, clearing');
+              }
+              if (storedSessionCode && !this.sessionService.isValidSessionCode(storedSessionCode)) {
+                this.logger.warn('ngOnInit', 'Invalid session code in localStorage, clearing');
+                this.clearSessionCode();
+              }
+              this.chatService.clearMessages();
+              this.messages = [];
+              this.metaService.updateChatMetadata(false);
+            }
+            this.cdr.detectChanges();
+            return;
           }
-          if (storedSessionCode && !this.sessionService.isValidSessionCode(storedSessionCode)) {
-            this.logger.warn('ngOnInit', 'Invalid session code in localStorage, clearing');
-            this.clearSessionCode();
+
+          // Subsequent emission: in-app navigation between sessions.
+          const newCode =
+            sessionCode && this.sessionService.isValidSessionCode(sessionCode)
+              ? this.sessionService.sanitizeSessionCode(sessionCode)
+              : null;
+          const currentCode = this.SessionCode || null;
+          if (newCode !== currentCode) {
+            this.isNavigatingIntentionally = true;
+            void this.enterSession(newCode);
           }
-          this.chatService.clearMessages();
-          this.messages = [];
-          this.metaService.updateChatMetadata(false);
-        }
-        this.cdr.detectChanges();
-      });
-    });
+        });
+      })
+    );
+
+    this.initializeChat();
 
     // Listen to changes in the user's name
     this.subscriptions.push(
@@ -282,7 +306,6 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
         if (username) {
           this.ngZone.run(() => {
             this.logger.info('ngOnInit', `Username is set to: ${username}`);
-            this.initializeChat();
           });
         }
       })
@@ -527,31 +550,54 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
 
     // Listen for current members in the room
     this.subscriptions.push(
-      this.roomService.members$.subscribe((allMembers: string[]) => {
-        this.ngZone.run(() => {
-          // Filter out the local user's own name
-          this.members = allMembers.filter((m) => m !== this.userService.user);
+      combineLatest([this.roomService.members$, this.userService.user$])
+        .pipe(
+          filter(([, currentUser]) => currentUser.trim().length > 0),
+          map(([allMembers, currentUser]) => allMembers.filter((m) => m !== currentUser)),
+          distinctUntilChanged(
+            (previous, current) =>
+              previous.length === current.length &&
+              previous.every((member, index) => member === current[index])
+          )
+        )
+        .subscribe((nextMembers: string[]) => {
+          this.ngZone.run(() => {
+            const previousMembers = this.members;
+            const departedMembers = previousMembers.filter(
+              (member) => !nextMembers.includes(member)
+            );
 
-          // Clean up timeouts for members who left
-          for (const [member, timeoutId] of this.connectionWarningTimeouts.entries()) {
-            if (!this.members.includes(member)) {
-              clearTimeout(timeoutId);
-              this.connectionWarningTimeouts.delete(member);
-            }
-          }
+            this.members = nextMembers;
 
-          // For new members, start a warning timeout
-          this.members.forEach((member) => {
-            if (!this.memberConnectionStatus.has(member)) {
-              this.memberConnectionStatus.set(member, false);
-              this.scheduleConnectionWarning(member);
+            departedMembers.forEach((member) => {
+              this.logger.info(
+                'members',
+                `Closing WebRTC connection for departed member: ${member}`
+              );
+              this.webrtcService.closeConnection(member);
+              this.memberConnectionStatus.delete(member);
+            });
+
+            // Clean up timeouts for members who left
+            for (const [member, timeoutId] of this.connectionWarningTimeouts.entries()) {
+              if (!this.members.includes(member)) {
+                clearTimeout(timeoutId);
+                this.connectionWarningTimeouts.delete(member);
+              }
             }
+
+            // For new members, start a warning timeout
+            this.members.forEach((member) => {
+              if (!this.memberConnectionStatus.has(member)) {
+                this.memberConnectionStatus.set(member, false);
+                this.scheduleConnectionWarning(member);
+              }
+            });
+
+            this.cdr.detectChanges();
+            this.initiateConnectionsWithMembers();
           });
-
-          this.cdr.detectChanges();
-          this.initiateConnectionsWithMembers();
-        });
-      })
+        })
     );
 
     // Listen for active file uploads
@@ -600,6 +646,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     this.subscriptions.push(
       this.webrtcService.peerDisconnected$.subscribe((member) => {
         this.ngZone.run(() => {
+          if (!this.members.includes(member)) return;
           this.memberConnectionStatus.set(member, false);
           this.scheduleConnectionWarning(member);
           this.cdr.detectChanges();
@@ -611,6 +658,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     this.subscriptions.push(
       this.webrtcService.peerConnected$.subscribe((member) => {
         this.ngZone.run(() => {
+          if (!this.members.includes(member)) return;
           this.memberConnectionStatus.set(member, true);
           this.clearConnectionWarning(member);
           this.cdr.detectChanges();
@@ -704,11 +752,14 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   ngAfterViewInit(): void {
     if (!isPlatformBrowser(this.platformId)) return;
 
-    if (this.SessionCode) {
-      this.connect(this.SessionCode);
-    } else {
-      void this.connect();
-    }
+    const attemptedCode = this.SessionCode;
+    this.connect(attemptedCode || undefined).catch(() => {
+      if (attemptedCode) {
+        this.fallbackToPublic();
+      } else {
+        this.toaster.error(this.translate.instant('SERVER_CONNECTION_FAILED'));
+      }
+    });
 
     document.addEventListener('visibilitychange', this.visibilityChangeListener);
     window.addEventListener('beforeunload', this.beforeUnloadHandler);
@@ -789,6 +840,83 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
         this.logger.error('connect', `WebSocket connection failed: ${error}`);
         throw error;
       });
+  }
+
+  /**
+   * ==========================================================
+   * ENTER SESSION
+   * Single point of state-transition: tears down everything related
+   * to the current session, updates SessionCode + storage + metadata,
+   * then connects to the new one. Called by the paramMap subscription
+   * whenever the route's :code segment changes after initial bootstrap.
+   * ==========================================================
+   */
+  private async enterSession(code: string | null): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    const transitionId = ++this.currentTransitionId;
+    this.logger.info('enterSession', `Switching to session: ${code ?? 'public'}`);
+
+    // ---- Tear down previous session ----
+    this.webrtcService.closeAllConnections();
+    this.wsConnectionService.disconnect();
+
+    this.connectionInitTimeouts.forEach((id) => clearTimeout(id));
+    this.connectionInitTimeouts = [];
+    this.connectionWarningTimeouts.forEach((id) => clearTimeout(id));
+    this.connectionWarningTimeouts.clear();
+    if (this.statusCheckIntervalId) {
+      clearInterval(this.statusCheckIntervalId);
+      this.statusCheckIntervalId = null;
+    }
+
+    this.roomService.reset();
+    this.chatService.clearMessages();
+
+    this.messages = [];
+    this.members = [];
+    this.rooms = [];
+    this.activeUploads = [];
+    this.activeDownloads = [];
+    this.memberConnectionStatus.clear();
+    this.showConnectionWarning = false;
+    this.connectionWarningDismissed = false;
+    this.currentRoom = 'main';
+    this.overrideRecipients = null;
+    this.lastMessagesLength = 0;
+
+    // ---- Update session code (memory + storage + meta) ----
+    if (code) {
+      const sanitized = this.sessionService.sanitizeSessionCode(code);
+      this.SessionCode = sanitized;
+      localStorage.setItem(SESSION_CODE_KEY, sanitized);
+      this.metaService.updateChatMetadata(true);
+    } else {
+      this.SessionCode = '';
+      localStorage.removeItem(SESSION_CODE_KEY);
+      this.metaService.updateChatMetadata(false);
+    }
+
+    this.cdr.detectChanges();
+
+    // ---- Connect to the new session ----
+    try {
+      await this.connect(this.SessionCode || undefined);
+      // Superseded by a newer transition — leave its state alone.
+      if (transitionId !== this.currentTransitionId) return;
+    } catch (err) {
+      if (transitionId !== this.currentTransitionId) return;
+      this.logger.error('enterSession', `Failed to connect to new session: ${err}`);
+      if (code) {
+        this.fallbackToPublic();
+      } else {
+        this.toaster.error(this.translate.instant('SERVER_CONNECTION_FAILED'));
+      }
+    } finally {
+      if (transitionId === this.currentTransitionId) {
+        this.isNavigatingIntentionally = false;
+      }
+    }
   }
 
   /**
@@ -1252,17 +1380,19 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     requestAnimationFrame(() => {
       this.isOpenEndSessionPopup = false;
       this.cdr.detectChanges();
-      this.clearSessionCode();
-      this.wsConnectionService.disconnect();
       this.toaster.success(this.translate.instant('SESSION_ENDED_SUCCESS'));
-      this.router.navigate([`/`]);
+      // Cross-route nav: Angular tears down this component, ngOnDestroy
+      // handles cleanup, and the new instance at '/' connects to public.
+      void this.router.navigateByUrl('/');
     });
   }
 
   /**
    * ==========================================================
    * OPEN CHAT SESSION
-   * Redirects the user to /private/:code in the same browser tab.
+   * Navigates to /private/:code. Cross-route transitions (public -> private)
+   * destroy/recreate the component; only same-route /private/A -> /private/B
+   * goes through the paramMap -> enterSession() path.
    * ==========================================================
    */
   private openChatSession(code: string): void {
@@ -1272,46 +1402,26 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
 
-    if (this.SessionCode) {
-      // Close all WebRTC connections
-      this.webrtcService.closeAllConnections();
+    if (!isPlatformBrowser(this.platformId)) return;
 
-      // Clear all state
-      this.clearSessionCode();
-      this.clearMessages();
-      this.members = [];
-      this.rooms = [];
-      this.activeUploads = [];
-      this.activeDownloads = [];
-      this.overrideRecipients = null;
-
-      // Disconnect WebSocket
-      this.wsConnectionService.disconnect();
-
-      // Reset room to default
-      this.currentRoom = 'main';
+    const sanitizedCode = this.sessionService.sanitizeSessionCode(code);
+    if (sanitizedCode === this.SessionCode) {
+      this.logger.debug('openChatSession', `Already in session: ${sanitizedCode}`);
+      return;
     }
 
-    if (isPlatformBrowser(this.platformId)) {
-      this.logger.debug('openChatSession', `Opening chat session with code: ${code}`);
-      this.ngZone.run(() => {
-        this.isNavigatingIntentionally = true;
-        this.cdr.detectChanges();
-      });
+    this.logger.debug('openChatSession', `Opening chat session with code: ${sanitizedCode}`);
 
-      const sanitizedCode = this.sessionService.sanitizeSessionCode(code);
-      localStorage.setItem(SESSION_CODE_KEY, sanitizedCode);
-
-      // Clear any existing navigation timeout
-      if (this.navigationTimeout) {
-        clearTimeout(this.navigationTimeout);
-      }
-
-      this.navigationTimeout = setTimeout(() => {
-        this.navigationTimeout = null;
-        window.open(`/private/${sanitizedCode}`, '_self');
-      }, NAVIGATION_DELAY_MS);
+    if (this.navigationTimeout) {
+      clearTimeout(this.navigationTimeout);
     }
+
+    // Small delay so the popup close animation and toast can render before
+    // the URL change kicks off the session-transition pipeline.
+    this.navigationTimeout = setTimeout(() => {
+      this.navigationTimeout = null;
+      void this.router.navigateByUrl(`/private/${sanitizedCode}`);
+    }, NAVIGATION_DELAY_MS);
   }
 
   /**
@@ -1375,6 +1485,16 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   /**
+   * The browser hides the HTTP status of a failed WS upgrade, so a join
+   * failure could be a bad code or an unreachable server — toast covers both.
+   */
+  private fallbackToPublic(): void {
+    this.clearSessionCode();
+    this.toaster.error(this.translate.instant('SESSION_JOIN_FAILED'));
+    void this.router.navigateByUrl('/');
+  }
+
+  /**
    * ==========================================================
    * WAIT FOR FILE TRANSFER CONNECTION
    * Waits for WebRTC connection to be ready for file transfer with retry logic
@@ -1412,17 +1532,23 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
    * ==========================================================
    */
   private initiateConnectionsWithMembers(): void {
+    // Clear any existing connection initialization timeouts before reacting
+    // to the latest membership snapshot.
+    this.connectionInitTimeouts.forEach((timeout) => clearTimeout(timeout));
+    this.connectionInitTimeouts = [];
+
     if (!this.members || this.members.length === 0) {
       this.logger.info(
         'initiateConnectionsWithMembers',
         'No members in the room, skipping WebRTC.'
       );
+
+      if (this.statusCheckIntervalId) {
+        clearInterval(this.statusCheckIntervalId);
+        this.statusCheckIntervalId = null;
+      }
       return;
     }
-
-    // Clear any existing connection initialization timeouts
-    this.connectionInitTimeouts.forEach((timeout) => clearTimeout(timeout));
-    this.connectionInitTimeouts = [];
 
     this.logger.info('initiateConnectionsWithMembers', 'Initiating connections with other members');
 

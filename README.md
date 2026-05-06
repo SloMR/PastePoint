@@ -10,7 +10,7 @@
 
 # PastePoint
 
-PastePoint is a secure, feature-rich file-sharing service designed for local networks. It enables users to share files and communicate efficiently through peer-to-peer WebRTC connections. Built with a Rust-based backend using Actix Web and an Angular frontend with SSR support, PastePoint prioritizes security, performance, and usability.
+PastePoint is a secure, feature-rich file-sharing service designed for local networks. It enables users to share files and communicate efficiently through peer-to-peer WebRTC connections. Built with a Rust-based backend using Actix Web and an Angular 21 frontend with SSR support, PastePoint prioritizes security, performance, and usability.
 
 ## Usage Disclaimer
 
@@ -24,7 +24,10 @@ PastePoint is a secure, feature-rich file-sharing service designed for local net
 
   - Establish WebSocket-based local chat between computers on the same network
   - List available sessions, create new sessions, or join existing ones
+  - Multiple rooms within a session — create, list, and switch between rooms
+  - QR code session sharing — generate a code from one device and scan it from another to join instantly
   - Real-time messaging with emoji support and dark/light theme
+  - Resilient WebSocket signaling with automatic reconnect, heartbeat, and bfcache support
 
 - **File Sharing**:
 
@@ -62,10 +65,10 @@ PastePoint is a secure, feature-rich file-sharing service designed for local net
 
 ### Server (Rust)
 
-[![Actix](https://img.shields.io/badge/Actix-4.7-blue)](https://actix.rs/)
+[![Actix](https://img.shields.io/badge/Actix-4.13-blue)](https://actix.rs/)
 [![OpenSSL](https://img.shields.io/badge/OpenSSL-0.10-yellow)](https://www.openssl.org/)
 
-- **Framework**: Actix Web with WebSocket support
+- **Framework**: Actix Web with WebSocket support (Rust edition 2024, toolchain 1.93.1)
 - **Security**: OpenSSL for TLS termination
 - **Utilities**: UUID generation, Serde serialization
 - **Rate Limiting**: Actix-governor for request throttling
@@ -74,22 +77,24 @@ PastePoint is a secure, feature-rich file-sharing service designed for local net
 
 #### Web (Angular)
 
-[![Angular](https://img.shields.io/badge/Angular-19-red)](https://angular.io/)
+[![Angular](https://img.shields.io/badge/Angular-21-red)](https://angular.io/)
 [![Tailwind](https://img.shields.io/badge/Tailwind-3.4-blue)](https://tailwindcss.com/)
-[![Flowbite](https://img.shields.io/badge/Flowbite-3.0-cyan)](https://flowbite.com/)
+[![Flowbite](https://img.shields.io/badge/Flowbite-3.1-cyan)](https://flowbite.com/)
 
-- **Rendering**: Server-Side Rendering with Angular Universal
+- **Rendering**: Server-Side Rendering with Angular SSR
 - **State Management**: RxJS observables
 - **Styling**: Tailwind CSS with dark mode
-- **I18n**: ngx-translate integration (English, Arabic) (WIP)
+- **I18n**: ngx-translate integration (English, Arabic with RTL)
 - **WebRTC**: Native WebRTC API for file transfers
+- **QR Sharing**: `qrcode` for generation, `jsqr` for camera-based scanning
+- **Integrity**: `hash-wasm` for fast file hashing
 - **Notifications**: Hot-toast for real-time feedback
 
 ### Infrastructure
 
 [![Nginx](https://img.shields.io/badge/Nginx-Reverse_Proxy-green)](https://nginx.org)
 [![Docker](https://img.shields.io/badge/Docker-24.0-blue)](https://www.docker.com)
-[![Express](https://img.shields.io/badge/Express-4.21-purple)](https://expressjs.com/)
+[![Express](https://img.shields.io/badge/Express-4.22-purple)](https://expressjs.com/)
 
 - **Container Orchestration**: Docker Compose with multi-stage builds
 - **Reverse Proxy**: Nginx with enhanced security features
@@ -103,8 +108,7 @@ PastePoint is a secure, feature-rich file-sharing service designed for local net
 pastepoint/
 ├── client/                         # Frontend clients
 │   ├── web/                        # Angular SSR frontend
-│   ├── ios/                        # iOS client (WIP)
-│   └── android/                    # Android client (WIP)
+│   └── ios/                        # iOS client (WIP)
 ├── server/                         # Rust backend with WebSockets
 ├── nginx/                          # Reverse proxy & SSL termination
 ├── scripts/                        # Development & deployment scripts
@@ -131,7 +135,7 @@ pastepoint/
 
 ##### Android:
 
-- Work in progress
+- Planned
 
 #### Deployment:
 
@@ -162,7 +166,7 @@ pastepoint/
 
 - Docker and Docker Compose
 - Node.js (v22.14.0 as specified in `.nvmrc`)
-- Rust (stable, specified in `rust-toolchain`)
+- Rust 1.93.1 (specified in `rust-toolchain`, edition 2024)
 
 #### Windows-Specific Requirements:
 
@@ -205,9 +209,9 @@ pastepoint/
    - Frontend:
      - Localhost: [https://localhost](https://localhost)
      - Local Network: `https://<your-local-ip>`
-   - Server API:
-     - Localhost: [https://localhost:9000](https://localhost:9000)
-     - Local Network: `https://<your-local-ip>:9000`
+   - WebSocket signaling:
+     - Localhost: `wss://localhost:9000/ws`
+     - Local Network: `wss://<your-local-ip>:9000/ws`
 
 ## Contributing
 

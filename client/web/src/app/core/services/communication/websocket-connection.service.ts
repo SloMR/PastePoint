@@ -178,6 +178,21 @@ export class WebSocketConnectionService implements OnDestroy {
       const socket = new WebSocket(wsUri);
       this.socket = socket;
 
+      // Settle once — onclose may fire without onopen/onerror, e.g. when a
+      // concurrent disconnect replaces this.socket and the stale-event guards
+      // below skip the natural reject path.
+      let settled = false;
+      const settleResolve = () => {
+        if (settled) return;
+        settled = true;
+        resolve();
+      };
+      const settleReject = (err: unknown) => {
+        if (settled) return;
+        settled = true;
+        reject(err);
+      };
+
       socket.onopen = () => {
         if (socket !== this.socket) return;
         this.logger.info('connect', 'WebSocket connected');
@@ -188,7 +203,7 @@ export class WebSocketConnectionService implements OnDestroy {
         this.reconnectDelay = 1000;
         this.isConnecting = false;
         this.startKeepAlive();
-        resolve();
+        settleResolve();
       };
 
       socket.onmessage = (ev) => {
@@ -219,6 +234,10 @@ export class WebSocketConnectionService implements OnDestroy {
       };
 
       socket.onclose = (event) => {
+        // Must run before the stale-event guard — the promise belongs to
+        // this socket, even if it's already been replaced.
+        settleReject(new Error(`WebSocket closed before opening (code ${event.code})`));
+
         // Ignore stale close events from a socket that has already been replaced.
         // Without this guard, a late-firing onclose from a previous socket would
         // null-out the current `this.socket` and trigger a phantom reconnect,
@@ -265,10 +284,7 @@ export class WebSocketConnectionService implements OnDestroy {
         this.isConnecting = false;
         this.stopKeepAlive();
         this.socket = undefined;
-        if (this.reconnectAttempts === 0 && !this.manualDisconnect) {
-          this.toaster.error(this.translate.instant('SERVER_CONNECTION_FAILED'));
-        }
-        reject(error);
+        settleReject(error);
       };
     });
   }

@@ -239,6 +239,26 @@ export class WebRTCSignalingService {
   }
 
   /**
+   * Stronger than closePeerConnection — also cancels pending retries and
+   * queued requests. Use when the peer is gone for good (left the room).
+   */
+  public closeConnection(targetUser: string): void {
+    this.closePeerConnection(targetUser, true);
+
+    this.connectionLocks.delete(targetUser);
+    this.reconnectAttempts.delete(targetUser);
+    this.lastSequences.delete(targetUser);
+
+    const reconnectionTimeout = this.reconnectionTimeouts.get(targetUser);
+    if (reconnectionTimeout) {
+      clearTimeout(reconnectionTimeout);
+      this.reconnectionTimeouts.delete(targetUser);
+    }
+
+    this.communicationService.deleteMessageQueue(targetUser);
+  }
+
+  /**
    * Closes a peer connection with the target user
    * @param targetUser The user to disconnect from
    * @param force Whether to force close the connection
@@ -246,8 +266,8 @@ export class WebRTCSignalingService {
   public closePeerConnection(targetUser: string, force = false) {
     const peerConnection = this.peerConnections.get(targetUser);
     if (peerConnection) {
-      peerConnection.close();
       this.peerConnections.delete(targetUser);
+      peerConnection.close();
     }
 
     // Clear connection request timeout
@@ -286,7 +306,9 @@ export class WebRTCSignalingService {
       peerConnection.close();
     });
     this.peerConnections.clear();
+    this.connectionLocks.clear();
     this.reconnectAttempts.clear();
+    this.lastSequences.clear();
     this.candidateQueues.clear();
     this.collectedCandidates.clear();
 
@@ -923,7 +945,6 @@ export class WebRTCSignalingService {
     this.logger.info('reconnect', `Reconnecting WebRTC with ${targetUser}...`);
 
     this.closePeerConnection(targetUser, true);
-    this.reconnectAttempts.set(targetUser, 0);
     this.initiateConnection(targetUser);
   }
 

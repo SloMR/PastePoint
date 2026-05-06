@@ -134,6 +134,7 @@
   "CANNOT_CONNECT_TO_USER": "تعذّر الاتصال بالمستخدم {{userName}}. قد لا يكون متصلاً.",
   "CONNECTION_CLOSED_WITH_USER": "تم إغلاق الاتصال مع المستخدم {{userName}}.",
   "SERVER_CONNECTION_FAILED": "فشل الاتصال بالخادم. يرجى التحقق من اتصال الإنترنت.",
+  "SESSION_JOIN_FAILED": "تعذر الانضمام إلى الجلسة. قد يكون الرمز غير صالح أو منتهي الصلاحية، أو أن الخادم غير متاح.",
   "SERVER_CONNECTION_LOST_PERMANENTLY": "تم فقد الاتصال بالخادم. يرجى تحديث الصفحة.",
   "RECONNECTING_TO_SERVER": "جارٍ إعادة الاتصال بالخادم...",
   "CANCELLED": "تم الإلغاء",
