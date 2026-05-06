@@ -1,4 +1,4 @@
-import { LanguageCode } from '../i18n/translate-loader';
+import { LanguageCode } from '../i18n/languages';
 
 export interface ILanguageService {
   initializeLanguage(): void;

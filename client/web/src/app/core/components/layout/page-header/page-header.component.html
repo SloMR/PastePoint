@@ -40,12 +40,10 @@
         </div>
 
         <!-- language switcher -->
-        <div
-          (click)="switchLanguage.emit(currentLanguage === 'ar' ? 'en' : 'ar')"
-          class="flex cursor-pointer items-center justify-center gap-4 rounded-lg border text-brand w-[44px] h-[44px] border-borderButton dark:bg-surfaceDark dark:border-borderDark md:w-[56px] md:h-[56px]"
-        >
-          {{ currentLanguage | uppercase }}
-        </div>
+        <app-language-switcher
+          [current]="currentLanguage"
+          (change)="switchLanguage.emit($event)"
+        />
       </div>
     </div>
   </div>
