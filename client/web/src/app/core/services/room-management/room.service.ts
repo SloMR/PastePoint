@@ -45,6 +45,20 @@ export class RoomService implements IRoomService {
     this.wsService.send('[UserCommand] /list');
   }
 
+  /**
+   * Clears all session-scoped state. Called during session transitions
+   * (entering/leaving a private session) so the singleton's BehaviorSubjects
+   * don't replay stale members/rooms from the previous session into the
+   * newly-mounted view.
+   */
+  public reset(): void {
+    this.ngZone.run(() => {
+      this.rooms$.next([]);
+      this.members$.next([]);
+      this.currentRoom = 'main';
+    });
+  }
+
   public joinRoom(room: string): void {
     const sanitizedRoom = room
       .replace(/[^a-zA-Z0-9\-_ ]/g, '')
