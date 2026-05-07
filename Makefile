@@ -10,8 +10,9 @@ export COMPOSE_DOCKER_CLI_BUILD=1
 # Production environment (default)
 prod:
 	@echo "Starting production environment..."
-	docker compose build --parallel
-	docker compose up --force-recreate -d
+	@test -f .env.production || (echo "Error: .env.production not found. Copy .env.production.example to .env.production on this host and fill in real values." && exit 1)
+	docker compose --env-file .env.production build --parallel
+	docker compose --env-file .env.production up --force-recreate -d
 	@echo "Production services are starting. View logs with: make logs"
 
 # Development environment
