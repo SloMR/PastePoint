@@ -1,11 +1,13 @@
 import {
   ApplicationConfig,
+  ErrorHandler,
   importProvidersFrom,
   inject,
   provideAppInitializer,
   provideZoneChangeDetection,
 } from '@angular/core';
 import { provideRouter, withPreloading } from '@angular/router';
+import * as Sentry from '@sentry/angular';
 
 import { routes } from './app.routes';
 import { SelectivePreloadingStrategy } from './core/services/ui/selective-preloading.strategy';
@@ -42,6 +44,10 @@ export function initializeLanguage(languageService: LanguageService): () => Prom
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    {
+      provide: ErrorHandler,
+      useValue: Sentry.createErrorHandler({ showDialog: false }),
+    },
     provideHttpClient(withFetch()),
     provideZoneChangeDetection({ eventCoalescing: true, runCoalescing: true }),
     provideRouter(routes, withPreloading(SelectivePreloadingStrategy)),

@@ -7,4 +7,9 @@ export const environment = {
   enableSourceMaps: false,
   disableFileDetails: true,
   disableConsoleLogging: true,
+  sentry: {
+    enabled: true,
+    dsn: '',
+    environment: 'production',
+  },
 };
