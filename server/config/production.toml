@@ -7,3 +7,10 @@ rate_limit_per_second = 50
 rate_limit_burst_size = 100
 log_level = "info"
 cors_allowed_origins = "https://pastepoint.com"
+
+[sentry]
+# DSN is read from the SENTRY_DSN env var, never committed.
+# SENTRY_ENABLED env var overrides `enabled` below.
+enabled = true
+environment = "production"
+sample_rate = 1.0
