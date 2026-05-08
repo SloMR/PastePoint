@@ -1,5 +1,8 @@
 .DS_Store
 .env
+.env.development
+.env.production
+.env.*.local
 target/*
 node_modules/*
 certs/*

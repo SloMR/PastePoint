@@ -21,7 +21,6 @@ PastePoint is a secure, feature-rich file-sharing service designed for local net
 ### Core Features:
 
 - **Local Network Communication**:
-
   - Establish WebSocket-based local chat between computers on the same network
   - List available sessions, create new sessions, or join existing ones
   - Multiple rooms within a session — create, list, and switch between rooms
@@ -30,18 +29,21 @@ PastePoint is a secure, feature-rich file-sharing service designed for local net
   - Resilient WebSocket signaling with automatic reconnect, heartbeat, and bfcache support
 
 - **File Sharing**:
-
   - Peer-to-peer WebRTC connections for secure file transfers
   - Drag & drop file upload with real-time progress tracking
   - File offer system with accept/decline options
   - Chunk-based file transfer with progress tracking and cancellation support
 
 - **Security**:
-
   - End-to-end encryption for all file transfers via WebRTC
   - SSL/TLS encryption for WebSocket signaling
   - Self-signed certificate generation included
   - Input validation and rate limiting
+
+- **Observability**:
+  - Optional Sentry-based error tracking (EU-hosted, off by default in dev)
+  - Privacy-tight defaults: no IPs, no geo, no request bodies, no user identifiers
+  - Toggle per-environment via `SENTRY_ENABLED` / `SENTRY_DSN` (server: runtime env vars; web: built into the bundle from `client/web/src/environments/environment.*.ts` at compile time)
 
 - **Cross-Platform Compatibility**:
   - Runs seamlessly on Linux, macOS, and Windows with Dockerized support
@@ -72,6 +74,7 @@ PastePoint is a secure, feature-rich file-sharing service designed for local net
 - **Security**: OpenSSL for TLS termination
 - **Utilities**: UUID generation, Serde serialization
 - **Rate Limiting**: Actix-governor for request throttling
+- **Error Tracking**: `sentry` + `sentry-actix` with privacy-tight redaction
 
 ### Clients
 
@@ -89,6 +92,7 @@ PastePoint is a secure, feature-rich file-sharing service designed for local net
 - **QR Sharing**: `qrcode` for generation, `jsqr` for camera-based scanning
 - **Integrity**: `hash-wasm` for fast file hashing
 - **Notifications**: Hot-toast for real-time feedback
+- **Error Tracking**: `@sentry/angular` with privacy-tight redaction
 
 ### Infrastructure
 
@@ -197,13 +201,32 @@ pastepoint/
    ./scripts/configure-network.sh
    ```
 
-   This will prompt you to enter your local IP address and update all necessary configuration files.
+   The script will create `.env.development` from the committed template if it
+   doesn't already exist, then prompt for your local IP and update all
+   necessary configuration files. To bootstrap the environment manually:
+
+   ```bash
+   cp .env.development.example .env.development
+   ```
 
 4. Build and Start Services:
 
    ```bash
-   make dev # or make prod
+   make dev   # uses .env.development (gitignored, machine-local)
+   make prod  # uses .env.production (gitignored, host-local — see below)
    ```
+
+   For production deploys, one-time setup:
+
+   ```bash
+   cp .env.production.example .env.production
+   chmod 600 .env.production
+   # edit .env.production: SERVER_NAME, SENTRY_DSN, etc.
+   ```
+
+   Real DSNs and host-specific values live only in the gitignored
+   `.env.development` / `.env.production` files. The committed `.example`
+   templates document which variables exist.
 
 5. Access PastePoint:
    - Frontend:
@@ -227,7 +250,6 @@ pastepoint/
 ## Security Considerations
 
 - **Certificate Management**:
-
   - Replace self-signed certificates with proper SSL certificates in production
   - Keep private keys secure and never commit them to version control
 
@@ -235,6 +257,10 @@ pastepoint/
   - All file transfers are encrypted end-to-end via WebRTC
   - No data is stored permanently on servers
   - Session data is cleared on server restart or leaving the session
+
+- **Error Diagnostics (Sentry)**:
+  - Server and web SDKs scrub: user identifiers, IP addresses, geo,
+    request bodies, headers, cookies, query strings, locale, timezone
 
 ## License
 

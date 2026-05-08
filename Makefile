@@ -7,16 +7,23 @@
 export DOCKER_BUILDKIT=1
 export COMPOSE_DOCKER_CLI_BUILD=1
 
+# Env file used by read-only targets (logs/down/stop). Auto-detects whichever
+# file exists; prefers .env.development on dev machines that have both.
+# Override explicitly: `make logs ENV_FILE=.env.production`
+ENV_FILE ?= $(firstword $(wildcard .env.development .env.production))
+
 # Production environment (default)
 prod:
 	@echo "Starting production environment..."
-	docker compose build --parallel
-	docker compose up --force-recreate -d
+	@test -f .env.production || (echo "Error: .env.production not found. Copy .env.production.example to .env.production on this host and fill in real values." && exit 1)
+	docker compose --env-file .env.production build --parallel
+	docker compose --env-file .env.production up --force-recreate -d
 	@echo "Production services are starting. View logs with: make logs"
 
 # Development environment
 dev:
 	@echo "Starting development environment..."
+	@test -f .env.development || (echo "Error: .env.development not found. Copy .env.development.example to .env.development and configure it." && exit 1)
 	docker compose --env-file .env.development build --parallel
 	docker compose --env-file .env.development up --force-recreate -d
 	@echo "Development services are starting. View logs with: make logs"
@@ -24,17 +31,20 @@ dev:
 # Stop and remove PastePoint containers
 down:
 	@echo "Stopping and removing PastePoint services..."
-	docker compose down
+	@test -n "$(ENV_FILE)" || (echo "Error: no .env.development or .env.production found." && exit 1)
+	docker compose --env-file $(ENV_FILE) down
 
 # Stop PastePoint containers without removing them
 stop:
 	@echo "Stopping PastePoint services..."
-	docker compose stop
+	@test -n "$(ENV_FILE)" || (echo "Error: no .env.development or .env.production found." && exit 1)
+	docker compose --env-file $(ENV_FILE) stop
 
 # View logs
 logs:
 	@echo "Viewing logs (Ctrl+C to exit)..."
-	docker compose logs -f
+	@test -n "$(ENV_FILE)" || (echo "Error: no .env.development or .env.production found." && exit 1)
+	docker compose --env-file $(ENV_FILE) logs -f
 
 # Generate certificates (if needed)
 certs:

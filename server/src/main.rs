@@ -1,23 +1,114 @@
 use actix_cors::Cors;
 use actix_governor::{Governor, GovernorConfigBuilder};
 use actix_http::KeepAlive;
-use actix_web::{App, HttpServer, middleware::Logger, web::Data};
+use actix_web::{
+    App, HttpServer,
+    middleware::{Condition, Logger},
+    web::Data,
+};
 use openssl::ssl::{SslAcceptor, SslFiletype, SslMethod};
 use server::{
-    CORS_MAX_AGE, KEEP_ALIVE_INTERVAL, ServerConfig, SessionStore, chat_ws, create_session, health,
-    index, private_chat_ws,
+    CORS_MAX_AGE, KEEP_ALIVE_INTERVAL, SentryConfig, ServerConfig, SessionStore, chat_ws,
+    create_session, health, index, private_chat_ws,
 };
+use std::borrow::Cow;
 use std::io::Result;
+use std::net::{IpAddr, Ipv4Addr};
+use std::sync::Arc;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 const NAME: &str = env!("CARGO_PKG_NAME");
 const AUTHORS: &str = env!("CARGO_PKG_AUTHORS");
 
+fn init_sentry(cfg: &SentryConfig) -> Option<sentry::ClientInitGuard> {
+    if !cfg.enabled {
+        return None;
+    }
+    let dsn = std::env::var("SENTRY_DSN").ok().filter(|s| !s.is_empty())?;
+
+    let global_traces_rate = cfg.traces_sample_rate;
+    let options = sentry::ClientOptions {
+        release: sentry::release_name!(),
+        environment: cfg.environment.clone().map(Cow::Owned),
+        sample_rate: cfg.sample_rate,
+        traces_sample_rate: cfg.traces_sample_rate,
+        enable_logs: true,
+        server_name: Some(Cow::Borrowed("pastepoint-server")),
+        traces_sampler: Some(Arc::new(move |ctx| match ctx.name() {
+            "signaling.relay" => 0.01,
+            name if name.starts_with("GET /ws") => 0.0,
+            _ => global_traces_rate,
+        })),
+        send_default_pii: false,
+        attach_stacktrace: true,
+        max_breadcrumbs: 50,
+        before_send: Some(Arc::new(|mut event| {
+            // Strip anything that could carry user-identifying data before the
+            // event leaves the process.
+            event.user = Some(sentry::protocol::User {
+                ip_address: Some(sentry::protocol::IpAddress::Exact(IpAddr::V4(
+                    Ipv4Addr::LOCALHOST,
+                ))),
+                ..Default::default()
+            });
+            event.server_name = None;
+            if let Some(req) = event.request.as_mut() {
+                req.cookies = None;
+                req.headers.clear();
+                req.data = None;
+                req.query_string = None;
+            }
+            Some(event)
+        })),
+        ..Default::default()
+    };
+
+    let guard = sentry::init((dsn, options));
+    sentry::configure_scope(|scope| {
+        scope.set_user(Some(sentry::protocol::User {
+            ip_address: Some(sentry::protocol::IpAddress::Exact(IpAddr::V4(
+                Ipv4Addr::LOCALHOST,
+            ))),
+            ..Default::default()
+        }));
+    });
+
+    Some(guard)
+}
+
 #[actix_web::main]
 async fn main() -> Result<()> {
+    let sentry_cfg = SentryConfig::load();
+    let _sentry_guard = init_sentry(&sentry_cfg);
+
     let config = ServerConfig::load(None).expect("Failed to load server configuration");
 
-    env_logger::init_from_env(env_logger::Env::new().default_filter_or(&config.log_level));
+    let log_filter = format!(
+        "{lvl},reqwest=warn,hyper=warn,hyper_util=warn,h2=warn,rustls=warn,tokio_util=warn",
+        lvl = config.log_level
+    );
+
+    let env_logger_logger =
+        env_logger::Builder::from_env(env_logger::Env::new().default_filter_or(log_filter)).build();
+    let max_level = env_logger_logger.filter();
+    let sentry_logger = sentry::integrations::log::SentryLogger::with_dest(env_logger_logger)
+        .filter(|md| match md.level() {
+            log::Level::Error => sentry::integrations::log::LogFilter::Exception,
+            log::Level::Warn => {
+                sentry::integrations::log::LogFilter::Log
+                    | sentry::integrations::log::LogFilter::Breadcrumb
+            }
+            log::Level::Info => sentry::integrations::log::LogFilter::Breadcrumb,
+            log::Level::Debug | log::Level::Trace => sentry::integrations::log::LogFilter::Ignore,
+        });
+    log::set_boxed_logger(Box::new(sentry_logger)).expect("Failed to set logger");
+    log::set_max_level(max_level);
+
+    if _sentry_guard.is_some() {
+        log::info!(target: "Websocket", "Sentry error reporting enabled");
+    } else {
+        log::debug!(target: "Websocket", "Sentry error reporting disabled");
+    }
     let governor_conf = GovernorConfigBuilder::default()
         .requests_per_second(config.rate_limit_per_second)
         .burst_size(config.rate_limit_burst_size)
@@ -51,6 +142,7 @@ async fn main() -> Result<()> {
 
     let session_manager = Data::new(SessionStore::default());
     let server_config = Data::new(config.clone());
+    let sentry_enabled = _sentry_guard.is_some();
 
     HttpServer::new(move || {
         let server_config = server_config.clone();
@@ -65,6 +157,10 @@ async fn main() -> Result<()> {
             .wrap(Governor::new(&governor_conf))
             .wrap(Logger::default())
             .wrap(cors)
+            .wrap(Condition::new(
+                sentry_enabled,
+                sentry_actix::Sentry::with_transaction(),
+            ))
             .app_data(session_manager.clone())
             .app_data(server_config_for_app)
             .service(index)

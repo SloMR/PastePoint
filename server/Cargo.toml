@@ -31,6 +31,8 @@ rand = "0.10.1"
 bytes = "1.11.1"
 config = "0.15.22"
 url = "2.5.8"
+sentry = { version = "0.48", features = ["log", "logs"] }
+sentry-actix = "0.48"
 
 [dev-dependencies]
 actix-test = "0.1.5"

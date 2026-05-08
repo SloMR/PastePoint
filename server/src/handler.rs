@@ -98,6 +98,13 @@ impl Handler<RelaySignalMessage> for WsChatServer {
     type Result = ();
 
     fn handle(&mut self, msg: RelaySignalMessage, _ctx: &mut Self::Context) {
+        let tx = sentry::Hub::current().client().map(|_| {
+            sentry::start_transaction(sentry::TransactionContext::new(
+                "signaling.relay",
+                "websocket.signal",
+            ))
+        });
+
         let RelaySignalMessage {
             session_id,
             from,
@@ -110,10 +117,18 @@ impl Handler<RelaySignalMessage> for WsChatServer {
                 target: "Websocket",
                 "Skipping self-to-self signal from '{from}' to '{to}'"
             );
+            if let Some(tx) = tx {
+                tx.set_status(sentry::protocol::SpanStatus::Ok);
+                tx.finish();
+            }
             return;
         }
 
         self.relay_message_to_user(&session_id, &to, message, &from);
+        if let Some(tx) = tx {
+            tx.set_status(sentry::protocol::SpanStatus::Ok);
+            tx.finish();
+        }
     }
 }
 
@@ -132,6 +147,13 @@ impl Handler<ValidateAndRelaySignal> for WsChatServer {
     type Result = ();
 
     fn handle(&mut self, msg: ValidateAndRelaySignal, _ctx: &mut Self::Context) -> Self::Result {
+        let tx = sentry::Hub::current().client().map(|_| {
+            sentry::start_transaction(sentry::TransactionContext::new(
+                "signaling.relay",
+                "websocket.signal",
+            ))
+        });
+
         let shared_room = self.users_share_room(&msg.session_id, &msg.from_user, &msg.to_user);
 
         if !shared_room {
@@ -141,10 +163,18 @@ impl Handler<ValidateAndRelaySignal> for WsChatServer {
                 msg.from_user,
                 msg.to_user
             );
+            if let Some(tx) = tx {
+                tx.set_status(sentry::protocol::SpanStatus::PermissionDenied);
+                tx.finish();
+            }
             return;
         }
 
         let relay_msg = ChatMessage(format!("{} {}", WS_PREFIX_SIGNAL_MESSAGE, msg.payload));
         self.relay_message_to_user(&msg.session_id, &msg.to_user, relay_msg, &msg.from_user);
+        if let Some(tx) = tx {
+            tx.set_status(sentry::protocol::SpanStatus::Ok);
+            tx.finish();
+        }
     }
 }

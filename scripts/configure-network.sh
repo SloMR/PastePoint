@@ -56,6 +56,19 @@ update_file() {
     echo "Updated $file"
 }
 
+# Bootstrap .env.development from the example template if missing.
+# .env.development is gitignored, so a fresh checkout won't have it.
+ENV_FILE="$PROJECT_ROOT/.env.development"
+ENV_EXAMPLE="$PROJECT_ROOT/.env.development.example"
+if [ ! -f "$ENV_FILE" ]; then
+    if [ ! -f "$ENV_EXAMPLE" ]; then
+        echo "Error: $ENV_EXAMPLE not found"
+        exit 1
+    fi
+    cp "$ENV_EXAMPLE" "$ENV_FILE"
+    echo "Created $ENV_FILE from $ENV_EXAMPLE"
+fi
+
 # Get local IP address
 echo "Please enter your local IP address (e.g., 192.168.1.100):"
 read -r local_ip

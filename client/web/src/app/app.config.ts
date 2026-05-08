@@ -1,11 +1,14 @@
 import {
   ApplicationConfig,
+  ErrorHandler,
   importProvidersFrom,
   inject,
   provideAppInitializer,
   provideZoneChangeDetection,
 } from '@angular/core';
 import { provideRouter, withPreloading } from '@angular/router';
+import { Router } from '@angular/router';
+import * as Sentry from '@sentry/angular';
 
 import { routes } from './app.routes';
 import { SelectivePreloadingStrategy } from './core/services/ui/selective-preloading.strategy';
@@ -15,10 +18,11 @@ import { InMemoryTranslateLoader } from './core/i18n/translate-loader';
 import { ThemeService } from './core/services/ui/theme.service';
 import { LanguageService } from './core/services/ui/language.service';
 import { provideHttpClient, withFetch } from '@angular/common/http';
-import { LoggerModule } from 'ngx-logger';
+import { LoggerModule, NGXLogger } from 'ngx-logger';
 import { environment } from '../environments/environment';
 import { DatePipe } from '@angular/common';
 import { provideHotToastConfig } from '@ngxpert/hot-toast';
+import { SentryLoggerMonitor } from './core/services/monitoring/sentry-logger-monitor';
 
 // Theme initialization function
 export function initializeTheme(themeService: ThemeService): () => Promise<void> {
@@ -42,6 +46,12 @@ export function initializeLanguage(languageService: LanguageService): () => Prom
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    {
+      provide: ErrorHandler,
+      useValue: Sentry.createErrorHandler({ showDialog: false }),
+    },
+    { provide: Sentry.TraceService, deps: [Router] },
+    provideAppInitializer(() => void inject(Sentry.TraceService)),
     provideHttpClient(withFetch()),
     provideZoneChangeDetection({ eventCoalescing: true, runCoalescing: true }),
     provideRouter(routes, withPreloading(SelectivePreloadingStrategy)),
@@ -73,12 +83,20 @@ export const appConfig: ApplicationConfig = {
       LoggerModule.forRoot({
         level: environment.logLevel,
         timestampFormat: 'yyyy-MM-dd HH:mm:ss',
-        enableSourceMaps: environment.enableSourceMaps,
+        enableSourceMaps: typeof window !== 'undefined' && environment.enableSourceMaps,
         disableFileDetails: environment.disableFileDetails,
         disableConsoleLogging: environment.disableConsoleLogging,
       })
     ),
     DatePipe,
+    // Forward ngx-logger output to Sentry (when Sentry is initialized).
+    // Registered as an app initializer so it's wired up before any logs flow.
+    provideAppInitializer(() => {
+      if (environment.sentry?.enabled && environment.sentry.dsn) {
+        const logger = inject(NGXLogger);
+        logger.registerMonitor(new SentryLoggerMonitor());
+      }
+    }),
     // Initialize theme on app startup using app initializer
     provideAppInitializer(() => {
       const themeService = inject(ThemeService);

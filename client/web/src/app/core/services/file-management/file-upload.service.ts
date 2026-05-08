@@ -1,4 +1,6 @@
 import { Injectable, inject } from '@angular/core';
+import * as Sentry from '@sentry/angular';
+import { startNewTrace } from '@sentry/core';
 import {
   FileUpload,
   CHUNK_SIZE,
@@ -436,6 +438,15 @@ export class FileUploadService extends FileTransferBaseService {
    * Each chunk contains embedded fileId, eliminating chunk mismatching.
    */
   private async sendFileChunks(fileTransfer: FileUpload): Promise<void> {
+    return startNewTrace(() =>
+      Sentry.startSpan({ name: 'file.transfer.send', op: 'file.transfer.send' }, async (span) => {
+        span.setAttribute('file_size_bytes', fileTransfer.file.size);
+        return this.sendFileChunksInner(fileTransfer, span);
+      })
+    );
+  }
+
+  private async sendFileChunksInner(fileTransfer: FileUpload, span: Sentry.Span): Promise<void> {
     const transferId = this.getOrCreateStatusKey(fileTransfer.targetUser, fileTransfer.fileId);
     if (this.processingQueues.get(transferId)) {
       this.logger.warn(
@@ -555,6 +566,8 @@ export class FileUploadService extends FileTransferBaseService {
           this.consecutiveErrorCounts.set(transferId, errorCount + 1);
 
           if (errorCount >= this.maxConsecutiveErrors) {
+            span.setAttribute('outcome', 'aborted_max_errors');
+            span.setStatus({ code: 2, message: 'max_consecutive_errors' });
             await this.stopFileUpload(fileTransfer.targetUser, fileTransfer.fileId);
             break;
           }
@@ -568,6 +581,8 @@ export class FileUploadService extends FileTransferBaseService {
           'sendFileChunks',
           `Completed ${fileTransfer.fileId} to ${fileTransfer.targetUser}`
         );
+        span.setAttribute('outcome', 'completed');
+        span.setStatus({ code: 1, message: 'ok' });
         fileTransfer.progress = 100;
 
         const key = this.getOrCreateStatusKey(fileTransfer.targetUser, fileTransfer.fileId);

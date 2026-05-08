@@ -9,6 +9,54 @@ fn default_log_level() -> String {
     "debug".to_string()
 }
 
+fn default_sentry_sample_rate() -> f32 {
+    1.0
+}
+
+fn default_sentry_traces_sample_rate() -> f32 {
+    0.1
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct SentryConfig {
+    #[serde(default)]
+    pub enabled: bool,
+    #[serde(default)]
+    pub environment: Option<String>,
+    #[serde(default = "default_sentry_sample_rate")]
+    pub sample_rate: f32,
+    #[serde(default = "default_sentry_traces_sample_rate")]
+    pub traces_sample_rate: f32,
+}
+
+impl Default for SentryConfig {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            environment: None,
+            sample_rate: default_sentry_sample_rate(),
+            traces_sample_rate: default_sentry_traces_sample_rate(),
+        }
+    }
+}
+
+impl SentryConfig {
+    pub fn load() -> Self {
+        let environment = env::var("RUN_ENV").unwrap_or_else(|_| "development".to_string());
+
+        let mut cfg: Self = Config::builder()
+            .add_source(File::with_name(&format!("config/{environment}")).required(false))
+            .build()
+            .and_then(|s| s.get::<Self>("sentry"))
+            .unwrap_or_default();
+
+        if let Ok(v) = env::var("SENTRY_ENABLED") {
+            cfg.enabled = matches!(v.to_ascii_lowercase().as_str(), "true" | "1" | "yes");
+        }
+        cfg
+    }
+}
+
 #[derive(Clone, Debug, Deserialize)]
 pub struct ServerConfig {
     pub bind_address: String,

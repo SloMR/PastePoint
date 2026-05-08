@@ -7,4 +7,11 @@ export const environment = {
   enableSourceMaps: true,
   disableFileDetails: false,
   disableConsoleLogging: false,
+  sentry: {
+    enabled: false,
+    dsn: '',
+    environment: 'docker-dev',
+    tracesSampleRate: 0.1,
+    enableLogs: true,
+  },
 };

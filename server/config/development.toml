@@ -7,3 +7,11 @@ rate_limit_per_second = 100
 rate_limit_burst_size = 200
 log_level = "debug"
 cors_allowed_origins = "https://127.0.0.1"
+
+[sentry]
+# DSN is read from the SENTRY_DSN env var, never committed.
+# SENTRY_ENABLED env var overrides `enabled` below.
+enabled = false
+environment = "development"
+sample_rate = 1.0
+traces_sample_rate = 0.1
