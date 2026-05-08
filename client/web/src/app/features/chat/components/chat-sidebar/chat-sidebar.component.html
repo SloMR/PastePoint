@@ -325,7 +325,7 @@
                   <span
                     class="text-xs font-expoArabicMedium text-textMuted dark:text-textVeryMuted"
                   >
-                    {{ progressValue(upload.progress, 'upload', upload.fileId) | number: '1.0-0' }}%
+                    {{ progressValue(upload.progress) | number: '1.0-0' }}%
                   </span>
                   <button
                     (click)="
@@ -353,7 +353,7 @@
               >
                 <div
                   class="h-full rounded-full bg-brand dark:bg-brandDark transition-all duration-300 ease-out"
-                  [style.width]="getProgressBarWidth(upload.progress, 'upload', upload.fileId)"
+                  [style.width]="getProgressBarWidth(upload.progress)"
                   [style.max-width]="'100%'"
                 ></div>
               </div>
@@ -401,7 +401,7 @@
                     class="text-xs font-expoArabicMedium text-textMuted dark:text-textVeryMuted"
                   >
                     {{
-                      progressValue(download.progress, 'download', download.fileId)
+                      progressValue(download.progress)
                         | number: '1.0-0'
                     }}%
                   </span>
@@ -432,7 +432,7 @@
                 <div
                   class="h-full rounded-full bg-brand dark:bg-brandDark transition-all duration-300 ease-out"
                   [style.width]="
-                    getProgressBarWidth(download.progress, 'download', download.fileId)
+                    getProgressBarWidth(download.progress)
                   "
                   [style.max-width]="'100%'"
                 ></div>
@@ -835,7 +835,7 @@
                       class="text-xs font-expoArabicMedium text-textMuted dark:text-textVeryMuted"
                     >
                       {{
-                        progressValue(upload.progress, 'upload', upload.fileId) | number: '1.0-0'
+                        progressValue(upload.progress) | number: '1.0-0'
                       }}%
                     </span>
                     <button
@@ -864,7 +864,7 @@
                 >
                   <div
                     class="h-full rounded-full bg-brand dark:bg-brandDark transition-all duration-300 ease-out"
-                    [style.width]="getProgressBarWidth(upload.progress, 'upload', upload.fileId)"
+                    [style.width]="getProgressBarWidth(upload.progress)"
                     [style.max-width]="'100%'"
                   ></div>
                 </div>
@@ -912,7 +912,7 @@
                       class="text-xs font-expoArabicMedium text-textMuted dark:text-textVeryMuted"
                     >
                       {{
-                        progressValue(download.progress, 'download', download.fileId)
+                        progressValue(download.progress)
                           | number: '1.0-0'
                       }}%
                     </span>
@@ -943,7 +943,7 @@
                   <div
                     class="h-full rounded-full bg-brand dark:bg-brandDark transition-all duration-300 ease-out"
                     [style.width]="
-                      getProgressBarWidth(download.progress, 'download', download.fileId)
+                      getProgressBarWidth(download.progress)
                     "
                     [style.max-width]="'100%'"
                   ></div>
