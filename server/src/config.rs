@@ -13,6 +13,10 @@ fn default_sentry_sample_rate() -> f32 {
     1.0
 }
 
+fn default_sentry_traces_sample_rate() -> f32 {
+    0.1
+}
+
 #[derive(Clone, Debug, Deserialize)]
 pub struct SentryConfig {
     #[serde(default)]
@@ -21,6 +25,8 @@ pub struct SentryConfig {
     pub environment: Option<String>,
     #[serde(default = "default_sentry_sample_rate")]
     pub sample_rate: f32,
+    #[serde(default = "default_sentry_traces_sample_rate")]
+    pub traces_sample_rate: f32,
 }
 
 impl Default for SentryConfig {
@@ -29,6 +35,7 @@ impl Default for SentryConfig {
             enabled: false,
             environment: None,
             sample_rate: default_sentry_sample_rate(),
+            traces_sample_rate: default_sentry_traces_sample_rate(),
         }
     }
 }

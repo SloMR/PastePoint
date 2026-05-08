@@ -14,3 +14,4 @@ cors_allowed_origins = "https://pastepoint.com"
 enabled = true
 environment = "production"
 sample_rate = 1.0
+traces_sample_rate = 0.1

@@ -14,3 +14,4 @@ cors_allowed_origins = "https://127.0.0.1"
 enabled = false
 environment = "development"
 sample_rate = 1.0
+traces_sample_rate = 0.1

@@ -22,10 +22,18 @@ fn init_sentry(cfg: &SentryConfig) -> Option<sentry::ClientInitGuard> {
     }
     let dsn = std::env::var("SENTRY_DSN").ok().filter(|s| !s.is_empty())?;
 
+    let global_traces_rate = cfg.traces_sample_rate;
     let options = sentry::ClientOptions {
         release: sentry::release_name!(),
         environment: cfg.environment.clone().map(Cow::Owned),
         sample_rate: cfg.sample_rate,
+        traces_sample_rate: cfg.traces_sample_rate,
+        enable_logs: true,
+        server_name: Some(Cow::Borrowed("pastepoint-server")),
+        traces_sampler: Some(Arc::new(move |ctx| match ctx.name() {
+            "signaling.relay" => 0.01,
+            _ => global_traces_rate,
+        })),
         send_default_pii: false,
         attach_stacktrace: true,
         max_breadcrumbs: 50,
@@ -47,9 +55,15 @@ fn init_sentry(cfg: &SentryConfig) -> Option<sentry::ClientInitGuard> {
             }
             log::info!(
                 target: "Sentry",
-                "Captured event {} level={:?} message={:?}",
+                "Captured {} id={} level={:?} tx={:?} msg={:?}",
+                if event.transaction.is_some() && event.exception.values.is_empty() {
+                    "transaction"
+                } else {
+                    "event"
+                },
                 event.event_id,
                 event.level,
+                event.transaction.as_deref().unwrap_or("<none>"),
                 event.message.as_deref().unwrap_or("<none>")
             );
             Some(event)
@@ -57,7 +71,17 @@ fn init_sentry(cfg: &SentryConfig) -> Option<sentry::ClientInitGuard> {
         ..Default::default()
     };
 
-    Some(sentry::init((dsn, options)))
+    let guard = sentry::init((dsn, options));
+    sentry::configure_scope(|scope| {
+        scope.set_user(Some(sentry::protocol::User {
+            ip_address: Some(sentry::protocol::IpAddress::Exact(IpAddr::V4(
+                Ipv4Addr::LOCALHOST,
+            ))),
+            ..Default::default()
+        }));
+    });
+
+    Some(guard)
 }
 
 #[actix_web::main]
@@ -71,7 +95,24 @@ async fn main() -> Result<()> {
         "{lvl},reqwest=warn,hyper=warn,hyper_util=warn,h2=warn,rustls=warn,tokio_util=warn",
         lvl = config.log_level
     );
-    env_logger::init_from_env(env_logger::Env::new().default_filter_or(log_filter));
+
+    let env_logger_logger = env_logger::Builder::from_env(
+        env_logger::Env::new().default_filter_or(log_filter),
+    )
+    .build();
+    let max_level = env_logger_logger.filter();
+    let sentry_logger = sentry::integrations::log::SentryLogger::with_dest(env_logger_logger)
+        .filter(|md| match md.level() {
+            log::Level::Error => sentry::integrations::log::LogFilter::Exception,
+            log::Level::Warn => {
+                sentry::integrations::log::LogFilter::Log
+                    | sentry::integrations::log::LogFilter::Breadcrumb
+            }
+            log::Level::Info => sentry::integrations::log::LogFilter::Breadcrumb,
+            log::Level::Debug | log::Level::Trace => sentry::integrations::log::LogFilter::Ignore,
+        });
+    log::set_boxed_logger(Box::new(sentry_logger)).expect("Failed to set logger");
+    log::set_max_level(max_level);
 
     if _sentry_guard.is_some() {
         log::info!(target: "Websocket", "Sentry error reporting enabled");
@@ -125,7 +166,7 @@ async fn main() -> Result<()> {
             .wrap(Governor::new(&governor_conf))
             .wrap(Logger::default())
             .wrap(cors)
-            .wrap(sentry_actix::Sentry::new())
+            .wrap(sentry_actix::Sentry::with_transaction())
             .app_data(session_manager.clone())
             .app_data(server_config_for_app)
             .service(index)
