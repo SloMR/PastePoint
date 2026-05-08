@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import * as Sentry from '@sentry/angular';
+import { startNewTrace } from '@sentry/core';
 import { WebSocketConnectionService } from './websocket-connection.service';
 import { UserService } from '../user-management/user.service';
 import {
@@ -77,15 +78,17 @@ export class WebRTCSignalingService {
   public initiateConnection(targetUser: string): void {
     let span = this.activeConnectSpans.get(targetUser);
     if (!span) {
-      span = Sentry.startInactiveSpan({ name: 'webrtc.connect', op: 'webrtc.connect' });
-      this.activeConnectSpans.set(targetUser, span);
+      startNewTrace(() => {
+        span = Sentry.startInactiveSpan({ name: 'webrtc.connect', op: 'webrtc.connect' });
+        this.activeConnectSpans.set(targetUser, span);
+      });
       this.connectAttemptCounts.set(targetUser, 1);
     } else {
       const next = (this.connectAttemptCounts.get(targetUser) ?? 1) + 1;
       this.connectAttemptCounts.set(targetUser, next);
       span.setAttribute('attempts', next);
     }
-    this.initiateConnectionInner(targetUser, span);
+    this.initiateConnectionInner(targetUser, span!);
   }
 
   /**
@@ -155,6 +158,13 @@ export class WebRTCSignalingService {
 
     if (this.connectionLocks.has(targetUser)) {
       this.logger.debug('initiateConnection', `Connection already in progress for ${targetUser}`);
+      if ((this.connectAttemptCounts.get(targetUser) ?? 0) === 1) {
+        span.setAttribute('outcome', 'skipped_lock');
+        span.setStatus({ code: 1, message: 'already_in_progress' });
+        span.end();
+        this.activeConnectSpans.delete(targetUser);
+        this.connectAttemptCounts.delete(targetUser);
+      }
       return;
     }
 
@@ -168,6 +178,11 @@ export class WebRTCSignalingService {
           'initiateConnection',
           `PeerConnection with ${targetUser} is ${connectionState}`
         );
+        span.setAttribute('outcome', `skipped_${connectionState}`);
+        span.setStatus({ code: 1, message: connectionState });
+        span.end();
+        this.activeConnectSpans.delete(targetUser);
+        this.connectAttemptCounts.delete(targetUser);
         return;
       }
 
@@ -184,6 +199,11 @@ export class WebRTCSignalingService {
           'initiateConnection',
           `PeerConnection with ${targetUser} exists in state ${connectionState}/${iceState}`
         );
+        span.setAttribute('outcome', `skipped_${connectionState}_${iceState}`);
+        span.setStatus({ code: 1, message: 'unexpected_state' });
+        span.end();
+        this.activeConnectSpans.delete(targetUser);
+        this.connectAttemptCounts.delete(targetUser);
         return;
       }
     }
@@ -233,6 +253,7 @@ export class WebRTCSignalingService {
         this.communicationService.sendQueuedMessages(targetUser);
         if (peerConnection.connectionState === 'connected') {
           this.reconnectAttempts.delete(targetUser);
+          this.finishConnectSpanAsSuccess(targetUser);
           this.peerConnected$.next(targetUser);
         }
       };
@@ -1172,6 +1193,7 @@ export class WebRTCSignalingService {
         this.communicationService.sendQueuedMessages(targetUser);
         if (peerConnection.connectionState === 'connected') {
           this.reconnectAttempts.delete(targetUser);
+          this.finishConnectSpanAsSuccess(targetUser);
           this.peerConnected$.next(targetUser);
         }
       };
