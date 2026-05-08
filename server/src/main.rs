@@ -1,7 +1,11 @@
 use actix_cors::Cors;
 use actix_governor::{Governor, GovernorConfigBuilder};
 use actix_http::KeepAlive;
-use actix_web::{App, HttpServer, middleware::Logger, web::Data};
+use actix_web::{
+    App, HttpServer,
+    middleware::{Condition, Logger},
+    web::Data,
+};
 use openssl::ssl::{SslAcceptor, SslFiletype, SslMethod};
 use server::{
     CORS_MAX_AGE, KEEP_ALIVE_INTERVAL, SentryConfig, ServerConfig, SessionStore, chat_ws,
@@ -53,19 +57,6 @@ fn init_sentry(cfg: &SentryConfig) -> Option<sentry::ClientInitGuard> {
                 req.data = None;
                 req.query_string = None;
             }
-            log::info!(
-                target: "Sentry",
-                "Captured {} id={} level={:?} tx={:?} msg={:?}",
-                if event.transaction.is_some() && event.exception.values.is_empty() {
-                    "transaction"
-                } else {
-                    "event"
-                },
-                event.event_id,
-                event.level,
-                event.transaction.as_deref().unwrap_or("<none>"),
-                event.message.as_deref().unwrap_or("<none>")
-            );
             Some(event)
         })),
         ..Default::default()
@@ -96,10 +87,8 @@ async fn main() -> Result<()> {
         lvl = config.log_level
     );
 
-    let env_logger_logger = env_logger::Builder::from_env(
-        env_logger::Env::new().default_filter_or(log_filter),
-    )
-    .build();
+    let env_logger_logger =
+        env_logger::Builder::from_env(env_logger::Env::new().default_filter_or(log_filter)).build();
     let max_level = env_logger_logger.filter();
     let sentry_logger = sentry::integrations::log::SentryLogger::with_dest(env_logger_logger)
         .filter(|md| match md.level() {
@@ -152,6 +141,7 @@ async fn main() -> Result<()> {
 
     let session_manager = Data::new(SessionStore::default());
     let server_config = Data::new(config.clone());
+    let sentry_enabled = _sentry_guard.is_some();
 
     HttpServer::new(move || {
         let server_config = server_config.clone();
@@ -166,7 +156,10 @@ async fn main() -> Result<()> {
             .wrap(Governor::new(&governor_conf))
             .wrap(Logger::default())
             .wrap(cors)
-            .wrap(sentry_actix::Sentry::with_transaction())
+            .wrap(Condition::new(
+                sentry_enabled,
+                sentry_actix::Sentry::with_transaction(),
+            ))
             .app_data(session_manager.clone())
             .app_data(server_config_for_app)
             .service(index)
