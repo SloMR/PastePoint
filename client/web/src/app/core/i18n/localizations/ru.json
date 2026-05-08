@@ -10,6 +10,7 @@
   "DROP_FILES_HERE": "Перетащите файлы сюда",
   "WANTS_TO_SEND_FILE": "хочет отправить вам файл",
   "ACCEPT": "Принять",
+  "DECLINE": "Отклонить",
   "CANCEL": "Отмена",
 
   "_ROOMS_SECTION": "==== ROOMS ====",

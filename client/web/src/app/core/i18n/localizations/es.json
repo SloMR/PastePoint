@@ -10,6 +10,7 @@
   "DROP_FILES_HERE": "Suelta los archivos aquí",
   "WANTS_TO_SEND_FILE": "quiere enviarte un archivo",
   "ACCEPT": "Aceptar",
+  "DECLINE": "Rechazar",
   "CANCEL": "Cancelar",
 
   "_ROOMS_SECTION": "==== ROOMS ====",

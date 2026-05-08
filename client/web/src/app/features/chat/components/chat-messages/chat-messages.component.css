@@ -1,3 +1,115 @@
 :host {
   display: contents;
 }
+
+.file-offer-action {
+  position: relative;
+  display: inline-flex;
+  min-width: 2.75rem;
+  height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  padding: 0 0.75rem;
+  border: 1px solid rgb(255 255 255 / 0.38);
+  border-radius: 9999px;
+  font-family: expo-arabic-medium, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  backdrop-filter: blur(12px) saturate(145%);
+  box-shadow:
+    0 8px 18px rgb(15 23 42 / 0.16),
+    inset 0 1px 0 rgb(255 255 255 / 0.4);
+  transition:
+    transform 180ms ease,
+    color 180ms ease,
+    background 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.file-offer-action svg {
+  flex: 0 0 auto;
+}
+
+.file-offer-action:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 12px 22px rgb(15 23 42 / 0.2),
+    inset 0 1px 0 rgb(255 255 255 / 0.5);
+}
+
+.file-offer-action:active {
+  transform: translateY(0) scale(0.96);
+}
+
+.file-offer-action:focus-visible {
+  outline: 2px solid rgb(255 255 255 / 0.9);
+  outline-offset: 2px;
+}
+
+.file-offer-action--accept {
+  color: #3c54f0;
+  border-color: rgb(255 255 255 / 0.84);
+  background: rgb(255 255 255 / 0.94);
+}
+
+.file-offer-action--accept:hover {
+  color: #2438c7;
+  border-color: rgb(255 255 255 / 0.95);
+  background: rgb(238 242 255 / 0.98);
+}
+
+.file-offer-action--decline {
+  color: rgb(255 255 255 / 0.92);
+  background: rgb(255 255 255 / 0.14);
+}
+
+.file-offer-action--decline:hover {
+  color: #ffffff;
+  border-color: rgb(255 255 255 / 0.54);
+  background: rgb(255 255 255 / 0.22);
+}
+
+:host-context(.dark) .file-offer-action {
+  box-shadow:
+    0 8px 18px rgb(0 0 0 / 0.18),
+    inset 0 1px 0 rgb(255 255 255 / 0.36);
+}
+
+:host-context(.dark) .file-offer-action--accept {
+  color: #4f46e5;
+  background: rgb(255 255 255 / 0.95);
+}
+
+:host-context(.dark) .file-offer-action--accept:hover {
+  color: #3730a3;
+  background: rgb(238 242 255 / 0.98);
+}
+
+:host-context(.dark) .file-offer-action--decline {
+  color: rgb(255 255 255 / 0.9);
+  background: rgb(255 255 255 / 0.13);
+}
+
+@media (max-width: 640px) {
+  .file-offer-action {
+    min-width: 2.5rem;
+    width: 2.5rem;
+    padding: 0;
+  }
+
+  .file-offer-action span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+}

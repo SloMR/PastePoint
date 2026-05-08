@@ -405,15 +405,16 @@
                       ) {
                         <!-- Accept -->
                         <button
+                          type="button"
                           (click)="acceptFile.emit(message)"
-                          class="w-10 h-10 text-emerald-500 flex items-center justify-center backdrop-blur-sm hover:text-emerald-700 hover:scale-105 active:scale-95 transition-all"
-                          aria-label="Accept file"
-                          title="Accept"
+                          class="file-offer-action file-offer-action--accept"
+                          [attr.aria-label]="'ACCEPT' | translate"
+                          [title]="'ACCEPT' | translate"
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
-                            width="20"
-                            height="20"
+                            width="18"
+                            height="18"
                             viewBox="0 0 24 24"
                             fill="none"
                             stroke="currentColor"
@@ -423,18 +424,20 @@
                           >
                             <path d="M5 12l5 5l10 -10" />
                           </svg>
+                          <span>{{ 'ACCEPT' | translate }}</span>
                         </button>
                         <!-- Decline -->
                         <button
+                          type="button"
                           (click)="declineFile.emit(message)"
-                          class="w-10 h-10 text-rose-500 flex items-center backdrop-blur-sm hover:text-rose-800 hover:scale-105 active:scale-95 transition-all"
-                          aria-label="Decline file"
-                          title="Decline"
+                          class="file-offer-action file-offer-action--decline"
+                          [attr.aria-label]="'DECLINE' | translate"
+                          [title]="'DECLINE' | translate"
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
-                            width="20"
-                            height="20"
+                            width="18"
+                            height="18"
                             viewBox="0 0 24 24"
                             fill="none"
                             stroke="currentColor"
@@ -444,6 +447,7 @@
                           >
                             <path d="M18 6L6 18M6 6l12 12" />
                           </svg>
+                          <span>{{ 'DECLINE' | translate }}</span>
                         </button>
                       }
                     </div>
