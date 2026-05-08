@@ -7,6 +7,7 @@ import {
   provideZoneChangeDetection,
 } from '@angular/core';
 import { provideRouter, withPreloading } from '@angular/router';
+import { Router } from '@angular/router';
 import * as Sentry from '@sentry/angular';
 
 import { routes } from './app.routes';
@@ -49,6 +50,8 @@ export const appConfig: ApplicationConfig = {
       provide: ErrorHandler,
       useValue: Sentry.createErrorHandler({ showDialog: false }),
     },
+    { provide: Sentry.TraceService, deps: [Router] },
+    provideAppInitializer(() => void inject(Sentry.TraceService)),
     provideHttpClient(withFetch()),
     provideZoneChangeDetection({ eventCoalescing: true, runCoalescing: true }),
     provideRouter(routes, withPreloading(SelectivePreloadingStrategy)),
@@ -80,7 +83,7 @@ export const appConfig: ApplicationConfig = {
       LoggerModule.forRoot({
         level: environment.logLevel,
         timestampFormat: 'yyyy-MM-dd HH:mm:ss',
-        enableSourceMaps: environment.enableSourceMaps,
+        enableSourceMaps: typeof window !== 'undefined' && environment.enableSourceMaps,
         disableFileDetails: environment.disableFileDetails,
         disableConsoleLogging: environment.disableConsoleLogging,
       })
