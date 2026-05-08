@@ -92,7 +92,6 @@ export class RoomService implements IRoomService {
       this.pendingJoinSpan = Sentry.startInactiveSpan({
         name: 'room.join',
         op: 'session.join',
-        attributes: { 'room.name': sanitizedRoom },
       });
     });
     this.wsService.send(`[UserCommand] /join ${sanitizedRoom}`);
@@ -135,7 +134,6 @@ export class RoomService implements IRoomService {
 
         if (this.pendingJoinSpan) {
           this.pendingJoinSpan.setAttribute('outcome', 'joined');
-          this.pendingJoinSpan.setAttribute('room.confirmed', matchJoin[2]);
           this.pendingJoinSpan.setStatus({ code: 1, message: 'ok' });
           this.pendingJoinSpan.end();
           this.pendingJoinSpan = null;

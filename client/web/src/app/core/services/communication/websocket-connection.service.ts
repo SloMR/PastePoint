@@ -181,7 +181,7 @@ export class WebSocketConnectionService implements OnDestroy {
       connectSpan = Sentry.startInactiveSpan({
         name: 'ws.connect',
         op: 'ws.connect',
-        attributes: { 'ws.url': wsUri, 'ws.session_code': code ?? 'public' },
+        attributes: { 'ws.has_session_code': code != null },
       });
     });
 
