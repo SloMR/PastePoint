@@ -534,11 +534,7 @@ export class WebRTCSignalingService {
           category: 'webrtc.ice',
           level: 'info',
           message: 'ice gathering complete',
-          data: {
-            total: candidates.length,
-            types: candidateTypes,
-            has_relay: hasRelay,
-          },
+          data: { types: candidateTypes },
         });
         if (!hasRelay && candidates.length > 0) {
           this.logger.warn(

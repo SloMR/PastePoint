@@ -567,7 +567,6 @@ export class FileUploadService extends FileTransferBaseService {
 
           if (errorCount >= this.maxConsecutiveErrors) {
             span.setAttribute('outcome', 'aborted_max_errors');
-            span.setAttribute('consecutive_errors', errorCount);
             span.setStatus({ code: 2, message: 'max_consecutive_errors' });
             await this.stopFileUpload(fileTransfer.targetUser, fileTransfer.fileId);
             break;

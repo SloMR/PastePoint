@@ -1,4 +1,5 @@
 import { Injectable, NgZone, PLATFORM_ID, inject } from '@angular/core';
+import * as Sentry from '@sentry/angular';
 import { BehaviorSubject, Subject } from 'rxjs';
 import {
   BUFFERED_AMOUNT_LOW_THRESHOLD,
@@ -134,6 +135,7 @@ export class WebRTCCommunicationService {
       // Ignore events from stale data channels that have been replaced
       if (this.dataChannels.get(targetUser) !== channel) return;
 
+      let errorDetail = 'unknown';
       if ('error' in ev) {
         const rtcErrorEvent = ev as RTCErrorEvent;
         const error = rtcErrorEvent.error;
@@ -141,6 +143,7 @@ export class WebRTCCommunicationService {
           (error && typeof error.message === 'string' && error.message) ||
           (typeof error === 'object' ? JSON.stringify(error) : String(error)) ||
           'Unknown RTCErrorEvent';
+        errorDetail = errorMsg;
         this.logger.error('setupDataChannel', `Data Channel Error with ${targetUser}: ${errorMsg}`);
       } else {
         this.logger.error(
@@ -148,6 +151,12 @@ export class WebRTCCommunicationService {
           `Data Channel Error with ${targetUser}: ${JSON.stringify(ev)}`
         );
       }
+      Sentry.addBreadcrumb({
+        category: 'webrtc.datachannel',
+        level: 'error',
+        message: 'data channel error',
+        data: { ready_state: channel.readyState, error: errorDetail },
+      });
       this.dataChannelClosed$.next(targetUser);
     };
 
@@ -453,6 +462,11 @@ export class WebRTCCommunicationService {
             'handleDataChannelMessage',
             `Failed to decode chunk from ${targetUser}, size: ${data.byteLength}`
           );
+          Sentry.addBreadcrumb({
+            category: 'webrtc.datachannel',
+            level: 'error',
+            message: 'chunk decode failed',
+          });
         }
       } else {
         this.logger.warn(

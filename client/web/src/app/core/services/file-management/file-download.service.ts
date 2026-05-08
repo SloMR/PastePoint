@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+import * as Sentry from '@sentry/angular';
 import {
   FILE_TRANSFER_MESSAGE_TYPES,
   FileDownload,
@@ -19,9 +20,48 @@ import {
 export class FileDownloadService extends FileTransferBaseService {
   private previewService = inject(PreviewService);
 
+  private activeReceiveSpans = new Map<string, Sentry.Span>();
+
   // =============== Constructor ===============
   constructor() {
     super();
+  }
+
+  private receiveSpanKey(fromUser: string, fileId: string): string {
+    return `${fromUser}:${fileId}`;
+  }
+
+  private startReceiveSpan(fromUser: string, fileId: string, fileSize: number): void {
+    const key = this.receiveSpanKey(fromUser, fileId);
+    if (this.activeReceiveSpans.has(key)) return;
+    const span = Sentry.startInactiveSpan({
+      name: 'file.transfer.receive',
+      op: 'file.transfer.receive',
+    });
+    span.setAttribute('file_size_bytes', fileSize);
+    this.activeReceiveSpans.set(key, span);
+  }
+
+  private finishReceiveSpan(
+    fromUser: string,
+    fileId: string,
+    outcome: 'completed' | 'crc_failed' | 'missing_chunks' | 'hash_mismatch' | 'cancelled',
+    extra?: Record<string, number | string | boolean>
+  ): void {
+    const key = this.receiveSpanKey(fromUser, fileId);
+    const span = this.activeReceiveSpans.get(key);
+    if (!span) return;
+    span.setAttribute('outcome', outcome);
+    if (extra) {
+      for (const [k, v] of Object.entries(extra)) {
+        span.setAttribute(k, v);
+      }
+    }
+    span.setStatus(
+      outcome === 'completed' ? { code: 1, message: 'ok' } : { code: 2, message: outcome }
+    );
+    span.end();
+    this.activeReceiveSpans.delete(key);
   }
 
   // =============== Data Handling Methods ===============
@@ -76,12 +116,18 @@ export class FileDownloadService extends FileTransferBaseService {
           totalChunks,
         })
       );
+      this.finishReceiveSpan(fromUser, fileId, 'crc_failed', {
+        chunk_index: chunkIndex,
+        total_chunks: totalChunks,
+        bytes_received: fileDownload.receivedSize,
+      });
       return;
     }
 
-    // Initialize totalChunks if not set
+    // Initialize totalChunks
     if (fileDownload.totalChunks === 0) {
       fileDownload.totalChunks = totalChunks;
+      this.startReceiveSpan(fromUser, fileId, fileDownload.fileSize);
     }
 
     // Check for duplicate chunk
@@ -155,6 +201,10 @@ export class FileDownloadService extends FileTransferBaseService {
       );
       this.toaster.error(this.translate.instant('FILE_INCOMPLETE_ERROR', { count: missingChunks }));
       orderedChunks.length = 0; // Clear to free memory
+      this.finishReceiveSpan(fromUser, fileDownload.fileId, 'missing_chunks', {
+        missing_chunks: missingChunks,
+        total_chunks: fileDownload.totalChunks,
+      });
       await this.cleanupAfterDownload(fileDownload.fromUser, fileDownload.fileId);
       return;
     }
@@ -183,6 +233,7 @@ export class FileDownloadService extends FileTransferBaseService {
           this.logger.error('assembleAndDownloadFile', `Hash mismatch for ${fileDownload.fileId}!`);
           this.toaster.error(this.translate.instant('CHUNK_INTEGRITY_ERROR'));
           orderedChunks.length = 0; // Clear to free memory
+          this.finishReceiveSpan(fromUser, fileDownload.fileId, 'hash_mismatch');
           await this.cleanupAfterDownload(fileDownload.fromUser, fileDownload.fileId);
           return; // Abort - don't download corrupted file
         }
@@ -254,6 +305,8 @@ export class FileDownloadService extends FileTransferBaseService {
 
     this.toaster.success(this.translate.instant('FILE_DOWNLOAD_COMPLETED', { fileName }));
 
+    this.finishReceiveSpan(fromUser, fileDownload.fileId, 'completed');
+
     // Cleanup
     userMap.delete(fileDownload.fileId);
     if (userMap.size === 0) {
@@ -286,6 +339,7 @@ export class FileDownloadService extends FileTransferBaseService {
   public async cancelFileDownload(fromUser: string, fileId: string): Promise<void> {
     const userMap = await this.getIncomingFileTransfers(fromUser);
     if (userMap?.has(fileId)) {
+      this.finishReceiveSpan(fromUser, fileId, 'cancelled', { cancelled_by: 'receiver' });
       userMap.delete(fileId);
       const key = this.getOrCreateStatusKey(fromUser, fileId);
       await this.deleteFileTransferStatus(key);
@@ -310,6 +364,8 @@ export class FileDownloadService extends FileTransferBaseService {
       'handleFileUploadCancellation',
       `File upload from ${fromUser} (fileId=${fileId}) was cancelled`
     );
+
+    this.finishReceiveSpan(fromUser, fileId, 'cancelled', { cancelled_by: 'sender' });
 
     const userMap = await this.getIncomingFileTransfers(fromUser);
     if (userMap) {
