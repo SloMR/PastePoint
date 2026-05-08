@@ -36,6 +36,7 @@ fn init_sentry(cfg: &SentryConfig) -> Option<sentry::ClientInitGuard> {
         server_name: Some(Cow::Borrowed("pastepoint-server")),
         traces_sampler: Some(Arc::new(move |ctx| match ctx.name() {
             "signaling.relay" => 0.01,
+            name if name.starts_with("GET /ws") => 0.0,
             _ => global_traces_rate,
         })),
         send_default_pii: false,
