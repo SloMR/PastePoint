@@ -325,7 +325,11 @@
                   <span
                     class="text-xs font-expoArabicMedium text-textMuted dark:text-textVeryMuted"
                   >
-                    {{ progressValue(upload.progress) | number: '1.0-0' }}%
+                    @if (upload.phase === 'finalizing') {
+                      {{ 'FINALIZING_TRANSFER' | translate }}
+                    } @else {
+                      {{ progressLabel(upload.progress) }}%
+                    }
                   </span>
                   <button
                     (click)="
@@ -352,7 +356,7 @@
                 class="w-full rounded-full bg-textMuted/20 h-1.5 dark:bg-borderDark overflow-hidden"
               >
                 <div
-                  class="h-full rounded-full bg-brand dark:bg-brandDark transition-all duration-300 ease-out"
+                  class="h-full rounded-full bg-brand dark:bg-brandDark transition-[width] duration-75 ease-linear"
                   [style.width]="getProgressBarWidth(upload.progress)"
                   [style.max-width]="'100%'"
                 ></div>
@@ -401,8 +405,7 @@
                     class="text-xs font-expoArabicMedium text-textMuted dark:text-textVeryMuted"
                   >
                     {{
-                      progressValue(download.progress)
-                        | number: '1.0-0'
+                      progressLabel(download.progress)
                     }}%
                   </span>
                   <button
@@ -430,7 +433,7 @@
                 class="w-full rounded-full bg-textMuted/20 h-1.5 dark:bg-borderDark overflow-hidden"
               >
                 <div
-                  class="h-full rounded-full bg-brand dark:bg-brandDark transition-all duration-300 ease-out"
+                  class="h-full rounded-full bg-brand dark:bg-brandDark transition-[width] duration-75 ease-linear"
                   [style.width]="
                     getProgressBarWidth(download.progress)
                   "
@@ -834,9 +837,11 @@
                     <span
                       class="text-xs font-expoArabicMedium text-textMuted dark:text-textVeryMuted"
                     >
-                      {{
-                        progressValue(upload.progress) | number: '1.0-0'
-                      }}%
+                      @if (upload.phase === 'finalizing') {
+                        {{ 'FINALIZING_TRANSFER' | translate }}
+                      } @else {
+                        {{ progressLabel(upload.progress) }}%
+                      }
                     </span>
                     <button
                       (click)="
@@ -863,7 +868,7 @@
                   class="w-full rounded-full bg-textMuted/20 h-1.5 dark:bg-borderDark overflow-hidden"
                 >
                   <div
-                    class="h-full rounded-full bg-brand dark:bg-brandDark transition-all duration-300 ease-out"
+                    class="h-full rounded-full bg-brand dark:bg-brandDark transition-[width] duration-75 ease-linear"
                     [style.width]="getProgressBarWidth(upload.progress)"
                     [style.max-width]="'100%'"
                   ></div>
@@ -912,8 +917,7 @@
                       class="text-xs font-expoArabicMedium text-textMuted dark:text-textVeryMuted"
                     >
                       {{
-                        progressValue(download.progress)
-                          | number: '1.0-0'
+                        progressLabel(download.progress)
                       }}%
                     </span>
                     <button
@@ -941,7 +945,7 @@
                   class="w-full rounded-full bg-textMuted/20 h-1.5 dark:bg-borderDark overflow-hidden"
                 >
                   <div
-                    class="h-full rounded-full bg-brand dark:bg-brandDark transition-all duration-300 ease-out"
+                    class="h-full rounded-full bg-brand dark:bg-brandDark transition-[width] duration-75 ease-linear"
                     [style.width]="
                       getProgressBarWidth(download.progress)
                     "

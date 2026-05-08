@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { CommonModule, DecimalPipe, NgOptimizedImage } from '@angular/common';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 
@@ -7,7 +7,7 @@ import { FileDownload, FileUpload } from '../../../../utils/constants';
 
 @Component({
   selector: 'app-chat-sidebar',
-  imports: [CommonModule, DecimalPipe, NgOptimizedImage, RouterLink, TranslateModule],
+  imports: [CommonModule, NgOptimizedImage, RouterLink, TranslateModule],
   templateUrl: './chat-sidebar.component.html',
   styleUrl: './chat-sidebar.component.css',
 })
@@ -49,6 +49,11 @@ export class ChatSidebarComponent {
     }
 
     return Math.min(100, Math.max(0, progress));
+  }
+
+  protected progressLabel(progress: number): number {
+    const safeProgress = this.progressValue(progress);
+    return safeProgress >= 100 ? 100 : Math.floor(safeProgress);
   }
 
   protected getProgressBarWidth(progress: number): string {

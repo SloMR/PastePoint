@@ -135,6 +135,7 @@
   "FILE_DOWNLOAD_CANCELLED": "The sender canceled the download.",
   "FILE_DOWNLOAD_COMPLETED": "{{fileName}} downloaded successfully.",
   "FILE_UPLOAD_COMPLETED": "{{fileName}} uploaded successfully.",
+  "FINALIZING_TRANSFER": "Finalizing...",
   "CONNECTION_FAILED_WITH_USER": "Failed to connect to {{userName}}.",
   "CONNECTION_UNSTABLE_WITH_USER": "Connection with {{userName}} is unstable.",
   "RECONNECTING_TO_USER": "Reconnecting to {{userName}}...",

@@ -135,6 +135,7 @@
   "FILE_DOWNLOAD_CANCELLED": "تم إلغاء تحميل الملف من قبل المرسل",
   "FILE_DOWNLOAD_COMPLETED": "تم تحميل {{fileName}} بنجاح.",
   "FILE_UPLOAD_COMPLETED": "تم رفع {{fileName}} بنجاح.",
+  "FINALIZING_TRANSFER": "جارٍ الإنهاء...",
   "CONNECTION_FAILED_WITH_USER": "فشل الاتصال بالمستخدم {{userName}}.",
   "CONNECTION_UNSTABLE_WITH_USER": "الاتصال بالمستخدم {{userName}} غير مستقر.",
   "RECONNECTING_TO_USER": "جارٍ إعادة الاتصال بالمستخدم {{userName}}...",

@@ -135,6 +135,7 @@
   "FILE_DOWNLOAD_CANCELLED": "Отправитель отменил скачивание.",
   "FILE_DOWNLOAD_COMPLETED": "{{fileName}} успешно скачан.",
   "FILE_UPLOAD_COMPLETED": "{{fileName}} успешно отправлен.",
+  "FINALIZING_TRANSFER": "Завершение...",
   "CONNECTION_FAILED_WITH_USER": "Не удалось подключиться к {{userName}}.",
   "CONNECTION_UNSTABLE_WITH_USER": "Соединение с {{userName}} нестабильно.",
   "RECONNECTING_TO_USER": "Переподключение к {{userName}}...",
