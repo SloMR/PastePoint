@@ -43,7 +43,7 @@ PastePoint is a secure, feature-rich file-sharing service designed for local net
 - **Observability**:
   - Optional Sentry-based error tracking (EU-hosted, off by default in dev)
   - Privacy-tight defaults: no IPs, no geo, no request bodies, no user identifiers
-  - Toggle per-environment via `SENTRY_ENABLED` / `SENTRY_DSN`
+  - Toggle per-environment via `SENTRY_ENABLED` / `SENTRY_DSN` (server: runtime env vars; web: built into the bundle from `client/web/src/environments/environment.*.ts` at compile time)
 
 - **Cross-Platform Compatibility**:
   - Runs seamlessly on Linux, macOS, and Windows with Dockerized support

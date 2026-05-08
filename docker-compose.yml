@@ -80,7 +80,7 @@ services:
       dockerfile: client/web/Dockerfile
       target: nginx
       args:
-        NPM_BUILD_CONFIG: ${NPM_BUILD_CONFIG}
+        NPM_BUILD_CONFIG: ${NPM_BUILD_CONFIG:?NPM_BUILD_CONFIG is required (set it in your .env file)}
     container_name: pastepoint-nginx
     environment:
       SERVER_NAME: ${SERVER_NAME:?SERVER_NAME is required (set it in your .env file)}
