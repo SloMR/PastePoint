@@ -1,5 +1,6 @@
 import { Injectable, NgZone, inject } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
+import * as Sentry from '@sentry/angular';
 import { WebSocketConnectionService } from '../communication/websocket-connection.service';
 import { NGXLogger } from 'ngx-logger';
 import { IRoomService } from '../../interfaces/room.interface';
@@ -58,19 +59,24 @@ export class RoomService implements IRoomService {
   }
 
   public joinRoom(room: string): void {
-    const sanitizedRoom = room
-      .replace(/[^a-zA-Z0-9\-_ ]/g, '')
-      .trim()
-      .substring(0, 64);
-    if (!sanitizedRoom) {
-      this.logger.warn('joinRoom', `Room name is empty after sanitization: ${room}`);
-      return;
-    }
-    if (sanitizedRoom !== this.currentRoom) {
-      this.wsService.send(`[UserCommand] /join ${sanitizedRoom}`);
-    } else {
-      this.logger.warn('joinRoom', `Already in room: ${room}`);
-    }
+    Sentry.startSpan({ name: 'session.join', op: 'session.join' }, (span) => {
+      const sanitizedRoom = room
+        .replace(/[^a-zA-Z0-9\-_ ]/g, '')
+        .trim()
+        .substring(0, 64);
+      if (!sanitizedRoom) {
+        this.logger.warn('joinRoom', `Room name is empty after sanitization: ${room}`);
+        span.setStatus({ code: 2, message: 'invalid_room_name' });
+        return;
+      }
+      if (sanitizedRoom !== this.currentRoom) {
+        this.wsService.send(`[UserCommand] /join ${sanitizedRoom}`);
+        span.setAttribute('outcome', 'join_requested');
+      } else {
+        this.logger.warn('joinRoom', `Already in room: ${room}`);
+        span.setAttribute('outcome', 'already_in_room');
+      }
+    });
   }
 
   /**
