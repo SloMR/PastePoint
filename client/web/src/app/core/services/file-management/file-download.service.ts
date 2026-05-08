@@ -158,9 +158,9 @@ export class FileDownloadService extends FileTransferBaseService {
       this.logger.info('handleDataChunk', `All chunks received for fileId=${fileId}`);
       await this.assembleAndDownloadFile(fileDownload, userMap, fromUser);
     } else {
-      this.logger.error(
+      this.logger.debug(
         'handleDataChunk',
-        `File ${fileId.substring(0, 8)}... not fully received: ${fileDownload.receivedChunks.size}/${totalChunks} chunks`
+        `File ${fileId.substring(0, 8)}... in progress: ${fileDownload.receivedChunks.size}/${totalChunks} chunks`
       );
     }
   }

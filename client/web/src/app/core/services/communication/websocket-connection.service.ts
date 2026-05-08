@@ -278,13 +278,13 @@ export class WebSocketConnectionService implements OnDestroy {
         }
       };
 
-      socket.onerror = (error) => {
+      socket.onerror = (_event) => {
         if (socket !== this.socket) return;
-        this.logger.error('connect', 'WebSocket error: ' + error);
+        this.logger.warn('connect', 'WebSocket connection error (will attempt reconnect)');
         this.isConnecting = false;
         this.stopKeepAlive();
         this.socket = undefined;
-        settleReject(error);
+        settleReject(new Error('WebSocket connection error'));
       };
     });
   }

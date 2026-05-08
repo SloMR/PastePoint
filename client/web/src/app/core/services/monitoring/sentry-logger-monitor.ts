@@ -12,7 +12,10 @@ export class SentryLoggerMonitor implements INGXLoggerMonitor {
       case NgxLoggerLevel.FATAL:
       case NgxLoggerLevel.ERROR: {
         const err = pickError(log) ?? new Error(message);
-        Sentry.captureException(err, { level: 'error' });
+        Sentry.captureException(err, {
+          level: 'error',
+          extra: { logger: message },
+        });
         break;
       }
       case NgxLoggerLevel.WARN: {
@@ -37,6 +40,14 @@ function formatMessage(log: INGXLoggerMetadata): string {
     parts.push(log.fileName);
   }
   parts.push(typeof log.message === 'string' ? log.message : JSON.stringify(log.message));
+  if (Array.isArray(log.additional)) {
+    for (const value of log.additional) {
+      if (typeof value === 'string') {
+        parts.push(value);
+        break;
+      }
+    }
+  }
   return parts.join(' :: ');
 }
 

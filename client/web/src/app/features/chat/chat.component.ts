@@ -168,7 +168,9 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
       !this.wsConnectionService.isConnected()
     ) {
       this.logger.info('visibilitychange', 'Page visible, reconnecting if needed');
-      void this.connect(this.SessionCode);
+      this.connect(this.SessionCode).catch((err: unknown) => {
+        this.logger.warn('visibilitychange', `Reconnect after visibility change failed: ${err}`);
+      });
     }
   };
   private beforeUnloadHandler = () => {
@@ -834,8 +836,10 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
         }
       })
       .catch((error: unknown) => {
-        this.logger.error('connect', `WebSocket connection failed: ${error}`);
-        throw error;
+        const err =
+          error instanceof Error ? error : new Error(`WebSocket connection failed: ${error}`);
+        this.logger.error('connect', err.message, err);
+        throw err;
       });
   }
 
