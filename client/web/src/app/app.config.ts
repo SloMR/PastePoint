@@ -17,10 +17,11 @@ import { InMemoryTranslateLoader } from './core/i18n/translate-loader';
 import { ThemeService } from './core/services/ui/theme.service';
 import { LanguageService } from './core/services/ui/language.service';
 import { provideHttpClient, withFetch } from '@angular/common/http';
-import { LoggerModule } from 'ngx-logger';
+import { LoggerModule, NGXLogger } from 'ngx-logger';
 import { environment } from '../environments/environment';
 import { DatePipe } from '@angular/common';
 import { provideHotToastConfig } from '@ngxpert/hot-toast';
+import { SentryLoggerMonitor } from './core/services/monitoring/sentry-logger-monitor';
 
 // Theme initialization function
 export function initializeTheme(themeService: ThemeService): () => Promise<void> {
@@ -85,6 +86,14 @@ export const appConfig: ApplicationConfig = {
       })
     ),
     DatePipe,
+    // Forward ngx-logger output to Sentry (when Sentry is initialized).
+    // Registered as an app initializer so it's wired up before any logs flow.
+    provideAppInitializer(() => {
+      if (environment.sentry?.enabled && environment.sentry.dsn) {
+        const logger = inject(NGXLogger);
+        logger.registerMonitor(new SentryLoggerMonitor());
+      }
+    }),
     // Initialize theme on app startup using app initializer
     provideAppInitializer(() => {
       const themeService = inject(ThemeService);

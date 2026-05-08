@@ -11,5 +11,7 @@ export const environment = {
     enabled: false,
     dsn: '',
     environment: 'docker-dev',
+    tracesSampleRate: 0.1,
+    enableLogs: true,
   },
 };

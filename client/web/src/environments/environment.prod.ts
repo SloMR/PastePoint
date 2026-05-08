@@ -11,5 +11,7 @@ export const environment = {
     enabled: true,
     dsn: '',
     environment: 'production',
+    tracesSampleRate: 0.1,
+    enableLogs: true,
   },
 };
