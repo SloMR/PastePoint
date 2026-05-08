@@ -1,6 +1,7 @@
 import { Injectable, NgZone, inject } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import * as Sentry from '@sentry/angular';
+import { startNewTrace } from '@sentry/core';
 import { WebSocketConnectionService } from '../communication/websocket-connection.service';
 import { NGXLogger } from 'ngx-logger';
 import { IRoomService } from '../../interfaces/room.interface';
@@ -22,6 +23,8 @@ export class RoomService implements IRoomService {
   public rooms$ = new BehaviorSubject<string[]>([]);
   public members$ = new BehaviorSubject<string[]>([]);
   public currentRoom = 'main';
+
+  private pendingJoinSpan: Sentry.Span | null = null;
 
   /**
    * ==========================================================
@@ -51,6 +54,11 @@ export class RoomService implements IRoomService {
    * replay the previous session's members/rooms into the new view.
    */
   public reset(): void {
+    if (this.pendingJoinSpan) {
+      this.pendingJoinSpan.setStatus({ code: 2, message: 'cancelled' });
+      this.pendingJoinSpan.end();
+      this.pendingJoinSpan = null;
+    }
     this.ngZone.run(() => {
       this.rooms$.next([]);
       this.members$.next([]);
@@ -59,24 +67,35 @@ export class RoomService implements IRoomService {
   }
 
   public joinRoom(room: string): void {
-    Sentry.startSpan({ name: 'session.join', op: 'session.join' }, (span) => {
-      const sanitizedRoom = room
-        .replace(/[^a-zA-Z0-9\-_ ]/g, '')
-        .trim()
-        .substring(0, 64);
-      if (!sanitizedRoom) {
-        this.logger.warn('joinRoom', `Room name is empty after sanitization: ${room}`);
-        span.setStatus({ code: 2, message: 'invalid_room_name' });
-        return;
-      }
-      if (sanitizedRoom !== this.currentRoom) {
-        this.wsService.send(`[UserCommand] /join ${sanitizedRoom}`);
-        span.setAttribute('outcome', 'join_requested');
-      } else {
-        this.logger.warn('joinRoom', `Already in room: ${room}`);
-        span.setAttribute('outcome', 'already_in_room');
-      }
+    const sanitizedRoom = room
+      .replace(/[^a-zA-Z0-9\-_ ]/g, '')
+      .trim()
+      .substring(0, 64);
+
+    if (!sanitizedRoom) {
+      this.logger.warn('joinRoom', `Room name is empty after sanitization: ${room}`);
+      return;
+    }
+
+    if (sanitizedRoom === this.currentRoom) {
+      this.logger.warn('joinRoom', `Already in room: ${room}`);
+      return;
+    }
+
+    if (this.pendingJoinSpan) {
+      this.pendingJoinSpan.setStatus({ code: 2, message: 'superseded' });
+      this.pendingJoinSpan.end();
+      this.pendingJoinSpan = null;
+    }
+
+    startNewTrace(() => {
+      this.pendingJoinSpan = Sentry.startInactiveSpan({
+        name: 'room.join',
+        op: 'session.join',
+        attributes: { 'room.name': sanitizedRoom },
+      });
     });
+    this.wsService.send(`[UserCommand] /join ${sanitizedRoom}`);
   }
 
   /**
@@ -113,6 +132,14 @@ export class RoomService implements IRoomService {
         this.ngZone.run(() => {
           this.currentRoom = matchJoin[2];
         });
+
+        if (this.pendingJoinSpan) {
+          this.pendingJoinSpan.setAttribute('outcome', 'joined');
+          this.pendingJoinSpan.setAttribute('room.confirmed', matchJoin[2]);
+          this.pendingJoinSpan.setStatus({ code: 1, message: 'ok' });
+          this.pendingJoinSpan.end();
+          this.pendingJoinSpan = null;
+        }
       } else {
         this.logger.warn('handleSystemMessage', `No room to join found in message: ${message}`);
       }
