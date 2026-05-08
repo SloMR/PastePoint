@@ -1,5 +1,7 @@
 import { Injectable, PLATFORM_ID, OnDestroy, inject } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
+import * as Sentry from '@sentry/angular';
+import { startNewTrace } from '@sentry/core';
 import { environment } from '../../../../environments/environment';
 import { Router } from '@angular/router';
 import { NGXLogger } from 'ngx-logger';
@@ -173,6 +175,16 @@ export class WebSocketConnectionService implements OnDestroy {
     this.sessionCode = code;
 
     const wsUri = `${this.webSocketProto}://${this.host}/ws${code ? `/${code}` : ''}`;
+
+    let connectSpan: Sentry.Span | undefined;
+    startNewTrace(() => {
+      connectSpan = Sentry.startInactiveSpan({
+        name: 'ws.connect',
+        op: 'ws.connect',
+        attributes: { 'ws.url': wsUri, 'ws.session_code': code ?? 'public' },
+      });
+    });
+
     return new Promise<void>((resolve, reject) => {
       this.logger.info('connect', `Connecting to WebSocket at ${wsUri}`);
       const socket = new WebSocket(wsUri);
@@ -185,11 +197,16 @@ export class WebSocketConnectionService implements OnDestroy {
       const settleResolve = () => {
         if (settled) return;
         settled = true;
+        connectSpan?.setStatus({ code: 1, message: 'ok' });
+        connectSpan?.end();
         resolve();
       };
       const settleReject = (err: unknown) => {
         if (settled) return;
         settled = true;
+        const msg = err instanceof Error ? err.message : String(err);
+        connectSpan?.setStatus({ code: 2, message: msg });
+        connectSpan?.end();
         reject(err);
       };
 

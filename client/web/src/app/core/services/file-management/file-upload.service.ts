@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import * as Sentry from '@sentry/angular';
+import { startNewTrace } from '@sentry/core';
 import {
   FileUpload,
   CHUNK_SIZE,
@@ -437,12 +438,11 @@ export class FileUploadService extends FileTransferBaseService {
    * Each chunk contains embedded fileId, eliminating chunk mismatching.
    */
   private async sendFileChunks(fileTransfer: FileUpload): Promise<void> {
-    return Sentry.startSpan(
-      { name: 'file.transfer.send', op: 'file.transfer.send' },
-      async (span) => {
+    return startNewTrace(() =>
+      Sentry.startSpan({ name: 'file.transfer.send', op: 'file.transfer.send' }, async (span) => {
         span.setAttribute('file_size_bytes', fileTransfer.file.size);
         return this.sendFileChunksInner(fileTransfer, span);
-      }
+      })
     );
   }
 

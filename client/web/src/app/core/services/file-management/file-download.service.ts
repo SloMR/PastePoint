@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import * as Sentry from '@sentry/angular';
+import { startNewTrace } from '@sentry/core';
 import {
   FILE_TRANSFER_MESSAGE_TYPES,
   FileDownload,
@@ -34,12 +35,14 @@ export class FileDownloadService extends FileTransferBaseService {
   private startReceiveSpan(fromUser: string, fileId: string, fileSize: number): void {
     const key = this.receiveSpanKey(fromUser, fileId);
     if (this.activeReceiveSpans.has(key)) return;
-    const span = Sentry.startInactiveSpan({
-      name: 'file.transfer.receive',
-      op: 'file.transfer.receive',
+    startNewTrace(() => {
+      const span = Sentry.startInactiveSpan({
+        name: 'file.transfer.receive',
+        op: 'file.transfer.receive',
+      });
+      span.setAttribute('file_size_bytes', fileSize);
+      this.activeReceiveSpans.set(key, span);
     });
-    span.setAttribute('file_size_bytes', fileSize);
-    this.activeReceiveSpans.set(key, span);
   }
 
   private finishReceiveSpan(
