@@ -133,7 +133,7 @@
   "SESSION_ENDED_SUCCESS": "Приватная сессия успешно завершена.",
   "FILE_UPLOAD_CANCELLED": "Отправитель отменил загрузку.",
   "FILE_DOWNLOAD_CANCELLED": "Отправитель отменил скачивание.",
-  "FILE_DOWNLOAD_COMPLETED": "{{fileName}} успешно скачан.",
+  "FILE_DOWNLOAD_COMPLETED": "{{fileName}} готов к сохранению.",
   "FILE_UPLOAD_COMPLETED": "{{fileName}} успешно отправлен.",
   "FINALIZING_TRANSFER": "Завершение...",
   "CONNECTION_FAILED_WITH_USER": "Не удалось подключиться к {{userName}}.",

@@ -310,7 +310,7 @@ export class FileDownloadService extends FileTransferBaseService {
 
     this.sendData(
       {
-        type: FILE_TRANSFER_MESSAGE_TYPES.FILE_DOWNLOAD_COMPLETE,
+        type: FILE_TRANSFER_MESSAGE_TYPES.FILE_RECEIVED,
         payload: {
           fileId: fileDownload.fileId,
         },

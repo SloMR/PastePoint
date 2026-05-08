@@ -86,11 +86,11 @@ export class FileTransferService implements IFileTransferService {
       );
     });
 
-    this.webrtcService.fileDownloadCompleted$.subscribe(async ({ fromUser, fileId }) => {
+    this.webrtcService.fileReceived$.subscribe(async ({ fromUser, fileId }) => {
       await this.fileUploadService.completeFileUpload(fromUser, fileId);
       this.logger.debug(
         'FileTransferService',
-        `Download completed by receiver ${fromUser}, finishing upload ${fileId}`
+        `File received by ${fromUser}, finishing upload ${fileId}`
       );
     });
   }

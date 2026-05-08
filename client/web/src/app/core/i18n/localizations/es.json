@@ -133,7 +133,7 @@
   "SESSION_ENDED_SUCCESS": "Sesión privada finalizada con éxito.",
   "FILE_UPLOAD_CANCELLED": "El remitente canceló el envío.",
   "FILE_DOWNLOAD_CANCELLED": "El remitente canceló la descarga.",
-  "FILE_DOWNLOAD_COMPLETED": "{{fileName}} descargado correctamente.",
+  "FILE_DOWNLOAD_COMPLETED": "{{fileName}} está listo para guardar.",
   "FILE_UPLOAD_COMPLETED": "{{fileName}} enviado correctamente.",
   "FINALIZING_TRANSFER": "Finalizando...",
   "CONNECTION_FAILED_WITH_USER": "No se pudo conectar con {{userName}}.",

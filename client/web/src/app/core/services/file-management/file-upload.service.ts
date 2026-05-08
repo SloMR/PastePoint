@@ -292,14 +292,14 @@ export class FileUploadService extends FileTransferBaseService {
   }
 
   /**
-   * Completes an upload once the receiver confirms the file was assembled and downloaded.
+   * Completes an upload once the receiver confirms the file was assembled.
    */
   public async completeFileUpload(targetUser: string, fileId: string): Promise<void> {
     const userMap = await this.getFileTransfers(targetUser);
     const fileTransfer = userMap?.get(fileId);
 
     if (!userMap || !fileTransfer) {
-      this.logger.warn(
+      this.logger.debug(
         'completeFileUpload',
         `No pending upload found for ${targetUser} and fileId=${fileId}`
       );

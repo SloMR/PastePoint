@@ -133,7 +133,7 @@
   "SESSION_ENDED_SUCCESS": "Session privée terminée avec succès.",
   "FILE_UPLOAD_CANCELLED": "L'expéditeur a annulé l'envoi.",
   "FILE_DOWNLOAD_CANCELLED": "L'expéditeur a annulé le téléchargement.",
-  "FILE_DOWNLOAD_COMPLETED": "{{fileName}} téléchargé avec succès.",
+  "FILE_DOWNLOAD_COMPLETED": "{{fileName}} est prêt à être enregistré.",
   "FILE_UPLOAD_COMPLETED": "{{fileName}} envoyé avec succès.",
   "FINALIZING_TRANSFER": "Finalisation...",
   "CONNECTION_FAILED_WITH_USER": "Impossible de se connecter à {{userName}}.",

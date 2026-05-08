@@ -40,7 +40,7 @@ export class WebRTCCommunicationService {
   public fileResponses$ = new Subject<{ accepted: boolean; fromUser: string; fileId: string }>();
   public fileUploadCancelled$ = new Subject<{ fromUser: string; fileId: string }>();
   public fileDownloadCancelled$ = new Subject<{ fromUser: string; fileId: string }>();
-  public fileDownloadCompleted$ = new Subject<{ fromUser: string; fileId: string }>();
+  public fileReceived$ = new Subject<{ fromUser: string; fileId: string }>();
   public bufferedAmountLow$ = new Subject<string>();
   public incomingFileChunk$ = new Subject<{
     fromUser: string;
@@ -433,15 +433,15 @@ export class WebRTCCommunicationService {
             });
             break;
           }
-          case FILE_TRANSFER_MESSAGE_TYPES.FILE_DOWNLOAD_COMPLETE: {
+          case FILE_TRANSFER_MESSAGE_TYPES.FILE_RECEIVED: {
             this.logger.info(
               'handleDataChannelMessage',
-              `Received file download completion from ${targetUser}`
+              `Received file assembly confirmation from ${targetUser}`
             );
-            const fileDownloadCompletePayload = message.payload as { fileId: string };
-            this.fileDownloadCompleted$.next({
+            const fileReceivedPayload = message.payload as { fileId: string };
+            this.fileReceived$.next({
               fromUser: targetUser,
-              fileId: fileDownloadCompletePayload.fileId,
+              fileId: fileReceivedPayload.fileId,
             });
             break;
           }

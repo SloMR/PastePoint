@@ -72,10 +72,10 @@ export class WebRTCService implements IWebRTCService {
   }
 
   /**
-   * Gets the file download completed subject
+   * Gets the file received subject
    */
-  public get fileDownloadCompleted$(): Subject<{ fromUser: string; fileId: string }> {
-    return this.communicationService.fileDownloadCompleted$;
+  public get fileReceived$(): Subject<{ fromUser: string; fileId: string }> {
+    return this.communicationService.fileReceived$;
   }
 
   /**
