@@ -7,8 +7,9 @@ import { LANGUAGE_PREFERENCE_KEY } from './app/utils/constants';
 import { environment } from './environments/environment';
 import { name as pkgName, version as pkgVersion } from '../package.json';
 
-// Initialize Sentry before bootstrapping the app so it can capture errors
-if (environment.sentry?.enabled && environment.sentry.dsn) {
+// Initialize Sentry before bootstrapping the app so it can capture errors.
+// Skip during SSR/prerender (no `window`)
+if (typeof window !== 'undefined' && environment.sentry?.enabled && environment.sentry.dsn) {
   Sentry.init({
     dsn: environment.sentry.dsn,
     environment: environment.sentry.environment,
@@ -19,9 +20,47 @@ if (environment.sentry?.enabled && environment.sentry.dsn) {
     enableLogs: environment.sentry.enableLogs ?? false,
     replaysSessionSampleRate: 0,
     replaysOnErrorSampleRate: 0,
-    integrations: [Sentry.browserTracingIntegration()],
+    integrations: [
+      Sentry.browserTracingIntegration({
+        instrumentPageLoad: false,
+        ignoreResourceSpans: [
+          'resource.img',
+          'resource.script',
+          'resource.css',
+          'resource.other',
+          'resource.link',
+        ],
+        ignorePerformanceApiSpans: [/.*/],
+        enableLongAnimationFrame: false,
+        enableLongTask: false,
+      }),
+    ],
     initialScope: {
       user: { ip_address: '127.0.0.1' },
+    },
+    beforeSendTransaction(event) {
+      // Strip browser navigation-timing child spans and paint entries — they
+      // add noise without actionable signal for this app.
+      const IGNORED_OPS = new Set([
+        'browser.DNS',
+        'browser.TLS/SSL',
+        'browser.connect',
+        'browser.cache',
+        'browser.request',
+        'browser.response',
+        'browser.loadEvent',
+        'browser.unloadEvent',
+        'browser.domContentLoadedEvent',
+        'paint',
+      ]);
+      if (event.spans) {
+        event.spans = event.spans.filter(
+          (span) =>
+            !IGNORED_OPS.has(span.op ?? '') &&
+            !(span.op === 'http.client' && span.description?.includes('.js.map'))
+        );
+      }
+      return event;
     },
     beforeSend(event) {
       // Strip user-identifying data before the event leaves the browser.
