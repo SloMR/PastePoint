@@ -10,6 +10,7 @@
   "DROP_FILES_HERE": "Suelta los archivos aquí",
   "WANTS_TO_SEND_FILE": "quiere enviarte un archivo",
   "ACCEPT": "Aceptar",
+  "DECLINE": "Rechazar",
   "CANCEL": "Cancelar",
 
   "_ROOMS_SECTION": "==== ROOMS ====",
@@ -132,8 +133,9 @@
   "SESSION_ENDED_SUCCESS": "Sesión privada finalizada con éxito.",
   "FILE_UPLOAD_CANCELLED": "El remitente canceló el envío.",
   "FILE_DOWNLOAD_CANCELLED": "El remitente canceló la descarga.",
-  "FILE_DOWNLOAD_COMPLETED": "{{fileName}} descargado correctamente.",
+  "FILE_DOWNLOAD_COMPLETED": "{{fileName}} está listo para guardar.",
   "FILE_UPLOAD_COMPLETED": "{{fileName}} enviado correctamente.",
+  "FINALIZING_TRANSFER": "Finalizando...",
   "CONNECTION_FAILED_WITH_USER": "No se pudo conectar con {{userName}}.",
   "CONNECTION_UNSTABLE_WITH_USER": "La conexión con {{userName}} es inestable.",
   "RECONNECTING_TO_USER": "Reconectando con {{userName}}...",

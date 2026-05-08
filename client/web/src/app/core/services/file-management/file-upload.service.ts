@@ -56,6 +56,7 @@ export class FileUploadService extends FileTransferBaseService {
       isPaused: false,
       targetUser,
       progress: 0,
+      phase: 'sending',
     };
 
     userMap.set(fileId, fileTransfer);
@@ -113,6 +114,9 @@ export class FileUploadService extends FileTransferBaseService {
       this.toaster.error(this.translate.instant('NO_FILE_TO_SEND'));
       return;
     }
+
+    fileTransfer.phase = 'sending';
+    await this.setFileTransfers(targetUser, userMap);
 
     // Add to queue for sequential processing
     this.enqueueFileForUser(targetUser, fileId);
@@ -285,6 +289,34 @@ export class FileUploadService extends FileTransferBaseService {
         `No file transfer found for ${targetUser} and fileId=${fileId}`
       );
     }
+  }
+
+  /**
+   * Completes an upload once the receiver confirms the file was assembled.
+   */
+  public async completeFileUpload(targetUser: string, fileId: string): Promise<void> {
+    const userMap = await this.getFileTransfers(targetUser);
+    const fileTransfer = userMap?.get(fileId);
+
+    if (!userMap || !fileTransfer) {
+      this.logger.debug(
+        'completeFileUpload',
+        `No pending upload found for ${targetUser} and fileId=${fileId}`
+      );
+      return;
+    }
+
+    const key = this.getOrCreateStatusKey(targetUser, fileId);
+    await this.setFileTransferStatus(key, FileTransferStatus.COMPLETED);
+
+    this.toaster.success(
+      this.translate.instant('FILE_UPLOAD_COMPLETED', { fileName: fileTransfer.file.name })
+    );
+
+    userMap.delete(fileId);
+    await this.setFileTransfers(targetUser, userMap);
+    await this.updateActiveUploads();
+    await this.checkAllUsersResponded();
   }
 
   /**
@@ -579,26 +611,19 @@ export class FileUploadService extends FileTransferBaseService {
       if (fileTransfer.currentOffset >= fileTransfer.file.size) {
         this.logger.info(
           'sendFileChunks',
-          `Completed ${fileTransfer.fileId} to ${fileTransfer.targetUser}`
+          `Queued all chunks for ${fileTransfer.fileId} to ${fileTransfer.targetUser}`
         );
-        span.setAttribute('outcome', 'completed');
+        span.setAttribute('outcome', 'queued_all_chunks');
         span.setStatus({ code: 1, message: 'ok' });
         fileTransfer.progress = 100;
-
-        const key = this.getOrCreateStatusKey(fileTransfer.targetUser, fileTransfer.fileId);
-        await this.setFileTransferStatus(key, FileTransferStatus.COMPLETED);
-
-        this.toaster.success(
-          this.translate.instant('FILE_UPLOAD_COMPLETED', { fileName: fileTransfer.file.name })
-        );
+        fileTransfer.phase = 'finalizing';
 
         const userMap = await this.getFileTransfers(fileTransfer.targetUser);
         if (userMap) {
-          userMap.delete(fileTransfer.fileId);
+          userMap.set(fileTransfer.fileId, fileTransfer);
           await this.setFileTransfers(fileTransfer.targetUser, userMap);
         }
         await this.updateActiveUploads();
-        await this.checkAllUsersResponded();
       }
     } finally {
       this.processingQueues.set(transferId, false);

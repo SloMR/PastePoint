@@ -135,6 +135,7 @@ export const FILE_TRANSFER_MESSAGE_TYPES = {
   FILE_OFFER: 'file-offer',
   FILE_CANCEL_UPLOAD: 'file-cancel-upload',
   FILE_CANCEL_DOWNLOAD: 'file-cancel-download',
+  FILE_RECEIVED: 'file-received',
 };
 
 // WebRTC data channel message types
@@ -182,6 +183,7 @@ export interface FileUpload {
   isPaused: boolean;
   targetUser: string;
   progress: number;
+  phase: 'sending' | 'finalizing';
 }
 
 export interface FileDownload {

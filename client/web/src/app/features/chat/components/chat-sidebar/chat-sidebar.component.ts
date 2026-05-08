@@ -1,14 +1,13 @@
-import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
-import { CommonModule, DecimalPipe, NgOptimizedImage } from '@angular/common';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
-import { NGXLogger } from 'ngx-logger';
 
 import { FileDownload, FileUpload } from '../../../../utils/constants';
 
 @Component({
   selector: 'app-chat-sidebar',
-  imports: [CommonModule, DecimalPipe, NgOptimizedImage, RouterLink, TranslateModule],
+  imports: [CommonModule, NgOptimizedImage, RouterLink, TranslateModule],
   templateUrl: './chat-sidebar.component.html',
   styleUrl: './chat-sidebar.component.css',
 })
@@ -40,38 +39,25 @@ export class ChatSidebarComponent {
   @Output() cancelUploadRequested = new EventEmitter<FileUpload>();
   @Output() cancelDownloadRequested = new EventEmitter<FileDownload>();
 
-  private logger = inject(NGXLogger);
-
   protected isConnectedToMember(member: string): boolean {
     return this.memberConnectionStatus.get(member) ?? false;
   }
 
-  protected progressValue(progress: number, type: 'upload' | 'download', fileId: string): number {
-    const clampedProgress = Math.min(100, Math.max(0, progress));
-
-    if (progress !== clampedProgress) {
-      this.logger.warn(
-        'ProgressValue',
-        `Progress out of range for ${type} ${fileId}: ${progress} -> ${clampedProgress}`
-      );
+  protected progressValue(progress: number): number {
+    if (!Number.isFinite(progress)) {
+      return 0;
     }
 
-    if (clampedProgress % 10 < 2) {
-      this.logger.debug(
-        'ProgressValue',
-        `${type.charAt(0).toUpperCase() + type.slice(1)} progress ${fileId}: ${clampedProgress.toFixed(2)}%`
-      );
-    }
-
-    return clampedProgress;
+    return Math.min(100, Math.max(0, progress));
   }
 
-  protected getProgressBarWidth(
-    progress: number,
-    type: 'upload' | 'download' = 'upload',
-    fileId: string = 'unknown'
-  ): string {
-    const safeProgress = this.progressValue(progress, type, fileId);
+  protected progressLabel(progress: number): number {
+    const safeProgress = this.progressValue(progress);
+    return safeProgress >= 100 ? 100 : Math.floor(safeProgress);
+  }
+
+  protected getProgressBarWidth(progress: number): string {
+    const safeProgress = this.progressValue(progress);
     return `${safeProgress}%`;
   }
 

@@ -308,6 +308,16 @@ export class FileDownloadService extends FileTransferBaseService {
 
     this.toaster.success(this.translate.instant('FILE_DOWNLOAD_COMPLETED', { fileName }));
 
+    this.sendData(
+      {
+        type: FILE_TRANSFER_MESSAGE_TYPES.FILE_RECEIVED,
+        payload: {
+          fileId: fileDownload.fileId,
+        },
+      },
+      fromUser
+    );
+
     this.finishReceiveSpan(fromUser, fileDownload.fileId, 'completed');
 
     // Cleanup

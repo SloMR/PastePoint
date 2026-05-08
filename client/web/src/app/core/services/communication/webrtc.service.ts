@@ -72,6 +72,13 @@ export class WebRTCService implements IWebRTCService {
   }
 
   /**
+   * Gets the file received subject
+   */
+  public get fileReceived$(): Subject<{ fromUser: string; fileId: string }> {
+    return this.communicationService.fileReceived$;
+  }
+
+  /**
    * Gets the buffered amount low subject
    */
   public get bufferedAmountLow$(): Subject<string> {

@@ -13,6 +13,7 @@ export interface IWebRTCService {
   fileResponses$: Subject<{ accepted: boolean; fromUser: string; fileId: string }>;
   fileUploadCancelled$: Subject<{ fromUser: string; fileId: string }>;
   fileDownloadCancelled$: Subject<{ fromUser: string; fileId: string }>;
+  fileReceived$: Subject<{ fromUser: string; fileId: string }>;
   bufferedAmountLow$: Subject<string>;
   incomingFileChunk$: Subject<{
     fromUser: string;

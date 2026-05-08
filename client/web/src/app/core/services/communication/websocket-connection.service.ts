@@ -295,7 +295,7 @@ export class WebSocketConnectionService implements OnDestroy {
         }
       };
 
-      socket.onerror = (_event) => {
+      socket.onerror = () => {
         if (socket !== this.socket) return;
         this.logger.warn('connect', 'WebSocket connection error (will attempt reconnect)');
         this.isConnecting = false;
