@@ -226,9 +226,15 @@
                 <button
                   type="button"
                   [disabled]="!isConnectedToMember(member)"
-                  class="rounded-md p-1 text-textMuted hover:text-brand dark:text-textVeryMuted dark:hover:text-brandDark disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-textMuted dark:disabled:hover:text-textVeryMuted"
-                  aria-label="Send file to user"
-                  title="Send file to user"
+                  class="rounded-md p-1 text-textMuted hover:text-brand dark:text-textVeryMuted dark:hover:text-brandDark disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed disabled:hover:text-textMuted dark:disabled:hover:text-textVeryMuted"
+                  [attr.aria-label]="
+                    (!isConnectedToMember(member) ? 'NOT_CONNECTED_TO_USER' : 'SEND_FILE_TO_USER')
+                      | translate
+                  "
+                  [title]="
+                    (!isConnectedToMember(member) ? 'NOT_CONNECTED_TO_USER' : 'SEND_FILE_TO_USER')
+                      | translate
+                  "
                   (click)="filePickerRequested.emit(member)"
                 >
                   <img
@@ -404,9 +410,7 @@
                   <span
                     class="text-xs font-expoArabicMedium text-textMuted dark:text-textVeryMuted"
                   >
-                    {{
-                      progressLabel(download.progress)
-                    }}%
+                    {{ progressLabel(download.progress) }}%
                   </span>
                   <button
                     (click)="
@@ -434,9 +438,7 @@
               >
                 <div
                   class="h-full rounded-full bg-brand dark:bg-brandDark transition-[width] duration-75 ease-linear"
-                  [style.width]="
-                    getProgressBarWidth(download.progress)
-                  "
+                  [style.width]="getProgressBarWidth(download.progress)"
                   [style.max-width]="'100%'"
                 ></div>
               </div>
@@ -738,9 +740,15 @@
                   <button
                     type="button"
                     [disabled]="!isConnectedToMember(member)"
-                    class="rounded-md p-1 text-textMuted hover:text-brand dark:text-textVeryMuted dark:hover:text-brandDark disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-textMuted dark:disabled:hover:text-textVeryMuted"
-                    aria-label="Send file to user"
-                    title="Send file to user"
+                    class="rounded-md p-1 text-textMuted hover:text-brand dark:text-textVeryMuted dark:hover:text-brandDark disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed disabled:hover:text-textMuted dark:disabled:hover:text-textVeryMuted"
+                    [attr.aria-label]="
+                      (!isConnectedToMember(member) ? 'NOT_CONNECTED_TO_USER' : 'SEND_FILE_TO_USER')
+                        | translate
+                    "
+                    [title]="
+                      (!isConnectedToMember(member) ? 'NOT_CONNECTED_TO_USER' : 'SEND_FILE_TO_USER')
+                        | translate
+                    "
                     (click)="filePickerRequested.emit(member)"
                   >
                     <img
@@ -916,9 +924,7 @@
                     <span
                       class="text-xs font-expoArabicMedium text-textMuted dark:text-textVeryMuted"
                     >
-                      {{
-                        progressLabel(download.progress)
-                      }}%
+                      {{ progressLabel(download.progress) }}%
                     </span>
                     <button
                       (click)="
@@ -946,9 +952,7 @@
                 >
                   <div
                     class="h-full rounded-full bg-brand dark:bg-brandDark transition-[width] duration-75 ease-linear"
-                    [style.width]="
-                      getProgressBarWidth(download.progress)
-                    "
+                    [style.width]="getProgressBarWidth(download.progress)"
                     [style.max-width]="'100%'"
                   ></div>
                 </div>

@@ -12,6 +12,10 @@
   "ACCEPT": "Aceptar",
   "DECLINE": "Rechazar",
   "CANCEL": "Cancelar",
+  "ATTACH_FILES": "Adjuntar archivos",
+  "NO_PEERS_CONNECTED": "Sin usuarios conectados",
+  "SEND_FILE_TO_USER": "Enviar archivo al usuario",
+  "NOT_CONNECTED_TO_USER": "No conectado a este usuario",
 
   "_ROOMS_SECTION": "==== ROOMS ====",
   "ROOMS": "Salas de chat",
