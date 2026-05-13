@@ -38,7 +38,10 @@ export class RoomService implements IRoomService {
     }
     if (this.pendingJoinSpan) {
       this.pendingJoinSpan.setAttribute('outcome', outcome);
-      this.pendingJoinSpan.setStatus({ code: statusCode, message: outcome });
+      this.pendingJoinSpan.setStatus({
+        code: statusCode,
+        message: statusCode === 1 ? 'ok' : outcome,
+      });
       this.pendingJoinSpan.end();
       this.pendingJoinSpan = null;
     }
