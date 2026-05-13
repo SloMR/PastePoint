@@ -11,10 +11,10 @@ impl WsChatServer {
     pub fn is_valid_room_name(name: &str) -> bool {
         let trimmed = name.trim();
         !trimmed.is_empty()
-            && trimmed.len() <= 64
+            && trimmed.chars().count() <= 64
             && trimmed
                 .chars()
-                .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_' || c == ' ')
+                .all(|c| c.is_alphanumeric() || c == '-' || c == '_' || c == ' ')
     }
 
     pub fn take_room(&mut self, session_id: &str, room_name: &str) -> Option<Room> {

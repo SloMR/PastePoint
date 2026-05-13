@@ -60,6 +60,13 @@ if (typeof window !== 'undefined' && environment.sentry?.enabled && environment.
             !(span.op === 'http.client' && span.description?.includes('.js.map'))
         );
       }
+      if (event.contexts?.['device']) {
+        delete event.contexts['device']['timezone'];
+        delete event.contexts['device']['locale'];
+      }
+      if (event.contexts?.['culture']) {
+        delete event.contexts['culture'];
+      }
       return event;
     },
     beforeSend(event) {
