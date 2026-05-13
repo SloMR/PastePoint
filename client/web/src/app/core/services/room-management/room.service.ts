@@ -85,7 +85,7 @@ export class RoomService implements IRoomService {
 
   public joinRoom(room: string): void {
     const sanitizedRoom = room
-      .replace(/[^a-zA-Z0-9\-_ ]/g, '')
+      .replace(/[^\p{L}\p{N}\-_ ]/gu, '')
       .trim()
       .substring(0, 64);
 
