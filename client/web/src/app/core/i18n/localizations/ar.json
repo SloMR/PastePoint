@@ -12,6 +12,10 @@
   "ACCEPT": "قبول",
   "DECLINE": "رفض",
   "CANCEL": "إلغاء",
+  "ATTACH_FILES": "إرفاق ملفات",
+  "NO_PEERS_CONNECTED": "لا يوجد مستخدمون متصلون",
+  "SEND_FILE_TO_USER": "إرسال ملف للمستخدم",
+  "NOT_CONNECTED_TO_USER": "غير متصل بهذا المستخدم",
 
   "_ROOMS_SECTION": "==== ROOMS ====",
   "ROOMS": "الغرف",

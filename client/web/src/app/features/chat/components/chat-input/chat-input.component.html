@@ -62,9 +62,11 @@
             type="button"
             [disabled]="hasNoConnectedPeers"
             (click)="fileInput.click()"
-            class="p-0 border-0 bg-transparent disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-            [attr.aria-label]="'Attach Files'"
-            title="Attach Files"
+            class="p-0 border-0 bg-transparent disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed cursor-pointer"
+            [attr.aria-label]="
+              (hasNoConnectedPeers ? 'NO_PEERS_CONNECTED' : 'ATTACH_FILES') | translate
+            "
+            [title]="(hasNoConnectedPeers ? 'NO_PEERS_CONNECTED' : 'ATTACH_FILES') | translate"
           >
             <img
               [src]="'/icons/link.svg'"
@@ -77,10 +79,9 @@
           </button>
           <button
             type="button"
-            [disabled]="hasNoConnectedPeers"
             (mouseenter)="openEmojiPicker()"
             (mouseleave)="handleEmojiIconMouseLeave()"
-            class="p-0 border-0 bg-transparent disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            class="p-0 border-0 bg-transparent cursor-pointer"
             [attr.aria-label]="'Open emoji picker'"
             title="Open emoji picker"
           >

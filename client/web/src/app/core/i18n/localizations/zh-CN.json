@@ -12,6 +12,10 @@
   "ACCEPT": "接受",
   "DECLINE": "拒绝",
   "CANCEL": "取消",
+  "ATTACH_FILES": "附加文件",
+  "NO_PEERS_CONNECTED": "没有已连接的用户",
+  "SEND_FILE_TO_USER": "发送文件给用户",
+  "NOT_CONNECTED_TO_USER": "未连接到此用户",
 
   "_ROOMS_SECTION": "==== ROOMS ====",
   "ROOMS": "聊天室",

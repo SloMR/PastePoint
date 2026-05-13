@@ -12,6 +12,10 @@
   "ACCEPT": "Принять",
   "DECLINE": "Отклонить",
   "CANCEL": "Отмена",
+  "ATTACH_FILES": "Прикрепить файлы",
+  "NO_PEERS_CONNECTED": "Нет подключённых пользователей",
+  "SEND_FILE_TO_USER": "Отправить файл пользователю",
+  "NOT_CONNECTED_TO_USER": "Нет соединения с этим пользователем",
 
   "_ROOMS_SECTION": "==== ROOMS ====",
   "ROOMS": "Комнаты чата",
