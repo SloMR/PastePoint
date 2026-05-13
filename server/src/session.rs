@@ -122,7 +122,7 @@ impl WsChatSession {
                     let room_name = room_name.trim();
                     if !WsChatServer::is_valid_room_name(room_name) {
                         ctx.text(format!(
-                            "{WS_PREFIX_SYSTEM_ERROR} Invalid room name. Must be 1-64 characters, alphanumeric, hyphens, underscores, or spaces only."
+                            "{WS_PREFIX_SYSTEM_ERROR} Invalid room name. Must be 1-64 letters, digits, hyphens, underscores, or spaces only."
                         ));
                     } else {
                         log::debug!(target: "Websocket", "Received join command for room '{room_name}'");
