@@ -25,6 +25,24 @@ export class RoomService implements IRoomService {
   public currentRoom = 'main';
 
   private pendingJoinSpan: Sentry.Span | null = null;
+  private pendingJoinTimeout: ReturnType<typeof setTimeout> | null = null;
+  private static readonly JOIN_SPAN_TIMEOUT_MS = 10_000;
+
+  private clearPendingJoinSpan(
+    outcome: 'cancelled' | 'superseded' | 'timeout' | 'joined',
+    statusCode: 1 | 2
+  ): void {
+    if (this.pendingJoinTimeout) {
+      clearTimeout(this.pendingJoinTimeout);
+      this.pendingJoinTimeout = null;
+    }
+    if (this.pendingJoinSpan) {
+      this.pendingJoinSpan.setAttribute('outcome', outcome);
+      this.pendingJoinSpan.setStatus({ code: statusCode, message: outcome });
+      this.pendingJoinSpan.end();
+      this.pendingJoinSpan = null;
+    }
+  }
 
   /**
    * ==========================================================
@@ -54,11 +72,7 @@ export class RoomService implements IRoomService {
    * replay the previous session's members/rooms into the new view.
    */
   public reset(): void {
-    if (this.pendingJoinSpan) {
-      this.pendingJoinSpan.setStatus({ code: 2, message: 'cancelled' });
-      this.pendingJoinSpan.end();
-      this.pendingJoinSpan = null;
-    }
+    this.clearPendingJoinSpan('cancelled', 2);
     this.ngZone.run(() => {
       this.rooms$.next([]);
       this.members$.next([]);
@@ -82,11 +96,7 @@ export class RoomService implements IRoomService {
       return;
     }
 
-    if (this.pendingJoinSpan) {
-      this.pendingJoinSpan.setStatus({ code: 2, message: 'superseded' });
-      this.pendingJoinSpan.end();
-      this.pendingJoinSpan = null;
-    }
+    this.clearPendingJoinSpan('superseded', 2);
 
     startNewTrace(() => {
       this.pendingJoinSpan = Sentry.startInactiveSpan({
@@ -94,6 +104,10 @@ export class RoomService implements IRoomService {
         op: 'session.join',
       });
     });
+    this.pendingJoinTimeout = setTimeout(() => {
+      this.logger.warn('joinRoom', `Join timed out for room: ${sanitizedRoom}`);
+      this.clearPendingJoinSpan('timeout', 2);
+    }, RoomService.JOIN_SPAN_TIMEOUT_MS);
     this.wsService.send(`[UserCommand] /join ${sanitizedRoom}`);
   }
 
@@ -132,12 +146,7 @@ export class RoomService implements IRoomService {
           this.currentRoom = matchJoin[2];
         });
 
-        if (this.pendingJoinSpan) {
-          this.pendingJoinSpan.setAttribute('outcome', 'joined');
-          this.pendingJoinSpan.setStatus({ code: 1, message: 'ok' });
-          this.pendingJoinSpan.end();
-          this.pendingJoinSpan = null;
-        }
+        this.clearPendingJoinSpan('joined', 1);
       } else {
         this.logger.warn('handleSystemMessage', `No room to join found in message: ${message}`);
       }
