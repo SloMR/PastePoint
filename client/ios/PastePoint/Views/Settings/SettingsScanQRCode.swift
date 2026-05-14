@@ -13,6 +13,7 @@ import VisionKit
 
 private struct QRCodeScannerRepresentable: UIViewControllerRepresentable {
   var onCodeScanned: (String) -> Void
+  var onInvalidCodeScanned: () -> Void
 
   func makeUIViewController(context: Context) -> DataScannerViewController {
     let scanner = DataScannerViewController(
@@ -29,35 +30,51 @@ private struct QRCodeScannerRepresentable: UIViewControllerRepresentable {
 
   func updateUIViewController(_: DataScannerViewController, context _: Context) {}
 
-  func makeCoordinator() -> Coordinator { Coordinator(onCodeScanned: onCodeScanned) }
+  func makeCoordinator() -> Coordinator {
+    Coordinator(
+      onCodeScanned: onCodeScanned,
+      onInvalidCodeScanned: onInvalidCodeScanned,
+    )
+  }
 
   final class Coordinator: NSObject, DataScannerViewControllerDelegate {
     var onCodeScanned: (String) -> Void
+    var onInvalidCodeScanned: () -> Void
     private var hasScanned = false
+    private var lastInvalidPayload: String?
 
-    init(onCodeScanned: @escaping (String) -> Void) {
+    init(
+      onCodeScanned: @escaping (String) -> Void,
+      onInvalidCodeScanned: @escaping () -> Void,
+    ) {
       self.onCodeScanned = onCodeScanned
+      self.onInvalidCodeScanned = onInvalidCodeScanned
     }
 
-    // Parses https://<host>/private/<code> and returns the code.
-    // Falls back to the raw payload if the URL doesn't match the expected format.
-    static func extractSessionCode(from payload: String) -> String {
+    // Parses PastePoint private-session URLs and returns the embedded code.
+    static func extractSessionCode(from payload: String) -> String? {
+      let trimmedPayload = payload.trimmingCharacters(in: .whitespacesAndNewlines)
+
       guard
-        let url = URL(string: payload),
-        let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
-      else { return payload }
+        let url = URL(string: trimmedPayload),
+        let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+        components.scheme == "https",
+        components.host == AppEnvironment.webUrl
+      else { return nil }
 
       let pathComponents = components.path
         .split(separator: "/")
         .map(String.init)
 
-      guard
-        pathComponents.count == 2,
-        pathComponents[0] == "private",
-        !pathComponents[1].isEmpty
-      else { return payload }
+      guard pathComponents.count == 2 else { return nil }
+      
+      guard pathComponents[0] == "private",
+            let sessionCode = pathComponents[1] as String?,
+            SessionService.isValidSessionCode(sessionCode) else {
+        return nil
+      }
 
-      return pathComponents[1]
+      return sessionCode
     }
 
     func dataScanner(
@@ -70,8 +87,15 @@ private struct QRCodeScannerRepresentable: UIViewControllerRepresentable {
         case .barcode(let barcode) = addedItems.first,
         let payload = barcode.payloadStringValue
       else { return }
+
+      guard let code = Self.extractSessionCode(from: payload) else {
+        guard payload != lastInvalidPayload else { return }
+        lastInvalidPayload = payload
+        DispatchQueue.main.async { self.onInvalidCodeScanned() }
+        return
+      }
+
       hasScanned = true
-      let code = Self.extractSessionCode(from: payload)
       DispatchQueue.main.async { self.onCodeScanned(code) }
     }
   }
@@ -172,6 +196,7 @@ struct SettingsScanQRCode: View {
   private let cutoutSize: CGFloat = 240
   @State private var bracketScale: CGFloat = 1.0
   @State private var cameraPermission: AVAuthorizationStatus = CameraPermission.status
+  @State private var toasts: [ToastItem] = []
 
   var onCodeScanned: (String) -> Void
 
@@ -219,6 +244,10 @@ struct SettingsScanQRCode: View {
         logger.info("QR code scanned successfully")
         onCodeScanned(code)
         dismiss()
+      } onInvalidCodeScanned: {
+        UINotificationFeedbackGenerator().notificationOccurred(.error)
+        logger.warning("Invalid QR code scanned")
+        toasts.append(.error("Invalid PastePoint QR code"))
       }
       .ignoresSafeArea()
 
@@ -285,6 +314,7 @@ struct SettingsScanQRCode: View {
       }
     }
     .ignoresSafeArea()
+    .appToast(items: $toasts)
   }
 }
 
