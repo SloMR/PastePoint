@@ -6,11 +6,11 @@
 import Logging
 import SwiftUI
 
-struct SettingsJoinRoom: View {
+struct SettingsCreateRoom: View {
   @Environment(\.dismiss) private var dismiss
   @EnvironmentObject private var services: AppServices
 
-  private let logger = Logger(label: "SettingsJoinRoom")
+  private let logger = Logger(label: "SettingsCreateRoom")
 
   var onRoomCreate: (() -> Void)?
 
@@ -101,11 +101,12 @@ struct SettingsJoinRoom: View {
       .padding(24)
       .frame(maxWidth: .infinity)
       .fixedSize(horizontal: false, vertical: true)
-      .background(
-        GeometryReader { proxy in
-          Color.clear.task { sheetHeight = proxy.size.height + 56 }
-        },
-      )
+      .onGeometryChange(for: CGFloat.self) { proxy in
+          proxy.size.height
+      } action: { height in
+          guard height > 0 else { return }
+          sheetHeight = height + 56
+      }
       .navigationTitle("Create a Room")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
@@ -142,7 +143,7 @@ struct SettingsJoinRoom: View {
 
 #if DEBUG
 #Preview {
-  SettingsJoinRoom()
+  SettingsCreateRoom()
     .environmentObject(AppServices.preview)
 }
 #endif

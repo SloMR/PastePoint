@@ -146,7 +146,7 @@ struct SettingsView: View {
       }
     }
     .sheet(isPresented: $isJoinRoomSheetPresented) {
-      SettingsJoinRoom {
+      SettingsCreateRoom {
         logger.info("User created a room")
         toasts.append(.success("Room created successfully!"))
       }
