@@ -16,7 +16,9 @@ final class AppServices: ObservableObject {
   let wsService: WebSocketConnectionService
   let sessionService: SessionService
   let userService: UserService
+  let signalingService: SignalingService
   let roomService: RoomService
+  let peerDirectory: PeerDirectory
 
   static let shared = AppServices()
 
@@ -31,7 +33,9 @@ final class AppServices: ObservableObject {
     wsService = WebSocketConnectionService()
     sessionService = SessionService()
     userService = UserService(wsService: wsService)
+    signalingService = SignalingService(wsService: wsService, userService: userService)
     roomService = RoomService(wsService: wsService)
+    peerDirectory = PeerDirectory(roomService: roomService, userService: userService)
 
 #if DEBUG
     guard !AppBuildInfo.isXcodePreview else {
@@ -51,7 +55,9 @@ final class AppServices: ObservableObject {
     wsService = WebSocketConnectionService()
     sessionService = SessionService()
     userService = UserService(wsService: wsService)
+    signalingService = SignalingService(wsService: wsService, userService: userService)
     roomService = RoomService(wsService: wsService)
+    peerDirectory = PeerDirectory(roomService: roomService, userService: userService)
     forwardServiceChanges()
   }
 
@@ -141,6 +147,9 @@ final class AppServices: ObservableObject {
       .store(in: &cancellables)
     roomService.objectWillChange
       .sink { [weak self] _ in self?.objectWillChange.send() }
+      .store(in: &cancellables)
+    signalingService.objectWillChange
+      .sink{ [weak self] _ in self?.objectWillChange.send() }
       .store(in: &cancellables)
   }
 }
