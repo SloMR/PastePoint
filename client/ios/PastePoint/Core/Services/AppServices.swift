@@ -33,9 +33,9 @@ final class AppServices: ObservableObject {
     wsService = WebSocketConnectionService()
     sessionService = SessionService()
     userService = UserService(wsService: wsService)
-    signalingService = SignalingService(wsService: wsService, userService: userService)
     roomService = RoomService(wsService: wsService)
     peerDirectory = PeerDirectory(roomService: roomService, userService: userService)
+    signalingService = SignalingService(wsService: wsService, userService: userService, peerDirectory: peerDirectory)
 
 #if DEBUG
     guard !AppBuildInfo.isXcodePreview else {
@@ -55,9 +55,9 @@ final class AppServices: ObservableObject {
     wsService = WebSocketConnectionService()
     sessionService = SessionService()
     userService = UserService(wsService: wsService)
-    signalingService = SignalingService(wsService: wsService, userService: userService)
     roomService = RoomService(wsService: wsService)
     peerDirectory = PeerDirectory(roomService: roomService, userService: userService)
+    signalingService = SignalingService(wsService: wsService, userService: userService, peerDirectory: peerDirectory)
     forwardServiceChanges()
   }
 

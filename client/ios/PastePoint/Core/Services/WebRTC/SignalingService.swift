@@ -28,18 +28,27 @@ final class SignalingService: NSObject, ObservableObject {
   
   private let wsService: WebSocketConnectionService
   private let userService: UserService
+  private let peerDirectory: PeerDirectory
   
   private var cancellables: Set<AnyCancellable> = []
   
-  init(wsService: WebSocketConnectionService, userService: UserService) {
+  init(wsService: WebSocketConnectionService, userService: UserService, peerDirectory: PeerDirectory) {
     self.wsService = wsService
     self.userService = userService
+    self.peerDirectory = peerDirectory
     super.init()
     
     wsService.signalMessage
       .receive(on: DispatchQueue.main)
       .sink { [weak self] message in
         self?.handle(message)
+      }
+      .store(in: &cancellables)
+    
+    peerDirectory.$peers
+      .receive(on: DispatchQueue.main)
+      .sink { [weak self] peers in
+        self?.syncMesh(peers: peers)
       }
       .store(in: &cancellables)
   }
@@ -153,6 +162,26 @@ final class SignalingService: NSObject, ObservableObject {
     let buffer = RTCDataBuffer(data: Data(text.utf8), isBinary: false)
     channel.sendData(buffer)
     logger.info("send: sent \(text) to \(peer)")
+  }
+  
+  private func syncMesh(peers: [String]) {
+    let target = Set(peers)
+    let tracked = Set(peerConnections.keys).union(connectionLocks)
+    
+    let toOpen = target.subtracting(tracked)
+    let toClose = tracked.subtracting(target)
+    
+    for peer in toClose {
+      logger.info("syncMesh: closing connection to \(peer) (left room)")
+      closePeerConnection(peer)
+    }
+    
+    for peer in toOpen {
+      logger.info("syncMesh: opening connection to \(peer) (joined room)")
+      Task {
+        await initiateConnection(to: peer)
+      }
+    }
   }
   
 // MARK: -
@@ -424,7 +453,7 @@ extension SignalingService: RTCPeerConnectionDelegate, RTCDataChannelDelegate {
       guard let self else { return }
       
       guard let peer = self.peer(forChannelID: dataChannelID) else {
-        self.logger.warning("dataChannelDidChangeState: unknown channel")
+        self.logger.debug("dataChannelDidChangeState: unknown channel (already closed)")
         return
       }
       
