@@ -102,10 +102,10 @@ struct SettingsCreateRoom: View {
       .frame(maxWidth: .infinity)
       .fixedSize(horizontal: false, vertical: true)
       .onGeometryChange(for: CGFloat.self) { proxy in
-          proxy.size.height
+        proxy.size.height
       } action: { height in
-          guard height > 0 else { return }
-          sheetHeight = height + 56
+        guard height > 0 else { return }
+        sheetHeight = height + 56
       }
       .navigationTitle("Create a Room")
       .navigationBarTitleDisplayMode(.inline)

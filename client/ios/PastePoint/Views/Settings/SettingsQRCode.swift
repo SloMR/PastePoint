@@ -72,10 +72,10 @@ struct SettingsQRCode: View {
       .fixedSize(horizontal: false, vertical: true)
       .onAppear { logger.info("QR code sheet presented for session: \(services.wsService.currentSessionCode ?? "none")") }
       .onGeometryChange(for: CGFloat.self) { proxy in
-          proxy.size.height
+        proxy.size.height
       } action: { height in
-          guard height > 0 else { return }
-          sheetHeight = height + 56
+        guard height > 0 else { return }
+        sheetHeight = height + 56
       }
       .navigationTitle("QR Code")
       .navigationBarTitleDisplayMode(.inline)

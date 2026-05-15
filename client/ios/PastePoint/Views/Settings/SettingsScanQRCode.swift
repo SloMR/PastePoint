@@ -67,10 +67,12 @@ private struct QRCodeScannerRepresentable: UIViewControllerRepresentable {
         .map(String.init)
 
       guard pathComponents.count == 2 else { return nil }
-      
-      guard pathComponents[0] == "private",
-            let sessionCode = pathComponents[1] as String?,
-            SessionService.isValidSessionCode(sessionCode) else {
+
+      guard
+        pathComponents[0] == "private",
+        let sessionCode = pathComponents[1] as String?,
+        SessionService.isValidSessionCode(sessionCode)
+      else {
         return nil
       }
 
