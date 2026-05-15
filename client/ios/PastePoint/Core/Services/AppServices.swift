@@ -8,6 +8,7 @@ import Logging
 import Network
 import SwiftUI
 import UIKit
+import WebRTC
 
 @MainActor
 final class AppServices: ObservableObject {
@@ -16,7 +17,9 @@ final class AppServices: ObservableObject {
   let wsService: WebSocketConnectionService
   let sessionService: SessionService
   let userService: UserService
+  let signalingService: SignalingService
   let roomService: RoomService
+  let peerDirectory: PeerDirectory
 
   static let shared = AppServices()
 
@@ -32,6 +35,8 @@ final class AppServices: ObservableObject {
     sessionService = SessionService()
     userService = UserService(wsService: wsService)
     roomService = RoomService(wsService: wsService)
+    peerDirectory = PeerDirectory(roomService: roomService, userService: userService)
+    signalingService = SignalingService(wsService: wsService, userService: userService, peerDirectory: peerDirectory)
 
 #if DEBUG
     guard !AppBuildInfo.isXcodePreview else {
@@ -52,6 +57,8 @@ final class AppServices: ObservableObject {
     sessionService = SessionService()
     userService = UserService(wsService: wsService)
     roomService = RoomService(wsService: wsService)
+    peerDirectory = PeerDirectory(roomService: roomService, userService: userService)
+    signalingService = SignalingService(wsService: wsService, userService: userService, peerDirectory: peerDirectory)
     forwardServiceChanges()
   }
 
@@ -126,6 +133,7 @@ final class AppServices: ObservableObject {
       .publisher(for: UIApplication.willTerminateNotification)
       .sink { [weak self] _ in
         self?.wsService.disconnect(manual: true)
+        RTCCleanupSSL()
       }
       .store(in: &cancellables)
   }
@@ -140,6 +148,9 @@ final class AppServices: ObservableObject {
       .sink { [weak self] _ in self?.objectWillChange.send() }
       .store(in: &cancellables)
     roomService.objectWillChange
+      .sink { [weak self] _ in self?.objectWillChange.send() }
+      .store(in: &cancellables)
+    signalingService.objectWillChange
       .sink { [weak self] _ in self?.objectWillChange.send() }
       .store(in: &cancellables)
   }

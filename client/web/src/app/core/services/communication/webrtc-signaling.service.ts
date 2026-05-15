@@ -1264,7 +1264,12 @@ export class WebRTCSignalingService {
 
   /**
    * Determines if the current user should initiate the connection.
-   * This prevents race conditions when both users try to initiate simultaneously.
+   * Glare resolution: the lexicographically smaller username is the caller.
+   *
+   * Plain `<` is UTF-16 code-unit comparison — locale-independent, so the web
+   * and iOS clients agree on roles regardless of either device's system locale.
+   * Do not switch to localeCompare here without coordinating the iOS side.
+   *
    * @param targetUser The user to compare with.
    * @returns true if the current user should initiate, false if the target user should.
    */
@@ -1272,10 +1277,6 @@ export class WebRTCSignalingService {
     const currentUserId = this.userService.user;
     const targetUserId = targetUser;
 
-    // The user with the "smaller" ID (lexicographically) will always be the caller
-    // ex: if currentUserId is "Austin Bob" and targetUserId is "Bob Austin",
-    // currentUserId will be the caller because "Austin Bob" is lexicographically smaller than "Bob Austin".
-    // This ensures consistent behavior across both clients
-    return currentUserId.localeCompare(targetUserId) < 0;
+    return currentUserId < targetUserId;
   }
 }

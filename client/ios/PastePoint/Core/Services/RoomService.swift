@@ -42,11 +42,11 @@ final class RoomService: ObservableObject {
 
   func joinOrCreateRoom(_ room: String) async {
     guard !room.isEmpty else {
-      logger.warning("joinOrCreateRoom: room name is empty — skipped")
+      logger.warning("room name is empty — skipped")
       return
     }
     guard room != currentRoom else {
-      logger.debug("joinOrCreateRoom: already in room '\(room)' — skipped")
+      logger.debug("already in room '\(room)' — skipped")
       return
     }
     logger.info("Joining room: \(room)")
@@ -66,7 +66,7 @@ final class RoomService: ObservableObject {
   private func handleSystemMessage(_ message: String) {
     if message.contains("[SystemRooms]") {
       guard let range = message.range(of: "\\[SystemRooms]\\s*(.*)$", options: .regularExpression) else {
-        logger.warning("handleSystemMessage: failed to parse [SystemRooms] message: \(message)")
+        logger.warning("failed to parse [SystemRooms] message: \(message)")
         return
       }
       let rest = String(message[range])
@@ -76,7 +76,7 @@ final class RoomService: ObservableObject {
       logger.debug("Rooms updated: \(rooms)")
     } else if message.contains("[SystemMembers]") {
       guard let range = message.range(of: "\\[SystemMembers]\\s*(.*)$", options: .regularExpression) else {
-        logger.warning("handleSystemMessage: failed to parse [SystemMembers] message: \(message)")
+        logger.warning("failed to parse [SystemMembers] message: \(message)")
         return
       }
       let rest = String(message[range])
@@ -86,12 +86,12 @@ final class RoomService: ObservableObject {
       logger.debug("Members updated: \(members)")
     } else if message.contains("[SystemJoin]") {
       guard let range = message.range(of: "\\[SystemJoin]\\s*(\\S+)\\s*$", options: .regularExpression) else {
-        logger.warning("handleSystemMessage: failed to parse [SystemJoin] message: \(message)")
+        logger.warning("failed to parse [SystemJoin] message: \(message)")
         return
       }
       let parts = String(message[range]).split(separator: " ")
       guard let last = parts.last else {
-        logger.warning("handleSystemMessage: [SystemJoin] had no room name in: \(message)")
+        logger.warning("[SystemJoin] had no room name in: \(message)")
         return
       }
       currentRoom = String(last)
