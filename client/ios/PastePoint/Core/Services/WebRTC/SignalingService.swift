@@ -21,6 +21,7 @@ final class SignalingService: NSObject, ObservableObject {
   
   private var peerConnections: [String: RTCPeerConnection] = [:]
   private var dataChannels: [String: RTCDataChannel] = [:]
+  private var candidateQueues: [String: [RTCIceCandidate]] = [:]
   
   private let wsService: WebSocketConnectionService
   private let userService: UserService
@@ -43,6 +44,11 @@ final class SignalingService: NSObject, ObservableObject {
 // MARK: -
   
   private func handle(_ message: SignalMessage) {
+    guard !message.from.isEmpty else {
+      logger.warning("handle: ignoring message with empty 'from'")
+      return
+    }
+
     logger.info("handle: received \(message.type.rawValue) from \(message.from)")
     switch message.type {
     case .offer:
@@ -69,6 +75,7 @@ final class SignalingService: NSObject, ObservableObject {
       logger.warning("initiateConnection: already have a connection to \(peer)")
       return
     }
+    await waitForUsername()
     
     guard let pc = PeerConnectionFactory.shared.makePeerConnection(delegate: self) else {
       logger.error("initiateConnection: factory returned nil for \(peer)")
@@ -124,6 +131,8 @@ final class SignalingService: NSObject, ObservableObject {
 // MARK: -
 
   private func handleOffer(_ message: SignalMessage) async {
+    await waitForUsername()
+
     guard let remoteSdp = parseSdp(from: message.data, type: .offer) else {
       logger.error("handleOffer: malformed SDP from \(message.from)")
       return
@@ -137,6 +146,7 @@ final class SignalingService: NSObject, ObservableObject {
     
     do {
       try await pc.setRemoteDescription(remoteSdp)
+      await drainCandidateQueue(for: message.from)
       let constraints = RTCMediaConstraints(mandatoryConstraints: nil, optionalConstraints: nil)
       let answer = try await pc.answer(for: constraints)
       try await pc.setLocalDescription(answer)
@@ -169,6 +179,7 @@ final class SignalingService: NSObject, ObservableObject {
     
     do {
       try await pc.setRemoteDescription(remoteSdp)
+      await drainCandidateQueue(for: message.from)
       logger.info("handleAnswer: remote description set for \(message.from)")
     } catch {
       logger.error("handleAnswer: setRemoteDescription failed: \(error.localizedDescription)")
@@ -186,16 +197,47 @@ final class SignalingService: NSObject, ObservableObject {
       return
     }
     
-    do {
-      try await pc.add(candidate)
-      logger.info("handleCandidate: candidate added for \(message.from)")
-    } catch {
-      logger.error("handleCandidate: add failed: \(error.localizedDescription)")
+    if pc.remoteDescription != nil {
+      do {
+        try await pc.add(candidate)
+        logger.info("handleCandidate: candidate added for \(message.from)")
+      } catch {
+        logger.error("handleCandidate: add failed: \(error.localizedDescription)")
+      }
+    } else {
+      if candidateQueues[message.from] == nil {
+        candidateQueues[message.from] = []
+      }
+      candidateQueues[message.from]?.append(candidate)
+      logger.info("handleCandidate: queued candidate for \(message.from) (queue size: \(candidateQueues[message.from]?.count ?? 0))")
     }
   }
   
 // MARK: -
 
+  private func drainCandidateQueue(for peer: String) async {
+    guard let pc = peerConnections[peer] else { return }
+    guard let queued = candidateQueues[peer], !queued.isEmpty else { return }
+    
+    candidateQueues[peer] = nil
+    
+    for candidate in queued {
+      do {
+        try await pc.add(candidate)
+      } catch {
+        logger.info("drainCandidateQueue: add failed for \(peer)")
+      }
+    }
+    logger.error("drainCandidateQueue: drained \(queued.count) candidates for \(peer)")
+  }
+  
+  private func waitForUsername() async {
+    if !userService.user.isEmpty { return }
+    for await user in userService.$user.values where !user.isEmpty {
+      return
+    }
+  }
+  
   // TODO: Remove this parseing and modify the Any object type
   private func parseSdp(from data: Any?, type: RTCSdpType) -> RTCSessionDescription? {
     guard
@@ -242,6 +284,7 @@ extension SignalingService: RTCPeerConnectionDelegate, RTCDataChannelDelegate {
 
     Task { @MainActor [weak self] in
       guard let self else { return }
+      await waitForUsername()
 
       guard let peer = self.peer(forConnectionID: peerConnectionID) else {
         self.logger.warning("didGenerate: unknown peer connection")
@@ -322,7 +365,7 @@ extension SignalingService: RTCPeerConnectionDelegate, RTCDataChannelDelegate {
       guard let self else { return }
       
       guard let peer = self.peer(forChannelID: dataChannelID) else {
-        self.logger.warning("didReceiveMessag: unknown channel")
+        self.logger.warning("didReceiveMessageWith: unknown channel")
         return
       }
       
