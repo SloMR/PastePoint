@@ -6,7 +6,10 @@
 import Foundation
 import WebRTC
 
-final class PeerConnectionFactory {
+// `@unchecked Sendable`: the wrapped `RTCPeerConnectionFactory` is internally
+// thread-safe (libwebrtc handles its own locking), and our only stored property
+// is `let factory`. Safe to share across actors.
+final class PeerConnectionFactory: @unchecked Sendable {
   static let shared = PeerConnectionFactory()
 
   private let factory: RTCPeerConnectionFactory
