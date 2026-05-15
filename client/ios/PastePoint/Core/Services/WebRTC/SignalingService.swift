@@ -19,9 +19,12 @@ final class SignalingService: NSObject, ObservableObject {
   
   @Published private(set) var connectedPeers: Set<String> = []
   
+  private var outboundSequences: [String: Int] = [:]
+  private var inboundSequences: [String: Int] = [:]
   private var peerConnections: [String: RTCPeerConnection] = [:]
   private var dataChannels: [String: RTCDataChannel] = [:]
   private var candidateQueues: [String: [RTCIceCandidate]] = [:]
+  private var connectionLocks: Set<String> = []
   
   private let wsService: WebSocketConnectionService
   private let userService: UserService
@@ -64,21 +67,42 @@ final class SignalingService: NSObject, ObservableObject {
         await handleCandidate(message)
       }
     case .connectionRequest:
-      break // Step 5
+      Task {
+        await handleConnectionRequest(message)
+      }
     }
   }
   
 // MARK: -
 
   func initiateConnection(to peer: String) async {
+    guard !connectionLocks.contains(peer) else {
+      logger.debug("initiateConnection: already locked for \(peer)")
+      return
+    }
+
     guard peerConnections[peer] == nil else {
       logger.warning("initiateConnection: already have a connection to \(peer)")
       return
     }
+
     await waitForUsername()
-    
+    if !shouldInitiateConnection(to: peer) {
+      logger.info("initiateConnection: not the designated caller for \(peer), sending connection request")
+      await wsService.sendSignal([
+        "type": "connection_request",
+        "data": [:] as [String: Any],
+        "from": userService.user,
+        "to": peer,
+        "sequence": nextSequence(for: peer)
+      ])
+      return
+    }
+
+    connectionLocks.insert(peer)
     guard let pc = PeerConnectionFactory.shared.makePeerConnection(delegate: self) else {
       logger.error("initiateConnection: factory returned nil for \(peer)")
+      connectionLocks.remove(peer)
       return
     }
     peerConnections[peer] = pc
@@ -86,6 +110,7 @@ final class SignalingService: NSObject, ObservableObject {
     guard let channel = pc.dataChannel(forLabel: "data", configuration: WebRTCConfig.dataChannelConfig) else {
       logger.error("initiateConnection: failed to create data channel for \(peer)")
       peerConnections[peer] = nil
+      connectionLocks.remove(peer)
       return
     }
     channel.delegate = self
@@ -99,6 +124,7 @@ final class SignalingService: NSObject, ObservableObject {
       logger.error("initiateConnection: SDP offer failed: \(error.localizedDescription)")
       peerConnections[peer] = nil
       dataChannels[peer] = nil
+      connectionLocks.remove(peer)
       return
     }
     
@@ -106,7 +132,8 @@ final class SignalingService: NSObject, ObservableObject {
       "type": "offer",
       "data": ["type": "offer", "sdp": pc.localDescription?.sdp ?? ""],
       "from": userService.user,
-      "to": peer
+      "to": peer,
+      "sequence": nextSequence(for: peer)
     ]
     await wsService.sendSignal(payload)
     logger.info("initiateConnection: offer sent to \(peer)")
@@ -133,13 +160,32 @@ final class SignalingService: NSObject, ObservableObject {
   private func handleOffer(_ message: SignalMessage) async {
     await waitForUsername()
 
+    if isDuplicate(message.from, sequence: message.sequence) {
+      logger.debug("handleOffer: ignoring duplicate sequence from \(message.from)")
+      return
+    }
+    
+    if connectionLocks.contains(message.from) {
+      logger.warning("handleOffer: collision with \(message.from), resolving by role")
+      if shouldInitiateConnection(to: message.from) {
+        logger.debug("handleOffer: ignoring offer from \(message.from) (we are the designated caller)")
+        return
+      } else {
+        logger.debug("handleOffer: canceling our initiation for \(message.from) (we are the designated callee)")
+        closePeerConnection(message.from)
+      }
+    }
+    connectionLocks.insert(message.from)
+
     guard let remoteSdp = parseSdp(from: message.data, type: .offer) else {
       logger.error("handleOffer: malformed SDP from \(message.from)")
+      connectionLocks.remove(message.from)
       return
     }
     
     guard let pc = PeerConnectionFactory.shared.makePeerConnection(delegate: self) else {
       logger.error("handleOffer: factory returned nil for \(message.from)")
+      connectionLocks.remove(message.from)
       return
     }
     peerConnections[message.from] = pc
@@ -153,6 +199,7 @@ final class SignalingService: NSObject, ObservableObject {
     } catch {
       logger.error("handleOffer: SDP exchange failed: \(error.localizedDescription)")
       peerConnections[message.from] = nil
+      connectionLocks.remove(message.from)
       return
     }
     
@@ -161,12 +208,18 @@ final class SignalingService: NSObject, ObservableObject {
       "data": ["type": "answer", "sdp": pc.localDescription?.sdp ?? ""],
       "from": userService.user,
       "to": message.from,
+      "sequence": nextSequence(for: message.from)
     ]
     await wsService.sendSignal(payload)
     logger.info("handleOffer: answer sent to \(message.from)")
   }
   
   private func handleAnswer(_ message: SignalMessage) async {
+    if isDuplicate(message.from, sequence: message.sequence) {
+      logger.debug("handleAnswer: ignoring duplicate sequence from \(message.from)")
+      return
+    }
+
     guard let pc = peerConnections[message.from] else {
       logger.warning("handleAnswer: no peer connection for \(message.from)")
       return
@@ -213,6 +266,16 @@ final class SignalingService: NSObject, ObservableObject {
     }
   }
   
+  private func handleConnectionRequest(_ message: SignalMessage) async {
+    if isDuplicate(message.from, sequence: message.sequence) {
+      logger.debug("handleConnectionRequest: ignoring duplicate sequence from \(message.from)")
+      return
+    }
+
+    logger.info("handleConnectionRequest: \(message.from) is asking us to initiate")
+    await initiateConnection(to: message.from)
+  }
+  
 // MARK: -
 
   private func drainCandidateQueue(for peer: String) async {
@@ -225,10 +288,20 @@ final class SignalingService: NSObject, ObservableObject {
       do {
         try await pc.add(candidate)
       } catch {
-        logger.info("drainCandidateQueue: add failed for \(peer)")
+        logger.error("drainCandidateQueue: add failed for \(peer)")
       }
     }
-    logger.error("drainCandidateQueue: drained \(queued.count) candidates for \(peer)")
+    logger.info("drainCandidateQueue: drained \(queued.count) candidates for \(peer)")
+  }
+  
+  private func closePeerConnection(_ peer: String) {
+    dataChannels[peer]?.close()
+    dataChannels[peer] = nil
+    peerConnections[peer]?.close()
+    peerConnections[peer] = nil
+    candidateQueues[peer] = nil
+    connectionLocks.remove(peer)
+    connectedPeers.remove(peer)
   }
   
   private func waitForUsername() async {
@@ -236,6 +309,24 @@ final class SignalingService: NSObject, ObservableObject {
     for await user in userService.$user.values where !user.isEmpty {
       return
     }
+  }
+  
+  private func nextSequence(for peer: String) -> Int {
+    let next = (outboundSequences[peer] ?? 0) + 1
+    outboundSequences[peer] = next
+    return next
+  }
+  
+  private func isDuplicate(_ peer: String, sequence: Int?) -> Bool {
+    guard let sequence else { return false }
+    let last = inboundSequences[peer] ?? 0
+    if sequence <= last { return true }
+    inboundSequences[peer] = sequence
+    return false
+  }
+  
+  private func shouldInitiateConnection(to peer: String) -> Bool {
+    return userService.user.localizedCompare(peer) == .orderedAscending
   }
   
   // TODO: Remove this parseing and modify the Any object type
@@ -299,7 +390,8 @@ extension SignalingService: RTCPeerConnectionDelegate, RTCDataChannelDelegate {
           "sdpMLineIndex": Int(sdpMLineIndex)
         ],
         "from": self.userService.user,
-        "to": peer
+        "to": peer,
+        "sequence": nextSequence(for: peer)
       ]
       await self.wsService.sendSignal(payload)
     }
@@ -339,9 +431,11 @@ extension SignalingService: RTCPeerConnectionDelegate, RTCDataChannelDelegate {
       switch state {
       case .open:
         self.connectedPeers.insert(peer)
+        self.connectionLocks.remove(peer)
         self.logger.info("dataChannelDidChangeState: connected to \(peer)")
       case .closed:
         self.connectedPeers.remove(peer)
+        self.connectionLocks.remove(peer)
         self.logger.info("dataChannelDidChangeState: disconnected from \(peer)")
       case .connecting:
         self.logger.info("dataChannelDidChangeState: connecting to \(peer)")
