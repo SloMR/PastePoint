@@ -430,7 +430,7 @@ final class SignalingService: NSObject, ObservableObject {
   }
   
   private func shouldInitiateConnection(to peer: String) -> Bool {
-    return userService.user.localizedCompare(peer) == .orderedAscending
+    return userService.user < peer
   }
   
   // TODO: Remove this parseing and modify the Any object type

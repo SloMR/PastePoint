@@ -1272,10 +1272,6 @@ export class WebRTCSignalingService {
     const currentUserId = this.userService.user;
     const targetUserId = targetUser;
 
-    // The user with the "smaller" ID (lexicographically) will always be the caller
-    // ex: if currentUserId is "Austin Bob" and targetUserId is "Bob Austin",
-    // currentUserId will be the caller because "Austin Bob" is lexicographically smaller than "Bob Austin".
-    // This ensures consistent behavior across both clients
-    return currentUserId.localeCompare(targetUserId) < 0;
+    return currentUserId < targetUserId;
   }
 }
