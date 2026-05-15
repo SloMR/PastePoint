@@ -21,10 +21,18 @@ final class SignalingService: NSObject, ObservableObject {
   
   private var outboundSequences: [String: Int] = [:]
   private var inboundSequences: [String: Int] = [:]
+
   private var peerConnections: [String: RTCPeerConnection] = [:]
   private var dataChannels: [String: RTCDataChannel] = [:]
   private var candidateQueues: [String: [RTCIceCandidate]] = [:]
   private var connectionLocks: Set<String> = []
+  
+  private var reconnectAttemps: [String: Int] = [:]
+  private var reconnectTask: [String: Task<Void, Never>] = [:]
+  
+  private static let maxReconnectAttempts = 5
+  private static let baseReconnectDelay: TimeInterval = 2.0 // Seconds
+  private static let maxReconnectDelay: TimeInterval = 10.0 // Seconds
   
   private let wsService: WebSocketConnectionService
   private let userService: UserService
@@ -324,6 +332,9 @@ final class SignalingService: NSObject, ObservableObject {
   }
   
   private func closePeerConnection(_ peer: String) {
+    reconnectTask[peer]?.cancel()
+    reconnectTask[peer] = nil
+    reconnectAttemps[peer] = nil
     dataChannels[peer]?.close()
     dataChannels[peer] = nil
     peerConnections[peer]?.close()
@@ -331,6 +342,58 @@ final class SignalingService: NSObject, ObservableObject {
     candidateQueues[peer] = nil
     connectionLocks.remove(peer)
     connectedPeers.remove(peer)
+  }
+  
+  private func scheduleReconnect(to peer: String) {
+    if reconnectTask[peer] != nil { // TODO: Convert to guard
+      logger.debug("scheduleReconnect: already scheduled for \(peer)")
+      return
+    }
+    
+    // Only connect if the peer is still expected to be in the room
+    guard peerDirectory.peers.contains(peer) else {
+      logger.info("scheduleReconnect: \(peer) is no longer a peer, skipping")
+      reconnectAttemps[peer] = nil
+      return
+    }
+    
+    let attempts = reconnectAttemps[peer] ?? 0
+    guard attempts < Self.maxReconnectAttempts else {
+      logger.error("scheduleReconnect: max attempts reached for \(peer)")
+      reconnectAttemps[peer] = nil
+      return
+    }
+    
+    reconnectAttemps[peer] = attempts + 1
+    
+    // Exponential backoff: 2s, 3s, 4.5s, ...
+    let delay = min(Self.baseReconnectDelay * pow(1.5, Double(attempts)), Self.maxReconnectDelay)
+    logger.warning("scheduleReconnect: attempt \(attempts + 1) for \(peer) in \(delay)s")
+    
+    reconnectTask[peer] = Task { [weak self] in
+      try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+      if Task.isCancelled { return }
+      guard let self else { return }
+      self.reconnectTask[peer] = nil
+      
+      guard self.peerDirectory.peers.contains(peer) else {
+        self.logger.info("scheduleReconnect: \(peer) left during backoff, skipping")
+        self.reconnectAttemps[peer] = nil
+        return
+      }
+      
+      // Don't reconnect if we have already healed since scheduling
+      if self.connectedPeers.contains(peer) {
+        self.logger.debug("scheduleReconnect: \(peer) already healthy, skipping")
+        self.reconnectAttemps[peer] = nil
+        return
+      }
+      
+      self.logger.info("scheduleReconnect: reconnecting to \(peer)")
+      self.closePeerConnection(peer)
+      await self.initiateConnection(to: peer)
+    }
+    
   }
   
   private func waitForUsername() async {
@@ -394,7 +457,25 @@ extension SignalingService: RTCPeerConnectionDelegate, RTCDataChannelDelegate {
   nonisolated func peerConnection(_ peerConnection: RTCPeerConnection, didAdd stream: RTCMediaStream) {}
   nonisolated func peerConnection(_ peerConnection: RTCPeerConnection, didRemove stream: RTCMediaStream) {}
   nonisolated func peerConnectionShouldNegotiate(_ peerConnection: RTCPeerConnection) {}
-  nonisolated func peerConnection(_ peerConnection: RTCPeerConnection, didChange newState: RTCIceConnectionState) {}
+  nonisolated func peerConnection(_ peerConnection: RTCPeerConnection, didChange newState: RTCIceConnectionState) {
+    let peerConnectionID = ObjectIdentifier(peerConnection)
+    let state = newState
+    
+    Task { @MainActor [weak self] in
+      guard let self else { return }
+      guard let peer = self.peer(forConnectionID: peerConnectionID) else { return }
+      
+      self.logger.debug("iceConnectionState: \(peer) → \(state.rawValue)")
+      switch state {
+      case .failed, .disconnected:
+        self.scheduleReconnect(to: peer)
+      case .closed:
+        self.connectedPeers.remove(peer)
+      default:
+        break
+      }
+    }
+  }
   nonisolated func peerConnection(_ peerConnection: RTCPeerConnection, didChange newState: RTCIceGatheringState) {}
   nonisolated func peerConnection(_ peerConnection: RTCPeerConnection, didGenerate candidate: RTCIceCandidate) {
     let peerConnectionID = ObjectIdentifier(peerConnection)
@@ -461,11 +542,13 @@ extension SignalingService: RTCPeerConnectionDelegate, RTCDataChannelDelegate {
       case .open:
         self.connectedPeers.insert(peer)
         self.connectionLocks.remove(peer)
+        self.reconnectAttemps[peer] = nil
         self.logger.info("dataChannelDidChangeState: connected to \(peer)")
       case .closed:
         self.connectedPeers.remove(peer)
         self.connectionLocks.remove(peer)
         self.logger.info("dataChannelDidChangeState: disconnected from \(peer)")
+        self.scheduleReconnect(to: peer)
       case .connecting:
         self.logger.info("dataChannelDidChangeState: connecting to \(peer)")
         break
