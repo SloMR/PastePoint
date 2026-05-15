@@ -27,8 +27,11 @@ final class SignalingService: NSObject, ObservableObject {
   private var candidateQueues: [String: [RTCIceCandidate]] = [:]
   private var connectionLocks: Set<String> = []
   
-  private var reconnectAttemps: [String: Int] = [:]
-  private var reconnectTask: [String: Task<Void, Never>] = [:]
+  private var reconnectAttempts: [String: Int] = [:]
+  private var reconnectTasks: [String: Task<Void, Never>] = [:]
+  
+  private var connectionTimeouts: [String: Task<Void, Never>] = [:]
+  private static let connectionTimeout: TimeInterval = 30.0 // Seconds
   
   let bufferedAmountLow = PassthroughSubject<String, Never>()
   
@@ -119,6 +122,8 @@ final class SignalingService: NSObject, ObservableObject {
     }
 
     connectionLocks.insert(peer)
+    startConnectionTimeout(for: peer)
+
     guard let pc = PeerConnectionFactory.shared.makePeerConnection(delegate: self) else {
       logger.error("initiateConnection: factory returned nil for \(peer)")
       connectionLocks.remove(peer)
@@ -197,7 +202,7 @@ final class SignalingService: NSObject, ObservableObject {
 // MARK: -
   
   private func scheduleReconnect(to peer: String) {
-    if reconnectTask[peer] != nil { // TODO: Convert to guard
+    if reconnectTasks[peer] != nil { // TODO: Convert to guard
       logger.debug("scheduleReconnect: already scheduled for \(peer)")
       return
     }
@@ -205,44 +210,44 @@ final class SignalingService: NSObject, ObservableObject {
     // Only connect if the peer is still expected to be in the room
     guard peerDirectory.peers.contains(peer) else {
       logger.info("scheduleReconnect: \(peer) is no longer a peer, skipping")
-      reconnectAttemps[peer] = nil
+      reconnectAttempts[peer] = nil
       return
     }
     
-    let attempts = reconnectAttemps[peer] ?? 0
+    let attempts = reconnectAttempts[peer] ?? 0
     guard attempts < Self.maxReconnectAttempts else {
       logger.error("scheduleReconnect: max attempts reached for \(peer)")
-      reconnectAttemps[peer] = nil
+      reconnectAttempts[peer] = nil
       return
     }
     
-    reconnectAttemps[peer] = attempts + 1
+    reconnectAttempts[peer] = attempts + 1
     
     // Exponential backoff: 2s, 3s, 4.5s, ...
     let delay = min(Self.baseReconnectDelay * pow(1.5, Double(attempts)), Self.maxReconnectDelay)
     logger.warning("scheduleReconnect: attempt \(attempts + 1) for \(peer) in \(delay)s")
     
-    reconnectTask[peer] = Task { [weak self] in
+    reconnectTasks[peer] = Task { [weak self] in
       try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
       if Task.isCancelled { return }
       guard let self else { return }
-      self.reconnectTask[peer] = nil
+      self.reconnectTasks[peer] = nil
       
       guard self.peerDirectory.peers.contains(peer) else {
         self.logger.info("scheduleReconnect: \(peer) left during backoff, skipping")
-        self.reconnectAttemps[peer] = nil
+        self.reconnectAttempts[peer] = nil
         return
       }
       
       // Don't reconnect if we have already healed since scheduling
       if self.connectedPeers.contains(peer) {
         self.logger.debug("scheduleReconnect: \(peer) already healthy, skipping")
-        self.reconnectAttemps[peer] = nil
+        self.reconnectAttempts[peer] = nil
         return
       }
       
       self.logger.info("scheduleReconnect: reconnecting to \(peer)")
-      self.closePeerConnection(peer)
+      self.closePeerConnection(peer, resetReconnectState: false)
       await self.initiateConnection(to: peer)
     }
     
@@ -268,7 +273,9 @@ final class SignalingService: NSObject, ObservableObject {
         closePeerConnection(message.from)
       }
     }
+
     connectionLocks.insert(message.from)
+    startConnectionTimeout(for: message.from)
 
     guard let remoteSdp = parseSdp(from: message.data, type: .offer) else {
       logger.error("handleOffer: malformed SDP from \(message.from)")
@@ -387,10 +394,13 @@ final class SignalingService: NSObject, ObservableObject {
     logger.info("drainCandidateQueue: drained \(queued.count) candidates for \(peer)")
   }
   
-  private func closePeerConnection(_ peer: String) {
-    reconnectTask[peer]?.cancel()
-    reconnectTask[peer] = nil
-    reconnectAttemps[peer] = nil
+  private func closePeerConnection(_ peer: String, resetReconnectState: Bool = true) {
+    clearConnectionTimeout(for: peer)
+    if resetReconnectState {
+      reconnectTasks[peer]?.cancel()
+      reconnectTasks[peer] = nil
+      reconnectAttempts[peer] = nil
+    }
     dataChannels[peer]?.close()
     dataChannels[peer] = nil
     peerConnections[peer]?.close()
@@ -398,6 +408,28 @@ final class SignalingService: NSObject, ObservableObject {
     candidateQueues[peer] = nil
     connectionLocks.remove(peer)
     connectedPeers.remove(peer)
+  }
+  
+  private func startConnectionTimeout(for peer: String) {
+    connectionTimeouts[peer]?.cancel()
+    connectionTimeouts[peer] = Task { [weak self] in
+      try? await Task.sleep(nanoseconds: UInt64(Self.connectionTimeout * 1_000_000_000))
+      
+      guard let self else { return }
+      if Task.isCancelled { return }
+      self.connectionTimeouts[peer] = nil
+      
+      // Check if we already connected then don't do anything
+      if self.connectedPeers.contains(peer) { return }
+      
+      self.logger.warning("connectionTimeout: \(peer) did not reach connected in \(Self.connectionTimeout)s, treating as failure")
+      self.scheduleReconnect(to: peer)
+    }
+  }
+  
+  private func clearConnectionTimeout(for peer: String) {
+    connectionTimeouts[peer]?.cancel()
+    connectionTimeouts[peer] = nil
   }
   
   func isReadyToSend(to peer: String) -> Bool {
@@ -554,7 +586,8 @@ extension SignalingService: RTCPeerConnectionDelegate, RTCDataChannelDelegate {
       case .open:
         self.connectedPeers.insert(peer)
         self.connectionLocks.remove(peer)
-        self.reconnectAttemps[peer] = nil
+        self.reconnectAttempts[peer] = nil
+        self.clearConnectionTimeout(for: peer)
         self.logger.info("dataChannelDidChangeState: connected to \(peer)")
       case .closed:
         self.connectedPeers.remove(peer)
