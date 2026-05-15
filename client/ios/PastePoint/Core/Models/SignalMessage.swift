@@ -27,11 +27,13 @@ enum SignalPayload {
     case .answer(let sdp):
       return ["type": "answer", "sdp": sdp]
     case .candidate(let sdp, let sdpMid, let sdpMLineIndex):
-      return [
+      var dict: [String: Any] = [
         "candidate": sdp,
-        "sdpMid": sdpMid ?? "",
         "sdpMLineIndex": Int(sdpMLineIndex),
       ]
+
+      if let sdpMid { dict["sdpMid"] = sdpMid }
+      return dict
     case .connectionRequest:
       return [:]
     }
@@ -47,7 +49,9 @@ enum SignalPayload {
       self = .answer(sdp: sdp)
     case "candidate":
       guard let dict = data as? [String: Any], let sdp = dict["candidate"] as? String else { return nil }
-      let sdpMid = dict["sdpMid"] as? String
+
+      let rawSdpMid = dict["sdpMid"] as? String
+      let sdpMid = (rawSdpMid?.isEmpty == false) ? rawSdpMid : nil
       let sdpMLineIndex = Int32((dict["sdpMLineIndex"] as? Int) ?? 0)
       self = .candidate(sdp: sdp, sdpMid: sdpMid, sdpMLineIndex: sdpMLineIndex)
     case "connection_request":

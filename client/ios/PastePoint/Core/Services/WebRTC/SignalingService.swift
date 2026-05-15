@@ -168,7 +168,7 @@ final class SignalingService: NSObject, ObservableObject {
     }
 
     guard channel.readyState == .open else {
-      logger.warning("channel to \(peer) not open (state :\(channel.readyState.rawValue))")
+      logger.warning("channel to \(peer) not open (state: \(channel.readyState.rawValue))")
       return
     }
 
@@ -460,6 +460,9 @@ final class SignalingService: NSObject, ObservableObject {
     return false
   }
 
+  // Glare resolution: the lexicographically smaller username is the caller.
+  // Plain `<` is byte/code-unit comparison — locale-independent, so iOS and web
+  // agree on roles regardless of either device's system locale.
   private func shouldInitiateConnection(to peer: String) -> Bool {
     return userService.user < peer
   }
