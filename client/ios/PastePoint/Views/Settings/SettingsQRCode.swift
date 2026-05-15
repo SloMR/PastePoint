@@ -71,11 +71,12 @@ struct SettingsQRCode: View {
       .frame(maxWidth: .infinity)
       .fixedSize(horizontal: false, vertical: true)
       .onAppear { logger.info("QR code sheet presented for session: \(services.wsService.currentSessionCode ?? "none")") }
-      .background(
-        GeometryReader { proxy in
-          Color.clear.task { sheetHeight = proxy.size.height + 56 }
-        },
-      )
+      .onGeometryChange(for: CGFloat.self) { proxy in
+        proxy.size.height
+      } action: { height in
+        guard height > 0 else { return }
+        sheetHeight = height + 56
+      }
       .navigationTitle("QR Code")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {

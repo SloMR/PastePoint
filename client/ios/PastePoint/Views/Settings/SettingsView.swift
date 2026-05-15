@@ -28,6 +28,7 @@ struct SettingsView: View {
 
   var body: some View {
     VStack(spacing: 0) {
+
       // MARK: - Header
 
       HStack(alignment: .center, spacing: 0) {
@@ -45,6 +46,7 @@ struct SettingsView: View {
 
       ScrollView {
         VStack(spacing: 0) {
+
           // MARK: - Create New Room Button
 
           Button {
@@ -146,7 +148,7 @@ struct SettingsView: View {
       }
     }
     .sheet(isPresented: $isJoinRoomSheetPresented) {
-      SettingsJoinRoom {
+      SettingsCreateRoom {
         logger.info("User created a room")
         toasts.append(.success("Room created successfully!"))
       }
