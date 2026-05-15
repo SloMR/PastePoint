@@ -7,9 +7,11 @@ import Foundation
 import WebRTC
 
 enum WebRTCConfig {
+  static let maxBufferedAmount: UInt64 = 2 * 1024 * 1024 // 2MB
+  static let bufferedAmountLowThreshold: UInt64 = 1 * 1024 * 1024 // 1MB
+  
   static let iceServers: [RTCIceServer] = [
     RTCIceServer(urlStrings: ["stun:stun.l.google.com:19302"]) // TODO: Add more RTC Servers.
-    
   ]
   
   static let peerConnectionConfig: RTCConfiguration = {
