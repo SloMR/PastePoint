@@ -50,7 +50,7 @@ struct ContentView: View {
       logger.info("User message: \(msg)")
     }
     .onReceive(services.wsService.signalMessage) { sig in
-      logger.debug("Signal: \(sig.type.rawValue) | from: \(sig.from) → to: \(sig.to)")
+      logger.debug("Signal: \(sig.payload.typeString) | from: \(sig.from) → to: \(sig.to)")
     }
     .onChange(of: services.wsService.isConnected) { wasConnected, connected in
       guard !services.wsService.isLeavingSession else { return }

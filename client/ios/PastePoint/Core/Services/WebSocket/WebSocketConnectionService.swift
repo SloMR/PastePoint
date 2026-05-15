@@ -239,9 +239,9 @@ final class WebSocketConnectionService: ObservableObject {
     }
   }
 
-  func sendSignal(_ obj: Any) async {
+  func sendSignal(_ message: SignalMessage) async {
     do {
-      let data = try JSONSerialization.data(withJSONObject: obj)
+      let data = try JSONSerialization.data(withJSONObject: message.toDict())
       guard let json = String(data: data, encoding: .utf8) else {
         logger.error("sendSignal: failed to encode JSON as UTF-8 string")
         return

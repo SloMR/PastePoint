@@ -74,8 +74,8 @@ final class SignalingService: NSObject, ObservableObject {
       return
     }
 
-    logger.info("handle: received \(message.type.rawValue) from \(message.from)")
-    switch message.type {
+    logger.info("handle: received \(message.payload.typeString) from \(message.from)")
+    switch message.payload {
     case .offer:
       Task {
         await handleOffer(message)
@@ -111,13 +111,13 @@ final class SignalingService: NSObject, ObservableObject {
     await waitForUsername()
     if !shouldInitiateConnection(to: peer) {
       logger.info("initiateConnection: not the designated caller for \(peer), sending connection request")
-      await wsService.sendSignal([
-        "type": "connection_request",
-        "data": [:] as [String: Any],
-        "from": userService.user,
-        "to": peer,
-        "sequence": nextSequence(for: peer)
-      ])
+      let request = SignalMessage(
+        payload: .connectionRequest,
+        from: userService.user,
+        to: peer,
+        sequence: nextSequence(for: peer)
+      )
+      await wsService.sendSignal(request)
       return
     }
 
@@ -151,15 +151,14 @@ final class SignalingService: NSObject, ObservableObject {
       connectionLocks.remove(peer)
       return
     }
-    
-    let payload: [String: Any] = [
-      "type": "offer",
-      "data": ["type": "offer", "sdp": pc.localDescription?.sdp ?? ""],
-      "from": userService.user,
-      "to": peer,
-      "sequence": nextSequence(for: peer)
-    ]
-    await wsService.sendSignal(payload)
+
+    let offerMessage = SignalMessage(
+      payload: .offer(sdp: pc.localDescription?.sdp ?? ""),
+      from: userService.user,
+      to: peer,
+      sequence: nextSequence(for: peer)
+    )
+    await wsService.sendSignal(offerMessage)
     logger.info("initiateConnection: offer sent to \(peer)")
   }
   
@@ -277,11 +276,11 @@ final class SignalingService: NSObject, ObservableObject {
     connectionLocks.insert(message.from)
     startConnectionTimeout(for: message.from)
 
-    guard let remoteSdp = parseSdp(from: message.data, type: .offer) else {
-      logger.error("handleOffer: malformed SDP from \(message.from)")
-      connectionLocks.remove(message.from)
+    guard case .offer(let sdpString) = message.payload else {
+      logger.error("handleOffer: payload is not .offer (received \(message.payload.typeString))")
       return
     }
+    let remoteSdp = RTCSessionDescription(type: .offer, sdp: sdpString)
     
     guard let pc = PeerConnectionFactory.shared.makePeerConnection(delegate: self) else {
       logger.error("handleOffer: factory returned nil for \(message.from)")
@@ -303,14 +302,13 @@ final class SignalingService: NSObject, ObservableObject {
       return
     }
     
-    let payload: [String: Any] = [
-      "type": "answer",
-      "data": ["type": "answer", "sdp": pc.localDescription?.sdp ?? ""],
-      "from": userService.user,
-      "to": message.from,
-      "sequence": nextSequence(for: message.from)
-    ]
-    await wsService.sendSignal(payload)
+    let response = SignalMessage(
+      payload: .answer(sdp: pc.localDescription?.sdp ?? ""),
+      from: userService.user,
+      to: message.from,
+      sequence: nextSequence(for: message.from)
+    )
+    await wsService.sendSignal(response)
     logger.info("handleOffer: answer sent to \(message.from)")
   }
   
@@ -325,10 +323,11 @@ final class SignalingService: NSObject, ObservableObject {
       return
     }
     
-    guard let remoteSdp = parseSdp(from: message.data, type: .answer) else {
-      logger.error("handleAnswer: malformed SDP from \(message.from)")
+    guard case .answer(let sdpString) = message.payload else {
+      logger.error("handleAnswer: payload is not .answer")
       return
     }
+    let remoteSdp = RTCSessionDescription(type: .answer, sdp: sdpString)
     
     do {
       try await pc.setRemoteDescription(remoteSdp)
@@ -345,10 +344,11 @@ final class SignalingService: NSObject, ObservableObject {
       return
     }
     
-    guard let candidate = parseCandidate(from: message.data) else {
-      logger.error("handleCandidate: malformed candidate from \(message.from)")
+    guard case .candidate(let sdpString, let sdpMid, let sdpMLineIndex) = message.payload else {
+      logger.error("handleCandidate: payload is not .candidate")
       return
     }
+    let candidate = RTCIceCandidate(sdp: sdpString, sdpMLineIndex: sdpMLineIndex, sdpMid: sdpMid)
     
     if pc.remoteDescription != nil {
       do {
@@ -465,26 +465,6 @@ final class SignalingService: NSObject, ObservableObject {
     return userService.user < peer
   }
   
-  // TODO: Remove this parseing and modify the Any object type
-  private func parseSdp(from data: Any?, type: RTCSdpType) -> RTCSessionDescription? {
-    guard
-      let dict = data as? [String: Any],
-      let sdp = dict["sdp"] as? String
-    else { return nil }
-    return RTCSessionDescription(type: type, sdp: sdp)
-  }
-  
-  // TODO: Remove this parseing and modify the Any object type
-  private func parseCandidate(from data: Any?) -> RTCIceCandidate? {
-    guard
-      let dict = data as? [String: Any],
-      let candidate = dict["candidate"] as? String
-    else { return nil }
-    let sdpMid = dict["sdpMid"] as? String
-    let sdpMLineIndex = (dict["sdpMLineIndex"] as? Int).map(Int32.init) ?? 0
-    return RTCIceCandidate(sdp: candidate, sdpMLineIndex: sdpMLineIndex, sdpMid: sdpMid)
-  }
-  
   private func peer(forConnectionID id: ObjectIdentifier) -> String? {
     peerConnections.first(where: { ObjectIdentifier($0.value) == id })?.key
   }
@@ -536,18 +516,13 @@ extension SignalingService: RTCPeerConnectionDelegate, RTCDataChannelDelegate {
         return
       }
       
-      let payload: [String: Any] = [
-        "type": "candidate",
-        "data": [
-          "candidate": sdp,
-          "sdpMid": sdpMid ?? "",
-          "sdpMLineIndex": Int(sdpMLineIndex)
-        ],
-        "from": self.userService.user,
-        "to": peer,
-        "sequence": nextSequence(for: peer)
-      ]
-      await self.wsService.sendSignal(payload)
+      let candidateMessage = SignalMessage(
+        payload: .candidate(sdp: sdp, sdpMid: sdpMid, sdpMLineIndex: sdpMLineIndex),
+        from: self.userService.user,
+        to: peer,
+        sequence: self.nextSequence(for: peer)
+      )
+      await self.wsService.sendSignal(candidateMessage)
     }
   }
 
