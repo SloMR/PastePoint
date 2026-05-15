@@ -9,7 +9,7 @@ import WebRTC
 enum WebRTCConfig {
   static let maxBufferedAmount: UInt64 = 2 * 1024 * 1024 // 2MB
   static let bufferedAmountLowThreshold: UInt64 = 1 * 1024 * 1024 // 1MB
-  
+
   static let iceServers: [RTCIceServer] = [
     RTCIceServer(urlStrings: [
       // Google STUN servers
@@ -26,15 +26,18 @@ enum WebRTCConfig {
     ]),
 
     // Open Relay Project TURN servers
-    RTCIceServer(urlStrings: [
-      "turn:openrelay.metered.ca:80",
-      "turn:openrelay.metered.ca:443",
-      "turns:openrelay.metered.ca:443",],
-                 username: "openrelayproject",
-                 credential: "openrelayproject")
+    RTCIceServer(
+      urlStrings: [
+        "turn:openrelay.metered.ca:80",
+        "turn:openrelay.metered.ca:443",
+        "turns:openrelay.metered.ca:443",
+      ],
+      username: "openrelayproject",
+      credential: "openrelayproject",
+    ),
 
   ]
-  
+
   static let peerConnectionConfig: RTCConfiguration = {
     let config = RTCConfiguration()
     config.iceServers = iceServers
@@ -43,7 +46,7 @@ enum WebRTCConfig {
     config.rtcpMuxPolicy = .require
     return config
   }()
-  
+
   static let dataChannelConfig: RTCDataChannelConfiguration = {
     let config = RTCDataChannelConfiguration()
     config.isOrdered = true

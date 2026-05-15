@@ -10,13 +10,12 @@ import WebRTC
 
 private struct UnsafeSendable<T>: @unchecked Sendable {
   nonisolated(unsafe) let value: T
-  nonisolated init(value: T) { self.value = value }
 }
 
 @MainActor
 final class SignalingService: NSObject, ObservableObject {
   private let logger = Logger(label: "SignalingService")
-  
+
   @Published private(set) var connectedPeers: Set<String> = []
   
   private var outboundSequences: [String: Int] = [:]
@@ -26,38 +25,38 @@ final class SignalingService: NSObject, ObservableObject {
   private var dataChannels: [String: RTCDataChannel] = [:]
   private var candidateQueues: [String: [RTCIceCandidate]] = [:]
   private var connectionLocks: Set<String> = []
-  
+
   private var reconnectAttempts: [String: Int] = [:]
   private var reconnectTasks: [String: Task<Void, Never>] = [:]
-  
+
   private var connectionTimeouts: [String: Task<Void, Never>] = [:]
   private static let connectionTimeout: TimeInterval = 30.0 // Seconds
-  
+
   let bufferedAmountLow = PassthroughSubject<String, Never>()
-  
+
   private static let maxReconnectAttempts = 5
   private static let baseReconnectDelay: TimeInterval = 2.0 // Seconds
   private static let maxReconnectDelay: TimeInterval = 10.0 // Seconds
-  
+
   private let wsService: WebSocketConnectionService
   private let userService: UserService
   private let peerDirectory: PeerDirectory
-  
+
   private var cancellables: Set<AnyCancellable> = []
-  
+
   init(wsService: WebSocketConnectionService, userService: UserService, peerDirectory: PeerDirectory) {
     self.wsService = wsService
     self.userService = userService
     self.peerDirectory = peerDirectory
     super.init()
-    
+
     wsService.signalMessage
       .receive(on: DispatchQueue.main)
       .sink { [weak self] message in
         self?.handle(message)
       }
       .store(in: &cancellables)
-    
+
     peerDirectory.$peers
       .receive(on: DispatchQueue.main)
       .sink { [weak self] peers in
@@ -65,9 +64,9 @@ final class SignalingService: NSObject, ObservableObject {
       }
       .store(in: &cancellables)
   }
-  
-// MARK: -
-  
+
+  // MARK: -
+
   private func handle(_ message: SignalMessage) {
     guard !message.from.isEmpty else {
       logger.warning("handle: ignoring message with empty 'from'")
@@ -94,8 +93,8 @@ final class SignalingService: NSObject, ObservableObject {
       }
     }
   }
-  
-// MARK: -
+
+  // MARK: -
 
   func initiateConnection(to peer: String) async {
     guard !connectionLocks.contains(peer) else {
@@ -115,7 +114,7 @@ final class SignalingService: NSObject, ObservableObject {
         payload: .connectionRequest,
         from: userService.user,
         to: peer,
-        sequence: nextSequence(for: peer)
+        sequence: nextSequence(for: peer),
       )
       await wsService.sendSignal(request)
       return
@@ -130,7 +129,7 @@ final class SignalingService: NSObject, ObservableObject {
       return
     }
     peerConnections[peer] = pc
-    
+
     guard let channel = pc.dataChannel(forLabel: "data", configuration: WebRTCConfig.dataChannelConfig) else {
       logger.error("initiateConnection: failed to create data channel for \(peer)")
       peerConnections[peer] = nil
@@ -139,7 +138,7 @@ final class SignalingService: NSObject, ObservableObject {
     }
     channel.delegate = self
     dataChannels[peer] = channel
-    
+
     let constraints = RTCMediaConstraints(mandatoryConstraints: nil, optionalConstraints: nil)
     do {
       let offer = try await pc.offer(for: constraints)
@@ -156,23 +155,23 @@ final class SignalingService: NSObject, ObservableObject {
       payload: .offer(sdp: pc.localDescription?.sdp ?? ""),
       from: userService.user,
       to: peer,
-      sequence: nextSequence(for: peer)
+      sequence: nextSequence(for: peer),
     )
     await wsService.sendSignal(offerMessage)
     logger.info("initiateConnection: offer sent to \(peer)")
   }
-  
+
   func send(_ text: String, to peer: String) {
     guard let channel = dataChannels[peer] else {
       logger.warning("send: no data channel for \(peer)")
       return
     }
-    
+
     guard channel.readyState == .open else {
       logger.warning("send: channel to \(peer) not open (state :\(channel.readyState.rawValue))")
       return
     }
-    
+
     let buffer = RTCDataBuffer(data: Data(text.utf8), isBinary: false)
     channel.sendData(buffer)
     logger.info("send: sent \(text) to \(peer)")
@@ -181,15 +180,15 @@ final class SignalingService: NSObject, ObservableObject {
   private func syncMesh(peers: [String]) {
     let target = Set(peers)
     let tracked = Set(peerConnections.keys).union(connectionLocks)
-    
+
     let toOpen = target.subtracting(tracked)
     let toClose = tracked.subtracting(target)
-    
+
     for peer in toClose {
       logger.info("syncMesh: closing connection to \(peer) (left room)")
       closePeerConnection(peer)
     }
-    
+
     for peer in toOpen {
       logger.info("syncMesh: opening connection to \(peer) (joined room)")
       Task {
@@ -197,62 +196,62 @@ final class SignalingService: NSObject, ObservableObject {
       }
     }
   }
-  
-// MARK: -
-  
+
+  // MARK: -
+
   private func scheduleReconnect(to peer: String) {
     if reconnectTasks[peer] != nil { // TODO: Convert to guard
       logger.debug("scheduleReconnect: already scheduled for \(peer)")
       return
     }
-    
+
     // Only connect if the peer is still expected to be in the room
     guard peerDirectory.peers.contains(peer) else {
       logger.info("scheduleReconnect: \(peer) is no longer a peer, skipping")
       reconnectAttempts[peer] = nil
       return
     }
-    
+
     let attempts = reconnectAttempts[peer] ?? 0
     guard attempts < Self.maxReconnectAttempts else {
       logger.error("scheduleReconnect: max attempts reached for \(peer)")
       reconnectAttempts[peer] = nil
       return
     }
-    
+
     reconnectAttempts[peer] = attempts + 1
-    
+
     // Exponential backoff: 2s, 3s, 4.5s, ...
     let delay = min(Self.baseReconnectDelay * pow(1.5, Double(attempts)), Self.maxReconnectDelay)
     logger.warning("scheduleReconnect: attempt \(attempts + 1) for \(peer) in \(delay)s")
-    
+
     reconnectTasks[peer] = Task { [weak self] in
       try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
       if Task.isCancelled { return }
       guard let self else { return }
       self.reconnectTasks[peer] = nil
-      
+
       guard self.peerDirectory.peers.contains(peer) else {
         self.logger.info("scheduleReconnect: \(peer) left during backoff, skipping")
         self.reconnectAttempts[peer] = nil
         return
       }
-      
+
       // Don't reconnect if we have already healed since scheduling
       if self.connectedPeers.contains(peer) {
         self.logger.debug("scheduleReconnect: \(peer) already healthy, skipping")
         self.reconnectAttempts[peer] = nil
         return
       }
-      
+
       self.logger.info("scheduleReconnect: reconnecting to \(peer)")
       self.closePeerConnection(peer, resetReconnectState: false)
       await self.initiateConnection(to: peer)
     }
-    
+
   }
-  
-// MARK: -
+
+  // MARK: -
 
   private func handleOffer(_ message: SignalMessage) async {
     await waitForUsername()
@@ -261,7 +260,7 @@ final class SignalingService: NSObject, ObservableObject {
       logger.debug("handleOffer: ignoring duplicate sequence from \(message.from)")
       return
     }
-    
+
     if connectionLocks.contains(message.from) {
       logger.warning("handleOffer: collision with \(message.from), resolving by role")
       if shouldInitiateConnection(to: message.from) {
@@ -281,14 +280,14 @@ final class SignalingService: NSObject, ObservableObject {
       return
     }
     let remoteSdp = RTCSessionDescription(type: .offer, sdp: sdpString)
-    
+
     guard let pc = PeerConnectionFactory.shared.makePeerConnection(delegate: self) else {
       logger.error("handleOffer: factory returned nil for \(message.from)")
       connectionLocks.remove(message.from)
       return
     }
     peerConnections[message.from] = pc
-    
+
     do {
       try await pc.setRemoteDescription(remoteSdp)
       await drainCandidateQueue(for: message.from)
@@ -301,17 +300,17 @@ final class SignalingService: NSObject, ObservableObject {
       connectionLocks.remove(message.from)
       return
     }
-    
+
     let response = SignalMessage(
       payload: .answer(sdp: pc.localDescription?.sdp ?? ""),
       from: userService.user,
       to: message.from,
-      sequence: nextSequence(for: message.from)
+      sequence: nextSequence(for: message.from),
     )
     await wsService.sendSignal(response)
     logger.info("handleOffer: answer sent to \(message.from)")
   }
-  
+
   private func handleAnswer(_ message: SignalMessage) async {
     if isDuplicate(message.from, sequence: message.sequence) {
       logger.debug("handleAnswer: ignoring duplicate sequence from \(message.from)")
@@ -322,13 +321,13 @@ final class SignalingService: NSObject, ObservableObject {
       logger.warning("handleAnswer: no peer connection for \(message.from)")
       return
     }
-    
+
     guard case .answer(let sdpString) = message.payload else {
       logger.error("handleAnswer: payload is not .answer")
       return
     }
     let remoteSdp = RTCSessionDescription(type: .answer, sdp: sdpString)
-    
+
     do {
       try await pc.setRemoteDescription(remoteSdp)
       await drainCandidateQueue(for: message.from)
@@ -337,19 +336,19 @@ final class SignalingService: NSObject, ObservableObject {
       logger.error("handleAnswer: setRemoteDescription failed: \(error.localizedDescription)")
     }
   }
-  
+
   private func handleCandidate(_ message: SignalMessage) async {
     guard let pc = peerConnections[message.from] else {
       logger.warning("handleCandidate: no peer connection for \(message.from)")
       return
     }
-    
+
     guard case .candidate(let sdpString, let sdpMid, let sdpMLineIndex) = message.payload else {
       logger.error("handleCandidate: payload is not .candidate")
       return
     }
     let candidate = RTCIceCandidate(sdp: sdpString, sdpMLineIndex: sdpMLineIndex, sdpMid: sdpMid)
-    
+
     if pc.remoteDescription != nil {
       do {
         try await pc.add(candidate)
@@ -365,7 +364,7 @@ final class SignalingService: NSObject, ObservableObject {
       logger.info("handleCandidate: queued candidate for \(message.from) (queue size: \(candidateQueues[message.from]?.count ?? 0))")
     }
   }
-  
+
   private func handleConnectionRequest(_ message: SignalMessage) async {
     if isDuplicate(message.from, sequence: message.sequence) {
       logger.debug("handleConnectionRequest: ignoring duplicate sequence from \(message.from)")
@@ -375,15 +374,15 @@ final class SignalingService: NSObject, ObservableObject {
     logger.info("handleConnectionRequest: \(message.from) is asking us to initiate")
     await initiateConnection(to: message.from)
   }
-  
-// MARK: -
+
+  // MARK: -
 
   private func drainCandidateQueue(for peer: String) async {
     guard let pc = peerConnections[peer] else { return }
     guard let queued = candidateQueues[peer], !queued.isEmpty else { return }
-    
+
     candidateQueues[peer] = nil
-    
+
     for candidate in queued {
       do {
         try await pc.add(candidate)
@@ -393,7 +392,7 @@ final class SignalingService: NSObject, ObservableObject {
     }
     logger.info("drainCandidateQueue: drained \(queued.count) candidates for \(peer)")
   }
-  
+
   private func closePeerConnection(_ peer: String, resetReconnectState: Bool = true) {
     clearConnectionTimeout(for: peer)
     if resetReconnectState {
@@ -409,50 +408,50 @@ final class SignalingService: NSObject, ObservableObject {
     connectionLocks.remove(peer)
     connectedPeers.remove(peer)
   }
-  
+
   private func startConnectionTimeout(for peer: String) {
     connectionTimeouts[peer]?.cancel()
     connectionTimeouts[peer] = Task { [weak self] in
       try? await Task.sleep(nanoseconds: UInt64(Self.connectionTimeout * 1_000_000_000))
-      
+
       guard let self else { return }
       if Task.isCancelled { return }
       self.connectionTimeouts[peer] = nil
-      
+
       // Check if we already connected then don't do anything
       if self.connectedPeers.contains(peer) { return }
-      
+
       self.logger.warning("connectionTimeout: \(peer) did not reach connected in \(Self.connectionTimeout)s, treating as failure")
       self.scheduleReconnect(to: peer)
     }
   }
-  
+
   private func clearConnectionTimeout(for peer: String) {
     connectionTimeouts[peer]?.cancel()
     connectionTimeouts[peer] = nil
   }
-  
+
   func isReadyToSend(to peer: String) -> Bool {
     guard let channel = dataChannels[peer], channel.readyState == .open else {
       return false
     }
-    
+
     return channel.bufferedAmount < WebRTCConfig.maxBufferedAmount
   }
-  
+
   private func waitForUsername() async {
     if !userService.user.isEmpty { return }
     for await user in userService.$user.values where !user.isEmpty {
       return
     }
   }
-  
+
   private func nextSequence(for peer: String) -> Int {
     let next = (outboundSequences[peer] ?? 0) + 1
     outboundSequences[peer] = next
     return next
   }
-  
+
   private func isDuplicate(_ peer: String, sequence: Int?) -> Bool {
     guard let sequence else { return false }
     let last = inboundSequences[peer] ?? 0
@@ -460,17 +459,17 @@ final class SignalingService: NSObject, ObservableObject {
     inboundSequences[peer] = sequence
     return false
   }
-  
+
   private func shouldInitiateConnection(to peer: String) -> Bool {
     return userService.user < peer
   }
-  
+
   private func peer(forConnectionID id: ObjectIdentifier) -> String? {
-    peerConnections.first(where: { ObjectIdentifier($0.value) == id })?.key
+    peerConnections.first { ObjectIdentifier($0.value) == id }?.key
   }
 
   private func peer(forChannelID id: ObjectIdentifier) -> String? {
-    dataChannels.first(where: { ObjectIdentifier($0.value) == id })?.key
+    dataChannels.first { ObjectIdentifier($0.value) == id }?.key
   }
 }
 
@@ -484,11 +483,11 @@ extension SignalingService: RTCPeerConnectionDelegate, RTCDataChannelDelegate {
   nonisolated func peerConnection(_ peerConnection: RTCPeerConnection, didChange newState: RTCIceConnectionState) {
     let peerConnectionID = ObjectIdentifier(peerConnection)
     let state = newState
-    
+
     Task { @MainActor [weak self] in
       guard let self else { return }
       guard let peer = self.peer(forConnectionID: peerConnectionID) else { return }
-      
+
       self.logger.debug("iceConnectionState: \(peer) → \(state.rawValue)")
       switch state {
       case .failed, .disconnected:
@@ -500,6 +499,7 @@ extension SignalingService: RTCPeerConnectionDelegate, RTCDataChannelDelegate {
       }
     }
   }
+
   nonisolated func peerConnection(_ peerConnection: RTCPeerConnection, didChange newState: RTCIceGatheringState) {}
   nonisolated func peerConnection(_ peerConnection: RTCPeerConnection, didGenerate candidate: RTCIceCandidate) {
     let peerConnectionID = ObjectIdentifier(peerConnection)
@@ -515,12 +515,12 @@ extension SignalingService: RTCPeerConnectionDelegate, RTCDataChannelDelegate {
         self.logger.warning("didGenerate: unknown peer connection")
         return
       }
-      
+
       let candidateMessage = SignalMessage(
         payload: .candidate(sdp: sdp, sdpMid: sdpMid, sdpMLineIndex: sdpMLineIndex),
         from: self.userService.user,
         to: peer,
-        sequence: self.nextSequence(for: peer)
+        sequence: self.nextSequence(for: peer),
       )
       await self.wsService.sendSignal(candidateMessage)
     }
@@ -530,15 +530,15 @@ extension SignalingService: RTCPeerConnectionDelegate, RTCDataChannelDelegate {
   nonisolated func peerConnection(_ peerConnection: RTCPeerConnection, didOpen dataChannel: RTCDataChannel) {
     let peerConnectionID = ObjectIdentifier(peerConnection)
     let box = UnsafeSendable(value: dataChannel)
-    
+
     Task { @MainActor [weak self] in
       guard let self else { return }
-      
+
       guard let peer = self.peer(forConnectionID: peerConnectionID) else {
         self.logger.warning("didOpen: unknown peer connection")
         return
       }
-      
+
       box.value.delegate = self
       self.dataChannels[peer] = box.value
       self.logger.info("didOpen: data channel attached to peer: \(peer)")
@@ -551,12 +551,12 @@ extension SignalingService: RTCPeerConnectionDelegate, RTCDataChannelDelegate {
 
     Task { @MainActor [weak self] in
       guard let self else { return }
-      
+
       guard let peer = self.peer(forChannelID: dataChannelID) else {
         self.logger.debug("dataChannelDidChangeState: unknown channel (already closed)")
         return
       }
-      
+
       switch state {
       case .open:
         self.connectedPeers.insert(peer)
@@ -571,14 +571,12 @@ extension SignalingService: RTCPeerConnectionDelegate, RTCDataChannelDelegate {
         self.scheduleReconnect(to: peer)
       case .connecting:
         self.logger.info("dataChannelDidChangeState: connecting to \(peer)")
-        break
       case .closing:
         self.logger.info("dataChannelDidChangeState: closing connection to \(peer)")
-        break
       @unknown default:
         break
       }
-      
+
     }
   }
 
@@ -589,29 +587,32 @@ extension SignalingService: RTCPeerConnectionDelegate, RTCDataChannelDelegate {
 
     Task { @MainActor [weak self] in
       guard let self else { return }
-      
+
       guard let peer = self.peer(forChannelID: dataChannelID) else {
         self.logger.warning("didReceiveMessageWith: unknown channel")
         return
       }
-      
+
       if isBinary {
         self.logger.info("didReceiveMessageWith: received \(bytes.count) bytes from \(peer)")
       } else {
-        let text = String(decoding: bytes, as: UTF8.self)
+        guard let text = String(bytes: bytes, encoding: .utf8) else {
+          self.logger.warning("didReceiveMessageWith: non-UTF-8 bytes from \(peer)")
+          return
+        }
         self.logger.info("didReceiveMessageWith: received from \(peer): \(text)")
       }
     }
   }
-  
+
   nonisolated func dataChannel(_ dataChannel: RTCDataChannel, didChangeBufferedAmount amount: UInt64) {
     let dataChannelID = ObjectIdentifier(dataChannel)
     let currentBuffered = dataChannel.bufferedAmount
-    
+
     Task { @MainActor [weak self] in
       guard let self else { return }
       guard let peer = self.peer(forChannelID: dataChannelID) else { return }
-      
+
       if currentBuffered < WebRTCConfig.bufferedAmountLowThreshold {
         self.logger.debug("dataChannel: buffer low for \(peer) (\(currentBuffered) bytes)")
         self.bufferedAmountLow.send(peer)

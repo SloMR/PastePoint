@@ -10,12 +10,12 @@ import Foundation
 final class PeerDirectory: ObservableObject {
   @Published private(set) var peers: [String] = []
   private var cancellables: Set<AnyCancellable> = []
-  
+
   init(roomService: RoomService, userService: UserService) {
     roomService.$members
       .combineLatest(userService.$user)
-      .map{ members, user in
-        return members.filter{ $0 != user && !user.isEmpty }.sorted()
+      .map { members, user in
+        members.filter { $0 != user && !user.isEmpty }.sorted()
       }
       .removeDuplicates()
       .receive(on: DispatchQueue.main)

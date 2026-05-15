@@ -10,7 +10,7 @@ enum SignalPayload {
   case answer(sdp: String)
   case candidate(sdp: String, sdpMid: String?, sdpMLineIndex: Int32)
   case connectionRequest
-  
+
   var typeString: String {
     switch self {
     case .offer: return "offer"
@@ -19,24 +19,24 @@ enum SignalPayload {
     case .connectionRequest: return "connection_request"
     }
   }
-  
+
   var dataDict: [String: Any] {
     switch self {
     case .offer(let sdp):
-      return [ "type": "offer", "sdp": sdp ]
+      return ["type": "offer", "sdp": sdp]
     case .answer(let sdp):
-      return [ "type": "answer", "sdp": sdp ]
+      return ["type": "answer", "sdp": sdp]
     case .candidate(let sdp, let sdpMid, let sdpMLineIndex):
       return [
         "candidate": sdp,
         "sdpMid": sdpMid ?? "",
-        "sdpMLineIndex": Int(sdpMLineIndex)
+        "sdpMLineIndex": Int(sdpMLineIndex),
       ]
     case .connectionRequest:
       return [:]
     }
   }
-  
+
   init?(typeString: String, data: Any?) {
     switch typeString {
     case "offer":
@@ -63,7 +63,7 @@ struct SignalMessage {
   let from: String
   let to: String
   let sequence: Int?
-  
+
   init?(from dict: [String: Any]) {
     guard
       let typeRaw = dict["type"] as? String,
@@ -77,14 +77,14 @@ struct SignalMessage {
     self.to = toRaw
     self.sequence = dict["sequence"] as? Int
   }
-  
+
   init(payload: SignalPayload, from: String, to: String, sequence: Int? = nil) {
     self.payload = payload
     self.from = from
     self.to = to
     self.sequence = sequence
   }
-  
+
   func toDict() -> [String: Any] {
     var dict: [String: Any] = [
       "type": payload.typeString,
@@ -92,7 +92,7 @@ struct SignalMessage {
       "from": from,
       "to": to,
     ]
-    
+
     if let sequence { dict["sequence"] = sequence }
     return dict
   }

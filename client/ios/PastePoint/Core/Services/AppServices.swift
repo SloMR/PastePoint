@@ -149,7 +149,7 @@ final class AppServices: ObservableObject {
       .sink { [weak self] _ in self?.objectWillChange.send() }
       .store(in: &cancellables)
     signalingService.objectWillChange
-      .sink{ [weak self] _ in self?.objectWillChange.send() }
+      .sink { [weak self] _ in self?.objectWillChange.send() }
       .store(in: &cancellables)
   }
 }
