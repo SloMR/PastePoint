@@ -8,6 +8,7 @@ import Logging
 import Network
 import SwiftUI
 import UIKit
+import WebRTC
 
 @MainActor
 final class AppServices: ObservableObject {
@@ -132,6 +133,7 @@ final class AppServices: ObservableObject {
       .publisher(for: UIApplication.willTerminateNotification)
       .sink { [weak self] _ in
         self?.wsService.disconnect(manual: true)
+        RTCCleanupSSL()
       }
       .store(in: &cancellables)
   }

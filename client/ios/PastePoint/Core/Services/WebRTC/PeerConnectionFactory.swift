@@ -15,7 +15,7 @@ final class PeerConnectionFactory: @unchecked Sendable {
   private let factory: RTCPeerConnectionFactory
 
   private init() {
-    RTCInitializeSSL() // TODO: Don't forget to clean it even the OS will do it for you
+    RTCInitializeSSL()
     factory = RTCPeerConnectionFactory(encoderFactory: nil, decoderFactory: nil)
   }
 
