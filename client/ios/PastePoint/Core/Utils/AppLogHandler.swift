@@ -32,18 +32,9 @@ struct AppLogHandler: LogHandler {
     set { metadata[key] = newValue }
   }
 
-  // swiftlint:disable:next function_parameter_count
-  func log(
-    level: Logging.Logger.Level,
-    message: Logging.Logger.Message,
-    metadata _: Logging.Logger.Metadata?,
-    source _: String,
-    file: String,
-    function: String,
-    line: UInt,
-  ) {
-    let filename = URL(fileURLWithPath: file).lastPathComponent
-    let entry = "\(emoji(for: level)) \(filename):\(line) [\(function)]: \(message)"
+  func log(event: Logging.LogEvent) {
+    let filename = URL(fileURLWithPath: event.file).lastPathComponent
+    let entry = "\(emoji(for: event.level)) \(filename):\(event.line) [\(event.function)]: \(event.message)"
 
 #if DEBUG
     if isPreview {
@@ -52,7 +43,7 @@ struct AppLogHandler: LogHandler {
     }
 #endif
 
-    switch level {
+    switch event.level {
     case .trace, .debug:
       osLogger.debug("\(entry, privacy: .public)")
     case .info:
