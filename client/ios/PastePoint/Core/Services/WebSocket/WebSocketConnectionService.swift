@@ -194,16 +194,16 @@ final class WebSocketConnectionService: ObservableObject {
       do {
         let obj = try JSONSerialization.jsonObject(with: Data(json.utf8))
         guard let dict = obj as? [String: Any] else {
-          logger.warning("handleIncoming: signal JSON is not a dictionary")
+          logger.warning("signal JSON is not a dictionary")
           return
         }
         guard let sig = SignalMessage(from: dict) else {
-          logger.warning("handleIncoming: malformed SignalMessage — missing required fields in: \(json)")
+          logger.warning("malformed SignalMessage — missing required fields in: \(json)")
           return
         }
         signalMessage.send(sig)
       } catch {
-        logger.error("handleIncoming: JSON parse error: \(error.localizedDescription)")
+        logger.error("JSON parse error: \(error.localizedDescription)")
       }
     } else if isSystemMessage(msg) {
       systemMessage.send(msg)
@@ -243,12 +243,12 @@ final class WebSocketConnectionService: ObservableObject {
     do {
       let data = try JSONSerialization.data(withJSONObject: message.toDict())
       guard let json = String(data: data, encoding: .utf8) else {
-        logger.error("sendSignal: failed to encode JSON as UTF-8 string")
+        logger.error("failed to encode JSON as UTF-8 string")
         return
       }
       await send("[SignalMessage] \(json)")
     } catch {
-      logger.error("sendSignal: JSON serialization failed: \(error.localizedDescription)")
+      logger.error("JSON serialization failed: \(error.localizedDescription)")
     }
   }
 

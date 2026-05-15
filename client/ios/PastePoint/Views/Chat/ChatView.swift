@@ -15,7 +15,6 @@ struct ChatView: View {
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 0) {
-
         // Room header row
         ChatRoomHeader(isPrivate: isPrivate)
 
