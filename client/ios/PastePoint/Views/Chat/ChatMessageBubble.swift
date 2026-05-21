@@ -61,7 +61,7 @@ struct ChatMessageBubble: View {
           .foregroundStyle(alignment == .trailing ? .textPrimary : .white)
           .padding(.horizontal, 12)
           .padding(.vertical, 10)
-          .frame(minWidth: 220, maxWidth: 260, minHeight: 60, alignment: .leading)
+          .frame(maxWidth: 260, minHeight: 60, alignment: .leading)
           .shadow(color: Color.black.opacity(0.06), radius: 1, x: 0, y: 1)
           .background(
             UnevenRoundedRectangle(

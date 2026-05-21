@@ -14,6 +14,7 @@ struct ContentView: View {
 
   private let logger = Logger(label: "ContentView")
 
+  @State private var messages: [ChatMessage] = []
   @State private var showSettings = false
   @State private var toasts: [ToastItem] = []
 
@@ -29,15 +30,21 @@ struct ContentView: View {
         NetworkPermissionBanner { services.clearLocalNetworkDenied() }
       }
 
-      ChatContainerView()
-
-      ChatInputBar()
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+      ChatContainerView(messages: messages)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+          ChatInputBar(onSend: handleSend)
+            .padding(.horizontal, 16)
+            .padding(.top, 6)
+            .padding(.bottom, 8)
+            .frame(maxWidth: .infinity)
+            .background {
+              AppColors.Background.background
+                .ignoresSafeArea(edges: .bottom)
+            }
+        }
     }
     .background(AppColors.Background.background)
     .preferredColorScheme(AppColors.Scheme.colorScheme(from: colorSchemeRaw))
-    .ignoresSafeArea(.keyboard, edges: .bottom)
     .sheet(isPresented: $showSettings) {
       NavigationStack {
         SettingsView {
@@ -52,6 +59,15 @@ struct ContentView: View {
     .onReceive(services.wsService.signalMessage) { sig in
       logger.debug("Signal: \(sig.payload.typeString) | from: \(sig.from) → to: \(sig.to)")
     }
+    .onReceive(services.signalingService.chatMessages) { message in
+      messages.append(message)
+    }
+    .onChange(of: services.roomService.currentRoom) {
+      messages = []
+    }
+    .onChange(of: services.wsService.currentSessionCode) {
+      messages = []
+    }
     .onChange(of: services.wsService.isConnected) { wasConnected, connected in
       guard !services.wsService.isLeavingSession else { return }
       if connected, !showSettings {
@@ -61,6 +77,33 @@ struct ContentView: View {
       }
     }
     .appToast(items: $toasts)
+  }
+
+  private func handleSend(_ text: String) -> Bool {
+    let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !trimmed.isEmpty else { return false }
+
+    let from: String = {
+#if DEBUG
+      if AppBuildInfo.isXcodePreview {
+        let members = services.roomService.members
+        if !members.isEmpty {
+          return members[messages.count % members.count]
+        }
+      }
+#endif
+      return services.userService.user
+    }()
+
+    let message = ChatMessage(from: from, text: trimmed)
+    let reached = services.signalingService.broadcastChat(message)
+    guard !reached.isEmpty else {
+      toasts.append(.warning("No peers connected"))
+      return false
+    }
+
+    messages.append(message)
+    return true
   }
 }
 
