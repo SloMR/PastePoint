@@ -33,6 +33,7 @@ final class SignalingService: NSObject, ObservableObject {
   private static let connectionTimeout: TimeInterval = 30.0 // Seconds
 
   let bufferedAmountLow = PassthroughSubject<String, Never>()
+  let chatMessages = PassthroughSubject<ChatMessage, Never>()
 
   private static let maxReconnectAttempts = 5
   private static let baseReconnectDelay: TimeInterval = 2.0 // Seconds
@@ -178,6 +179,10 @@ final class SignalingService: NSObject, ObservableObject {
   }
 
   private func syncMesh(peers: [String]) {
+#if DEBUG
+    guard !AppBuildInfo.isXcodePreview else { return }
+#endif
+
     let target = Set(peers)
     let tracked = Set(peerConnections.keys).union(connectionLocks)
 
@@ -439,6 +444,46 @@ final class SignalingService: NSObject, ObservableObject {
     return channel.bufferedAmount < WebRTCConfig.maxBufferedAmount
   }
 
+  private func send(_ data: Data, to peer: String) -> Bool {
+    guard let channel = dataChannels[peer], channel.readyState == .open else {
+      logger.warning("no open channel to \(peer)")
+      return false
+    }
+
+    channel.sendData(RTCDataBuffer(data: data, isBinary: false))
+    return true
+  }
+
+  private func encodeChatForWire(_ chat: ChatMessage) -> Data? {
+    do {
+      return try DataChannelMessage.encodeChat(chat)
+    } catch {
+      logger.error("encodeChat failed: \(error)")
+      return nil
+    }
+  }
+
+  /// Send a chat message to every open data channel.
+  /// Returns the list of peers it actually reached.
+  @discardableResult
+  func broadcastChat(_ message: ChatMessage) -> [String] {
+#if DEBUG
+    if AppBuildInfo.isXcodePreview {
+      return peerDirectory.peers
+    }
+#endif
+
+    guard let data = encodeChatForWire(message) else { return [] }
+
+    let openPeers = dataChannels
+      .filter { $0.value.readyState == .open }
+      .map { $0.key }
+
+    return openPeers.filter {
+      send(data, to: $0)
+    }
+  }
+
   private func waitForUsername() async {
     if !userService.user.isEmpty { return }
     for await user in userService.$user.values where !user.isEmpty {
@@ -597,13 +642,20 @@ extension SignalingService: RTCPeerConnectionDelegate, RTCDataChannelDelegate {
       }
 
       if isBinary {
+        // TODO: Add file chunk handler here
         self.logger.info("received \(bytes.count) bytes from \(peer)")
-      } else {
-        guard let text = String(bytes: bytes, encoding: .utf8) else {
-          self.logger.warning("non-UTF-8 bytes from \(peer)")
-          return
+        return
+      }
+
+      do {
+        switch try DataChannelMessage.decode(bytes) {
+        case .chat(let msg):
+          self.chatMessages.send(msg)
+        case .unknown(let type):
+          self.logger.warning("unknown data-channel type \(type) from \(peer)")
         }
-        self.logger.info("received from \(peer): \(text)")
+      } catch {
+        self.logger.error("failed to decode data-channel message from \(peer): \(error)")
       }
     }
   }
