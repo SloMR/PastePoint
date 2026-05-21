@@ -31,16 +31,16 @@ struct ContentView: View {
       }
 
       ChatContainerView(messages: messages)
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-          ChatInputBar(onSend: handleSend)
-            .padding(.horizontal, 16)
-            .padding(.top, 6)
-            .padding(.bottom, 8)
-            .frame(maxWidth: .infinity)
-            .background {
-              AppColors.Background.background
-                .ignoresSafeArea(edges: .bottom)
-            }
+    }
+    .safeAreaInset(edge: .bottom, spacing: 0) {
+      ChatInputBar(onSend: handleSend)
+        .padding(.horizontal, 16)
+        .padding(.top, 6)
+        .padding(.bottom, 8)
+        .frame(maxWidth: .infinity)
+        .background {
+          AppColors.Background.background
+            .ignoresSafeArea(edges: .bottom)
         }
     }
     .background(AppColors.Background.background)
