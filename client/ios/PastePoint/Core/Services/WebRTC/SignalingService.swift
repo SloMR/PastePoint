@@ -479,8 +479,12 @@ extension SignalingService {
       return false
     }
 
-    channel.sendData(RTCDataBuffer(data: data, isBinary: false))
-    return true
+    guard channel.bufferedAmount < WebRTCConfig.maxBufferedAmount else {
+      logger.warning("channel to \(peer) back-pressured (\(channel.bufferedAmount) bytes)")
+      return false
+    }
+
+    return channel.sendData(RTCDataBuffer(data: data, isBinary: false))
   }
 
   private func encodeChatForWire(_ chat: ChatMessage) -> Data? {
