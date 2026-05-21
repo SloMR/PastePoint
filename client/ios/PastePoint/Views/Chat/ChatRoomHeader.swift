@@ -12,6 +12,7 @@ struct ChatRoomHeader: View {
   var body: some View {
     HStack(spacing: 10) {
       Image(isPrivate ? (colorScheme == .dark ? "lock.light" : "lock.dark") : "users")
+        .renderingMode(.template)
         .resizable()
         .scaledToFit()
         .frame(width: 22, height: 22)

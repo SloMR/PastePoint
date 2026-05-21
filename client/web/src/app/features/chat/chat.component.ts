@@ -1216,6 +1216,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
         this.roomService.joinRoom(room);
         this.roomService.listRooms();
         this.currentRoom = room;
+        this.clearMessages();
         this.isMenuOpen = false;
         this.toaster.success(this.translate.instant('ROOM_JOINED_SUCCESS', { roomName: room }));
         this.cdr.detectChanges();
@@ -1637,6 +1638,15 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
             clearTimeout(timeoutId);
             this.connectionWarningTimeouts.delete(member);
           }
+        }
+
+        if (
+          this.showConnectionWarning &&
+          otherMembers.length > 0 &&
+          otherMembers.every((m) => this.webrtcService.isConnected(m))
+        ) {
+          this.showConnectionWarning = false;
+          this.connectionWarningDismissed = false;
         }
 
         this.cdr.detectChanges();

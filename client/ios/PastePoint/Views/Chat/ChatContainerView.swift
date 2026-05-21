@@ -6,14 +6,14 @@
 import SwiftUI
 
 struct ChatContainerView: View {
-  @State private var hasMessages: Bool = false
+  let messages: [ChatMessage]
 
   var body: some View {
     Group {
-      if hasMessages {
-        ChatView()
-      } else {
+      if messages.isEmpty {
         WelcomeView()
+      } else {
+        ChatView(messages: messages)
       }
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)

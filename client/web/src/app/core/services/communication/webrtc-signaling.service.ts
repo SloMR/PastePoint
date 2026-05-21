@@ -39,7 +39,9 @@ export class WebRTCSignalingService {
   private peerConnections = new Map<string, RTCPeerConnection>();
   private reconnectAttempts = new Map<string, number>();
   private connectionLocks = new Set<string>();
-  private lastSequences = new Map<string, number>();
+  private outboundSequences = new Map<string, number>();
+  private inboundSequences = new Map<string, number>();
+  private pendingSignals: SignalMessage[] = [];
   private candidateQueues = new Map<string, RTCIceCandidateInit[]>();
   private connectionRequests = new Map<string, ReturnType<typeof setTimeout>>();
   private connectionRequestDelays = new Map<string, ReturnType<typeof setTimeout>>();
@@ -52,6 +54,15 @@ export class WebRTCSignalingService {
 
   constructor() {
     this.initializeSignalMessageHandler();
+
+    this.userService.user$.subscribe((user) => {
+      if (user && this.pendingSignals.length > 0) {
+        const drained = this.pendingSignals;
+        this.pendingSignals = [];
+        drained.forEach((m) => this.handleSignalMessage(m));
+      }
+    });
+
     this.communicationService.dataChannelClosed$.subscribe((targetUser) => {
       if (
         this.wsService.isConnected() &&
@@ -248,7 +259,7 @@ export class WebRTCSignalingService {
       const dataChannel = peerConnection.createDataChannel('data', DATA_CHANNEL_OPTIONS);
       this.communicationService.setupDataChannel(dataChannel, targetUser);
 
-      dataChannel.onopen = () => {
+      const handleDataChannelOpen = () => {
         this.connectionLocks.delete(targetUser);
         this.communicationService.sendQueuedMessages(targetUser);
         if (peerConnection.connectionState === 'connected') {
@@ -257,6 +268,13 @@ export class WebRTCSignalingService {
           this.peerConnected$.next(targetUser);
         }
       };
+
+      if (dataChannel.readyState === 'open') {
+        handleDataChannelOpen();
+      } else {
+        dataChannel.onopen = handleDataChannelOpen;
+      }
+
       dataChannel.onerror = () => {
         this.connectionLocks.delete(targetUser);
         if (this.peerConnections.get(targetUser) === peerConnection) {
@@ -352,7 +370,8 @@ export class WebRTCSignalingService {
 
     this.connectionLocks.delete(targetUser);
     this.reconnectAttempts.delete(targetUser);
-    this.lastSequences.delete(targetUser);
+    this.inboundSequences.delete(targetUser);
+    this.outboundSequences.delete(targetUser);
 
     const reconnectionTimeout = this.reconnectionTimeouts.get(targetUser);
     if (reconnectionTimeout) {
@@ -421,7 +440,9 @@ export class WebRTCSignalingService {
     this.peerConnections.clear();
     this.connectionLocks.clear();
     this.reconnectAttempts.clear();
-    this.lastSequences.clear();
+    this.inboundSequences.clear();
+    this.outboundSequences.clear();
+    this.pendingSignals = [];
     this.candidateQueues.clear();
     this.collectedCandidates.clear();
 
@@ -753,10 +774,24 @@ export class WebRTCSignalingService {
    * @param message The signal message to handle
    */
   private handleSignalMessage(message: SignalMessage): void {
-    if (message.to !== this.userService.user || message.from === message.to) {
+    if (message.from === message.to) {
       this.logger.warn(
         'handleSignalMessage',
-        'Skipping self-to-self signal: ' + JSON.stringify(message)
+        'Skipping self-loop signal: ' + JSON.stringify(message)
+      );
+      return;
+    }
+
+    const myUser = this.userService.user;
+    if (!myUser) {
+      this.pendingSignals.push(message);
+      return;
+    }
+
+    if (message.to !== myUser) {
+      this.logger.warn(
+        'handleSignalMessage',
+        `Skipping signal addressed to ${message.to}, not me (${myUser})`
       );
       return;
     }
@@ -1188,7 +1223,7 @@ export class WebRTCSignalingService {
       const dataChannel = peerConnection.createDataChannel('data', DATA_CHANNEL_OPTIONS);
       this.communicationService.setupDataChannel(dataChannel, targetUser);
 
-      dataChannel.onopen = () => {
+      const handleDataChannelOpen = () => {
         this.connectionLocks.delete(targetUser);
         this.communicationService.sendQueuedMessages(targetUser);
         if (peerConnection.connectionState === 'connected') {
@@ -1197,6 +1232,13 @@ export class WebRTCSignalingService {
           this.peerConnected$.next(targetUser);
         }
       };
+
+      if (dataChannel.readyState === 'open') {
+        handleDataChannelOpen();
+      } else {
+        dataChannel.onopen = handleDataChannelOpen;
+      }
+
       dataChannel.onerror = () => {
         this.connectionLocks.delete(targetUser);
         if (this.peerConnections.get(targetUser) === peerConnection) {
@@ -1245,9 +1287,9 @@ export class WebRTCSignalingService {
    */
   private isDuplicateMessage(targetUser: string, sequence?: number): boolean {
     if (!sequence) return false;
-    const lastSeq = this.lastSequences.get(targetUser) ?? 0;
+    const lastSeq = this.inboundSequences.get(targetUser) ?? 0;
     if (sequence <= lastSeq) return true;
-    this.lastSequences.set(targetUser, sequence);
+    this.inboundSequences.set(targetUser, sequence);
     return false;
   }
 
@@ -1256,9 +1298,8 @@ export class WebRTCSignalingService {
    * @param targetUser The user to get the sequence for
    */
   private getNextSequence(targetUser: string): number {
-    const current = this.lastSequences.get(targetUser) ?? 0;
-    const next = current + 1;
-    this.lastSequences.set(targetUser, next);
+    const next = (this.outboundSequences.get(targetUser) ?? 0) + 1;
+    this.outboundSequences.set(targetUser, next);
     return next;
   }
 

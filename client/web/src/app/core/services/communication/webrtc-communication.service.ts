@@ -98,7 +98,7 @@ export class WebRTCCommunicationService {
     }, 30000);
     this.connectionTimeouts.set(targetUser, timeout);
 
-    channel.onopen = () => {
+    const handleOpen = () => {
       this.logger.info('setupDataChannel', `Data channel with ${targetUser} is open`);
       this.dataChannelOpen$.next(true);
 
@@ -127,6 +127,12 @@ export class WebRTCCommunicationService {
         this.logger.info('setupDataChannel', `No queued messages for ${targetUser}`);
       }
     };
+
+    if (channel.readyState === 'open') {
+      handleOpen();
+    } else {
+      channel.onopen = handleOpen;
+    }
 
     channel.onmessage = (event) => {
       this.handleDataChannelMessage(event.data, targetUser);

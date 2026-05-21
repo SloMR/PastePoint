@@ -39,8 +39,12 @@ struct SettingsMembersSection: View {
             .fontWeight(.bold)
         } else {
           ForEach(others, id: \.self) { member in
+            let isConnected = services.signalingService.connectedPeers.contains(member)
+
             HStack(alignment: .center, spacing: 0) {
-              Circle().fill(.green).frame(width: 14, height: 14)
+              Circle()
+                .fill(isConnected ? Color.green : Color.red)
+                .frame(width: 14, height: 14)
                 .padding(.trailing, 6)
 
               Text(member)
@@ -57,6 +61,7 @@ struct SettingsMembersSection: View {
                 .padding(.trailing, 5)
                 .foregroundStyle(.textSecondary)
             }
+            .animation(.easeInOut(duration: 0.2), value: isConnected)
           }
         }
       }
