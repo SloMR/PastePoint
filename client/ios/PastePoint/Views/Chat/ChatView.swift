@@ -39,7 +39,7 @@ struct ChatView: View {
             }
           }
           .scrollTargetLayout()
-          .frame(maxWidth: .infinity, minHeight: geometry.size.height - 16, alignment: .leading)
+          .frame(maxWidth: .infinity, minHeight: max(0, geometry.size.height - 16), alignment: .leading)
           .padding(.horizontal, 16)
           .padding(.bottom, 16)
           .contentShape(Rectangle())

@@ -95,6 +95,11 @@ struct ContentView: View {
       return services.userService.user
     }()
 
+    guard !from.isEmpty else {
+      toasts.append(.warning("Connecting…"))
+      return false
+    }
+
     let message = ChatMessage(from: from, text: trimmed)
     let reached = services.signalingService.broadcastChat(message)
     guard !reached.isEmpty else {
