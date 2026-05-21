@@ -65,17 +65,20 @@ struct ChatView: View {
   private func dismissKeyboard() {
     UIApplication.shared.sendAction(
       #selector(UIResponder.resignFirstResponder),
-      to: nil, from: nil, for: nil,
+      to: nil,
+      from: nil,
+      for: nil,
     )
   }
 
   // TODO: Replace this SwiftUI scrollTo workaround with a UIKit-backed chat list
   // so keyboard open/close can sync contentInset and contentOffset in one animation.
   private func preserveAnchor(notif: Notification, proxy: ScrollViewProxy) {
-    guard let id = scrolledID,
-          let userInfo = notif.userInfo,
-          let systemDuration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double,
-          let curve = userInfo[UIResponder.keyboardAnimationCurveUserInfoKey] as? UInt
+    guard
+      let id = scrolledID,
+      let userInfo = notif.userInfo,
+      let systemDuration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double,
+      let curve = userInfo[UIResponder.keyboardAnimationCurveUserInfoKey] as? UInt
     else { return }
 
     withAnimation(keyboardAnimation(curve: curve, duration: systemDuration)) {

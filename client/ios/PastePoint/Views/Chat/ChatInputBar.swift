@@ -78,7 +78,7 @@ struct ChatInputBar: View {
         .fill(.inputBackground),
     )
   }
-  
+
   private func handleSubmit() {
     guard !trimmed.isEmpty else { return }
     if onSend(trimmed) {
