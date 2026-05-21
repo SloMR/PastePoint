@@ -41,6 +41,7 @@ export class WebRTCSignalingService {
   private connectionLocks = new Set<string>();
   private outboundSequences = new Map<string, number>();
   private inboundSequences = new Map<string, number>();
+  private pendingSignals: SignalMessage[] = [];
   private candidateQueues = new Map<string, RTCIceCandidateInit[]>();
   private connectionRequests = new Map<string, ReturnType<typeof setTimeout>>();
   private connectionRequestDelays = new Map<string, ReturnType<typeof setTimeout>>();
@@ -53,6 +54,15 @@ export class WebRTCSignalingService {
 
   constructor() {
     this.initializeSignalMessageHandler();
+
+    this.userService.user$.subscribe((user) => {
+      if (user && this.pendingSignals.length > 0) {
+        const drained = this.pendingSignals;
+        this.pendingSignals = [];
+        drained.forEach((m) => this.handleSignalMessage(m));
+      }
+    });
+
     this.communicationService.dataChannelClosed$.subscribe((targetUser) => {
       if (
         this.wsService.isConnected() &&
@@ -425,6 +435,7 @@ export class WebRTCSignalingService {
     this.reconnectAttempts.clear();
     this.inboundSequences.clear();
     this.outboundSequences.clear();
+    this.pendingSignals = [];
     this.candidateQueues.clear();
     this.collectedCandidates.clear();
 
@@ -756,10 +767,24 @@ export class WebRTCSignalingService {
    * @param message The signal message to handle
    */
   private handleSignalMessage(message: SignalMessage): void {
-    if (message.to !== this.userService.user || message.from === message.to) {
+    if (message.from === message.to) {
       this.logger.warn(
         'handleSignalMessage',
-        'Skipping self-to-self signal: ' + JSON.stringify(message)
+        'Skipping self-loop signal: ' + JSON.stringify(message)
+      );
+      return;
+    }
+
+    const myUser = this.userService.user;
+    if (!myUser) {
+      this.pendingSignals.push(message);
+      return;
+    }
+
+    if (message.to !== myUser) {
+      this.logger.warn(
+        'handleSignalMessage',
+        `Skipping signal addressed to ${message.to}, not me (${myUser})`
       );
       return;
     }
