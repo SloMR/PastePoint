@@ -1640,6 +1640,15 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
           }
         }
 
+        if (
+          this.showConnectionWarning &&
+          otherMembers.length > 0 &&
+          otherMembers.every((m) => this.webrtcService.isConnected(m))
+        ) {
+          this.showConnectionWarning = false;
+          this.connectionWarningDismissed = false;
+        }
+
         this.cdr.detectChanges();
       });
     }, 3000);

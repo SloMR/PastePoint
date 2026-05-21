@@ -259,7 +259,7 @@ export class WebRTCSignalingService {
       const dataChannel = peerConnection.createDataChannel('data', DATA_CHANNEL_OPTIONS);
       this.communicationService.setupDataChannel(dataChannel, targetUser);
 
-      dataChannel.onopen = () => {
+      const handleDataChannelOpen = () => {
         this.connectionLocks.delete(targetUser);
         this.communicationService.sendQueuedMessages(targetUser);
         if (peerConnection.connectionState === 'connected') {
@@ -268,6 +268,13 @@ export class WebRTCSignalingService {
           this.peerConnected$.next(targetUser);
         }
       };
+
+      if (dataChannel.readyState === 'open') {
+        handleDataChannelOpen();
+      } else {
+        dataChannel.onopen = handleDataChannelOpen;
+      }
+
       dataChannel.onerror = () => {
         this.connectionLocks.delete(targetUser);
         if (this.peerConnections.get(targetUser) === peerConnection) {
@@ -1216,7 +1223,7 @@ export class WebRTCSignalingService {
       const dataChannel = peerConnection.createDataChannel('data', DATA_CHANNEL_OPTIONS);
       this.communicationService.setupDataChannel(dataChannel, targetUser);
 
-      dataChannel.onopen = () => {
+      const handleDataChannelOpen = () => {
         this.connectionLocks.delete(targetUser);
         this.communicationService.sendQueuedMessages(targetUser);
         if (peerConnection.connectionState === 'connected') {
@@ -1225,6 +1232,13 @@ export class WebRTCSignalingService {
           this.peerConnected$.next(targetUser);
         }
       };
+
+      if (dataChannel.readyState === 'open') {
+        handleDataChannelOpen();
+      } else {
+        dataChannel.onopen = handleDataChannelOpen;
+      }
+
       dataChannel.onerror = () => {
         this.connectionLocks.delete(targetUser);
         if (this.peerConnections.get(targetUser) === peerConnection) {
