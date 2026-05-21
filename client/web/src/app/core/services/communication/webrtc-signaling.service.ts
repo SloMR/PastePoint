@@ -39,7 +39,8 @@ export class WebRTCSignalingService {
   private peerConnections = new Map<string, RTCPeerConnection>();
   private reconnectAttempts = new Map<string, number>();
   private connectionLocks = new Set<string>();
-  private lastSequences = new Map<string, number>();
+  private outboundSequences = new Map<string, number>();
+  private inboundSequences = new Map<string, number>();
   private candidateQueues = new Map<string, RTCIceCandidateInit[]>();
   private connectionRequests = new Map<string, ReturnType<typeof setTimeout>>();
   private connectionRequestDelays = new Map<string, ReturnType<typeof setTimeout>>();
@@ -352,7 +353,8 @@ export class WebRTCSignalingService {
 
     this.connectionLocks.delete(targetUser);
     this.reconnectAttempts.delete(targetUser);
-    this.lastSequences.delete(targetUser);
+    this.inboundSequences.delete(targetUser);
+    this.outboundSequences.delete(targetUser);
 
     const reconnectionTimeout = this.reconnectionTimeouts.get(targetUser);
     if (reconnectionTimeout) {
@@ -421,7 +423,8 @@ export class WebRTCSignalingService {
     this.peerConnections.clear();
     this.connectionLocks.clear();
     this.reconnectAttempts.clear();
-    this.lastSequences.clear();
+    this.inboundSequences.clear();
+    this.outboundSequences.clear();
     this.candidateQueues.clear();
     this.collectedCandidates.clear();
 
@@ -1245,9 +1248,9 @@ export class WebRTCSignalingService {
    */
   private isDuplicateMessage(targetUser: string, sequence?: number): boolean {
     if (!sequence) return false;
-    const lastSeq = this.lastSequences.get(targetUser) ?? 0;
+    const lastSeq = this.inboundSequences.get(targetUser) ?? 0;
     if (sequence <= lastSeq) return true;
-    this.lastSequences.set(targetUser, sequence);
+    this.inboundSequences.set(targetUser, sequence);
     return false;
   }
 
@@ -1256,9 +1259,8 @@ export class WebRTCSignalingService {
    * @param targetUser The user to get the sequence for
    */
   private getNextSequence(targetUser: string): number {
-    const current = this.lastSequences.get(targetUser) ?? 0;
-    const next = current + 1;
-    this.lastSequences.set(targetUser, next);
+    const next = (this.outboundSequences.get(targetUser) ?? 0) + 1;
+    this.outboundSequences.set(targetUser, next);
     return next;
   }
 
