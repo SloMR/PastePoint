@@ -48,14 +48,16 @@ enum DataChannelMessage {
   static func decode(_ data: Data) throws -> Decoded {
     guard
       let obj = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-      let typeRaw = obj["type"] as? String,
-      let payload = obj["payload"] as? [String: Any]
+      let typeRaw = obj["type"] as? String
     else {
       throw DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "Bad envelope"))
     }
 
     switch DataChannelMessageType(rawValue: typeRaw) {
     case .chat:
+      guard let payload = obj["payload"] as? [String: Any] else {
+        throw DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "Bad chat payload"))
+      }
       let payloadData = try JSONSerialization.data(withJSONObject: payload)
       let chat = try JSONDecoder.dataChannel.decode(ChatMessage.self, from: payloadData)
       return .chat(chat)
