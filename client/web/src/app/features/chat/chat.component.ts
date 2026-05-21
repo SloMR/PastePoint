@@ -1216,6 +1216,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
         this.roomService.joinRoom(room);
         this.roomService.listRooms();
         this.currentRoom = room;
+        this.clearMessages();
         this.isMenuOpen = false;
         this.toaster.success(this.translate.instant('ROOM_JOINED_SUCCESS', { roomName: room }));
         this.cdr.detectChanges();
