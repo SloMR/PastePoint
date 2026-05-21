@@ -8,16 +8,24 @@ import SwiftUI
 
 struct ChatInputBar: View {
   private let logger = Logger(label: "ChatInputBar")
+  let onSend: (String) -> Bool
 
   @State private var message = ""
+
+  private var trimmed: String {
+    message.trimmingCharacters(in: .whitespacesAndNewlines)
+  }
 
   var body: some View {
     VStack(spacing: 10) {
 
-      TextField("Type your message", text: $message)
+      TextField("Type your message", text: $message, axis: .vertical)
+        .lineLimit(1...5)
         .textFieldStyle(.plain)
         .font(.body)
         .foregroundStyle(.textPrimary)
+        .autocorrectionDisabled()
+        .textInputAutocapitalization(.never)
 
       HStack(alignment: .center) {
 
@@ -36,9 +44,8 @@ struct ChatInputBar: View {
 
         Spacer()
 
-        // TODO: Implement message send via WebSocket; add toast = .error("Failed to send message") on failure
         Button {
-          logger.info("Send Button Clicked")
+          handleSubmit()
         } label: {
           HStack(spacing: 8) {
             Text("Send")
@@ -60,8 +67,8 @@ struct ChatInputBar: View {
           )
         }
         .buttonStyle(.plain)
-        .disabled(message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-        .opacity(message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.6 : 1)
+        .disabled(trimmed.isEmpty)
+        .opacity(trimmed.isEmpty ? 0.6 : 1)
       }
     }
     .padding(.horizontal, 18)
@@ -70,7 +77,16 @@ struct ChatInputBar: View {
       RoundedRectangle(cornerRadius: 18, style: .continuous)
         .fill(.inputBackground),
     )
-    .frame(maxWidth: 360)
+  }
+  
+  private func handleSubmit() {
+    guard !trimmed.isEmpty else { return }
+    if onSend(trimmed) {
+      logger.info("send message successfully")
+      message = ""
+    } else {
+      logger.error("send message failed")
+    }
   }
 }
 
@@ -78,6 +94,6 @@ struct ChatInputBar: View {
 
 #if DEBUG
 #Preview {
-  ChatInputBar()
+  ChatInputBar { _ in true }
 }
 #endif
