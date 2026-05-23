@@ -675,6 +675,24 @@ extension SignalingService: RTCDataChannelDelegate {
         switch try DataChannelMessage.decode(bytes) {
         case .chat(let msg):
           self.chatMessages.send(msg)
+        case .fileOffer:
+          // TODO: handle file offer
+          self.logger.info("received file-offer from \(peer)")
+        case .fileAccept:
+          // TODO: handle file accept
+          self.logger.info("received file-accept from \(peer)")
+        case .fileDecline:
+          // TODO: handle file decline
+          self.logger.info("received file-decline from \(peer)")
+        case .fileCancelUpload:
+          // TODO: handle file cancel-upload
+          self.logger.info("received file-cancel-upload from \(peer)")
+        case .fileCancelDownload:
+          // TODO: handle file cancel-download
+          self.logger.info("received file-cancel-download from \(peer)")
+        case .fileReceived:
+          // TODO: handle file received
+          self.logger.info("received file-received from \(peer)")
         case .unknown(let type):
           self.logger.warning("unknown data-channel type \(type) from \(peer)")
         }
