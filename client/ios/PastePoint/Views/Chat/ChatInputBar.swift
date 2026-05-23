@@ -10,6 +10,7 @@ import SwiftUI
 struct ChatInputBar: View {
   private let logger = Logger(label: "ChatInputBar")
   let onSend: (String) -> Bool
+  let onSendFiles: ([StagedFile]) -> Bool
 
   @State private var message = ""
   @State private var stagedFiles: [StagedFile] = []
@@ -67,7 +68,7 @@ struct ChatInputBar: View {
 
       HStack(alignment: .center) {
 
-        // TODO: Implement attachment picker; add toast = .error("...") on failure
+        // TODO: Show toast on picker/stage failure (see logger.error sites)
         Button {
           logger.info("Attachments Button Clicked")
           showAttachDialog = true
@@ -106,8 +107,8 @@ struct ChatInputBar: View {
           )
         }
         .buttonStyle(.plain)
-        .disabled(trimmed.isEmpty)
-        .opacity(trimmed.isEmpty ? 0.6 : 1)
+        .disabled(trimmed.isEmpty && stagedFiles.isEmpty)
+        .opacity((trimmed.isEmpty && stagedFiles.isEmpty) ? 0.6 : 1)
       }
     }
     .padding(.horizontal, 18)
@@ -154,12 +155,27 @@ struct ChatInputBar: View {
   }
 
   private func handleSubmit() {
-    guard !trimmed.isEmpty else { return }
-    if onSend(trimmed) {
-      logger.info("send message successfully")
-      message = ""
-    } else {
-      logger.error("send message failed")
+    let hasText = !trimmed.isEmpty
+    let hasFiles = !stagedFiles.isEmpty
+    guard hasText || hasFiles else { return }
+
+    if hasText {
+      if onSend(trimmed) {
+        logger.info("send message successfully")
+        message = ""
+      } else {
+        logger.error("send message failed")
+      }
+    }
+
+    if hasFiles {
+      if onSendFiles(stagedFiles) {
+        // Ownership of tmp files transfers to FileUpload; do NOT delete here.
+        logger.info("send files successfully")
+        stagedFiles = []
+      } else {
+        logger.error("send files failed")
+      }
     }
   }
 
@@ -215,6 +231,6 @@ struct ChatInputBar: View {
 
 #if DEBUG
 #Preview {
-  ChatInputBar { _ in true }
+  ChatInputBar(onSend: { _ in true }, onSendFiles: { _ in true })
 }
 #endif

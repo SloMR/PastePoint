@@ -33,7 +33,7 @@ struct ContentView: View {
       ChatContainerView(messages: messages)
     }
     .safeAreaInset(edge: .bottom, spacing: 0) {
-      ChatInputBar(onSend: handleSend)
+      ChatInputBar(onSend: handleSend, onSendFiles: handleSendFiles)
         .padding(.horizontal, 16)
         .padding(.top, 6)
         .padding(.bottom, 8)
@@ -108,6 +108,28 @@ struct ContentView: View {
     }
 
     messages.append(message)
+    return true
+  }
+
+  private func handleSendFiles(_ files: [StagedFile]) -> Bool {
+    let peers = Array(services.signalingService.connectedPeers)
+
+    guard !peers.isEmpty else {
+      toasts.append(.warning("No peers connected"))
+      return false
+    }
+
+    // TODO: find a away to improve this
+    for peer in peers {
+      for file in files {
+        Task {
+          await services.fileTransferService.prepareFileForSending(
+            stagedFile: file,
+            targetUser: peer,
+          )
+        }
+      }
+    }
     return true
   }
 }
