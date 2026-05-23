@@ -20,6 +20,7 @@ final class AppServices: ObservableObject {
   let signalingService: SignalingService
   let roomService: RoomService
   let peerDirectory: PeerDirectory
+  let fileTransferService: FileTransferService
 
   static let shared = AppServices()
 
@@ -37,6 +38,7 @@ final class AppServices: ObservableObject {
     roomService = RoomService(wsService: wsService)
     peerDirectory = PeerDirectory(roomService: roomService, userService: userService)
     signalingService = SignalingService(wsService: wsService, userService: userService, peerDirectory: peerDirectory)
+    fileTransferService = FileTransferService(signalingService: signalingService, userService: userService)
 
 #if DEBUG
     guard !AppBuildInfo.isXcodePreview else {
@@ -59,6 +61,8 @@ final class AppServices: ObservableObject {
     roomService = RoomService(wsService: wsService)
     peerDirectory = PeerDirectory(roomService: roomService, userService: userService)
     signalingService = SignalingService(wsService: wsService, userService: userService, peerDirectory: peerDirectory)
+    fileTransferService = FileTransferService(signalingService: signalingService, userService: userService)
+
     forwardServiceChanges()
   }
 
@@ -151,6 +155,9 @@ final class AppServices: ObservableObject {
       .sink { [weak self] _ in self?.objectWillChange.send() }
       .store(in: &cancellables)
     signalingService.objectWillChange
+      .sink { [weak self] _ in self?.objectWillChange.send() }
+      .store(in: &cancellables)
+    fileTransferService.objectWillChange
       .sink { [weak self] _ in self?.objectWillChange.send() }
       .store(in: &cancellables)
   }

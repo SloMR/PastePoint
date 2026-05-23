@@ -39,6 +39,16 @@ final class UserService: ObservableObject {
     await wsService.send("[UserCommand] /name")
   }
 
+  /// Suspends until `user` is non-empty. Returns immediately if already set.
+  /// Used by services that need the username before sending peer messages —
+  /// covers the race where the server's `[SystemName]` arrives after a peer event.
+  func waitForUsername() async {
+    if !user.isEmpty { return }
+    for await name in $user.values where !name.isEmpty {
+      return
+    }
+  }
+
   private func handleSystemMessage(_ message: String) {
     guard message.contains("[SystemName]") else { return }
     guard let regex = Self.nameRegex else {

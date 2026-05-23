@@ -78,7 +78,7 @@ final class SignalingService: NSObject, ObservableObject {
       return
     }
 
-    await waitForUsername()
+    await userService.waitForUsername()
     if !shouldInitiateConnection(to: peer) {
       logger.info("not the designated caller for \(peer), sending connection request")
       let request = SignalMessage(
@@ -215,7 +215,7 @@ extension SignalingService {
   }
 
   private func handleOffer(_ message: SignalMessage) async {
-    await waitForUsername()
+    await userService.waitForUsername()
 
     if isDuplicate(message.from, sequence: message.sequence) {
       logger.debug("ignoring duplicate sequence from \(message.from)")
@@ -473,7 +473,10 @@ extension SignalingService {
     }
   }
 
-  private func send(_ data: Data, to peer: String) -> Bool {
+  /// Transport hook: send a pre-encoded data-channel envelope to one peer.
+  /// Returns false if the channel is closed or back-pressured.
+  /// Called by services that build their own envelopes (e.g. `FileTransferService`).
+  func send(_ data: Data, to peer: String) -> Bool {
     guard let channel = dataChannels[peer], channel.readyState == .open else {
       logger.warning("no open channel to \(peer)")
       return false
@@ -500,13 +503,6 @@ extension SignalingService {
 // MARK: - Helpers
 
 extension SignalingService {
-
-  private func waitForUsername() async {
-    if !userService.user.isEmpty { return }
-    for await user in userService.$user.values where !user.isEmpty {
-      return
-    }
-  }
 
   private func nextSequence(for peer: String) -> Int {
     let next = (outboundSequences[peer] ?? 0) + 1
@@ -577,7 +573,7 @@ extension SignalingService: RTCPeerConnectionDelegate {
 
     Task { @MainActor [weak self] in
       guard let self else { return }
-      await waitForUsername()
+      await userService.waitForUsername()
 
       guard let peer = self.peer(forConnectionID: peerConnectionID) else {
         self.logger.warning("unknown peer connection")
