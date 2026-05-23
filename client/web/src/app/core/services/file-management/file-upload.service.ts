@@ -18,12 +18,14 @@ import {
   calculateTotalChunks,
   calculateFileHashStreaming,
 } from '../../../utils/chunk-protocol';
+import { UserService } from '../user-management/user.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class FileUploadService extends FileTransferBaseService {
   private previewService = inject(PreviewService);
+  private userService = inject(UserService);
 
   // =============== Private Properties ===============
   private processingQueues = new Map<string, boolean>();
@@ -354,6 +356,11 @@ export class FileUploadService extends FileTransferBaseService {
    * Sends a file offer to a target user
    */
   private async sendFileOffer(fileId: string, targetUser: string): Promise<void> {
+    if (!this.userService.user) {
+      this.logger.error('sendFileOffer', 'No current user set in UserService');
+      return;
+    }
+
     const userMap = await this.getFileTransfers(targetUser);
     if (!userMap) {
       this.logger.error('sendFileOffer', 'No Map of files for ' + targetUser);
@@ -379,7 +386,7 @@ export class FileUploadService extends FileTransferBaseService {
         fileId: fileId,
         fileName: fileTransfer.file.name,
         fileSize: fileTransfer.file.size,
-        fromUser: targetUser,
+        fromUser: this.userService.user,
       },
     };
     this.sendData(basicMessage, targetUser);
@@ -437,7 +444,7 @@ export class FileUploadService extends FileTransferBaseService {
           fileHash,
           previewDataUrl,
           previewMime,
-          fromUser: targetUser,
+          fromUser: this.userService.user,
         },
       };
       this.sendData(completeMessage, targetUser);
