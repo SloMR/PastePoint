@@ -16,6 +16,7 @@ struct ChatMessage: Codable, Sendable, Identifiable {
   let text: String
   let type: ChatMessageType
   let timestamp: Date
+  var fileTransfer: FileTransferData?
 
   private enum CodingKeys: String, CodingKey {
     case from
@@ -31,6 +32,7 @@ struct ChatMessage: Codable, Sendable, Identifiable {
     self.text = try values.decode(String.self, forKey: .text)
     self.type = try values.decode(ChatMessageType.self, forKey: .type)
     self.timestamp = try values.decode(Date.self, forKey: .timestamp)
+    self.fileTransfer = nil
   }
 
   func encode(to encoder: any Encoder) throws {
@@ -41,11 +43,19 @@ struct ChatMessage: Codable, Sendable, Identifiable {
     try container.encode(timestamp, forKey: .timestamp)
   }
 
-  init(id: UUID = UUID(), from: String, text: String, type: ChatMessageType = .text, timestamp: Date = Date()) {
+  init(
+    id: UUID = UUID(),
+    from: String,
+    text: String,
+    type: ChatMessageType = .text,
+    timestamp: Date = Date(),
+    fileTransfer: FileTransferData? = nil,
+  ) {
     self.id = id
     self.from = from
     self.text = text
     self.type = type
     self.timestamp = timestamp
+    self.fileTransfer = fileTransfer
   }
 }

@@ -43,6 +43,16 @@ enum FileTransferStatus: String, Codable, Sendable {
   case cancelled // TODO: Typo: Fix this on the web side
 }
 
+// MARK: Attachment Bubble Data
+
+struct FileTransferData: Codable, Sendable, Equatable {
+  let fileId: String
+  let fileName: String
+  let fileSize: Int64
+  let fromUser: String
+  var status: FileTransferStatus
+}
+
 // MARK: Local State
 
 struct FileUpload: Identifiable, Sendable {
