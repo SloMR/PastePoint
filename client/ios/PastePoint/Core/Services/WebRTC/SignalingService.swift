@@ -12,6 +12,15 @@ private struct UnsafeSendable<T>: @unchecked Sendable {
   nonisolated(unsafe) let value: T
 }
 
+enum FileChannelEvent {
+  case offer(FileOfferPayload, from: String)
+  case accept(FileAcceptPayload, from: String)
+  case decline(FileDeclinePayload, from: String)
+  case cancelUpload(FileCancelPayload, from: String)
+  case cancelDownload(FileCancelPayload, from: String)
+  case received(FileReceivedPayload, from: String)
+}
+
 @MainActor
 final class SignalingService: NSObject, ObservableObject {
 
@@ -19,6 +28,7 @@ final class SignalingService: NSObject, ObservableObject {
 
   let bufferedAmountLow = PassthroughSubject<String, Never>()
   let chatMessages = PassthroughSubject<ChatMessage, Never>()
+  let fileEvent = PassthroughSubject<FileChannelEvent, Never>()
 
   private let logger = Logger(label: "SignalingService")
   private let wsService: WebSocketConnectionService
@@ -671,24 +681,18 @@ extension SignalingService: RTCDataChannelDelegate {
         switch try DataChannelMessage.decode(bytes) {
         case .chat(let msg):
           self.chatMessages.send(msg)
-        case .fileOffer:
-          // TODO: handle file offer
-          self.logger.info("received file-offer from \(peer)")
-        case .fileAccept:
-          // TODO: handle file accept
-          self.logger.info("received file-accept from \(peer)")
-        case .fileDecline:
-          // TODO: handle file decline
-          self.logger.info("received file-decline from \(peer)")
-        case .fileCancelUpload:
-          // TODO: handle file cancel-upload
-          self.logger.info("received file-cancel-upload from \(peer)")
-        case .fileCancelDownload:
-          // TODO: handle file cancel-download
-          self.logger.info("received file-cancel-download from \(peer)")
-        case .fileReceived:
-          // TODO: handle file received
-          self.logger.info("received file-received from \(peer)")
+        case .fileOffer(let payload):
+          self.fileEvent.send(.offer(payload, from: peer))
+        case .fileAccept(let payload):
+          self.fileEvent.send(.accept(payload, from: peer))
+        case .fileDecline(let payload):
+          self.fileEvent.send(.decline(payload, from: peer))
+        case .fileCancelUpload(let payload):
+          self.fileEvent.send(.cancelUpload(payload, from: peer))
+        case .fileCancelDownload(let payload):
+          self.fileEvent.send(.cancelDownload(payload, from: peer))
+        case .fileReceived(let payload):
+          self.fileEvent.send(.received(payload, from: peer))
         case .unknown(let type):
           self.logger.warning("unknown data-channel type \(type) from \(peer)")
         }
