@@ -30,7 +30,11 @@ struct ContentView: View {
         NetworkPermissionBanner { services.clearLocalNetworkDenied() }
       }
 
-      ChatContainerView(messages: messages)
+      ChatContainerView(
+        messages: messages,
+        onAcceptFile: handleAcceptFile,
+        onDeclineFile: handleDeclineFile,
+      )
     }
     .safeAreaInset(edge: .bottom, spacing: 0) {
       ChatInputBar(onSend: handleSend, onSendFiles: handleSendFiles)
@@ -60,6 +64,9 @@ struct ContentView: View {
       logger.debug("Signal: \(sig.payload.typeString) | from: \(sig.from) → to: \(sig.to)")
     }
     .onReceive(services.signalingService.chatMessages) { message in
+      messages.append(message)
+    }
+    .onReceive(services.fileTransferService.attachmentMessages) { message in
       messages.append(message)
     }
     .onChange(of: services.roomService.currentRoom) {
@@ -131,6 +138,38 @@ struct ContentView: View {
       }
     }
     return true
+  }
+
+  private func handleAcceptFile(fromUser: String, fileId: String) {
+    Task {
+      let result = await services.fileTransferService.acceptFileOffer(fromUser: fromUser, fileId: fileId)
+
+      if result {
+        updateFileStatus(fileId: fileId, status: .accepted)
+      } else {
+        toasts.append(.warning("Couldn't accept file"))
+      }
+    }
+  }
+
+  private func handleDeclineFile(fromUser: String, fileId: String) {
+    Task {
+      let result = await services.fileTransferService.declineFileOffer(fromUser: fromUser, fileId: fileId)
+
+      if result {
+        updateFileStatus(fileId: fileId, status: .declined)
+      } else {
+        toasts.append(.warning("Couldn't decline file"))
+      }
+    }
+  }
+
+  // TODO: make it safe with return bool to check if the status updated or not
+  private func updateFileStatus(fileId: String, status: FileTransferStatus) {
+    guard let idx = messages.firstIndex(where: { $0.fileTransfer?.fileId == fileId }) else {
+      return
+    }
+    messages[idx].fileTransfer?.status = status
   }
 }
 
