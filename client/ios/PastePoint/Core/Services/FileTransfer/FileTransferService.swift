@@ -17,9 +17,20 @@ final class FileTransferService: ObservableObject {
   @Published private(set) var activeDownloads: [FileDownload] = []
   @Published private(set) var incomingFileOffers: [FileDownload] = []
 
+  let attachmentMessages = PassthroughSubject<ChatMessage, Never>()
+  private var cancellables: Set<AnyCancellable> = []
+
   init(signalingService: SignalingService, userService: UserService) {
     self.signalingService = signalingService
     self.userService = userService
+
+    signalingService.fileEvent
+      .sink { [weak self] event in
+        Task { @MainActor in
+          self?.handleFileEvent(event)
+        }
+      }
+      .store(in: &cancellables)
   }
 
   @discardableResult
@@ -65,4 +76,52 @@ final class FileTransferService: ObservableObject {
     logger.info("file-offer sent: \(stagedFile.name) (\(fileId)) → \(targetUser)")
     return true
   }
+
+  private func handleFileEvent(_ event: FileChannelEvent) {
+    switch event {
+    case .offer(let payload, let from):
+      receiveFileOffer(payload: payload, from: from)
+    case .accept, .decline, .cancelUpload, .cancelDownload, .received:
+      break
+    }
+  }
+
+  private func receiveFileOffer(payload: FileOfferPayload, from peer: String) {
+    if incomingFileOffers.contains(where: { $0.id == payload.fileId }) {
+      logger.info("ignored duplicate file-offer \(payload.fileId)")
+      return
+    }
+
+    let download = FileDownload(
+      id: payload.fileId,
+      fileName: payload.fileName,
+      fileSize: payload.fileSize,
+      fromUser: peer,
+      totalChunks: 0,
+      receivedSize: 0,
+      receivedChunkURLs: [:],
+      progress: 0,
+      isAccepted: false,
+      expectedHash: payload.fileHash,
+    )
+    incomingFileOffers.append(download)
+
+    let fileTransfer = FileTransferData(
+      fileId: payload.fileId,
+      fileName: payload.fileName,
+      fileSize: payload.fileSize,
+      fromUser: peer,
+      status: .pending,
+    )
+    let message = ChatMessage(
+      from: peer,
+      text: payload.fileName,
+      type: .attachment,
+      fileTransfer: fileTransfer,
+    )
+
+    attachmentMessages.send(message)
+    logger.info("received file-offer: \(payload.fileName) (\(payload.fileId)) from \(peer)")
+  }
+
 }
