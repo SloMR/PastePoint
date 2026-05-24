@@ -124,4 +124,56 @@ final class FileTransferService: ObservableObject {
     logger.info("received file-offer: \(payload.fileName) (\(payload.fileId)) from \(peer)")
   }
 
+  @discardableResult
+  func acceptFileOffer(fromUser: String, fileId: String) async -> Bool {
+    guard let idx = incomingFileOffers.firstIndex(where: { $0.id == fileId }) else {
+      logger.warning("no offer for \(fileId)")
+      return false
+    }
+
+    let data: Data
+    do {
+      data = try DataChannelMessage.encodeFileAccept(FileAcceptPayload(fileId: fileId))
+    } catch {
+      logger.error("encodeFileAccept failed: \(error)")
+      return false
+    }
+
+    guard signalingService.send(data, to: fromUser) else {
+      logger.warning("send failed for file-accept \(fileId) to \(fromUser)")
+      return false
+    }
+
+    var download = incomingFileOffers.remove(at: idx)
+    download.isAccepted = true
+    activeDownloads.append(download)
+
+    logger.info("file-accept sent: \(fileId) → \(fromUser)")
+    return true
+  }
+
+  @discardableResult
+  func declineFileOffer(fromUser: String, fileId: String) async -> Bool {
+    guard let idx = incomingFileOffers.firstIndex(where: { $0.id == fileId }) else {
+      logger.warning("no offer for \(fileId)")
+      return false
+    }
+
+    let data: Data
+    do {
+      data = try DataChannelMessage.encodeFileDecline(FileDeclinePayload(fileId: fileId))
+    } catch {
+      logger.error("encodeFileDecline failed: \(error)")
+      return false
+    }
+
+    guard signalingService.send(data, to: fromUser) else {
+      logger.warning("send failed for file-decline \(fileId) to \(fromUser)")
+      return false
+    }
+
+    incomingFileOffers.remove(at: idx)
+    logger.info("file-decline sent: \(fileId) → \(fromUser)")
+    return true
+  }
 }
