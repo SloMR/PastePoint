@@ -126,6 +126,25 @@ struct ContentView: View {
       return false
     }
 
+    let sender = services.userService.user
+    for file in files {
+      let fileTransfer = FileTransferData(
+        fileId: UUID().uuidString,
+        fileName: file.name,
+        fileSize: file.size,
+        fromUser: sender,
+        status: .pending,
+      )
+      messages.append(
+        ChatMessage(
+          from: sender,
+          text: file.name,
+          type: .attachment,
+          fileTransfer: fileTransfer,
+        ),
+      )
+    }
+
     // TODO: find a away to improve this
     for peer in peers {
       for file in files {
