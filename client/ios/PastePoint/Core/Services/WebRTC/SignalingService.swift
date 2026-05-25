@@ -486,7 +486,7 @@ extension SignalingService {
   /// Transport hook: send a pre-encoded data-channel envelope to one peer.
   /// Returns false if the channel is closed or back-pressured.
   /// Called by services that build their own envelopes (e.g. `FileTransferService`).
-  func send(_ data: Data, to peer: String) -> Bool {
+  func send(_ data: Data, to peer: String, isBinary: Bool = false) -> Bool {
     guard let channel = dataChannels[peer], channel.readyState == .open else {
       logger.warning("no open channel to \(peer)")
       return false
@@ -497,7 +497,7 @@ extension SignalingService {
       return false
     }
 
-    return channel.sendData(RTCDataBuffer(data: data, isBinary: false))
+    return channel.sendData(RTCDataBuffer(data: data, isBinary: isBinary))
   }
 
   private func encodeChatForWire(_ chat: ChatMessage) -> Data? {
@@ -711,6 +711,7 @@ extension SignalingService: RTCDataChannelDelegate {
       guard let peer = self.peer(forChannelID: dataChannelID) else { return }
 
       if currentBuffered < WebRTCConfig.bufferedAmountLowThreshold {
+        // TODO: Remvoe this one or change it to be less annoying or more informative
         self.logger.debug("dataChannel: buffer low for \(peer) (\(currentBuffered) bytes)")
         self.bufferedAmountLow.send(peer)
       }

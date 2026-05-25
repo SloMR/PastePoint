@@ -81,7 +81,9 @@ final class FileTransferService: ObservableObject {
     switch event {
     case .offer(let payload, let from):
       receiveFileOffer(payload: payload, from: from)
-    case .accept, .decline, .cancelUpload, .cancelDownload, .received:
+    case .accept(let payload, let from):
+      handleFileAccept(payload: payload, from: from)
+    case .decline, .cancelUpload, .cancelDownload:
       break
     }
   }
@@ -123,6 +125,107 @@ final class FileTransferService: ObservableObject {
     attachmentMessages.send(message)
     logger.info("received file-offer: \(payload.fileName) (\(payload.fileId)) from \(peer)")
   }
+
+  private func handleFileAccept(payload: FileAcceptPayload, from peer: String) {
+    guard
+      let idx = activeUploads.firstIndex(where: {
+        $0.targetUser == peer && $0.id == payload.fileId
+      })
+    else {
+      logger.warning("file-accept ignored: no upload for \(payload.fileId) → \(peer)")
+      return
+    }
+
+    let upload = activeUploads[idx]
+    logger.info("file-accept received: starting chunk send for \(upload.id) → \(peer)")
+
+    Task.detached { [weak self] in
+      await self?.runChunkSendLoop(uploadId: upload.id, targetUser: peer)
+    }
+  }
+
+  private func runChunkSendLoop(uploadId: String, targetUser: String) async {
+    // 1. Snapshot upload metadata from the MainActor.
+    let snapshot: (fileURL: URL, fileSize: Int64)? = await MainActor.run {
+      guard let upload = activeUploads.first(where: { $0.id == uploadId }) else { return nil }
+      return (upload.fileURL, upload.fileSize)
+    }
+
+    guard let snapshot else {
+      logger.warning("chunk loop: upload \(uploadId) not found")
+      return
+    }
+
+    // 2. Open the file once.
+    let handle: FileHandle
+    do {
+      handle = try FileHandle(forReadingFrom: snapshot.fileURL)
+    } catch {
+      logger.error("chunk loop: cannot open \(snapshot.fileURL.path): \(error)")
+      return
+    }
+    defer { try? handle.close() }
+
+    let totalChunks = BinaryChunk.totalChunks(forFileSize: snapshot.fileSize)
+    var chunkIndex: UInt32 = 0
+    var bytesSent: Int64 = 0
+
+    // 3. Send loop.
+    while true {
+      let chunkData: Data
+
+      do {
+        guard
+          let data = try handle.read(upToCount: BinaryChunk.chunkSize),
+          !data.isEmpty
+        else {
+          break // EOF
+        }
+
+        chunkData = data
+      } catch {
+        logger.error("chunk loop: read error: \(error)")
+        return
+      }
+
+      let encoded = BinaryChunk.encode(
+        fileId: uploadId,
+        chunkIndex: chunkIndex,
+        totalChunks: totalChunks,
+        data: chunkData,
+      )
+
+      // Back-pressure: poll-retry. `send` returns false when bufferedAmount is
+      // above maxBufferedAmount — we sleep briefly and retry until it accepts.
+      while true {
+        let sent = await MainActor.run {
+          signalingService.send(encoded, to: targetUser, isBinary: true)
+        }
+        if sent { break }
+        try? await Task.sleep(nanoseconds: 50_000_000) // 50 ms
+      }
+
+      bytesSent += Int64(chunkData.count)
+      chunkIndex += 1
+
+      let progressValue = min(1.0, Double(bytesSent) / Double(snapshot.fileSize))
+      await MainActor.run {
+        if let idx = activeUploads.firstIndex(where: { $0.id == uploadId }) {
+          activeUploads[idx].currentOffset = bytesSent
+          activeUploads[idx].progress = progressValue
+        }
+      }
+    }
+
+    // 4. Flip phase to .finalizing — bytes shipped, awaiting receiver ack.
+    await MainActor.run {
+      if let idx = activeUploads.firstIndex(where: { $0.id == uploadId }) {
+        activeUploads[idx].phase = .finalizing
+      }
+    }
+    logger.info("chunk loop: finished \(chunkIndex) chunks for \(uploadId) → \(targetUser)")
+  }
+
 
   @discardableResult
   func acceptFileOffer(fromUser: String, fileId: String) async -> Bool {
