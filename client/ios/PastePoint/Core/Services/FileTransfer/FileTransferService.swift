@@ -83,6 +83,8 @@ final class FileTransferService: ObservableObject {
       receiveFileOffer(payload: payload, from: from)
     case .accept(let payload, let from):
       handleFileAccept(payload: payload, from: from)
+    case .received(let payload, let from):
+      handleFileReceived(payload: payload, from: from)
     case .decline, .cancelUpload, .cancelDownload:
       break
     }
@@ -226,6 +228,35 @@ final class FileTransferService: ObservableObject {
     logger.info("chunk loop: finished \(chunkIndex) chunks for \(uploadId) → \(targetUser)")
   }
 
+  private func handleFileReceived(payload: FileReceivedPayload, from peer: String) {
+    guard
+      let idx = activeUploads.firstIndex(where: {
+        $0.targetUser == peer && $0.id == payload.fileId
+      })
+    else {
+      logger.warning("file-received ignored: no upload for \(payload.fileId) ← \(peer)")
+      return
+    }
+
+    let removed = activeUploads.remove(at: idx)
+    logger.info("file-received ack: \(payload.fileId) ← \(peer)")
+
+    // Delete the tmp file only if no other in-flight upload references it.
+    // Multiple peer-specific FileUploads share the same source `fileURL` when the
+    // user sent one file to many peers; the last one out deletes.
+    let stillReferenced = activeUploads.contains { file in
+      file.fileURL == removed.fileURL
+    }
+
+    if !stillReferenced {
+      do {
+        try FileManager.default.removeItem(at: removed.fileURL)
+        logger.info("removed tmp file: \(removed.fileURL.lastPathComponent)")
+      } catch {
+        logger.warning("failed to remove tmp file \(removed.fileURL.lastPathComponent): \(error)")
+      }
+    }
+  }
 
   @discardableResult
   func acceptFileOffer(fromUser: String, fileId: String) async -> Bool {
