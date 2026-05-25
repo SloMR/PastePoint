@@ -66,6 +66,7 @@ final class FileTransferService: ObservableObject {
       FileUpload(
         id: fileId,
         fileURL: stagedFile.url,
+        displayName: stagedFile.name,
         fileSize: stagedFile.size,
         targetUser: targetUser,
         currentOffset: 0,

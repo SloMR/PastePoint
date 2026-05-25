@@ -40,28 +40,54 @@ struct SettingsMembersSection: View {
         } else {
           ForEach(others, id: \.self) { member in
             let isConnected = services.signalingService.connectedPeers.contains(member)
+            let uploads = services.fileTransferService.activeUploads.filter { $0.targetUser == member }
+            let downloads = services.fileTransferService.activeDownloads.filter { $0.fromUser == member }
 
-            HStack(alignment: .center, spacing: 0) {
-              Circle()
-                .fill(isConnected ? Color.green : Color.red)
-                .frame(width: 14, height: 14)
-                .padding(.trailing, 6)
+            VStack(alignment: .leading, spacing: 6) {
+              HStack(alignment: .center, spacing: 0) {
+                Circle()
+                  .fill(isConnected ? Color.green : Color.red)
+                  .frame(width: 14, height: 14)
+                  .padding(.trailing, 6)
 
-              Text(member)
-                .font(.subheadline)
-                .foregroundColor(.textPrimary)
+                Text(member)
+                  .font(.subheadline)
+                  .foregroundColor(.textPrimary)
 
-              Spacer()
+                Spacer()
 
-              Image("link")
-                .renderingMode(.template)
-                .resizable()
-                .scaledToFit()
-                .frame(width: 16, height: 16)
-                .padding(.trailing, 5)
-                .foregroundStyle(.textSecondary)
+                Image("link")
+                  .renderingMode(.template)
+                  .resizable()
+                  .scaledToFit()
+                  .frame(width: 16, height: 16)
+                  .padding(.trailing, 5)
+                  .foregroundStyle(.textSecondary)
+              }
+              .animation(.easeInOut(duration: 0.2), value: isConnected)
+
+              if !uploads.isEmpty || !downloads.isEmpty {
+                VStack(alignment: .leading, spacing: 4) {
+                  ForEach(uploads) { upload in
+                    transferRow(
+                      direction: .up,
+                      name: upload.displayName,
+                      progress: upload.progress,
+                      phase: upload.phase,
+                    )
+                  }
+                  ForEach(downloads) { download in
+                    transferRow(
+                      direction: .down,
+                      name: download.fileName,
+                      progress: download.progress,
+                      phase: nil,
+                    )
+                  }
+                }
+                .padding(.leading, 20)
+              }
             }
-            .animation(.easeInOut(duration: 0.2), value: isConnected)
           }
         }
       }
@@ -69,5 +95,45 @@ struct SettingsMembersSection: View {
       .padding(.top, 22)
     }
     .padding(.top, 12)
+  }
+
+  private enum TransferDirection {
+    case up
+    case down
+  }
+
+  @ViewBuilder
+  private func transferRow(
+    direction: TransferDirection,
+    name: String,
+    progress: Double,
+    phase: FileUpload.Phase?,
+  ) -> some View {
+    VStack(alignment: .leading, spacing: 2) {
+      HStack(spacing: 6) {
+        Image(systemName: direction == .up ? "arrow.up" : "arrow.down")
+          .font(.caption2)
+          .foregroundStyle(.textSecondary)
+
+        Text(name)
+          .font(.caption)
+          .lineLimit(1)
+          .truncationMode(.middle)
+          .foregroundStyle(.textPrimary)
+        Spacer()
+        Text(progressLabel(progress: progress, phase: phase))
+          .font(.caption2)
+          .foregroundStyle(.textSecondary)
+      }
+      ProgressView(value: max(0, min(1, progress)))
+        .progressViewStyle(.linear)
+        .tint(.brand)
+        .scaleEffect(x: 1, y: 0.6, anchor: .center)
+    }
+  }
+
+  private func progressLabel(progress: Double, phase: FileUpload.Phase?) -> String {
+    if phase == .finalizing { return "Finalizing..." }
+    return "\(Int((progress * 100).rounded()))%"
   }
 }

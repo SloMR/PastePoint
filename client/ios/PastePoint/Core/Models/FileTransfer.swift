@@ -63,6 +63,7 @@ struct FileUpload: Identifiable, Sendable {
 
   let id: String
   let fileURL: URL
+  let displayName: String
   let fileSize: Int64
   let targetUser: String
   var currentOffset: Int64
