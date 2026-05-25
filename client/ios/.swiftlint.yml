@@ -74,6 +74,7 @@ disabled_rules:
 identifier_name:
   min_length: 2
   excluded:
+    - i
     - id
     - to
     - vc
