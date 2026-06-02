@@ -3,6 +3,7 @@
 //  SPDX-License-Identifier: GPL-3.0-only
 //
 
+import CryptoKit
 import Foundation
 
 struct ParsedChunk: Sendable {
@@ -127,5 +128,21 @@ enum BinaryChunk {
     withUnsafeBytes(of: littleEndian) { byte in
       data.append(contentsOf: byte)
     }
+  }
+
+  nonisolated static func sha256Hex(ofFileAt url: URL) throws -> String {
+    let handle = try FileHandle(forReadingFrom: url)
+    defer { try? handle.close() }
+
+    var hasher = SHA256()
+
+    // TODO: Create const value for the file reading count
+    while let chunk = try handle.read(upToCount: 1024 * 1024), !chunk.isEmpty {
+      hasher.update(data: chunk)
+    }
+
+    return hasher.finalize().map { val in
+      String(format: "%02x", val)
+    }.joined()
   }
 }
