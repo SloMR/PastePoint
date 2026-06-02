@@ -38,7 +38,11 @@ final class AppServices: ObservableObject {
     roomService = RoomService(wsService: wsService)
     peerDirectory = PeerDirectory(roomService: roomService, userService: userService)
     signalingService = SignalingService(wsService: wsService, userService: userService, peerDirectory: peerDirectory)
-    fileTransferService = FileTransferService(signalingService: signalingService, userService: userService)
+    fileTransferService = FileTransferService(
+      signalingService: signalingService,
+      userService: userService,
+      peerDirectory: peerDirectory,
+    )
 
 #if DEBUG
     guard !AppBuildInfo.isXcodePreview else {
@@ -61,7 +65,11 @@ final class AppServices: ObservableObject {
     roomService = RoomService(wsService: wsService)
     peerDirectory = PeerDirectory(roomService: roomService, userService: userService)
     signalingService = SignalingService(wsService: wsService, userService: userService, peerDirectory: peerDirectory)
-    fileTransferService = FileTransferService(signalingService: signalingService, userService: userService)
+    fileTransferService = FileTransferService(
+      signalingService: signalingService,
+      userService: userService,
+      peerDirectory: peerDirectory,
+    )
 
     forwardServiceChanges()
   }

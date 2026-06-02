@@ -26,7 +26,7 @@ final class FileTransferService: ObservableObject {
   private var knownPeers: Set<String> = []
   private var cancellables: Set<AnyCancellable> = []
 
-  init(signalingService: SignalingService, userService: UserService) {
+  init(signalingService: SignalingService, userService: UserService, peerDirectory: PeerDirectory) {
     self.signalingService = signalingService
     self.userService = userService
 
@@ -42,6 +42,14 @@ final class FileTransferService: ObservableObject {
       .sink { [weak self] parsed, from in
         Task { @MainActor in
           await self?.handleChunk(parsed, from: from)
+        }
+      }
+      .store(in: &cancellables)
+
+    peerDirectory.$peers
+      .sink { [weak self] peers in
+        Task { @MainActor in
+          self?.reconcilePeers(peers)
         }
       }
       .store(in: &cancellables)
@@ -591,6 +599,38 @@ final class FileTransferService: ObservableObject {
       _ = signalingService.send(data, to: peer)
     } catch {
       logger.error("encodeFileReceived failed: \(error)")
+    }
+  }
+
+  private func reconcilePeers(_ current: [String]) {
+    let currentSet = Set(current)
+    let departed = knownPeers.subtracting(current)
+
+    knownPeers = currentSet
+    for peer in departed {
+      purgeTransfers(for: peer)
+    }
+  }
+
+  private func purgeTransfers(for peer: String) {
+    // Uploads to this peer — stop send loops, no notify (peer is gone).
+    let uploadIds = activeUploads.filter { $0.targetUser == peer }.map(\.id)
+    for fileId in uploadIds {
+      stopFileUpload(targetUser: peer, fileId: fileId, notifyRecipient: false)
+    }
+
+    // Downloads from this peer — drop in-flight state + scratch, flip bubble.
+    let downloadIds = activeDownloads.filter { $0.fromUser == peer }.map(\.id)
+    for fileId in downloadIds {
+      cleanupDownload(fileId: fileId, fromUser: peer)
+      fileTransferCancelled.send(fileId)
+    }
+
+    // Pending offers never accepted.
+    let offerIds = incomingFileOffers.filter { $0.fromUser == peer }.map(\.id)
+    incomingFileOffers.removeAll { $0.fromUser == peer }
+    for fileId in offerIds {
+      fileTransferCancelled.send(fileId)
     }
   }
 }
