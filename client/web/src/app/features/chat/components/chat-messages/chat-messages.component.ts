@@ -51,7 +51,7 @@ export class ChatMessagesComponent {
   }
 
   isMyMessage(msg: ChatMessage): boolean {
-    return msg.from === this.currentUser;
+    return msg.isMine === true;
   }
 
   protected convertUrlsToLinks(

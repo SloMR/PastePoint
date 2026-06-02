@@ -115,6 +115,7 @@ export class ChatService implements IChatService {
         text: content.trim(),
         type: messageType,
         timestamp: new Date(),
+        isMine: true,
         ...(extras || {}),
       };
 

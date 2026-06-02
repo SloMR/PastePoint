@@ -158,6 +158,7 @@ export interface ChatMessage {
   fileTransfer?: FileTransferData;
   previewUrl?: string;
   previewMime?: string;
+  isMine?: boolean;
 }
 
 // File transfer interfaces
