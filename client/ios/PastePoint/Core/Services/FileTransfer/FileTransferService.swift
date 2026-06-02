@@ -18,6 +18,7 @@ final class FileTransferService: ObservableObject {
   @Published private(set) var incomingFileOffers: [FileDownload] = []
 
   let attachmentMessages = PassthroughSubject<ChatMessage, Never>()
+  let outgoingAttachment = PassthroughSubject<ChatMessage, Never>()
   let downloadCompleted = PassthroughSubject<(fileId: String, fileURL: URL), Never>()
   let fileTransferCancelled = PassthroughSubject<String, Never>()
 
@@ -98,6 +99,27 @@ final class FileTransferService: ObservableObject {
     )
     logger.info("file-offer sent: \(stagedFile.name) (\(fileId)) → \(targetUser)")
     return true
+  }
+
+  func sendFiles(_ files: [StagedFile], to member: String) async {
+    await userService.waitForUsername()
+    let sender = userService.user
+
+    for file in files {
+      await prepareFileForSending(stagedFile: file, targetUser: member)
+
+      let transfer = FileTransferData(
+        fileId: UUID().uuidString,
+        fileName: file.name,
+        fileSize: file.size,
+        fromUser: sender,
+        status: .pending,
+      )
+
+      outgoingAttachment.send(
+        ChatMessage(from: sender, text: file.name, type: .attachment, fileTransfer: transfer),
+      )
+    }
   }
 
   private func handleFileEvent(_ event: FileChannelEvent) {

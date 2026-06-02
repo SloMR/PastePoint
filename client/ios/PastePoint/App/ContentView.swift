@@ -69,6 +69,9 @@ struct ContentView: View {
     .onReceive(services.fileTransferService.attachmentMessages) { message in
       messages.append(message)
     }
+    .onReceive(services.fileTransferService.outgoingAttachment) { message in
+      messages.append(message)
+    }
     .onReceive(services.fileTransferService.downloadCompleted) { fileId, _ in
       updateFileStatus(fileId: fileId, status: .completed)
     }
