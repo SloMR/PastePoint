@@ -4,7 +4,6 @@
 //
 
 import Logging
-import PhotosUI
 import SwiftUI
 
 struct ChatInputBar: View {
@@ -15,9 +14,6 @@ struct ChatInputBar: View {
   @State private var message = ""
   @State private var stagedFiles: [StagedFile] = []
   @State private var showAttachDialog: Bool = false
-  @State private var showFileImporter: Bool = false
-  @State private var showPhotoPicker: Bool = false
-  @State private var photosPickerSelection: [PhotosPickerItem] = []
 
   private var trimmed: String {
     message.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -117,40 +113,8 @@ struct ChatInputBar: View {
       RoundedRectangle(cornerRadius: 18, style: .continuous)
         .fill(.inputBackground),
     )
-    .confirmationDialog("Attach", isPresented: $showAttachDialog, titleVisibility: .hidden) {
-      Button("Photo Library") {
-        showPhotoPicker = true
-      }
-      Button("Files") {
-        showFileImporter = true
-      }
-      Button("Cancel", role: .cancel) { }
-    }
-    .fileImporter(
-      isPresented: $showFileImporter,
-      allowedContentTypes: [.item],
-      allowsMultipleSelection: true,
-    ) { result in
-      switch result {
-      case .success(let urls):
-        Task { await stageFromFilePicker(urls: urls) }
-      case .failure(let error):
-        // TODO: Add toast if needed and haptic also
-        logger.error("fileImporter failed: \(String(describing: error))")
-      }
-    }
-    .photosPicker(
-      isPresented: $showPhotoPicker,
-      selection: $photosPickerSelection,
-      maxSelectionCount: 10, // TODO: Change this to unlimited later
-      matching: .any(of: [.images, .videos]),
-    )
-    .onChange(of: photosPickerSelection) { _, items in
-      guard !items.isEmpty else { return }
-
-      let toProcess = items
-      photosPickerSelection = []
-      Task { await stageFromPhotosPicker(items: toProcess) }
+    .attachmentPicker(isPresented: $showAttachDialog) { staged in
+      stagedFiles.append(contentsOf: staged)
     }
   }
 
@@ -175,53 +139,6 @@ struct ChatInputBar: View {
         stagedFiles = []
       } else {
         logger.error("send files failed")
-      }
-    }
-  }
-
-  private func stageFromFilePicker(urls: [URL]) async {
-    for url in urls {
-      let didStart = url.startAccessingSecurityScopedResource()
-
-      defer {
-        if didStart {
-          url.stopAccessingSecurityScopedResource()
-        }
-      }
-
-      let fileName = url.lastPathComponent
-      let tmpURL = FileManager.default.temporaryDirectory.appendingPathComponent("\(UUID().uuidString)-\(fileName)")
-
-      do {
-        try FileManager.default.copyItem(at: url, to: tmpURL)
-        let attribute = try FileManager.default.attributesOfItem(atPath: tmpURL.path)
-        let size = (attribute[.size] as? NSNumber)?.int64Value ?? 0
-
-        stagedFiles.append(StagedFile(id: UUID(), name: fileName, size: size, url: tmpURL))
-        logger.info("staged file: \(fileName) (\(size) bytes)")
-      } catch {
-        logger.error("failed to stage \(fileName): \(String(describing: error))")
-      }
-    }
-  }
-
-  private func stageFromPhotosPicker(items: [PhotosPickerItem]) async {
-    for item in items {
-      do {
-        guard let data = try await item.loadTransferable(type: Data.self) else {
-          logger.error("photosPicker item returned nil data")
-          continue
-        }
-
-        let fileExtension = item.supportedContentTypes.first?.preferredFilenameExtension ?? "bin"
-        let fileName = "\(UUID().uuidString).\(fileExtension)"
-        let tmpURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
-
-        try data.write(to: tmpURL)
-        stagedFiles.append(StagedFile(id: UUID(), name: fileName, size: Int64(data.count), url: tmpURL))
-        logger.info("staged photo: \(fileName) (\(data.count) bytes)")
-      } catch {
-        logger.error("failed to stage photo: \(String(describing: error))")
       }
     }
   }

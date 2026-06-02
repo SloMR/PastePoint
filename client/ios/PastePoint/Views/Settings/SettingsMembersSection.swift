@@ -8,6 +8,9 @@ import SwiftUI
 struct SettingsMembersSection: View {
   @EnvironmentObject private var services: AppServices
 
+  @State private var selectedMember: String?
+  @State private var showAttachDialog = false
+
   var body: some View {
     VStack {
       HStack(alignment: .center, spacing: 0) {
@@ -56,13 +59,21 @@ struct SettingsMembersSection: View {
 
                 Spacer()
 
-                Image("link")
-                  .renderingMode(.template)
-                  .resizable()
-                  .scaledToFit()
-                  .frame(width: 16, height: 16)
-                  .padding(.trailing, 5)
-                  .foregroundStyle(.textSecondary)
+                Button {
+                  selectedMember = member
+                  showAttachDialog = true
+                } label: {
+                  Image("link")
+                    .renderingMode(.template)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 16, height: 16)
+                    .padding(.trailing, 5)
+                    .foregroundStyle(.textSecondary)
+                }
+                .buttonStyle(.plain)
+                .disabled(!isConnected)
+                .opacity(isConnected ? 1 : 0.3)
               }
               .animation(.easeInOut(duration: 0.2), value: isConnected)
 
@@ -99,6 +110,10 @@ struct SettingsMembersSection: View {
       .padding(.top, 22)
     }
     .padding(.top, 12)
+    .attachmentPicker(isPresented: $showAttachDialog) { staged in
+      guard let member = selectedMember else { return }
+      await services.fileTransferService.sendFiles(staged, to: member)
+    }
   }
 
   private enum TransferDirection {
