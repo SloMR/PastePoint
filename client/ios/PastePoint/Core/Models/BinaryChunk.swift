@@ -18,11 +18,11 @@ struct ParsedChunk: Sendable {
 /// Layout (all little-endian):
 /// `[u16 fileId byte length][fileId UTF-8 bytes][u32 chunkIndex][u32 totalChunks][u32 CRC32][data]`
 enum BinaryChunk {
-  static let chunkSize = 64 * 1024 // 64KB
+  nonisolated static let chunkSize = 64 * 1024 // 64KB
 
   // MARK: CRC32
 
-  private static let crc32Table: [UInt32] = {
+  private nonisolated static let crc32Table: [UInt32] = {
     var table = [UInt32](repeating: 0, count: 256)
     for i in 0..<256 {
       var crc = UInt32(i)
@@ -35,7 +35,7 @@ enum BinaryChunk {
   }()
 
   /// Standard CRC32 — polynomial 0xedb88320, init 0xffffffff, final XOR 0xffffffff.
-  static func crc32(_ bytes: Data) -> UInt32 {
+  nonisolated static func crc32(_ bytes: Data) -> UInt32 {
     var crc: UInt32 = 0xffffffff
     for byte in bytes {
       crc = crc32Table[Int((crc ^ UInt32(byte)) & 0xff)] ^ (crc >> 8)
@@ -45,7 +45,7 @@ enum BinaryChunk {
 
   // MARK: Encode
 
-  static func encode(
+  nonisolated static func encode(
     fileId: String,
     chunkIndex: UInt32,
     totalChunks: UInt32,
@@ -65,7 +65,7 @@ enum BinaryChunk {
     return buffer
   }
 
-  static func decode(_ buffer: Data) -> ParsedChunk? {
+  nonisolated static func decode(_ buffer: Data) -> ParsedChunk? {
     // Minimum: 2 (fileId len) + 0 (empty fileId) + 4 + 4 + 4 = 14 bytes.
     // TODO: Change the length of the buffer to const rather than fixed here
     guard buffer.count >= 14 else { return nil }
@@ -119,11 +119,11 @@ enum BinaryChunk {
   // MARK: Helpers
 
   /// Ceiling division — how many chunks a file of `fileSize` bytes needs.
-  static func totalChunks(forFileSize fileSize: Int64) -> UInt32 {
+  nonisolated static func totalChunks(forFileSize fileSize: Int64) -> UInt32 {
     UInt32((fileSize + Int64(chunkSize) - 1) / Int64(chunkSize))
   }
 
-  private static func appendLittleEndian<T: FixedWidthInteger>(_ value: T, to data: inout Data) {
+  private nonisolated static func appendLittleEndian<T: FixedWidthInteger>(_ value: T, to data: inout Data) {
     let littleEndian = value.littleEndian
     withUnsafeBytes(of: littleEndian) { byte in
       data.append(contentsOf: byte)

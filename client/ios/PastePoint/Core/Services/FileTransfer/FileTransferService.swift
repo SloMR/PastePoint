@@ -21,6 +21,7 @@ final class FileTransferService: ObservableObject {
   let downloadCompleted = PassthroughSubject<(fileId: String, fileURL: URL), Never>()
 
   private var pendingChunkIndices: [String: Set<Int>] = [:]
+  private var uploadTasks: [String: Task<Void, Never>] = [:]
   private var cancellables: Set<AnyCancellable> = []
 
   init(signalingService: SignalingService, userService: UserService) {
@@ -153,12 +154,16 @@ final class FileTransferService: ObservableObject {
     let upload = activeUploads[idx]
     logger.info("file-accept received: starting chunk send for \(upload.id) → \(peer)")
 
-    Task.detached { [weak self] in
-      await self?.runChunkSendLoop(uploadId: upload.id, targetUser: peer)
+    let task = Task.detached { [weak self] in
+      guard let self else { return }
+      await self.runChunkSendLoop(uploadId: upload.id, targetUser: peer)
     }
+    uploadTasks[upload.id] = task
   }
 
-  private func runChunkSendLoop(uploadId: String, targetUser: String) async {
+  private nonisolated func runChunkSendLoop(uploadId: String, targetUser: String) async {
+    defer { Task { @MainActor [weak self] in self?.uploadTasks[uploadId] = nil } }
+
     // 1. Snapshot upload metadata from the MainActor.
     let snapshot: (fileURL: URL, fileSize: Int64)? = await MainActor.run {
       guard let upload = activeUploads.first(where: { $0.id == uploadId }) else { return nil }
@@ -186,8 +191,12 @@ final class FileTransferService: ObservableObject {
 
     // 3. Send loop.
     while true {
-      let chunkData: Data
+      if Task.isCancelled {
+        logger.info("chunk loop cancelled for \(uploadId) → \(targetUser)")
+        return
+      }
 
+      let chunkData: Data
       do {
         guard
           let data = try handle.read(upToCount: BinaryChunk.chunkSize),
@@ -217,6 +226,10 @@ final class FileTransferService: ObservableObject {
         }
         if sent { break }
         try? await Task.sleep(nanoseconds: 50_000_000) // 50 ms
+        if Task.isCancelled {
+          logger.info("chunk loop cancelled (back-pressure wait) for \(uploadId)")
+          return
+        }
       }
 
       bytesSent += Int64(chunkData.count)
