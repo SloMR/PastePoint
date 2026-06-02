@@ -360,6 +360,50 @@ final class FileTransferService: ObservableObject {
       }
     }
   }
+  /// Receiver rejected a pending offer. Stop the upload; they already know.
+  private func handleFileDecline(fileId: String, from peer: String) {
+    stopFileUpload(targetUser: peer, fileId: fileId, notifyRecipient: false)
+  }
+
+  /// Receiver cancelled an in-flight download. Stop sending; they already know.
+  private func handleFileDownloadCancellation(fileId: String, from peer: String) {
+    stopFileUpload(targetUser: peer, fileId: fileId, notifyRecipient: false)
+  }
+
+  @discardableResult
+  func stopFileUpload(targetUser: String, fileId: String, notifyRecipient: Bool = true) -> Bool {
+    uploadTasks[fileId]?.cancel()
+    uploadTasks[fileId] = nil
+
+    guard
+      let idx = activeUploads.firstIndex(where: { file in
+        file.targetUser == targetUser && file.id == fileId
+      })
+    else {
+      return false
+    }
+    let removed = activeUploads.remove(at: idx)
+
+    let stillReferenced = activeUploads.contains { file in
+      file.fileURL == removed.fileURL
+    }
+    if !stillReferenced {
+      try? FileManager.default.removeItem(at: removed.fileURL)
+    }
+
+    if notifyRecipient {
+      do {
+        let data = try DataChannelMessage.encodeFileCancelUpload(FileCancelPayload(fileId: fileId))
+        _ = signalingService.send(data, to: targetUser)
+      } catch {
+        logger.error("encodeFileCancelUpload failed: \(error)")
+      }
+    }
+
+    logger.info("upload stopped: \(fileId) → \(targetUser) (notify=\(notifyRecipient))")
+    return true
+  }
+
 
   @discardableResult
   func acceptFileOffer(fromUser: String, fileId: String) async -> Bool {
@@ -376,8 +420,9 @@ final class FileTransferService: ObservableObject {
       return false
     }
 
-    guard signalingService.send(data, to: fromUser) else {
-      logger.warning("send failed for file-accept \(fileId) to \(fromUser)")
+    let uploader = fromUser
+    guard signalingService.send(data, to: uploader) else {
+      logger.warning("send failed for file-accept \(fileId) to \(uploader)")
       return false
     }
 
@@ -385,7 +430,7 @@ final class FileTransferService: ObservableObject {
     download.isAccepted = true
     activeDownloads.append(download)
 
-    logger.info("file-accept sent: \(fileId) → \(fromUser)")
+    logger.info("file-accept sent: \(fileId) → \(uploader)")
     return true
   }
 
@@ -404,13 +449,14 @@ final class FileTransferService: ObservableObject {
       return false
     }
 
-    guard signalingService.send(data, to: fromUser) else {
-      logger.warning("send failed for file-decline \(fileId) to \(fromUser)")
+    let uploader = fromUser
+    guard signalingService.send(data, to: uploader) else {
+      logger.warning("send failed for file-decline \(fileId) to \(uploader)")
       return false
     }
 
     incomingFileOffers.remove(at: idx)
-    logger.info("file-decline sent: \(fileId) → \(fromUser)")
+    logger.info("file-decline sent: \(fileId) → \(uploader)")
     return true
   }
 
