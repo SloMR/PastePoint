@@ -125,7 +125,7 @@ struct ChatMessageBubble: View {
           .buttonStyle(.bordered)
           .controlSize(.small)
         }
-      } else {
+      } else if alignment == .leading {
         Text(statusLabel(transfer.status))
           .font(.caption2)
           .foregroundStyle(.secondary)
