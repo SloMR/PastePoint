@@ -108,8 +108,12 @@ final class FileTransferService: ObservableObject {
       handleFileAccept(payload: payload, from: from)
     case .received(let payload, let from):
       handleFileReceived(payload: payload, from: from)
-    case .decline, .cancelUpload, .cancelDownload:
-      break
+    case .decline(let payload, let from):
+      handleFileDecline(fileId: payload.fileId, from: from)
+    case .cancelDownload(let payload, let from):
+      handleFileDownloadCancellation(fileId: payload.fileId, from: from)
+    case .cancelUpload(let payload, let from):
+      handleFileUploadCancellation(fileId: payload.fileId, from: from)
     }
   }
 
