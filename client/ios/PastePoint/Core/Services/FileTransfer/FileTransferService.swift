@@ -18,6 +18,9 @@ final class FileTransferService: ObservableObject {
   @Published private(set) var incomingFileOffers: [FileDownload] = []
 
   let attachmentMessages = PassthroughSubject<ChatMessage, Never>()
+  let downloadCompleted = PassthroughSubject<(fileId: String, fileURL: URL), Never>()
+
+  private var pendingChunkIndices: [String: Set<Int>] = [:]
   private var cancellables: Set<AnyCancellable> = []
 
   init(signalingService: SignalingService, userService: UserService) {
@@ -28,6 +31,14 @@ final class FileTransferService: ObservableObject {
       .sink { [weak self] event in
         Task { @MainActor in
           self?.handleFileEvent(event)
+        }
+      }
+      .store(in: &cancellables)
+
+    signalingService.chunkReceived
+      .sink { [weak self] parsed, from in
+        Task { @MainActor in
+          await self?.handleChunk(parsed, from: from)
         }
       }
       .store(in: &cancellables)
@@ -229,6 +240,84 @@ final class FileTransferService: ObservableObject {
     logger.info("chunk loop: finished \(chunkIndex) chunks for \(uploadId) → \(targetUser)")
   }
 
+  private func handleChunk(_ parsed: ParsedChunk, from peer: String) async {
+    guard
+      let idx = activeDownloads.firstIndex(where: { file in
+        file.id == parsed.fileId && file.fromUser == peer
+      })
+    else {
+      // No accepted download for this chunk — offer not accepted, or already done.
+      return
+    }
+
+    guard parsed.isValid else {
+      // TODO: corrupted chunk (CRC mismatch). v1 drops + logs; could request resend.
+      logger.warning("invalid chunk \(parsed.chunkIndex) for \(parsed.fileId), dropping")
+      return
+    }
+
+    let chunkIndex = Int(parsed.chunkIndex)
+
+    // Atomic reserve (no await before this returns): skip if already committed
+    // or already being written.
+    if activeDownloads[idx].receivedChunkURLs[chunkIndex] != nil { return }
+    if pendingChunkIndices[parsed.fileId]?.contains(chunkIndex) == true { return }
+    pendingChunkIndices[parsed.fileId, default: []].insert(chunkIndex)
+
+    // Write off the main actor.
+    let dir = chunkDirectory(for: parsed.fileId)
+    let chunkURL = dir.appendingPathComponent("\(chunkIndex)")
+    let data = parsed.data
+
+    let didWrite = await Task.detached {
+      do {
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        try data.write(to: chunkURL)
+        return true
+      } catch {
+        return false
+      }
+    }.value
+
+    // Back on MainActor. Clear the reservation.
+    pendingChunkIndices[parsed.fileId]?.remove(chunkIndex)
+
+    guard didWrite else {
+      logger.error("failed to persist chunk \(chunkIndex) for \(parsed.fileId)")
+      return
+    }
+
+    // The download may have been removed (declined/cancelled) during the write.
+    guard
+      let i = activeDownloads.firstIndex(where: { file in
+        file.id == parsed.fileId && file.fromUser == peer
+      })
+    else {
+      try? FileManager.default.removeItem(at: chunkURL)
+      return
+    }
+
+    // Update download state.
+    if activeDownloads[i].totalChunks == 0 {
+      activeDownloads[i].totalChunks = Int(parsed.totalChunks)
+    }
+    activeDownloads[i].receivedChunkURLs[chunkIndex] = chunkURL
+    activeDownloads[i].receivedSize += Int64(data.count)
+
+    let received = activeDownloads[i].receivedSize
+    let size = activeDownloads[i].fileSize
+    activeDownloads[i].progress = size > 0 ? min(1.0, Double(received) / Double(size)) : 0
+
+    // Completion check.
+    let total = activeDownloads[i].totalChunks
+    if total > 0, activeDownloads[i].receivedChunkURLs.count == total {
+      let download = activeDownloads[i]
+
+      logger.info("all \(total) chunks received for \(download.fileName) ← \(peer)")
+      finalizeDownload(download, from: peer)
+    }
+  }
+
   private func handleFileReceived(payload: FileReceivedPayload, from peer: String) {
     guard
       let idx = activeUploads.firstIndex(where: {
@@ -310,5 +399,92 @@ final class FileTransferService: ObservableObject {
     incomingFileOffers.remove(at: idx)
     logger.info("file-decline sent: \(fileId) → \(fromUser)")
     return true
+  }
+
+  // MARK: Helpers
+
+  /// Per-file scratch directory for incoming chunks: <tmp>/incoming/<fileId>/.
+  private func chunkDirectory(for fileId: String) -> URL {
+    // TODO: Change the path name from incoming to something better.
+    FileManager.default.temporaryDirectory
+      .appendingPathComponent("incoming", isDirectory: true)
+      .appendingPathComponent(fileId, isDirectory: true)
+  }
+
+  private func finalizeDownload(_ download: FileDownload, from peer: String) {
+    Task { @MainActor in
+      let dir = chunkDirectory(for: download.id)
+      let finalURL = FileManager.default.temporaryDirectory
+        .appendingPathComponent("\(download.id)-\(download.fileName)")
+
+      // Assemble + (optional) verify off the main actor.
+      let result: (ok: Bool, hashMismatch: Bool) = await Task.detached {
+        do {
+          // Concatenate chunks 0..<total in order.
+          if FileManager.default.fileExists(atPath: finalURL.path) {
+            try FileManager.default.removeItem(at: finalURL)
+          }
+
+          FileManager.default.createFile(atPath: finalURL.path, contents: nil)
+          let out = try FileHandle(forWritingTo: finalURL)
+          defer { try? out.close() }
+
+          for index in 0..<download.totalChunks {
+            let chunkURL = dir.appendingPathComponent("\(index)")
+            let chunkData = try Data(contentsOf: chunkURL)
+            try out.write(contentsOf: chunkData)
+          }
+          try? out.close()
+
+          // Verify hash if the sender provided one.
+          if let expectedHash = download.expectedHash {
+            let actual = try BinaryChunk.sha256Hex(ofFileAt: finalURL)
+            if actual != expectedHash {
+              return (false, true)
+            }
+          }
+
+          return (true, false)
+        } catch {
+          return (false, false)
+        }
+      }.value
+
+      // Clean up scratch chunks regardless of outcome.
+      try? FileManager.default.removeItem(at: dir)
+
+      guard result.ok else {
+        logger.error("finalize failed for \(download.fileName) (hashMismatch=\(result.hashMismatch))")
+
+        // Remove the download + leave bubble in a non-completed state.
+        activeDownloads.removeAll { $0.id == download.id && $0.fromUser == peer }
+        try? FileManager.default.removeItem(at: finalURL)
+
+        // TODO: surface failure to the user (toast / bubble status).
+        return
+      }
+
+      if
+        let i = activeDownloads.firstIndex(where: { file in
+          file.id == download.id && file.fromUser == peer
+        })
+      {
+        activeDownloads[i].fileURL = finalURL
+      }
+
+      sendFileReceived(fileId: download.id, to: peer)
+      activeDownloads.removeAll { $0.id == download.id && $0.fromUser == peer }
+      downloadCompleted.send((fileId: download.id, fileURL: finalURL))
+      logger.info("download complete: \(download.fileName) ← \(peer)")
+    }
+  }
+
+  private func sendFileReceived(fileId: String, to peer: String) {
+    do {
+      let data = try DataChannelMessage.encodeFileReceived(FileReceivedPayload(fileId: fileId))
+      _ = signalingService.send(data, to: peer)
+    } catch {
+      logger.error("encodeFileReceived failed: \(error)")
+    }
   }
 }
