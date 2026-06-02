@@ -13,7 +13,6 @@ struct ChatInputBar: View {
 
   @State private var message = ""
   @State private var stagedFiles: [StagedFile] = []
-  @State private var showAttachDialog: Bool = false
 
   private var trimmed: String {
     message.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -65,10 +64,9 @@ struct ChatInputBar: View {
       HStack(alignment: .center) {
 
         // TODO: Show toast on picker/stage failure (see logger.error sites)
-        Button {
-          logger.info("Attachments Button Clicked")
-          showAttachDialog = true
-        } label: {
+        AttachmentMenu { staged in
+          stagedFiles.append(contentsOf: staged)
+        } content: {
           Image("link")
             .renderingMode(.template)
             .resizable()
@@ -76,7 +74,6 @@ struct ChatInputBar: View {
             .frame(width: 18, height: 18)
         }
         .foregroundStyle(.textSecondary)
-        .buttonStyle(.plain)
 
         Spacer()
 
@@ -113,9 +110,6 @@ struct ChatInputBar: View {
       RoundedRectangle(cornerRadius: 18, style: .continuous)
         .fill(.inputBackground),
     )
-    .attachmentPicker(isPresented: $showAttachDialog) { staged in
-      stagedFiles.append(contentsOf: staged)
-    }
   }
 
   private func handleSubmit() {
