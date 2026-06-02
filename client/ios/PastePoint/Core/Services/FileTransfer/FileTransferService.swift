@@ -122,311 +122,6 @@ final class FileTransferService: ObservableObject {
     }
   }
 
-  private func handleFileEvent(_ event: FileChannelEvent) {
-    switch event {
-    case .offer(let payload, let from):
-      receiveFileOffer(payload: payload, from: from)
-    case .accept(let payload, let from):
-      handleFileAccept(payload: payload, from: from)
-    case .received(let payload, let from):
-      handleFileReceived(payload: payload, from: from)
-    case .decline(let payload, let from):
-      handleFileDecline(fileId: payload.fileId, from: from)
-    case .cancelDownload(let payload, let from):
-      handleFileDownloadCancellation(fileId: payload.fileId, from: from)
-    case .cancelUpload(let payload, let from):
-      handleFileUploadCancellation(fileId: payload.fileId, from: from)
-    }
-  }
-
-  private func receiveFileOffer(payload: FileOfferPayload, from peer: String) {
-    if incomingFileOffers.contains(where: { $0.id == payload.fileId }) {
-      logger.info("ignored duplicate file-offer \(payload.fileId)")
-      return
-    }
-
-    let download = FileDownload(
-      id: payload.fileId,
-      fileName: payload.fileName,
-      fileSize: payload.fileSize,
-      fromUser: peer,
-      totalChunks: 0,
-      receivedSize: 0,
-      receivedChunkURLs: [:],
-      progress: 0,
-      isAccepted: false,
-      expectedHash: payload.fileHash,
-    )
-    incomingFileOffers.append(download)
-
-    let fileTransfer = FileTransferData(
-      fileId: payload.fileId,
-      fileName: payload.fileName,
-      fileSize: payload.fileSize,
-      fromUser: peer,
-      status: .pending,
-    )
-    let message = ChatMessage(
-      from: peer,
-      text: payload.fileName,
-      type: .attachment,
-      fileTransfer: fileTransfer,
-    )
-
-    attachmentMessages.send(message)
-    logger.info("received file-offer: \(payload.fileName) (\(payload.fileId)) from \(peer)")
-  }
-
-  private func handleFileAccept(payload: FileAcceptPayload, from peer: String) {
-    guard
-      let idx = activeUploads.firstIndex(where: {
-        $0.targetUser == peer && $0.id == payload.fileId
-      })
-    else {
-      logger.warning("file-accept ignored: no upload for \(payload.fileId) → \(peer)")
-      return
-    }
-
-    let upload = activeUploads[idx]
-    logger.info("file-accept received: starting chunk send for \(upload.id) → \(peer)")
-
-    let task = Task.detached { [weak self] in
-      guard let self else { return }
-      await self.runChunkSendLoop(uploadId: upload.id, targetUser: peer)
-    }
-    uploadTasks[upload.id] = task
-  }
-
-  private nonisolated func runChunkSendLoop(uploadId: String, targetUser: String) async {
-    defer { Task { @MainActor [weak self] in self?.uploadTasks[uploadId] = nil } }
-
-    // 1. Snapshot upload metadata from the MainActor.
-    let snapshot: (fileURL: URL, fileSize: Int64)? = await MainActor.run {
-      guard let upload = activeUploads.first(where: { $0.id == uploadId }) else { return nil }
-      return (upload.fileURL, upload.fileSize)
-    }
-
-    guard let snapshot else {
-      logger.warning("chunk loop: upload \(uploadId) not found")
-      return
-    }
-
-    // 2. Open the file once.
-    let handle: FileHandle
-    do {
-      handle = try FileHandle(forReadingFrom: snapshot.fileURL)
-    } catch {
-      logger.error("chunk loop: cannot open \(snapshot.fileURL.path): \(error)")
-      return
-    }
-    defer { try? handle.close() }
-
-    let totalChunks = BinaryChunk.totalChunks(forFileSize: snapshot.fileSize)
-    var chunkIndex: UInt32 = 0
-    var bytesSent: Int64 = 0
-
-    // 3. Send loop.
-    while true {
-      if Task.isCancelled {
-        logger.info("chunk loop cancelled for \(uploadId) → \(targetUser)")
-        return
-      }
-
-      let chunkData: Data
-      do {
-        guard
-          let data = try handle.read(upToCount: BinaryChunk.chunkSize),
-          !data.isEmpty
-        else {
-          break // EOF
-        }
-
-        chunkData = data
-      } catch {
-        logger.error("chunk loop: read error: \(error)")
-        return
-      }
-
-      let encoded = BinaryChunk.encode(
-        fileId: uploadId,
-        chunkIndex: chunkIndex,
-        totalChunks: totalChunks,
-        data: chunkData,
-      )
-
-      // Back-pressure: poll-retry. `send` returns false when bufferedAmount is
-      // above maxBufferedAmount — we sleep briefly and retry until it accepts.
-      while true {
-        let sent = await MainActor.run {
-          signalingService.send(encoded, to: targetUser, isBinary: true)
-        }
-        if sent { break }
-        try? await Task.sleep(nanoseconds: 50_000_000) // 50 ms
-        if Task.isCancelled {
-          logger.info("chunk loop cancelled (back-pressure wait) for \(uploadId)")
-          return
-        }
-      }
-
-      bytesSent += Int64(chunkData.count)
-      chunkIndex += 1
-
-      let progressValue = min(1.0, Double(bytesSent) / Double(snapshot.fileSize))
-      await MainActor.run {
-        if let idx = activeUploads.firstIndex(where: { $0.id == uploadId }) {
-          activeUploads[idx].currentOffset = bytesSent
-          activeUploads[idx].progress = progressValue
-        }
-      }
-    }
-
-    // 4. Flip phase to .finalizing — bytes shipped, awaiting receiver ack.
-    await MainActor.run {
-      if let idx = activeUploads.firstIndex(where: { $0.id == uploadId }) {
-        activeUploads[idx].phase = .finalizing
-      }
-    }
-    logger.info("chunk loop: finished \(chunkIndex) chunks for \(uploadId) → \(targetUser)")
-  }
-
-  private func handleChunk(_ parsed: ParsedChunk, from peer: String) async {
-    guard
-      let idx = activeDownloads.firstIndex(where: { file in
-        file.id == parsed.fileId && file.fromUser == peer
-      })
-    else {
-      // No accepted download for this chunk — offer not accepted, or already done.
-      return
-    }
-
-    guard parsed.isValid else {
-      // TODO: corrupted chunk (CRC mismatch). v1 drops + logs; could request resend.
-      logger.warning("invalid chunk \(parsed.chunkIndex) for \(parsed.fileId), dropping")
-      return
-    }
-
-    let chunkIndex = Int(parsed.chunkIndex)
-
-    // Atomic reserve (no await before this returns): skip if already committed
-    // or already being written.
-    if activeDownloads[idx].receivedChunkURLs[chunkIndex] != nil { return }
-    if pendingChunkIndices[parsed.fileId]?.contains(chunkIndex) == true { return }
-    pendingChunkIndices[parsed.fileId, default: []].insert(chunkIndex)
-
-    // Write off the main actor.
-    let dir = chunkDirectory(for: parsed.fileId)
-    let chunkURL = dir.appendingPathComponent("\(chunkIndex)")
-    let data = parsed.data
-
-    let didWrite = await Task.detached {
-      do {
-        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        try data.write(to: chunkURL)
-        return true
-      } catch {
-        return false
-      }
-    }.value
-
-    // Back on MainActor. Clear the reservation.
-    pendingChunkIndices[parsed.fileId]?.remove(chunkIndex)
-
-    guard didWrite else {
-      logger.error("failed to persist chunk \(chunkIndex) for \(parsed.fileId)")
-      return
-    }
-
-    // The download may have been removed (declined/cancelled) during the write.
-    guard
-      let i = activeDownloads.firstIndex(where: { file in
-        file.id == parsed.fileId && file.fromUser == peer
-      })
-    else {
-      try? FileManager.default.removeItem(at: chunkURL)
-      return
-    }
-
-    // Update download state.
-    if activeDownloads[i].totalChunks == 0 {
-      activeDownloads[i].totalChunks = Int(parsed.totalChunks)
-    }
-    activeDownloads[i].receivedChunkURLs[chunkIndex] = chunkURL
-    activeDownloads[i].receivedSize += Int64(data.count)
-
-    let received = activeDownloads[i].receivedSize
-    let size = activeDownloads[i].fileSize
-    activeDownloads[i].progress = size > 0 ? min(1.0, Double(received) / Double(size)) : 0
-
-    // Completion check.
-    let total = activeDownloads[i].totalChunks
-    if total > 0, activeDownloads[i].receivedChunkURLs.count == total {
-      let download = activeDownloads[i]
-
-      logger.info("all \(total) chunks received for \(download.fileName) ← \(peer)")
-      finalizeDownload(download, from: peer)
-    }
-  }
-
-  private func handleFileReceived(payload: FileReceivedPayload, from peer: String) {
-    guard
-      let idx = activeUploads.firstIndex(where: {
-        $0.targetUser == peer && $0.id == payload.fileId
-      })
-    else {
-      logger.warning("file-received ignored: no upload for \(payload.fileId) ← \(peer)")
-      return
-    }
-
-    let removed = activeUploads.remove(at: idx)
-    logger.info("file-received ack: \(payload.fileId) ← \(peer)")
-
-    // Delete the tmp file only if no other in-flight upload references it.
-    // Multiple peer-specific FileUploads share the same source `fileURL` when the
-    // user sent one file to many peers; the last one out deletes.
-    let stillReferenced = activeUploads.contains { file in
-      file.fileURL == removed.fileURL
-    }
-
-    if !stillReferenced {
-      do {
-        try FileManager.default.removeItem(at: removed.fileURL)
-        logger.info("removed tmp file: \(removed.fileURL.lastPathComponent)")
-      } catch {
-        logger.warning("failed to remove tmp file \(removed.fileURL.lastPathComponent): \(error)")
-      }
-    }
-  }
-
-  private func cleanupDownload(fileId: String, fromUser: String) {
-    activeDownloads.removeAll { file in
-      file.id == fileId && file.fromUser == fromUser
-    }
-
-    pendingChunkIndices[fileId] = nil
-    let dir = chunkDirectory(for: fileId)
-    try? FileManager.default.removeItem(at: dir)
-  }
-
-  /// Receiver rejected a pending offer. Stop the upload; they already know.
-  private func handleFileDecline(fileId: String, from peer: String) {
-    stopFileUpload(targetUser: peer, fileId: fileId, notifyRecipient: false)
-  }
-
-  /// Receiver cancelled an in-flight download. Stop sending; they already know.
-  private func handleFileDownloadCancellation(fileId: String, from peer: String) {
-    stopFileUpload(targetUser: peer, fileId: fileId, notifyRecipient: false)
-  }
-
-  private func handleFileUploadCancellation(fileId: String, from peer: String) {
-    cleanupDownload(fileId: fileId, fromUser: peer)
-    incomingFileOffers.removeAll { file in
-      file.id == fileId && file.fromUser == peer
-    }
-
-    fileTransferCancelled.send(fileId)
-    logger.info("upload cancelled by sender: \(fileId) ← \(peer)")
-  }
-
   @discardableResult
   func stopFileUpload(targetUser: String, fileId: String, notifyRecipient: Bool = true) -> Bool {
     uploadTasks[fileId]?.cancel()
@@ -541,14 +236,296 @@ final class FileTransferService: ObservableObject {
     return true
   }
 
-  // MARK: Helpers
+  // MARK: - Peer Lifecycle
 
-  /// Per-file scratch directory for incoming chunks: <tmp>/incoming/<fileId>/.
-  private func chunkDirectory(for fileId: String) -> URL {
-    // TODO: Change the path name from incoming to something better.
-    FileManager.default.temporaryDirectory
-      .appendingPathComponent("incoming", isDirectory: true)
-      .appendingPathComponent(fileId, isDirectory: true)
+  private func reconcilePeers(_ current: [String]) {
+    let currentSet = Set(current)
+    let departed = knownPeers.subtracting(current)
+
+    knownPeers = currentSet
+    for peer in departed {
+      purgeTransfers(for: peer)
+    }
+  }
+
+  private func purgeTransfers(for peer: String) {
+    // Uploads to this peer — stop send loops, no notify (peer is gone).
+    let uploadIds = activeUploads.filter { $0.targetUser == peer }.map(\.id)
+    for fileId in uploadIds {
+      stopFileUpload(targetUser: peer, fileId: fileId, notifyRecipient: false)
+    }
+
+    // Downloads from this peer — drop in-flight state + scratch, flip bubble.
+    let downloadIds = activeDownloads.filter { $0.fromUser == peer }.map(\.id)
+    for fileId in downloadIds {
+      cleanupDownload(fileId: fileId, fromUser: peer)
+      fileTransferCancelled.send(fileId)
+    }
+
+    // Pending offers never accepted.
+    let offerIds = incomingFileOffers.filter { $0.fromUser == peer }.map(\.id)
+    incomingFileOffers.removeAll { $0.fromUser == peer }
+    for fileId in offerIds {
+      fileTransferCancelled.send(fileId)
+    }
+  }
+}
+
+// MARK: - Sending
+
+extension FileTransferService {
+  func handleFileAccept(payload: FileAcceptPayload, from peer: String) {
+    guard
+      let idx = activeUploads.firstIndex(where: {
+        $0.targetUser == peer && $0.id == payload.fileId
+      })
+    else {
+      logger.warning("file-accept ignored: no upload for \(payload.fileId) → \(peer)")
+      return
+    }
+
+    let upload = activeUploads[idx]
+    logger.info("file-accept received: starting chunk send for \(upload.id) → \(peer)")
+
+    let task = Task.detached { [weak self] in
+      guard let self else { return }
+      await self.runChunkSendLoop(uploadId: upload.id, targetUser: peer)
+    }
+    uploadTasks[upload.id] = task
+  }
+
+  nonisolated func runChunkSendLoop(uploadId: String, targetUser: String) async {
+    defer { Task { @MainActor [weak self] in self?.uploadTasks[uploadId] = nil } }
+
+    // 1. Snapshot upload metadata from the MainActor.
+    let snapshot: (fileURL: URL, fileSize: Int64)? = await MainActor.run {
+      guard let upload = activeUploads.first(where: { $0.id == uploadId }) else { return nil }
+      return (upload.fileURL, upload.fileSize)
+    }
+
+    guard let snapshot else {
+      logger.warning("chunk loop: upload \(uploadId) not found")
+      return
+    }
+
+    // 2. Open the file once.
+    let handle: FileHandle
+    do {
+      handle = try FileHandle(forReadingFrom: snapshot.fileURL)
+    } catch {
+      logger.error("chunk loop: cannot open \(snapshot.fileURL.path): \(error)")
+      return
+    }
+    defer { try? handle.close() }
+
+    let totalChunks = BinaryChunk.totalChunks(forFileSize: snapshot.fileSize)
+    var chunkIndex: UInt32 = 0
+    var bytesSent: Int64 = 0
+
+    // 3. Send loop.
+    while true {
+      if Task.isCancelled {
+        logger.info("chunk loop cancelled for \(uploadId) → \(targetUser)")
+        return
+      }
+
+      let chunkData: Data
+      do {
+        guard
+          let data = try handle.read(upToCount: BinaryChunk.chunkSize),
+          !data.isEmpty
+        else {
+          break // EOF
+        }
+
+        chunkData = data
+      } catch {
+        logger.error("chunk loop: read error: \(error)")
+        return
+      }
+
+      let encoded = BinaryChunk.encode(
+        fileId: uploadId,
+        chunkIndex: chunkIndex,
+        totalChunks: totalChunks,
+        data: chunkData,
+      )
+
+      // Back-pressure: poll-retry. `send` returns false when bufferedAmount is
+      // above maxBufferedAmount — we sleep briefly and retry until it accepts.
+      guard await sendEncodedChunk(encoded, to: targetUser) else {
+        logger.info("chunk loop cancelled (back-pressure wait) for \(uploadId)")
+        return
+      }
+
+      bytesSent += Int64(chunkData.count)
+      chunkIndex += 1
+
+      let progressValue = min(1.0, Double(bytesSent) / Double(snapshot.fileSize))
+      await MainActor.run {
+        if let idx = activeUploads.firstIndex(where: { $0.id == uploadId }) {
+          activeUploads[idx].currentOffset = bytesSent
+          activeUploads[idx].progress = progressValue
+        }
+      }
+    }
+
+    // 4. Flip phase to .finalizing — bytes shipped, awaiting receiver ack.
+    await MainActor.run {
+      if let idx = activeUploads.firstIndex(where: { $0.id == uploadId }) {
+        activeUploads[idx].phase = .finalizing
+      }
+    }
+    logger.info("chunk loop: finished \(chunkIndex) chunks for \(uploadId) → \(targetUser)")
+  }
+
+  /// Sends one encoded chunk, waiting out back-pressure. False if cancelled.
+  private nonisolated func sendEncodedChunk(_ encoded: Data, to targetUser: String) async -> Bool {
+    while true {
+      let sent = await MainActor.run {
+        signalingService.send(encoded, to: targetUser, isBinary: true)
+      }
+      if sent { return true }
+      try? await Task.sleep(nanoseconds: 50_000_000) // 50 ms
+      if Task.isCancelled { return false }
+    }
+  }
+}
+
+// MARK: - Inbound Handling
+
+extension FileTransferService {
+  func handleFileEvent(_ event: FileChannelEvent) {
+    switch event {
+    case .offer(let payload, let from):
+      receiveFileOffer(payload: payload, from: from)
+    case .accept(let payload, let from):
+      handleFileAccept(payload: payload, from: from)
+    case .received(let payload, let from):
+      handleFileReceived(payload: payload, from: from)
+    case .decline(let payload, let from):
+      handleFileDecline(fileId: payload.fileId, from: from)
+    case .cancelDownload(let payload, let from):
+      handleFileDownloadCancellation(fileId: payload.fileId, from: from)
+    case .cancelUpload(let payload, let from):
+      handleFileUploadCancellation(fileId: payload.fileId, from: from)
+    }
+  }
+
+  private func receiveFileOffer(payload: FileOfferPayload, from peer: String) {
+    if incomingFileOffers.contains(where: { $0.id == payload.fileId }) {
+      logger.info("ignored duplicate file-offer \(payload.fileId)")
+      return
+    }
+
+    let download = FileDownload(
+      id: payload.fileId,
+      fileName: payload.fileName,
+      fileSize: payload.fileSize,
+      fromUser: peer,
+      totalChunks: 0,
+      receivedSize: 0,
+      receivedChunkURLs: [:],
+      progress: 0,
+      isAccepted: false,
+      expectedHash: payload.fileHash,
+    )
+    incomingFileOffers.append(download)
+
+    let fileTransfer = FileTransferData(
+      fileId: payload.fileId,
+      fileName: payload.fileName,
+      fileSize: payload.fileSize,
+      fromUser: peer,
+      status: .pending,
+    )
+    let message = ChatMessage(
+      from: peer,
+      text: payload.fileName,
+      type: .attachment,
+      fileTransfer: fileTransfer,
+    )
+
+    attachmentMessages.send(message)
+    logger.info("received file-offer: \(payload.fileName) (\(payload.fileId)) from \(peer)")
+  }
+
+  func handleChunk(_ parsed: ParsedChunk, from peer: String) async {
+    guard
+      let idx = activeDownloads.firstIndex(where: { file in
+        file.id == parsed.fileId && file.fromUser == peer
+      })
+    else {
+      // No accepted download for this chunk — offer not accepted, or already done.
+      return
+    }
+
+    guard parsed.isValid else {
+      // TODO: corrupted chunk (CRC mismatch). v1 drops + logs; could request resend.
+      logger.warning("invalid chunk \(parsed.chunkIndex) for \(parsed.fileId), dropping")
+      return
+    }
+
+    let chunkIndex = Int(parsed.chunkIndex)
+
+    // Atomic reserve (no await before this returns): skip if already committed
+    // or already being written.
+    if activeDownloads[idx].receivedChunkURLs[chunkIndex] != nil { return }
+    if pendingChunkIndices[parsed.fileId]?.contains(chunkIndex) == true { return }
+    pendingChunkIndices[parsed.fileId, default: []].insert(chunkIndex)
+
+    // Write off the main actor.
+    let dir = chunkDirectory(for: parsed.fileId)
+    let chunkURL = dir.appendingPathComponent("\(chunkIndex)")
+    let data = parsed.data
+
+    let didWrite = await Task.detached {
+      do {
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        try data.write(to: chunkURL)
+        return true
+      } catch {
+        return false
+      }
+    }.value
+
+    // Back on MainActor. Clear the reservation.
+    pendingChunkIndices[parsed.fileId]?.remove(chunkIndex)
+
+    guard didWrite else {
+      logger.error("failed to persist chunk \(chunkIndex) for \(parsed.fileId)")
+      return
+    }
+
+    // The download may have been removed (declined/cancelled) during the write.
+    guard
+      let i = activeDownloads.firstIndex(where: { file in
+        file.id == parsed.fileId && file.fromUser == peer
+      })
+    else {
+      try? FileManager.default.removeItem(at: chunkURL)
+      return
+    }
+
+    // Update download state.
+    if activeDownloads[i].totalChunks == 0 {
+      activeDownloads[i].totalChunks = Int(parsed.totalChunks)
+    }
+    activeDownloads[i].receivedChunkURLs[chunkIndex] = chunkURL
+    activeDownloads[i].receivedSize += Int64(data.count)
+
+    let received = activeDownloads[i].receivedSize
+    let size = activeDownloads[i].fileSize
+    activeDownloads[i].progress = size > 0 ? min(1.0, Double(received) / Double(size)) : 0
+
+    // Completion check.
+    let total = activeDownloads[i].totalChunks
+    if total > 0, activeDownloads[i].receivedChunkURLs.count == total {
+      let download = activeDownloads[i]
+
+      logger.info("all \(total) chunks received for \(download.fileName) ← \(peer)")
+      finalizeDownload(download, from: peer)
+    }
   }
 
   private func finalizeDownload(_ download: FileDownload, from peer: String) {
@@ -604,11 +581,7 @@ final class FileTransferService: ObservableObject {
         return
       }
 
-      if
-        let i = activeDownloads.firstIndex(where: { file in
-          file.id == download.id && file.fromUser == peer
-        })
-      {
+      if let i = activeDownloads.firstIndex(where: { $0.id == download.id && $0.fromUser == peer }) {
         activeDownloads[i].fileURL = finalURL
       }
 
@@ -628,35 +601,73 @@ final class FileTransferService: ObservableObject {
     }
   }
 
-  private func reconcilePeers(_ current: [String]) {
-    let currentSet = Set(current)
-    let departed = knownPeers.subtracting(current)
+  private func handleFileReceived(payload: FileReceivedPayload, from peer: String) {
+    guard
+      let idx = activeUploads.firstIndex(where: {
+        $0.targetUser == peer && $0.id == payload.fileId
+      })
+    else {
+      logger.warning("file-received ignored: no upload for \(payload.fileId) ← \(peer)")
+      return
+    }
 
-    knownPeers = currentSet
-    for peer in departed {
-      purgeTransfers(for: peer)
+    let removed = activeUploads.remove(at: idx)
+    logger.info("file-received ack: \(payload.fileId) ← \(peer)")
+
+    // Delete the tmp file only if no other in-flight upload references it.
+    // Multiple peer-specific FileUploads share the same source `fileURL` when the
+    // user sent one file to many peers; the last one out deletes.
+    let stillReferenced = activeUploads.contains { file in
+      file.fileURL == removed.fileURL
+    }
+
+    if !stillReferenced {
+      do {
+        try FileManager.default.removeItem(at: removed.fileURL)
+        logger.info("removed tmp file: \(removed.fileURL.lastPathComponent)")
+      } catch {
+        logger.warning("failed to remove tmp file \(removed.fileURL.lastPathComponent): \(error)")
+      }
     }
   }
 
-  private func purgeTransfers(for peer: String) {
-    // Uploads to this peer — stop send loops, no notify (peer is gone).
-    let uploadIds = activeUploads.filter { $0.targetUser == peer }.map(\.id)
-    for fileId in uploadIds {
-      stopFileUpload(targetUser: peer, fileId: fileId, notifyRecipient: false)
+  // MARK: Cancellation
+
+  /// Receiver rejected a pending offer. Stop the upload; they already know.
+  private func handleFileDecline(fileId: String, from peer: String) {
+    stopFileUpload(targetUser: peer, fileId: fileId, notifyRecipient: false)
+  }
+
+  /// Receiver cancelled an in-flight download. Stop sending; they already know.
+  private func handleFileDownloadCancellation(fileId: String, from peer: String) {
+    stopFileUpload(targetUser: peer, fileId: fileId, notifyRecipient: false)
+  }
+
+  private func handleFileUploadCancellation(fileId: String, from peer: String) {
+    cleanupDownload(fileId: fileId, fromUser: peer)
+    incomingFileOffers.removeAll { file in
+      file.id == fileId && file.fromUser == peer
     }
 
-    // Downloads from this peer — drop in-flight state + scratch, flip bubble.
-    let downloadIds = activeDownloads.filter { $0.fromUser == peer }.map(\.id)
-    for fileId in downloadIds {
-      cleanupDownload(fileId: fileId, fromUser: peer)
-      fileTransferCancelled.send(fileId)
+    fileTransferCancelled.send(fileId)
+    logger.info("upload cancelled by sender: \(fileId) ← \(peer)")
+  }
+
+  func cleanupDownload(fileId: String, fromUser: String) {
+    activeDownloads.removeAll { file in
+      file.id == fileId && file.fromUser == fromUser
     }
 
-    // Pending offers never accepted.
-    let offerIds = incomingFileOffers.filter { $0.fromUser == peer }.map(\.id)
-    incomingFileOffers.removeAll { $0.fromUser == peer }
-    for fileId in offerIds {
-      fileTransferCancelled.send(fileId)
-    }
+    pendingChunkIndices[fileId] = nil
+    let dir = chunkDirectory(for: fileId)
+    try? FileManager.default.removeItem(at: dir)
+  }
+
+  /// Per-file scratch directory for incoming chunks: <tmp>/incoming/<fileId>/.
+  private func chunkDirectory(for fileId: String) -> URL {
+    // TODO: Change the path name from incoming to something better.
+    FileManager.default.temporaryDirectory
+      .appendingPathComponent("incoming", isDirectory: true)
+      .appendingPathComponent(fileId, isDirectory: true)
   }
 }

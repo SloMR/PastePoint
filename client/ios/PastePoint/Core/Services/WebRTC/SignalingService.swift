@@ -683,27 +683,24 @@ extension SignalingService: RTCDataChannelDelegate {
       }
 
       do {
-        switch try DataChannelMessage.decode(bytes) {
-        case .chat(let msg):
-          self.chatMessages.send(msg)
-        case .fileOffer(let payload):
-          self.fileEvent.send(.offer(payload, from: peer))
-        case .fileAccept(let payload):
-          self.fileEvent.send(.accept(payload, from: peer))
-        case .fileDecline(let payload):
-          self.fileEvent.send(.decline(payload, from: peer))
-        case .fileCancelUpload(let payload):
-          self.fileEvent.send(.cancelUpload(payload, from: peer))
-        case .fileCancelDownload(let payload):
-          self.fileEvent.send(.cancelDownload(payload, from: peer))
-        case .fileReceived(let payload):
-          self.fileEvent.send(.received(payload, from: peer))
-        case .unknown(let type):
-          self.logger.warning("unknown data-channel type \(type) from \(peer)")
-        }
+        let decoded = try DataChannelMessage.decode(bytes)
+        self.route(decoded, from: peer)
       } catch {
         self.logger.error("failed to decode data-channel message from \(peer): \(error)")
       }
+    }
+  }
+
+  private func route(_ decoded: DataChannelMessage.Decoded, from peer: String) {
+    switch decoded {
+    case .chat(let msg): chatMessages.send(msg)
+    case .fileOffer(let payload): fileEvent.send(.offer(payload, from: peer))
+    case .fileAccept(let payload): fileEvent.send(.accept(payload, from: peer))
+    case .fileDecline(let payload): fileEvent.send(.decline(payload, from: peer))
+    case .fileCancelUpload(let payload): fileEvent.send(.cancelUpload(payload, from: peer))
+    case .fileCancelDownload(let payload): fileEvent.send(.cancelDownload(payload, from: peer))
+    case .fileReceived(let payload): fileEvent.send(.received(payload, from: peer))
+    case .unknown(let type): logger.warning("unknown data-channel type \(type) from \(peer)")
     }
   }
 
