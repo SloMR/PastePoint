@@ -117,7 +117,7 @@ final class FileTransferService: ObservableObject {
       )
 
       outgoingAttachment.send(
-        ChatMessage(from: sender, text: file.name, type: .attachment, fileTransfer: transfer),
+        ChatMessage(from: sender, text: file.name, type: .attachment, fileTransfer: transfer, isMine: true),
       )
     }
   }

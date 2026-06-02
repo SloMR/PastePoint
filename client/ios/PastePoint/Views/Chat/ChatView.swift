@@ -30,7 +30,7 @@ struct ChatView: View {
             ForEach(messages) { message in
               ChatMessageBubble(
                 alignment: alignment(for: message),
-                name: message.from,
+                name: message.isMine ? "You" : message.from,
                 time: timeString(message.timestamp),
                 text: message.text,
                 fileTransfer: message.fileTransfer,
@@ -107,7 +107,7 @@ struct ChatView: View {
   }
 
   private func alignment(for message: ChatMessage) -> MessageAlignment {
-    message.from == services.userService.user ? .trailing : .leading
+    message.isMine ? .trailing : .leading
   }
 
   private func timeString(_ date: Date) -> String {

@@ -124,7 +124,7 @@ struct ContentView: View {
       return false
     }
 
-    let message = ChatMessage(from: from, text: trimmed)
+    let message = ChatMessage(from: from, text: trimmed, isMine: true)
     let reached = services.signalingService.broadcastChat(message)
     guard !reached.isEmpty else {
       toasts.append(peerWarning())
@@ -158,6 +158,7 @@ struct ContentView: View {
           text: file.name,
           type: .attachment,
           fileTransfer: fileTransfer,
+          isMine: true,
         ),
       )
     }
