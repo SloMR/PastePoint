@@ -11,10 +11,12 @@ import SwiftUI
 struct ContentView: View {
   @AppStorage(AppColors.Scheme.storageKey) private var colorSchemeRaw: String = AppColors.Scheme.default
   @EnvironmentObject private var services: AppServices
+  @Environment(\.scenePhase) private var scenePhase
 
   private let logger = Logger(label: "ContentView")
 
   @State private var messages: [ChatMessage] = []
+  @State private var hasConnectedBefore = false
   @State private var showSettings = false
   @State private var toasts: [ToastItem] = []
 
@@ -78,6 +80,14 @@ struct ContentView: View {
     .onReceive(services.fileTransferService.fileTransferCancelled) { fileId in
       updateFileStatus(fileId: fileId, status: .cancelled)
     }
+    .onReceive(services.wsService.didConnect) {
+      guard !showSettings else {
+        hasConnectedBefore = true
+        return
+      }
+      toasts.append(hasConnectedBefore ? .success("Reconnected") : .success("Connected"))
+      hasConnectedBefore = true
+    }
     .onChange(of: services.roomService.currentRoom) {
       messages = []
     }
@@ -85,12 +95,10 @@ struct ContentView: View {
       messages = []
     }
     .onChange(of: services.wsService.isConnected) { wasConnected, connected in
-      guard !services.wsService.isLeavingSession else { return }
-      if connected, !showSettings {
-        toasts.append(wasConnected ? .success("Reconnected") : .success("Connected"))
-      } else if wasConnected {
-        toasts.append(.warning("Connection lost"))
-      }
+      // Only surface unexpected drops while active; ignore background/manual teardown.
+      guard wasConnected, !connected else { return }
+      guard !services.wsService.isLeavingSession, scenePhase == .active else { return }
+      toasts.append(.warning("Connection lost"))
     }
     .appToast(items: $toasts)
   }
@@ -119,7 +127,7 @@ struct ContentView: View {
     let message = ChatMessage(from: from, text: trimmed)
     let reached = services.signalingService.broadcastChat(message)
     guard !reached.isEmpty else {
-      toasts.append(.warning("No peers connected"))
+      toasts.append(peerWarning())
       return false
     }
 
@@ -131,7 +139,7 @@ struct ContentView: View {
     let peers = Array(services.signalingService.connectedPeers)
 
     guard !peers.isEmpty else {
-      toasts.append(.warning("No peers connected"))
+      toasts.append(peerWarning())
       return false
     }
 
@@ -198,6 +206,14 @@ struct ContentView: View {
       return
     }
     messages[idx].fileTransfer?.status = status
+  }
+
+  private func peerWarning() -> ToastItem {
+    // Peers are in the room but no data channel is open yet still (re)connecting.
+    if !services.peerDirectory.peers.isEmpty {
+      return .warning("Connecting to peers… try again in a moment")
+    }
+    return .warning("No peers connected")
   }
 }
 

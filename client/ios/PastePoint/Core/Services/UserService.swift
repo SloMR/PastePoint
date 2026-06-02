@@ -33,6 +33,15 @@ final class UserService: ObservableObject {
         Task { await self?.getUsername() }
       }
       .store(in: &cancellables)
+
+    wsService.$isConnected
+      .receive(on: DispatchQueue.main)
+      .sink { [weak self] connected in
+        if !connected {
+          self?.user = ""
+        }
+      }
+      .store(in: &cancellables)
   }
 
   func getUsername() async {

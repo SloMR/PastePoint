@@ -74,6 +74,16 @@ final class SignalingService: NSObject, ObservableObject {
         self?.syncMesh(peers: peers)
       }
       .store(in: &cancellables)
+
+    wsService.didReconnect
+      .receive(on: DispatchQueue.main)
+      .sink { [weak self] in
+        Task { @MainActor in
+          await self?.userService.waitForUsername()
+          self?.resetMesh()
+        }
+      }
+      .store(in: &cancellables)
   }
 
   // MARK: - Public API
@@ -191,6 +201,14 @@ final class SignalingService: NSObject, ObservableObject {
         await initiateConnection(to: peer)
       }
     }
+  }
+
+  private func resetMesh() {
+    for peer in Set(peerConnections.keys).union(connectionLocks) {
+      closePeerConnection(peer)
+    }
+
+    syncMesh(peers: peerDirectory.peers)
   }
 }
 
@@ -448,6 +466,8 @@ extension SignalingService {
       reconnectTasks[peer]?.cancel()
       reconnectTasks[peer] = nil
       reconnectAttempts[peer] = nil
+      outboundSequences[peer] = nil
+      inboundSequences[peer] = nil
     }
     dataChannels[peer]?.close()
     dataChannels[peer] = nil
