@@ -72,6 +72,9 @@ struct ContentView: View {
     .onReceive(services.fileTransferService.downloadCompleted) { fileId, _ in
       updateFileStatus(fileId: fileId, status: .completed)
     }
+    .onReceive(services.fileTransferService.fileTransferCancelled) { fileId in
+      updateFileStatus(fileId: fileId, status: .cancelled)
+    }
     .onChange(of: services.roomService.currentRoom) {
       messages = []
     }

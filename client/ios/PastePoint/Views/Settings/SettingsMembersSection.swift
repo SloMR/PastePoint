@@ -74,7 +74,9 @@ struct SettingsMembersSection: View {
                       name: upload.displayName,
                       progress: upload.progress,
                       phase: upload.phase,
-                    )
+                    ) {
+                      services.fileTransferService.stopFileUpload(targetUser: member, fileId: upload.id)
+                    }
                   }
                   ForEach(downloads) { download in
                     transferRow(
@@ -82,7 +84,9 @@ struct SettingsMembersSection: View {
                       name: download.fileName,
                       progress: download.progress,
                       phase: nil,
-                    )
+                    ) {
+                      services.fileTransferService.cancelFileDownload(fromUser: member, fileId: download.id)
+                    }
                   }
                 }
                 .padding(.leading, 20)
@@ -108,6 +112,7 @@ struct SettingsMembersSection: View {
     name: String,
     progress: Double,
     phase: FileUpload.Phase?,
+    onCancel: @escaping () -> Void,
   ) -> some View {
     VStack(alignment: .leading, spacing: 2) {
       HStack(spacing: 6) {
@@ -124,6 +129,14 @@ struct SettingsMembersSection: View {
         Text(progressLabel(progress: progress, phase: phase))
           .font(.caption2)
           .foregroundStyle(.textSecondary)
+        Button {
+          onCancel()
+        } label: {
+          Image(systemName: "xmark.circle.fill")
+            .font(.caption)
+            .foregroundStyle(.textSecondary)
+        }
+        .buttonStyle(.plain)
       }
       ProgressView(value: max(0, min(1, progress)))
         .progressViewStyle(.linear)
