@@ -19,9 +19,11 @@ final class FileTransferService: ObservableObject {
 
   let attachmentMessages = PassthroughSubject<ChatMessage, Never>()
   let downloadCompleted = PassthroughSubject<(fileId: String, fileURL: URL), Never>()
+  let fileTransferCancelled = PassthroughSubject<String, Never>()
 
   private var pendingChunkIndices: [String: Set<Int>] = [:]
   private var uploadTasks: [String: Task<Void, Never>] = [:]
+  private var knownPeers: Set<String> = []
   private var cancellables: Set<AnyCancellable> = []
 
   init(signalingService: SignalingService, userService: UserService) {
@@ -360,6 +362,17 @@ final class FileTransferService: ObservableObject {
       }
     }
   }
+
+  private func cleanupDownload(fileId: String, fromUser: String) {
+    activeDownloads.removeAll { file in
+      file.id == fileId && file.fromUser == fromUser
+    }
+
+    pendingChunkIndices[fileId] = nil
+    let dir = chunkDirectory(for: fileId)
+    try? FileManager.default.removeItem(at: dir)
+  }
+
   /// Receiver rejected a pending offer. Stop the upload; they already know.
   private func handleFileDecline(fileId: String, from peer: String) {
     stopFileUpload(targetUser: peer, fileId: fileId, notifyRecipient: false)
@@ -368,6 +381,16 @@ final class FileTransferService: ObservableObject {
   /// Receiver cancelled an in-flight download. Stop sending; they already know.
   private func handleFileDownloadCancellation(fileId: String, from peer: String) {
     stopFileUpload(targetUser: peer, fileId: fileId, notifyRecipient: false)
+  }
+
+  private func handleFileUploadCancellation(fileId: String, from peer: String) {
+    cleanupDownload(fileId: fileId, fromUser: peer)
+    incomingFileOffers.removeAll { file in
+      file.id == fileId && file.fromUser == peer
+    }
+
+    fileTransferCancelled.send(fileId)
+    logger.info("upload cancelled by sender: \(fileId) ← \(peer)")
   }
 
   @discardableResult
@@ -404,6 +427,30 @@ final class FileTransferService: ObservableObject {
     return true
   }
 
+  @discardableResult
+  func cancelFileDownload(fromUser: String, fileId: String) -> Bool {
+    guard
+      activeDownloads.contains(where: { file in
+        file.id == fileId && file.fromUser == fromUser
+      })
+    else {
+      return false
+    }
+
+    cleanupDownload(fileId: fileId, fromUser: fromUser)
+    fileTransferCancelled.send(fileId)
+
+    let uploader = fromUser
+    do {
+      let data = try DataChannelMessage.encodeFileCancelDownload(FileCancelPayload(fileId: fileId))
+      _ = signalingService.send(data, to: uploader)
+    } catch {
+      logger.error("encodeFileCancelDownload failed: \(error)")
+    }
+
+    logger.info("download cancelled: \(fileId) ← \(fromUser)")
+    return true
+  }
 
   @discardableResult
   func acceptFileOffer(fromUser: String, fileId: String) async -> Bool {
