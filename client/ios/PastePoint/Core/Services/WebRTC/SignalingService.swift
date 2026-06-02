@@ -29,6 +29,7 @@ final class SignalingService: NSObject, ObservableObject {
   let bufferedAmountLow = PassthroughSubject<String, Never>()
   let chatMessages = PassthroughSubject<ChatMessage, Never>()
   let fileEvent = PassthroughSubject<FileChannelEvent, Never>()
+  let chunkReceived = PassthroughSubject<(ParsedChunk, from: String), Never>()
 
   private let logger = Logger(label: "SignalingService")
   private let wsService: WebSocketConnectionService
@@ -672,8 +673,12 @@ extension SignalingService: RTCDataChannelDelegate {
       }
 
       if isBinary {
-        // TODO: Add file chunk handler here
-        self.logger.info("received \(bytes.count) bytes from \(peer)")
+        guard let parsed = BinaryChunk.decode(bytes) else {
+          self.logger.warning("dropped malformed binary chunk from \(peer)")
+          return
+        }
+
+        self.chunkReceived.send((parsed, from: peer))
         return
       }
 

@@ -82,6 +82,7 @@ struct FileDownload: Identifiable, Sendable {
   var progress: Double
   var isAccepted: Bool
   var expectedHash: String?
+  var fileURL: URL?
   // TODO: file-transfer preview — add `previewDataUrl: String?` and `previewMime: String?`
   //       and generate a JPEG thumbnail (≤150KB) at send time to match web's
 }
