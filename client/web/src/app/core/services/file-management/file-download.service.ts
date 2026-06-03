@@ -124,6 +124,8 @@ export class FileDownloadService extends FileTransferBaseService {
         total_chunks: totalChunks,
         bytes_received: fileDownload.receivedSize,
       });
+
+      await this.cleanupAfterDownload(fromUser, fileId);
       return;
     }
 
