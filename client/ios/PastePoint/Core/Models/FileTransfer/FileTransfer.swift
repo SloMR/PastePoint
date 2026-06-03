@@ -41,6 +41,12 @@ enum FileTransferStatus: String, Codable, Sendable {
   case declined
   case completed
   case cancelled // TODO: Typo: Fix this on the web side
+  case failed
+}
+
+enum FileTransferFailureReason: Sendable {
+  case integrity // SHA-256 / CRC mismatch
+  case assembly // couldn't read/write chunks to disk
 }
 
 // MARK: Attachment Bubble Data

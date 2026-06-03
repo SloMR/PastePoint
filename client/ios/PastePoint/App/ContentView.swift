@@ -84,6 +84,15 @@ struct ContentView: View {
     .onReceive(services.fileTransferService.fileTransferCancelled) { fileId in
       updateFileStatus(fileId: fileId, status: .cancelled)
     }
+    .onReceive(services.fileTransferService.fileTransferFailed) { fileId, reason in
+      updateFileStatus(fileId: fileId, status: .failed)
+      switch reason {
+      case .integrity:
+        toasts.append(.error("File transfer failed — data was corrupted"))
+      case .assembly:
+        toasts.append(.error("Couldn't save the received file"))
+      }
+    }
     .onReceive(services.wsService.didConnect) {
       guard !showSettings else {
         hasConnectedBefore = true

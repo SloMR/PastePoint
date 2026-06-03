@@ -21,6 +21,7 @@ final class FileTransferService: ObservableObject {
   let outgoingAttachment = PassthroughSubject<ChatMessage, Never>()
   let downloadCompleted = PassthroughSubject<(fileId: String, fileURL: URL), Never>()
   let fileTransferCancelled = PassthroughSubject<String, Never>()
+  let fileTransferFailed = PassthroughSubject<(fileId: String, reason: FileTransferFailureReason), Never>()
 
   private var pendingChunkIndices: [String: Set<Int>] = [:]
   private var uploadTasks: [String: Task<Void, Never>] = [:]
@@ -461,8 +462,14 @@ extension FileTransferService {
     }
 
     guard parsed.isValid else {
-      // TODO: corrupted chunk (CRC mismatch). v1 drops + logs; could request resend.
       logger.warning("invalid chunk \(parsed.chunkIndex) for \(parsed.fileId), dropping")
+
+      activeDownloads.removeAll { $0.id == parsed.fileId && $0.fromUser == peer }
+      try? FileManager.default.removeItem(at: chunkDirectory(for: parsed.fileId))
+      fileTransferFailed.send((
+        fileId: parsed.fileId,
+        reason: .integrity,
+      ))
       return
     }
 
@@ -576,11 +583,14 @@ extension FileTransferService {
       guard result.ok else {
         logger.error("finalize failed for \(download.fileName) (hashMismatch=\(result.hashMismatch))")
 
-        // Remove the download + leave bubble in a non-completed state.
+        // Remove the download + mark the bubble failed
         activeDownloads.removeAll { $0.id == download.id && $0.fromUser == peer }
         try? FileManager.default.removeItem(at: completedDir)
 
-        // TODO: surface failure to the user (toast / bubble status).
+        fileTransferFailed.send((
+          fileId: download.id,
+          reason: result.hashMismatch ? .integrity : .assembly,
+        ))
         return
       }
 

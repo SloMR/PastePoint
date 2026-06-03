@@ -164,6 +164,7 @@ struct ChatMessageBubble: View {
     case .completed: return "Completed"
     case .declined: return "Declined"
     case .cancelled: return "Cancelled"
+    case .failed: return "Failed"
     }
   }
 }
@@ -183,7 +184,7 @@ struct ChatMessageBubble: View {
       fileSize: 4_127_524,
       fromUser: "Garry Schulist",
       status: .pending,
-      fileURL: nil
+      fileURL: nil,
     ),
     onAccept: { },
     onDecline: { },
