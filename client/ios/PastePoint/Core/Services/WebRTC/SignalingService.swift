@@ -25,6 +25,7 @@ enum FileChannelEvent {
 final class SignalingService: NSObject, ObservableObject {
 
   @Published private(set) var connectedPeers: Set<String> = []
+  @Published private(set) var connectingPeers: Set<String> = []
 
   let bufferedAmountLow = PassthroughSubject<String, Never>()
   let chatMessages = PassthroughSubject<ChatMessage, Never>()
@@ -113,6 +114,7 @@ final class SignalingService: NSObject, ObservableObject {
     }
 
     connectionLocks.insert(peer)
+    connectingPeers.insert(peer)
     startConnectionTimeout(for: peer)
 
     guard let pc = PeerConnectionFactory.shared.makePeerConnection(delegate: self) else {
@@ -263,6 +265,7 @@ extension SignalingService {
     }
 
     connectionLocks.insert(message.from)
+    connectingPeers.insert(message.from)
     startConnectionTimeout(for: message.from)
 
     guard case .offer(let sdpString) = message.payload else {
@@ -396,6 +399,7 @@ extension SignalingService {
     guard peerDirectory.peers.contains(peer) else {
       logger.info("\(peer) is no longer a peer, skipping")
       reconnectAttempts[peer] = nil
+      connectingPeers.remove(peer)
       return
     }
 
@@ -403,10 +407,12 @@ extension SignalingService {
     guard attempts < Self.maxReconnectAttempts else {
       logger.error("max attempts reached for \(peer)")
       reconnectAttempts[peer] = nil
+      connectingPeers.remove(peer)
       return
     }
 
     reconnectAttempts[peer] = attempts + 1
+    connectingPeers.insert(peer)
 
     // Exponential backoff: 2s, 3s, 4.5s, ...
     let delay = min(Self.baseReconnectDelay * pow(1.5, Double(attempts)), Self.maxReconnectDelay)
@@ -421,6 +427,7 @@ extension SignalingService {
       guard self.peerDirectory.peers.contains(peer) else {
         self.logger.info("\(peer) left during backoff, skipping")
         self.reconnectAttempts[peer] = nil
+        connectingPeers.remove(peer)
         return
       }
 
@@ -428,6 +435,7 @@ extension SignalingService {
       if self.connectedPeers.contains(peer) {
         self.logger.debug("\(peer) already healthy, skipping")
         self.reconnectAttempts[peer] = nil
+        connectingPeers.remove(peer)
         return
       }
 
@@ -476,6 +484,7 @@ extension SignalingService {
     candidateQueues[peer] = nil
     connectionLocks.remove(peer)
     connectedPeers.remove(peer)
+    connectingPeers.remove(peer)
   }
 }
 
@@ -659,6 +668,7 @@ extension SignalingService: RTCDataChannelDelegate {
       switch state {
       case .open:
         self.connectedPeers.insert(peer)
+        self.connectingPeers.remove(peer)
         self.connectionLocks.remove(peer)
         self.reconnectAttempts[peer] = nil
         self.clearConnectionTimeout(for: peer)
@@ -733,8 +743,6 @@ extension SignalingService: RTCDataChannelDelegate {
       guard let peer = self.peer(forChannelID: dataChannelID) else { return }
 
       if currentBuffered < WebRTCConfig.bufferedAmountLowThreshold {
-        // TODO: Remvoe this one or change it to be less annoying or more informative
-        self.logger.debug("dataChannel: buffer low for \(peer) (\(currentBuffered) bytes)")
         self.bufferedAmountLow.send(peer)
       }
     }

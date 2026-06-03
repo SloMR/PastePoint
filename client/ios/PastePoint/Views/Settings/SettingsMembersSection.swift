@@ -42,11 +42,16 @@ struct SettingsMembersSection: View {
             let isConnected = services.signalingService.connectedPeers.contains(member)
             let uploads = services.fileTransferService.activeUploads.filter { $0.targetUser == member }
             let downloads = services.fileTransferService.activeDownloads.filter { $0.fromUser == member }
+            let dotColor: Color = {
+              if services.signalingService.connectedPeers.contains(member) { return .green }
+              if services.signalingService.connectingPeers.contains(member) { return .yellow }
+              return .red
+            }()
 
             VStack(alignment: .leading, spacing: 6) {
               HStack(alignment: .center, spacing: 0) {
                 Circle()
-                  .fill(isConnected ? Color.green : Color.red)
+                  .fill(dotColor)
                   .frame(width: 14, height: 14)
                   .padding(.trailing, 6)
 
@@ -70,7 +75,7 @@ struct SettingsMembersSection: View {
                 .disabled(!isConnected)
                 .opacity(isConnected ? 1 : 0.3)
               }
-              .animation(.easeInOut(duration: 0.2), value: isConnected)
+              .animation(.easeInOut(duration: 0.2), value: dotColor)
 
               if !uploads.isEmpty || !downloads.isEmpty {
                 VStack(alignment: .leading, spacing: 4) {
