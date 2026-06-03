@@ -39,15 +39,19 @@ struct ContentView: View {
       )
     }
     .safeAreaInset(edge: .bottom, spacing: 0) {
-      ChatInputBar(onSend: handleSend, onSendFiles: handleSendFiles)
-        .padding(.horizontal, 16)
-        .padding(.top, 6)
-        .padding(.bottom, 8)
-        .frame(maxWidth: .infinity)
-        .background {
-          AppColors.Background.background
-            .ignoresSafeArea(edges: .bottom)
-        }
+      ChatInputBar(
+        onSend: handleSend,
+        onSendFiles: handleSendFiles,
+        hasConnectedPeers: !services.signalingService.connectedPeers.isEmpty,
+      )
+      .padding(.horizontal, 16)
+      .padding(.top, 6)
+      .padding(.bottom, 8)
+      .frame(maxWidth: .infinity)
+      .background {
+        AppColors.Background.background
+          .ignoresSafeArea(edges: .bottom)
+      }
     }
     .background(AppColors.Background.background)
     .preferredColorScheme(AppColors.Scheme.colorScheme(from: colorSchemeRaw))

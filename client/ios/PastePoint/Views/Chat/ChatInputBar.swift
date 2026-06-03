@@ -10,6 +10,7 @@ struct ChatInputBar: View {
   private let logger = Logger(label: "ChatInputBar")
   let onSend: (String) -> Bool
   let onSendFiles: ([StagedFile]) -> Bool
+  let hasConnectedPeers: Bool
 
   @State private var message = ""
   @State private var stagedFiles: [StagedFile] = []
@@ -74,6 +75,8 @@ struct ChatInputBar: View {
             .frame(width: 18, height: 18)
         }
         .foregroundStyle(.textSecondary)
+        .disabled(!hasConnectedPeers)
+        .opacity(hasConnectedPeers ? 1 : 0.3)
 
         Spacer()
 
@@ -142,6 +145,10 @@ struct ChatInputBar: View {
 
 #if DEBUG
 #Preview {
-  ChatInputBar(onSend: { _ in true }, onSendFiles: { _ in true })
+  ChatInputBar(
+    onSend: { _ in true },
+    onSendFiles: { _ in true },
+    hasConnectedPeers: true,
+  )
 }
 #endif
