@@ -531,8 +531,11 @@ extension FileTransferService {
   private func finalizeDownload(_ download: FileDownload, from peer: String) {
     Task { @MainActor in
       let dir = chunkDirectory(for: download.id)
-      let finalURL = FileManager.default.temporaryDirectory
-        .appendingPathComponent("\(download.id)-\(download.fileName)")
+
+      let completedDir = FileManager.default.temporaryDirectory
+        .appendingPathComponent("completed/\(download.id)", isDirectory: true)
+      try? FileManager.default.createDirectory(at: completedDir, withIntermediateDirectories: true)
+      let finalURL = completedDir.appendingPathComponent(download.fileName)
 
       // Assemble + (optional) verify off the main actor.
       let result: (ok: Bool, hashMismatch: Bool) = await Task.detached {
@@ -575,7 +578,7 @@ extension FileTransferService {
 
         // Remove the download + leave bubble in a non-completed state.
         activeDownloads.removeAll { $0.id == download.id && $0.fromUser == peer }
-        try? FileManager.default.removeItem(at: finalURL)
+        try? FileManager.default.removeItem(at: completedDir)
 
         // TODO: surface failure to the user (toast / bubble status).
         return

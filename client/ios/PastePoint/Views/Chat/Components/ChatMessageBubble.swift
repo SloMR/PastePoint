@@ -126,9 +126,16 @@ struct ChatMessageBubble: View {
           .controlSize(.small)
         }
       } else if alignment == .leading {
-        Text(statusLabel(transfer.status))
-          .font(.caption2)
-          .foregroundStyle(.secondary)
+        if transfer.status == .completed, let fileURL = transfer.fileURL {
+          ShareLink(item: fileURL) {
+            Label("Save", systemImage: "square.and.arrow.down")
+              .font(.caption2)
+          }
+        } else {
+          Text(statusLabel(transfer.status))
+            .font(.caption2)
+            .foregroundStyle(.secondary)
+        }
       }
     }
     .foregroundStyle(alignment == .trailing ? .textPrimary : .white)
@@ -176,6 +183,7 @@ struct ChatMessageBubble: View {
       fileSize: 4_127_524,
       fromUser: "Garry Schulist",
       status: .pending,
+      fileURL: nil
     ),
     onAccept: { },
     onDecline: { },

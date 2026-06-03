@@ -78,8 +78,8 @@ struct ContentView: View {
     .onReceive(services.fileTransferService.outgoingAttachment) { message in
       messages.append(message)
     }
-    .onReceive(services.fileTransferService.downloadCompleted) { fileId, _ in
-      updateFileStatus(fileId: fileId, status: .completed)
+    .onReceive(services.fileTransferService.downloadCompleted) { fileId, fileURL in
+      updateFileStatus(fileId: fileId, fileURL: fileURL, status: .completed)
     }
     .onReceive(services.fileTransferService.fileTransferCancelled) { fileId in
       updateFileStatus(fileId: fileId, status: .cancelled)
@@ -206,11 +206,14 @@ struct ContentView: View {
   }
 
   // TODO: make it safe with return bool to check if the status updated or not
-  private func updateFileStatus(fileId: String, status: FileTransferStatus) {
+  private func updateFileStatus(fileId: String, fileURL: URL? = nil, status: FileTransferStatus) {
     guard let idx = messages.firstIndex(where: { $0.fileTransfer?.fileId == fileId }) else {
       return
     }
     messages[idx].fileTransfer?.status = status
+    if let fileURL {
+      messages[idx].fileTransfer?.fileURL = fileURL
+    }
   }
 
   private func peerWarning() -> ToastItem {

@@ -51,6 +51,7 @@ struct FileTransferData: Codable, Sendable, Equatable {
   let fileSize: Int64
   let fromUser: String
   var status: FileTransferStatus
+  var fileURL: URL?
 }
 
 // MARK: Local State
