@@ -13,6 +13,13 @@ import SwiftUI
 enum FileStaging {
   private static let logger = Logger(label: "FileStaging")
 
+  private static let photoNameFormatter: DateFormatter = {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "yyyyMMdd-HHmmss"
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    return formatter
+  }()
+
   /// Files-app picks: security-scoped copy into tmp.
   static func stage(urls: [URL]) async -> [StagedFile] {
     var staged: [StagedFile] = []
@@ -55,12 +62,13 @@ enum FileStaging {
         }
 
         let fileExtension = item.supportedContentTypes.first?.preferredFilenameExtension ?? "bin"
-        let fileName = "\(UUID().uuidString).\(fileExtension)"
-        let tmpURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
+        let displayName = "Photo-\(Self.photoNameFormatter.string(from: Date()))-\(UUID().uuidString.prefix(4)).\(fileExtension)"
+        let tmpURL = FileManager.default.temporaryDirectory
+          .appendingPathComponent("\(UUID().uuidString)-\(displayName)")
 
         try data.write(to: tmpURL)
-        staged.append(StagedFile(id: UUID(), name: fileName, size: Int64(data.count), url: tmpURL))
-        logger.info("staged photo: \(fileName) (\(data.count) bytes)")
+        staged.append(StagedFile(id: UUID(), name: displayName, size: Int64(data.count), url: tmpURL))
+        logger.info("staged photo: \(displayName) (\(data.count) bytes)")
       } catch {
         logger.error("failed to stage photo: \(String(describing: error))")
       }
