@@ -6,11 +6,11 @@
 import Logging
 import SwiftUI
 
-struct SettingsCreateRoom: View {
+struct SettingsCreateRoomView: View {
   @Environment(\.dismiss) private var dismiss
   @EnvironmentObject private var services: AppServices
 
-  private let logger = Logger(label: "SettingsCreateRoom")
+  private let logger = Logger(label: "SettingsCreateRoomView")
 
   var onRoomCreate: (() -> Void)?
 
@@ -143,7 +143,7 @@ struct SettingsCreateRoom: View {
 
 #if DEBUG
 #Preview {
-  SettingsCreateRoom()
+  SettingsCreateRoomView()
     .environmentObject(AppServices.preview)
 }
 #endif

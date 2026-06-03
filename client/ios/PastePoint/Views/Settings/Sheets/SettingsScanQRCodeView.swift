@@ -191,9 +191,9 @@ private struct ViewfinderBracketsShape: Shape {
 
 // MARK: - Main View
 
-struct SettingsScanQRCode: View {
+struct SettingsScanQRCodeView: View {
   @Environment(\.dismiss) private var dismiss
-  private let logger = Logger(label: "SettingsScanQRCode")
+  private let logger = Logger(label: "SettingsScanQRCodeView")
 
   private let cutoutSize: CGFloat = 240
   @State private var bracketScale: CGFloat = 1.0
@@ -324,7 +324,7 @@ struct SettingsScanQRCode: View {
 
 #if DEBUG
 #Preview {
-  SettingsScanQRCode { code in
+  SettingsScanQRCodeView { code in
     print("Scanned: \(code)")
   }
 }
