@@ -25,6 +25,7 @@ final class FileTransferService: ObservableObject {
 
   private var pendingChunkIndices: [String: Set<Int>] = [:]
   private var uploadTasks: [String: Task<Void, Never>] = [:]
+  private var offerTasks: [String: Task<Void, Never>] = [:]
   private var knownPeers: Set<String> = []
   private var cancellables: Set<AnyCancellable> = []
 
@@ -100,7 +101,10 @@ final class FileTransferService: ObservableObject {
     )
     logger.info("file-offer sent: \(stagedFile.name) (\(fileId)) → \(targetUser)")
 
-    await sendEnrichOffer(fileId: fileId, stagedFile: stagedFile, sender: sender, to: targetUser)
+    offerTasks[fileId] = Task { [weak self] in
+      await self?.sendEnrichOffer(fileId: fileId, stagedFile: stagedFile, sender: sender, to: targetUser)
+      self?.offerTasks[fileId] = nil
+    }
     return true
   }
 
@@ -129,6 +133,8 @@ final class FileTransferService: ObservableObject {
   func stopFileUpload(targetUser: String, fileId: String, notifyRecipient: Bool = true) -> Bool {
     uploadTasks[fileId]?.cancel()
     uploadTasks[fileId] = nil
+    offerTasks[fileId]?.cancel()
+    offerTasks[fileId] = nil
 
     guard
       let idx = activeUploads.firstIndex(where: { file in
@@ -290,8 +296,10 @@ extension FileTransferService {
     let upload = activeUploads[idx]
     logger.info("file-accept received: starting chunk send for \(upload.id) → \(peer)")
 
+    let offerTask = offerTasks[payload.fileId]
     let task = Task.detached { [weak self] in
       guard let self else { return }
+      await offerTask?.value
       await self.runChunkSendLoop(uploadId: upload.id, targetUser: peer)
     }
     uploadTasks[upload.id] = task
