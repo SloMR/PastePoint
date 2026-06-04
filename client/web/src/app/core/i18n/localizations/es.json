@@ -149,6 +149,7 @@
   "RECONNECTING_TO_USER": "Reconectando con {{userName}}...",
   "CANNOT_CONNECT_TO_USER": "No se puede conectar con {{userName}}. Puede estar desconectado.",
   "CONNECTION_CLOSED_WITH_USER": "Se cerró la conexión con {{userName}}.",
+  "WEBRTC_NOT_SUPPORTED": "Tu navegador no es compatible con WebRTC. Prueba con otro navegador (Chrome, Firefox, Safari o Edge).",
   "SERVER_CONNECTION_FAILED": "No se pudo conectar al servidor. Comprueba tu conexión a internet.",
   "SESSION_JOIN_FAILED": "No se pudo unir a la sesión. El código puede no ser válido o haber caducado, o el servidor puede no estar disponible.",
   "SERVER_CONNECTION_LOST_PERMANENTLY": "Se perdió la conexión con el servidor. Por favor, recarga la página.",

@@ -52,6 +52,8 @@ export class WebRTCSignalingService {
   private activeConnectSpans = new Map<string, Sentry.Span>();
   private connectAttemptCounts = new Map<string, number>();
 
+  private unsupportedNotified = false;
+
   constructor() {
     this.initializeSignalMessageHandler();
 
@@ -511,6 +513,18 @@ export class WebRTCSignalingService {
   private createPeerConnection(targetUser: string): RTCPeerConnection | undefined {
     if (this.userService.user === targetUser) {
       this.logger.warn('createPeerConnection', `Skipping connection creation with self`);
+      return;
+    }
+
+    if (typeof RTCPeerConnection === 'undefined') {
+      this.logger.error(
+        'createPeerConnection',
+        'RTCPeerConnection is unavailable in this environment'
+      );
+      if (!this.unsupportedNotified) {
+        this.unsupportedNotified = true;
+        this.toaster.error(this.translate.instant('WEBRTC_NOT_SUPPORTED'));
+      }
       return;
     }
 

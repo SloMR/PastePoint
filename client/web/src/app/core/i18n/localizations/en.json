@@ -149,6 +149,7 @@
   "RECONNECTING_TO_USER": "Reconnecting to {{userName}}...",
   "CANNOT_CONNECT_TO_USER": "Cannot connect to {{userName}}. They may be offline.",
   "CONNECTION_CLOSED_WITH_USER": "Connection with {{userName}} was closed.",
+  "WEBRTC_NOT_SUPPORTED": "Your browser doesn't support peer-to-peer connections. Please try a different browser (Chrome, Firefox, Safari, or Edge).",
   "SERVER_CONNECTION_FAILED": "Failed to connect to server. Please check your internet connection.",
   "SESSION_JOIN_FAILED": "Couldn't join the session. The code may be invalid or expired, or the server may be unreachable.",
   "SERVER_CONNECTION_LOST_PERMANENTLY": "Lost connection to server. Please refresh the page.",

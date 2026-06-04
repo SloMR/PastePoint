@@ -149,6 +149,7 @@
   "RECONNECTING_TO_USER": "Переподключение к {{userName}}...",
   "CANNOT_CONNECT_TO_USER": "Не удаётся подключиться к {{userName}}. Возможно, пользователь не в сети.",
   "CONNECTION_CLOSED_WITH_USER": "Соединение с {{userName}} закрыто.",
+  "WEBRTC_NOT_SUPPORTED": "Ваш браузер не поддерживает WebRTC. Попробуйте другой браузер (Chrome, Firefox, Safari или Edge).",
   "SERVER_CONNECTION_FAILED": "Не удалось подключиться к серверу. Проверьте интернет-соединение.",
   "SESSION_JOIN_FAILED": "Не удалось войти в сессию. Возможно, код недействителен или истёк, либо сервер недоступен.",
   "SERVER_CONNECTION_LOST_PERMANENTLY": "Связь с сервером потеряна. Пожалуйста, обновите страницу.",
