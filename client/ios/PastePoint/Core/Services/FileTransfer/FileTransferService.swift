@@ -173,13 +173,7 @@ final class FileTransferService: ObservableObject {
       return false
     }
     let removed = activeUploads.remove(at: idx)
-
-    let stillReferenced = activeUploads.contains { file in
-      file.fileURL == removed.fileURL
-    }
-    if !stillReferenced {
-      try? FileManager.default.removeItem(at: removed.fileURL)
-    }
+    releaseSourceFile(of: removed)
 
     if notifyRecipient {
       do {
@@ -718,18 +712,7 @@ extension FileTransferService {
     // Delete the tmp file only if no other in-flight upload references it.
     // Multiple peer-specific FileUploads share the same source `fileURL` when the
     // user sent one file to many peers; the last one out deletes.
-    let stillReferenced = activeUploads.contains { file in
-      file.fileURL == removed.fileURL
-    }
-
-    if !stillReferenced {
-      do {
-        try FileManager.default.removeItem(at: removed.fileURL)
-        logger.info("removed tmp file: \(removed.fileURL.lastPathComponent)")
-      } catch {
-        logger.warning("failed to remove tmp file \(removed.fileURL.lastPathComponent): \(error)")
-      }
-    }
+    releaseSourceFile(of: removed)
   }
 
   // MARK: Cancellation
@@ -762,6 +745,21 @@ extension FileTransferService {
     pendingChunkIndices[fileId] = nil
     let dir = chunkDirectory(for: fileId)
     try? FileManager.default.removeItem(at: dir)
+  }
+
+  private func releaseSourceFile(of upload: FileUpload) {
+    let stillReferenced = activeUploads.contains { file in
+      file.fileURL == upload.fileURL
+    }
+
+    if !stillReferenced {
+      do {
+        try FileManager.default.removeItem(at: upload.fileURL)
+        logger.info("removed tmp file: \(upload.fileURL.lastPathComponent)")
+      } catch {
+        logger.warning("failed to remove tmp file \(upload.fileURL.lastPathComponent): \(error)")
+      }
+    }
   }
 
   private func failDownload(fileId: String, from peer: String, reason: FileTransferFailureReason) {
