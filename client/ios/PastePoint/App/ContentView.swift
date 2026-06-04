@@ -162,6 +162,11 @@ struct ContentView: View {
 
     let sender = services.userService.user
     for file in files {
+      guard file.size > 0 else {
+        toasts.append(.error("\(file.name) is empty — nothing to send"))
+        continue
+      }
+
       let fileTransfer = FileTransferData(
         fileId: UUID().uuidString,
         fileName: file.name,

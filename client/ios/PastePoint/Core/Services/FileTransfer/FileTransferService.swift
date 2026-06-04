@@ -60,6 +60,11 @@ final class FileTransferService: ObservableObject {
 
   @discardableResult
   func prepareFileForSending(stagedFile: StagedFile, targetUser: String) async -> Bool {
+    guard stagedFile.size > 0 else {
+      logger.warning("skipping empty file \(stagedFile.name)")
+      return false
+    }
+
     await userService.waitForUsername()
     let sender = userService.user
 
