@@ -34,6 +34,9 @@ export class FileUploadService extends FileTransferBaseService {
   private consecutiveErrorCounts = new Map<string, number>();
   private maxConsecutiveErrors = 5;
   private offerReady = new Map<string, Promise<void>>();
+  // Memoize SHA-256 per File so broadcasting one file to N peers hashes once,
+  // not N times. WeakMap so entries are GC'd when the File is released.
+  private fileHashCache = new WeakMap<File, Promise<string>>();
 
   // =============== Constructor ===============
   constructor() {
@@ -417,7 +420,12 @@ export class FileUploadService extends FileTransferBaseService {
       // file without a verified hash). Abort and tell the receiver to drop the
       // phase-1 offer they already saw.
       try {
-        fileHash = await calculateFileHashStreaming(fileTransfer.file);
+        let hashPromise = this.fileHashCache.get(fileTransfer.file);
+        if (!hashPromise) {
+          hashPromise = calculateFileHashStreaming(fileTransfer.file);
+          this.fileHashCache.set(fileTransfer.file, hashPromise);
+        }
+        fileHash = await hashPromise;
         this.logger.debug(
           'sendFileOffer',
           `File hash for ${fileId}: ${fileHash.substring(0, 16)}...`
