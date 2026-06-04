@@ -141,6 +141,7 @@
   "FILE_DOWNLOAD_COMPLETED": "{{fileName}} готов к сохранению.",
   "FILE_REJECTED_NO_HASH": "{{fileName}} отклонён — отправитель не передал контрольную сумму целостности.",
   "FILE_SEND_HASH_FAILED": "Не удалось проверить {{fileName}} перед отправкой — передача отменена.",
+  "FILE_EMPTY_ERROR": "{{fileName}} пуст — нечего отправлять.",
   "FILE_UPLOAD_COMPLETED": "{{fileName}} успешно отправлен.",
   "FINALIZING_TRANSFER": "Завершение...",
   "CONNECTION_FAILED_WITH_USER": "Не удалось подключиться к {{userName}}.",

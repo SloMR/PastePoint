@@ -141,6 +141,7 @@
   "FILE_DOWNLOAD_COMPLETED": "{{fileName}} est prêt à être enregistré.",
   "FILE_REJECTED_NO_HASH": "{{fileName}} a été rejeté — l’expéditeur n’a fourni aucune empreinte d’intégrité.",
   "FILE_SEND_HASH_FAILED": "Impossible de vérifier {{fileName}} avant l’envoi — transfert annulé.",
+  "FILE_EMPTY_ERROR": "{{fileName}} est vide — rien à envoyer.",
   "FILE_UPLOAD_COMPLETED": "{{fileName}} envoyé avec succès.",
   "FINALIZING_TRANSFER": "Finalisation...",
   "CONNECTION_FAILED_WITH_USER": "Impossible de se connecter à {{userName}}.",

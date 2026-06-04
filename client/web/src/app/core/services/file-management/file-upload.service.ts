@@ -45,6 +45,12 @@ export class FileUploadService extends FileTransferBaseService {
    * Prepares a file for sending by creating necessary transfer metadata
    */
   public async prepareFileForSending(file: File, targetUser: string): Promise<void> {
+    if (file.size === 0) {
+      this.logger.warn('prepareFileForSending', `Skipping empty file ${file.name}`);
+      this.toaster.error(this.translate.instant('FILE_EMPTY_ERROR', { fileName: file.name }));
+      return;
+    }
+
     let userMap = await this.getFileTransfers(targetUser);
     if (!userMap) {
       userMap = new Map<string, FileUpload>();
