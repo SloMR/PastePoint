@@ -99,6 +99,8 @@ final class FileTransferService: ObservableObject {
       ),
     )
     logger.info("file-offer sent: \(stagedFile.name) (\(fileId)) → \(targetUser)")
+
+    await sendEnrichOffer(fileId: fileId, stagedFile: stagedFile, sender: sender, to: targetUser)
     return true
   }
 
@@ -391,6 +393,34 @@ extension FileTransferService {
       if Task.isCancelled { return false }
     }
   }
+
+  private func sendEnrichOffer(fileId: String, stagedFile: StagedFile, sender: String, to targetUser: String) async {
+    let hash = await Task.detached {
+      try? BinaryChunk.sha256Hex(ofFileAt: stagedFile.url)
+    }.value
+
+    guard let hash else {
+      logger.warning("hash compute failed for \(fileId); verify stays skipped (parity w/ web's catch)")
+      return
+    }
+
+    let enriched = FileOfferPayload(
+      fileId: fileId,
+      fileName: stagedFile.name,
+      fileSize: stagedFile.size,
+      fromUser: sender,
+      fileHash: hash,
+      previewDataUrl: nil,
+      previewMime: nil,
+    )
+
+    do {
+      _ = signalingService.send(try DataChannelMessage.encodeFileOffer(enriched), to: targetUser)
+      logger.info("enriched file-offer sent: \(fileId) → \(targetUser)")
+    } catch {
+      logger.error("encodeFileOffer (enriched) failed for \(fileId): \(error)")
+    }
+  }
 }
 
 // MARK: - Inbound Handling
@@ -414,8 +444,19 @@ extension FileTransferService {
   }
 
   private func receiveFileOffer(payload: FileOfferPayload, from peer: String) {
-    if incomingFileOffers.contains(where: { $0.id == payload.fileId }) {
-      logger.info("ignored duplicate file-offer \(payload.fileId)")
+    if let i = incomingFileOffers.firstIndex(where: { $0.id == payload.fileId }) {
+      if let hash = payload.fileHash, incomingFileOffers[i].expectedHash == nil {
+        incomingFileOffers[i].expectedHash = hash
+        logger.info("merged hash into pending offer \(payload.fileId)")
+      }
+      return
+    }
+
+    if let i = activeDownloads.firstIndex(where: { $0.id == payload.fileId && $0.fromUser == peer }) {
+      if let hash = payload.fileHash, activeDownloads[i].expectedHash == nil {
+        activeDownloads[i].expectedHash = hash
+        logger.info("merged hash into accepted download \(payload.fileId)")
+      }
       return
     }
 
@@ -544,6 +585,7 @@ extension FileTransferService {
       try? FileManager.default.createDirectory(at: completedDir, withIntermediateDirectories: true)
       let finalURL = completedDir.appendingPathComponent(download.fileName)
 
+      let logger = self.logger
       // Assemble + (optional) verify off the main actor.
       let result: (ok: Bool, hashMismatch: Bool) = await Task.detached {
         do {
@@ -569,6 +611,7 @@ extension FileTransferService {
             if actual != expectedHash {
               return (false, true)
             }
+            logger.info("file integrity verified \(download.fileName)")
           }
 
           return (true, false)
