@@ -513,14 +513,14 @@ extension FileTransferService {
     }
 
     guard parsed.isValid else {
-      logger.warning("invalid chunk \(parsed.chunkIndex) for \(parsed.fileId), dropping")
+      logger.warning("invalid chunk \(parsed.chunkIndex) for \(parsed.fileId), failing transfer")
+      failDownload(fileId: parsed.fileId, from: peer, reason: .integrity)
+      return
+    }
 
-      activeDownloads.removeAll { $0.id == parsed.fileId && $0.fromUser == peer }
-      try? FileManager.default.removeItem(at: chunkDirectory(for: parsed.fileId))
-      fileTransferFailed.send((
-        fileId: parsed.fileId,
-        reason: .integrity,
-      ))
+    if activeDownloads[idx].expectedHash == nil {
+      logger.warning("no hash for \(parsed.fileId); rejecting early")
+      failDownload(fileId: parsed.fileId, from: peer, reason: .noHash)
       return
     }
 
@@ -637,14 +637,8 @@ extension FileTransferService {
       guard result.ok else {
         logger.error("finalize failed for \(download.fileName), reason: \(result.reason ?? .assembly)")
 
-        // Remove the download + mark the bubble failed
-        activeDownloads.removeAll { $0.id == download.id && $0.fromUser == peer }
         try? FileManager.default.removeItem(at: completedDir)
-
-        fileTransferFailed.send((
-          fileId: download.id,
-          reason: result.reason ?? .assembly,
-        ))
+        failDownload(fileId: download.id, from: peer, reason: result.reason ?? .assembly)
         return
       }
 
@@ -728,6 +722,22 @@ extension FileTransferService {
     pendingChunkIndices[fileId] = nil
     let dir = chunkDirectory(for: fileId)
     try? FileManager.default.removeItem(at: dir)
+  }
+
+  private func failDownload(fileId: String, from peer: String, reason: FileTransferFailureReason) {
+    cleanupDownload(fileId: fileId, fromUser: peer)
+
+    do {
+      let data = try DataChannelMessage.encodeFileCancelDownload(FileCancelPayload(fileId: fileId))
+      _ = signalingService.send(data, to: peer)
+    } catch {
+      logger.error("encodeFileCancelDownload (fail) failed: \(error)")
+    }
+
+    fileTransferFailed.send((
+      fileId: fileId,
+      reason: reason,
+    ))
   }
 
   /// Per-file scratch directory for incoming chunks: <tmp>/incoming/<fileId>/.
