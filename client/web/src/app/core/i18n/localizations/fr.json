@@ -149,6 +149,7 @@
   "RECONNECTING_TO_USER": "Reconnexion à {{userName}}...",
   "CANNOT_CONNECT_TO_USER": "Impossible de se connecter à {{userName}}. Cette personne est peut-être hors ligne.",
   "CONNECTION_CLOSED_WITH_USER": "La connexion avec {{userName}} a été fermée.",
+  "WEBRTC_NOT_SUPPORTED": "Votre navigateur ne prend pas en charge WebRTC. Veuillez essayer un autre navigateur (Chrome, Firefox, Safari ou Edge).",
   "SERVER_CONNECTION_FAILED": "Impossible de se connecter au serveur. Vérifiez votre connexion Internet.",
   "SESSION_JOIN_FAILED": "Impossible de rejoindre la session. Le code est peut-être invalide ou expiré, ou le serveur est inaccessible.",
   "SERVER_CONNECTION_LOST_PERMANENTLY": "Connexion au serveur perdue. Veuillez recharger la page.",

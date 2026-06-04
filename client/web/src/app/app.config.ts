@@ -24,6 +24,34 @@ import { DatePipe } from '@angular/common';
 import { provideHotToastConfig } from '@ngxpert/hot-toast';
 import { SentryLoggerMonitor } from './core/services/monitoring/sentry-logger-monitor';
 
+// A new deploy renames chunks, so old tabs fail to load them. Reload once to
+// fetch the fresh bundle; if this load was already a reload, report instead.
+function createAppErrorHandler(): ErrorHandler {
+  const sentryHandler = Sentry.createErrorHandler({ showDialog: false });
+
+  const wasReloaded = (): boolean => {
+    const [navigation] = performance.getEntriesByType('navigation');
+    return (navigation as PerformanceNavigationTiming | undefined)?.type === 'reload';
+  };
+
+  return {
+    handleError(error: unknown): void {
+      const message = error instanceof Error ? error.message : String(error);
+      const isChunkLoadError =
+        /Failed to fetch dynamically imported module|Loading chunk \d+ failed|ChunkLoadError/i.test(
+          message
+        );
+
+      if (isChunkLoadError && typeof window !== 'undefined' && !wasReloaded()) {
+        window.location.reload();
+        return;
+      }
+
+      sentryHandler.handleError(error);
+    },
+  };
+}
+
 // Theme initialization function
 export function initializeTheme(themeService: ThemeService): () => Promise<void> {
   return () => {
@@ -48,7 +76,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     {
       provide: ErrorHandler,
-      useValue: Sentry.createErrorHandler({ showDialog: false }),
+      useValue: createAppErrorHandler(),
     },
     { provide: Sentry.TraceService, deps: [Router] },
     provideAppInitializer(() => void inject(Sentry.TraceService)),
