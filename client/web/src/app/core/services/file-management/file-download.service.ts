@@ -245,12 +245,7 @@ export class FileDownloadService extends FileTransferBaseService {
         'assembleAndDownloadFile',
         `No sender hash for ${fileDownload.fileId} - rejecting unverified file`
       );
-      this.toaster.error(
-        this.translate.instant('FILE_REJECTED_NO_HASH', { fileName: fileDownload.fileName })
-      );
-      orderedChunks.length = 0;
-      this.finishReceiveSpan(fromUser, fileDownload.fileId, 'no_hash');
-      await this.cleanupAfterDownload(fileDownload.fromUser, fileDownload.fileId);
+      await this.rejectDownload(fromUser, fileDownload, orderedChunks, 'no_hash', 'FILE_REJECTED_NO_HASH');
       return;
     }
 
@@ -266,10 +261,13 @@ export class FileDownloadService extends FileTransferBaseService {
 
       if (actualHash !== fileDownload.expectedHash) {
         this.logger.error('assembleAndDownloadFile', `Hash mismatch for ${fileDownload.fileId}!`);
-        this.toaster.error(this.translate.instant('CHUNK_INTEGRITY_ERROR'));
-        orderedChunks.length = 0; // Clear to free memory
-        this.finishReceiveSpan(fromUser, fileDownload.fileId, 'hash_mismatch');
-        await this.cleanupAfterDownload(fileDownload.fromUser, fileDownload.fileId);
+        await this.rejectDownload(
+          fromUser,
+          fileDownload,
+          orderedChunks,
+          'hash_mismatch',
+          'CHUNK_INTEGRITY_ERROR'
+        );
         return; // Abort - don't download corrupted file
       }
       this.logger.info(
@@ -282,12 +280,13 @@ export class FileDownloadService extends FileTransferBaseService {
         `Hash verification threw for ${fileDownload.fileId} - rejecting: ${e instanceof Error ? e.message : String(e)}`,
         e
       );
-      this.toaster.error(
-        this.translate.instant('FILE_REJECTED_NO_HASH', { fileName: fileDownload.fileName })
+      await this.rejectDownload(
+        fromUser,
+        fileDownload,
+        orderedChunks,
+        'hash_mismatch',
+        'FILE_REJECTED_NO_HASH'
       );
-      orderedChunks.length = 0;
-      this.finishReceiveSpan(fromUser, fileDownload.fileId, 'hash_mismatch');
-      await this.cleanupAfterDownload(fileDownload.fromUser, fileDownload.fileId);
       return;
     }
 
@@ -367,6 +366,24 @@ export class FileDownloadService extends FileTransferBaseService {
   }
 
   // =============== Helper Methods ===============
+  /**
+   * Rejects (never saves) a fully-received file that failed integrity: toasts,
+   * frees the assembled chunk memory, closes the span, and tears down (which
+   * also notifies the sender).
+   */
+  private async rejectDownload(
+    fromUser: string,
+    fileDownload: FileDownload,
+    orderedChunks: Blob[],
+    outcome: 'no_hash' | 'hash_mismatch',
+    toastKey: string
+  ): Promise<void> {
+    this.toaster.error(this.translate.instant(toastKey, { fileName: fileDownload.fileName }));
+    orderedChunks.length = 0;
+    this.finishReceiveSpan(fromUser, fileDownload.fileId, outcome);
+    await this.cleanupAfterDownload(fileDownload.fromUser, fileDownload.fileId);
+  }
+
   /**
    * Cleans up after a failed download (missing chunks or integrity error)
    */
