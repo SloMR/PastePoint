@@ -40,7 +40,7 @@ enum FileTransferStatus: String, Codable, Sendable {
   case accepted
   case declined
   case completed
-  case cancelled // TODO: Typo: Fix this on the web side
+  case cancelled
   case failed
 }
 
