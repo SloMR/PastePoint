@@ -245,7 +245,13 @@ export class FileDownloadService extends FileTransferBaseService {
         'assembleAndDownloadFile',
         `No sender hash for ${fileDownload.fileId} - rejecting unverified file`
       );
-      await this.rejectDownload(fromUser, fileDownload, orderedChunks, 'no_hash', 'FILE_REJECTED_NO_HASH');
+      await this.rejectDownload(
+        fromUser,
+        fileDownload,
+        orderedChunks,
+        'no_hash',
+        'FILE_REJECTED_NO_HASH'
+      );
       return;
     }
 

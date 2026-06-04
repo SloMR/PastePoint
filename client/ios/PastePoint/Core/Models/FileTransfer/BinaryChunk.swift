@@ -70,23 +70,24 @@ enum BinaryChunk {
     // TODO: Change the length of the buffer to const rather than fixed here
     guard buffer.count >= 14 else { return nil }
 
-    // Re-base to a contiguous zero-based view — a sliced Data can have a
-    // non-zero startIndex, which would break manual offset math.
-    let bytes = [UInt8](buffer)
+    // Read the header in place — `buffer` may be a slice with a non-zero
+    // startIndex, so every access is rebased on `base` (Data indices are absolute).
+    let base = buffer.startIndex
     var offset = 0
 
     func readU16() -> UInt16 {
-      let value = UInt16(bytes[offset]) | (UInt16(bytes[offset + 1]) << 8)
+      let i = base + offset
+      let value = UInt16(buffer[i]) | (UInt16(buffer[i + 1]) << 8)
       offset += 2
       return value
     }
 
     func readU32() -> UInt32 {
-      let value = UInt32(bytes[offset])
-        | (UInt32(bytes[offset + 1]) << 8)
-        | (UInt32(bytes[offset + 2]) << 16)
-        | (UInt32(bytes[offset + 3]) << 24)
-
+      let i = base + offset
+      let value = UInt32(buffer[i])
+        | (UInt32(buffer[i + 1]) << 8)
+        | (UInt32(buffer[i + 2]) << 16)
+        | (UInt32(buffer[i + 3]) << 24)
       offset += 4
       return value
     }
@@ -94,17 +95,23 @@ enum BinaryChunk {
     let fileIdLength = Int(readU16())
 
     // Need: fileId bytes + 12 (index + total + crc) after the length field.
-    guard bytes.count >= 2 + fileIdLength + 12 else { return nil }
+    guard buffer.count >= 2 + fileIdLength + 12 else { return nil }
 
-    let fileIdBytes = bytes[offset..<offset + fileIdLength]
+    let fileIdStart = base + offset
+    guard
+      let fileId = String(
+        bytes: buffer[fileIdStart..<fileIdStart + fileIdLength],
+        encoding:
+        .utf8,
+      )
+    else { return nil }
     offset += fileIdLength
-    guard let fileId = String(bytes: fileIdBytes, encoding: .utf8) else { return nil }
 
     let chunkIndex = readU32()
     let totalChunks = readU32()
     let expectedChecksum = readU32()
 
-    let data = Data(bytes[offset...])
+    let data = Data(buffer[(base + offset)...])
     let isValid = crc32(data) == expectedChecksum
 
     return ParsedChunk(
