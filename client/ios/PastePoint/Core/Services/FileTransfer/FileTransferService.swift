@@ -400,7 +400,9 @@ extension FileTransferService {
     }.value
 
     guard let hash else {
-      logger.warning("hash compute failed for \(fileId); verify stays skipped (parity w/ web's catch)")
+      logger.error("hash failed for \(fileId); aborting send")
+      stopFileUpload(targetUser: targetUser, fileId: fileId) // removes upload + sends file-cancel-upload
+      fileTransferFailed.send((fileId: fileId, reason: .sendHashFailed))
       return
     }
 
@@ -587,7 +589,7 @@ extension FileTransferService {
 
       let logger = self.logger
       // Assemble + (optional) verify off the main actor.
-      let result: (ok: Bool, hashMismatch: Bool) = await Task.detached {
+      let result: (ok: Bool, reason: FileTransferFailureReason?) = await Task.detached {
         do {
           // Concatenate chunks 0..<total in order.
           if FileManager.default.fileExists(atPath: finalURL.path) {
@@ -605,18 +607,19 @@ extension FileTransferService {
           }
           try? out.close()
 
-          // Verify hash if the sender provided one.
-          if let expectedHash = download.expectedHash {
-            let actual = try BinaryChunk.sha256Hex(ofFileAt: finalURL)
-            if actual != expectedHash {
-              return (false, true)
-            }
-            logger.info("file integrity verified \(download.fileName)")
+          // Verify hash.
+          guard let expectedHash = download.expectedHash else {
+            return (false, .noHash)
+          }
+          let actual = try BinaryChunk.sha256Hex(ofFileAt: finalURL)
+          if actual != expectedHash {
+            return (false, .integrity)
           }
 
-          return (true, false)
+          logger.info("file integrity verified \(download.fileName) ✓")
+          return (true, nil)
         } catch {
-          return (false, false)
+          return (false, .assembly)
         }
       }.value
 
@@ -624,7 +627,7 @@ extension FileTransferService {
       try? FileManager.default.removeItem(at: dir)
 
       guard result.ok else {
-        logger.error("finalize failed for \(download.fileName) (hashMismatch=\(result.hashMismatch))")
+        logger.error("finalize failed for \(download.fileName), reason: \(result.reason ?? .assembly)")
 
         // Remove the download + mark the bubble failed
         activeDownloads.removeAll { $0.id == download.id && $0.fromUser == peer }
@@ -632,7 +635,7 @@ extension FileTransferService {
 
         fileTransferFailed.send((
           fileId: download.id,
-          reason: result.hashMismatch ? .integrity : .assembly,
+          reason: result.reason ?? .assembly,
         ))
         return
       }
