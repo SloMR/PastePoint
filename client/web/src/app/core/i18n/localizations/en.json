@@ -139,6 +139,8 @@
   "FILE_UPLOAD_CANCELLED": "The sender canceled the upload.",
   "FILE_DOWNLOAD_CANCELLED": "The sender canceled the download.",
   "FILE_DOWNLOAD_COMPLETED": "{{fileName}} is ready to save.",
+  "FILE_REJECTED_NO_HASH": "{{fileName}} was rejected — the sender provided no integrity checksum.",
+  "FILE_SEND_HASH_FAILED": "Couldn’t verify {{fileName}} before sending — transfer cancelled.",
   "FILE_UPLOAD_COMPLETED": "{{fileName}} sent successfully.",
   "FINALIZING_TRANSFER": "Finalizing...",
   "CONNECTION_FAILED_WITH_USER": "Failed to connect to {{userName}}.",

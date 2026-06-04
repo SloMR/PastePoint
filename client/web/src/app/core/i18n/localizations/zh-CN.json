@@ -139,6 +139,8 @@
   "FILE_UPLOAD_CANCELLED": "发送方已取消上传。",
   "FILE_DOWNLOAD_CANCELLED": "发送方已取消下载。",
   "FILE_DOWNLOAD_COMPLETED": "{{fileName}} 已可保存。",
+  "FILE_REJECTED_NO_HASH": "{{fileName}} 已被拒绝——发送方未提供完整性校验值。",
+  "FILE_SEND_HASH_FAILED": "发送前无法校验 {{fileName}}——传输已取消。",
   "FILE_UPLOAD_COMPLETED": "{{fileName}} 发送完成。",
   "FINALIZING_TRANSFER": "正在完成……",
   "CONNECTION_FAILED_WITH_USER": "无法连接到 {{userName}}。",

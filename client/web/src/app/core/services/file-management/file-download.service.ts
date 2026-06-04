@@ -48,7 +48,13 @@ export class FileDownloadService extends FileTransferBaseService {
   private finishReceiveSpan(
     fromUser: string,
     fileId: string,
-    outcome: 'completed' | 'crc_failed' | 'missing_chunks' | 'hash_mismatch' | 'cancelled',
+    outcome:
+      | 'completed'
+      | 'crc_failed'
+      | 'missing_chunks'
+      | 'hash_mismatch'
+      | 'no_hash'
+      | 'cancelled',
     extra?: Record<string, number | string | boolean>
   ): void {
     const key = this.receiveSpanKey(fromUser, fileId);
@@ -223,36 +229,55 @@ export class FileDownloadService extends FileTransferBaseService {
       blobType = ext === 'svg' ? 'image/svg+xml' : `image/${ext === 'jpg' ? 'jpeg' : ext}`;
     }
 
-    // Verify file integrity via streaming SHA-256 hash (memory efficient!)
-    // Hashes chunk-by-chunk without loading entire file into memory
-    if (fileDownload.expectedHash) {
-      try {
-        const hasher = await createStreamingHash();
-        for (const chunkBlob of orderedChunks) {
-          const chunkBuffer = await chunkBlob.arrayBuffer();
-          updateStreamingHash(hasher as IHasher, new Uint8Array(chunkBuffer));
-        }
-        const actualHash = finalizeStreamingHash(hasher as IHasher);
+    if (!fileDownload.expectedHash) {
+      this.logger.error(
+        'assembleAndDownloadFile',
+        `No sender hash for ${fileDownload.fileId} - rejecting unverified file`
+      );
+      this.toaster.error(
+        this.translate.instant('FILE_REJECTED_NO_HASH', { fileName: fileDownload.fileName })
+      );
+      orderedChunks.length = 0;
+      this.finishReceiveSpan(fromUser, fileDownload.fileId, 'no_hash');
+      await this.cleanupAfterDownload(fileDownload.fromUser, fileDownload.fileId);
+      return;
+    }
 
-        if (actualHash !== fileDownload.expectedHash) {
-          this.logger.error('assembleAndDownloadFile', `Hash mismatch for ${fileDownload.fileId}!`);
-          this.toaster.error(this.translate.instant('CHUNK_INTEGRITY_ERROR'));
-          orderedChunks.length = 0; // Clear to free memory
-          this.finishReceiveSpan(fromUser, fileDownload.fileId, 'hash_mismatch');
-          await this.cleanupAfterDownload(fileDownload.fromUser, fileDownload.fileId);
-          return; // Abort - don't download corrupted file
-        }
-        this.logger.info(
-          'assembleAndDownloadFile',
-          `File integrity verified for ${fileDownload.fileId} ✓`
-        );
-      } catch (e) {
-        this.logger.warn(
-          'assembleAndDownloadFile',
-          `Failed to verify file hash: ${e instanceof Error ? e.message : String(e)}`,
-          e
-        );
+    // Verify file integrity via streaming SHA-256 hash (memory efficient!)
+    // Hashes chunk-by-chunk without loading entire file into memory.
+    try {
+      const hasher = await createStreamingHash();
+      for (const chunkBlob of orderedChunks) {
+        const chunkBuffer = await chunkBlob.arrayBuffer();
+        updateStreamingHash(hasher as IHasher, new Uint8Array(chunkBuffer));
       }
+      const actualHash = finalizeStreamingHash(hasher as IHasher);
+
+      if (actualHash !== fileDownload.expectedHash) {
+        this.logger.error('assembleAndDownloadFile', `Hash mismatch for ${fileDownload.fileId}!`);
+        this.toaster.error(this.translate.instant('CHUNK_INTEGRITY_ERROR'));
+        orderedChunks.length = 0; // Clear to free memory
+        this.finishReceiveSpan(fromUser, fileDownload.fileId, 'hash_mismatch');
+        await this.cleanupAfterDownload(fileDownload.fromUser, fileDownload.fileId);
+        return; // Abort - don't download corrupted file
+      }
+      this.logger.info(
+        'assembleAndDownloadFile',
+        `File integrity verified for ${fileDownload.fileId} ✓`
+      );
+    } catch (e) {
+      this.logger.error(
+        'assembleAndDownloadFile',
+        `Hash verification threw for ${fileDownload.fileId} - rejecting: ${e instanceof Error ? e.message : String(e)}`,
+        e
+      );
+      this.toaster.error(
+        this.translate.instant('FILE_REJECTED_NO_HASH', { fileName: fileDownload.fileName })
+      );
+      orderedChunks.length = 0;
+      this.finishReceiveSpan(fromUser, fileDownload.fileId, 'hash_mismatch');
+      await this.cleanupAfterDownload(fileDownload.fromUser, fileDownload.fileId);
+      return;
     }
 
     // Create final Blob directly from chunk Blobs
@@ -307,7 +332,6 @@ export class FileDownloadService extends FileTransferBaseService {
 
     // Revoke the object URL after a short delay to allow download to start
     setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
-
     this.toaster.success(this.translate.instant('FILE_DOWNLOAD_COMPLETED', { fileName }));
 
     this.sendData(

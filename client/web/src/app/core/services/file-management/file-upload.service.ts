@@ -33,6 +33,7 @@ export class FileUploadService extends FileTransferBaseService {
   private activeFilePerUser = new Map<string, string | null>(); // Currently transferring file per user
   private consecutiveErrorCounts = new Map<string, number>();
   private maxConsecutiveErrors = 5;
+  private offerReady = new Map<string, Promise<void>>();
 
   // =============== Constructor ===============
   constructor() {
@@ -116,6 +117,10 @@ export class FileUploadService extends FileTransferBaseService {
       this.toaster.error(this.translate.instant('NO_FILE_TO_SEND'));
       return;
     }
+
+    const offerKey = this.getOrCreateStatusKey(targetUser, fileId);
+    await this.offerReady.get(offerKey);
+    this.offerReady.delete(offerKey);
 
     fileTransfer.phase = 'sending';
     await this.setFileTransfers(targetUser, userMap);
@@ -379,76 +384,94 @@ export class FileUploadService extends FileTransferBaseService {
     const key = this.getOrCreateStatusKey(targetUser, fileId);
     await this.setFileTransferStatus(key, FileTransferStatus.PENDING);
 
-    // Phase 1: Send basic offer IMMEDIATELY so receiver sees it right away
-    const basicMessage = {
-      type: FILE_TRANSFER_MESSAGE_TYPES.FILE_OFFER,
-      payload: {
-        fileId: fileId,
-        fileName: fileTransfer.file.name,
-        fileSize: fileTransfer.file.size,
-        fromUser: this.userService.user,
-      },
-    };
-    this.sendData(basicMessage, targetUser);
-    this.logger.debug('sendFileOffer', `Sent basic offer for ${fileId} to ${targetUser}`);
-
-    // Phase 2: Calculate hash and generate preview, then send complete offer
-    let previewDataUrl: string | undefined;
-    let previewMime: string | undefined;
-    let fileHash: string | undefined;
-
-    // Calculate file hash for integrity verification
-    try {
-      fileHash = await calculateFileHashStreaming(fileTransfer.file);
-      this.logger.debug(
-        'sendFileOffer',
-        `File hash for ${fileId}: ${fileHash.substring(0, 16)}...`
-      );
-    } catch (e) {
-      this.logger.warn('sendFileOffer', `Failed calculating file hash: ${String(e)}`);
-    }
+    let markOfferReady!: () => void;
+    this.offerReady.set(key, new Promise<void>((resolve) => (markOfferReady = resolve)));
 
     try {
-      const mime = fileTransfer.file.type || '';
-      if (mime.startsWith('image/')) {
-        previewDataUrl = await this.previewService.createImageThumbnail(fileTransfer.file);
-        previewMime = 'image/png';
-      } else if (mime === 'application/pdf') {
-        previewDataUrl = await this.previewService.createPdfThumbnailFromFile(fileTransfer.file);
-        if (previewDataUrl) {
-          previewMime = PREVIEW_MIME_TYPE;
-        }
-      }
-
-      // Check if preview is too large for WebRTC message limit
-      if (previewDataUrl && previewDataUrl.length > MAX_PREVIEW_DATA_URL_SIZE) {
-        this.logger.warn(
-          'sendFileOffer',
-          `Preview too large (${(previewDataUrl.length / 1024).toFixed(1)}KB), skipping to avoid WebRTC message limit`
-        );
-        previewDataUrl = undefined;
-        previewMime = undefined;
-      }
-    } catch (e) {
-      this.logger.warn('sendFileOffer', `Failed generating preview: ${String(e)}`);
-    }
-
-    // Only send update if we have hash or preview to add
-    if (fileHash || previewDataUrl) {
-      const completeMessage = {
+      // Phase 1: Send basic offer IMMEDIATELY so receiver sees it right away
+      const basicMessage = {
         type: FILE_TRANSFER_MESSAGE_TYPES.FILE_OFFER,
         payload: {
           fileId: fileId,
           fileName: fileTransfer.file.name,
           fileSize: fileTransfer.file.size,
-          fileHash,
-          previewDataUrl,
-          previewMime,
           fromUser: this.userService.user,
         },
       };
-      this.sendData(completeMessage, targetUser);
-      this.logger.debug('sendFileOffer', `Sent complete offer with preview for ${fileId}`);
+      this.sendData(basicMessage, targetUser);
+      this.logger.debug('sendFileOffer', `Sent basic offer for ${fileId} to ${targetUser}`);
+
+      // Phase 2: Calculate hash and generate preview, then send complete offer
+      let previewDataUrl: string | undefined;
+      let previewMime: string | undefined;
+      let fileHash: string | undefined;
+
+      // Calculate file hash for integrity verification. Integrity is MANDATORY:
+      // if we can't hash the file, we must not send it (the receiver rejects any
+      // file without a verified hash). Abort and tell the receiver to drop the
+      // phase-1 offer they already saw.
+      try {
+        fileHash = await calculateFileHashStreaming(fileTransfer.file);
+        this.logger.debug(
+          'sendFileOffer',
+          `File hash for ${fileId}: ${fileHash.substring(0, 16)}...`
+        );
+      } catch (e) {
+        this.logger.error(
+          'sendFileOffer',
+          `Hash failed for ${fileId}, aborting send: ${String(e)}`
+        );
+        this.toaster.error(
+          this.translate.instant('FILE_SEND_HASH_FAILED', { fileName: fileTransfer.file.name })
+        );
+        await this.stopFileUpload(targetUser, fileId);
+        return;
+      }
+
+      try {
+        const mime = fileTransfer.file.type || '';
+        if (mime.startsWith('image/')) {
+          previewDataUrl = await this.previewService.createImageThumbnail(fileTransfer.file);
+          previewMime = 'image/png';
+        } else if (mime === 'application/pdf') {
+          previewDataUrl = await this.previewService.createPdfThumbnailFromFile(fileTransfer.file);
+          if (previewDataUrl) {
+            previewMime = PREVIEW_MIME_TYPE;
+          }
+        }
+
+        // Check if preview is too large for WebRTC message limit
+        if (previewDataUrl && previewDataUrl.length > MAX_PREVIEW_DATA_URL_SIZE) {
+          this.logger.warn(
+            'sendFileOffer',
+            `Preview too large (${(previewDataUrl.length / 1024).toFixed(1)}KB), skipping to avoid WebRTC message limit`
+          );
+          previewDataUrl = undefined;
+          previewMime = undefined;
+        }
+      } catch (e) {
+        this.logger.warn('sendFileOffer', `Failed generating preview: ${String(e)}`);
+      }
+
+      // Only send update if we have hash or preview to add
+      if (fileHash || previewDataUrl) {
+        const completeMessage = {
+          type: FILE_TRANSFER_MESSAGE_TYPES.FILE_OFFER,
+          payload: {
+            fileId: fileId,
+            fileName: fileTransfer.file.name,
+            fileSize: fileTransfer.file.size,
+            fileHash,
+            previewDataUrl,
+            previewMime,
+            fromUser: this.userService.user,
+          },
+        };
+        this.sendData(completeMessage, targetUser);
+        this.logger.debug('sendFileOffer', `Sent complete offer with preview for ${fileId}`);
+      }
+    } finally {
+      markOfferReady();
     }
   }
 
