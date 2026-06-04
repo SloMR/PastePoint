@@ -59,7 +59,7 @@ final class FileTransferService: ObservableObject {
   }
 
   @discardableResult
-  func prepareFileForSending(stagedFile: StagedFile, targetUser: String) async -> Bool {
+  func prepareFileForSending(stagedFile: StagedFile, targetUser: String, hashTask: Task<String?, Never>? = nil) async -> Bool {
     guard stagedFile.size > 0 else {
       logger.warning("skipping empty file \(stagedFile.name)")
       return false
@@ -107,30 +107,54 @@ final class FileTransferService: ObservableObject {
     logger.info("file-offer sent: \(stagedFile.name) (\(fileId)) → \(targetUser)")
 
     offerTasks[fileId] = Task { [weak self] in
-      await self?.sendEnrichOffer(fileId: fileId, stagedFile: stagedFile, sender: sender, to: targetUser)
+      await self?.sendEnrichOffer(
+        fileId: fileId,
+        stagedFile: stagedFile,
+        sender: sender,
+        to: targetUser,
+        hashTask: hashTask,
+      )
       self?.offerTasks[fileId] = nil
     }
     return true
   }
 
-  func sendFiles(_ files: [StagedFile], to member: String) async {
+  func sendStagedFile(_ stagedFile: StagedFile, to peers: [String]) async {
+    guard stagedFile.size > 0 else {
+      logger.warning("skipping empty file \(stagedFile.name)")
+      return
+    }
+
     await userService.waitForUsername()
     let sender = userService.user
 
+    outgoingAttachment.send(
+      ChatMessage(
+        from: sender,
+        text: stagedFile.name,
+        type: .attachment,
+        fileTransfer: FileTransferData(
+          fileId: UUID().uuidString,
+          fileName: stagedFile.name,
+          fileSize: stagedFile.size,
+          fromUser: sender,
+          status: .pending,
+        ),
+        isMine: true,
+      ),
+    )
+
+    let hashTask = Task.detached {
+      try? BinaryChunk.sha256Hex(ofFileAt: stagedFile.url)
+    }
+    for peer in peers {
+      await prepareFileForSending(stagedFile: stagedFile, targetUser: peer, hashTask: hashTask)
+    }
+  }
+
+  func sendFiles(_ files: [StagedFile], to member: String) async {
     for file in files {
-      await prepareFileForSending(stagedFile: file, targetUser: member)
-
-      let transfer = FileTransferData(
-        fileId: UUID().uuidString,
-        fileName: file.name,
-        fileSize: file.size,
-        fromUser: sender,
-        status: .pending,
-      )
-
-      outgoingAttachment.send(
-        ChatMessage(from: sender, text: file.name, type: .attachment, fileTransfer: transfer, isMine: true),
-      )
+      await sendStagedFile(file, to: [member])
     }
   }
 
@@ -407,10 +431,21 @@ extension FileTransferService {
     }
   }
 
-  private func sendEnrichOffer(fileId: String, stagedFile: StagedFile, sender: String, to targetUser: String) async {
-    let hash = await Task.detached {
-      try? BinaryChunk.sha256Hex(ofFileAt: stagedFile.url)
-    }.value
+  private func sendEnrichOffer(
+    fileId: String,
+    stagedFile: StagedFile,
+    sender: String,
+    to targetUser: String,
+    hashTask: Task<String?, Never>? = nil,
+  ) async {
+    let hash: String?
+    if let hashTask {
+      hash = await hashTask.value
+    } else {
+      hash = await Task.detached {
+        try? BinaryChunk.sha256Hex(ofFileAt: stagedFile.url)
+      }.value
+    }
 
     guard let hash else {
       logger.error("hash failed for \(fileId); aborting send")
