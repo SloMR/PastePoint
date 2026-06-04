@@ -113,6 +113,17 @@ export class FileDownloadService extends FileTransferBaseService {
       return;
     }
 
+    // Mandatory integrity: reject before downloading the whole file.
+    if (!fileDownload.expectedHash) {
+      this.logger.error('handleDataChunk', `No sender hash for ${fileId} - rejecting early`);
+      this.toaster.error(
+        this.translate.instant('FILE_REJECTED_NO_HASH', { fileName: fileDownload.fileName })
+      );
+      this.finishReceiveSpan(fromUser, fileId, 'no_hash');
+      await this.cleanupAfterDownload(fromUser, fileId);
+      return;
+    }
+
     // Verify chunk integrity (CRC32 checksum)
     if (!isValid) {
       this.logger.error(
@@ -367,6 +378,13 @@ export class FileDownloadService extends FileTransferBaseService {
         await this.deleteIncomingFileTransfers(fromUser);
       }
     }
+
+    // Tell the sender to stop. Otherwise it finishes streaming and hangs in
+    // 'finalizing' forever, waiting for a file-received ack that never comes.
+    this.sendData(
+      { type: FILE_TRANSFER_MESSAGE_TYPES.FILE_CANCEL_DOWNLOAD, payload: { fileId } },
+      fromUser
+    );
     await this.updateActiveDownloads();
     await this.updateIncomingFileOffers();
   }
