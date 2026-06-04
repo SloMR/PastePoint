@@ -142,6 +142,9 @@ export enum ChatMessageType {
   ATTACHMENT = 'attachment',
 }
 
+// Per-peer connection state for the member dot (green / yellow / red).
+export type MemberConnectionState = 'connected' | 'connecting' | 'disconnected';
+
 export interface FileTransferData {
   fileId: string;
   fileName: string;
@@ -158,6 +161,7 @@ export interface ChatMessage {
   fileTransfer?: FileTransferData;
   previewUrl?: string;
   previewMime?: string;
+  isMine?: boolean;
 }
 
 // File transfer interfaces

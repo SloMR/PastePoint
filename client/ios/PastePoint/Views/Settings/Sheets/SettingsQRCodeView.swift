@@ -38,11 +38,11 @@ struct QRCodeView: View {
   }
 }
 
-struct SettingsQRCode: View {
+struct SettingsQRCodeView: View {
   @Environment(\.dismiss) private var dismiss
   @EnvironmentObject private var services: AppServices
 
-  private let logger = Logger(label: "SettingsQRCode")
+  private let logger = Logger(label: "SettingsQRCodeView")
 
   @State private var sheetHeight: CGFloat = 420
 

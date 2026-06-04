@@ -7,13 +7,19 @@ import SwiftUI
 
 struct ChatContainerView: View {
   let messages: [ChatMessage]
+  let onAcceptFile: (_ fromUser: String, _ fileId: String) -> Void
+  let onDeclineFile: (_ fromUser: String, _ fileId: String) -> Void
 
   var body: some View {
     Group {
       if messages.isEmpty {
         WelcomeView()
       } else {
-        ChatView(messages: messages)
+        ChatView(
+          messages: messages,
+          onAcceptFile: onAcceptFile,
+          onDeclineFile: onDeclineFile,
+        )
       }
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)

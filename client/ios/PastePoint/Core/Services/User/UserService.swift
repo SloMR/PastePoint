@@ -33,10 +33,29 @@ final class UserService: ObservableObject {
         Task { await self?.getUsername() }
       }
       .store(in: &cancellables)
+
+    wsService.$isConnected
+      .receive(on: DispatchQueue.main)
+      .sink { [weak self] connected in
+        if !connected {
+          self?.user = ""
+        }
+      }
+      .store(in: &cancellables)
   }
 
   func getUsername() async {
     await wsService.send("[UserCommand] /name")
+  }
+
+  /// Suspends until `user` is non-empty. Returns immediately if already set.
+  /// Used by services that need the username before sending peer messages —
+  /// covers the race where the server's `[SystemName]` arrives after a peer event.
+  func waitForUsername() async {
+    if !user.isEmpty { return }
+    for await name in $user.values where !name.isEmpty {
+      return
+    }
   }
 
   private func handleSystemMessage(_ message: String) {

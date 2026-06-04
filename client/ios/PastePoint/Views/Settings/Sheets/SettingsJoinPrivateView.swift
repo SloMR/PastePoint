@@ -6,11 +6,11 @@
 import Logging
 import SwiftUI
 
-struct SettingsJoinPrivate: View {
+struct SettingsJoinPrivateView: View {
   @Environment(\.dismiss) private var dismiss
   @EnvironmentObject private var services: AppServices
 
-  private let logger = Logger(label: "SettingsJoinPrivate")
+  private let logger = Logger(label: "SettingsJoinPrivateView")
 
   var onSessionJoin: (() -> Void)?
 
@@ -148,7 +148,7 @@ struct SettingsJoinPrivate: View {
     .presentationBackground(AppColors.Background.background)
     .appToast(items: $toasts)
     .fullScreenCover(isPresented: $isScannerPresented) {
-      SettingsScanQRCode { scannedCode in
+      SettingsScanQRCodeView { scannedCode in
         sessionCode = scannedCode
         Task { await joinSession(code: scannedCode) }
       }
@@ -181,7 +181,7 @@ struct SettingsJoinPrivate: View {
 
 #if DEBUG
 #Preview {
-  SettingsJoinPrivate()
+  SettingsJoinPrivateView()
     .environmentObject(AppServices.preview)
 }
 #endif

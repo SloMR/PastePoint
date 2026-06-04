@@ -3,7 +3,7 @@ import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 
-import { FileDownload, FileUpload } from '../../../../utils/constants';
+import { FileDownload, FileUpload, MemberConnectionState } from '../../../../utils/constants';
 
 @Component({
   selector: 'app-chat-sidebar',
@@ -19,6 +19,7 @@ export class ChatSidebarComponent {
   @Input() activeUploads: FileUpload[] = [];
   @Input() activeDownloads: FileDownload[] = [];
   @Input() memberConnectionStatus: Map<string, boolean> = new Map();
+  @Input() memberConnectionState: Map<string, MemberConnectionState> = new Map();
   @Input() isRTL = false;
   @Input() isDarkMode = false;
   @Input() isMenuOpen = false;
@@ -41,6 +42,24 @@ export class ChatSidebarComponent {
 
   protected isConnectedToMember(member: string): boolean {
     return this.memberConnectionStatus.get(member) ?? false;
+  }
+
+  protected memberDotClass(member: string): Record<string, boolean> {
+    const state = this.memberConnectionState.get(member) ?? 'disconnected';
+    return {
+      'bg-green-500': state === 'connected',
+      'bg-yellow-400': state === 'connecting',
+      'bg-red-500': state === 'disconnected',
+    };
+  }
+
+  protected memberDotTitle(member: string): string {
+    const state = this.memberConnectionState.get(member) ?? 'disconnected';
+    return state === 'connected'
+      ? 'Connected'
+      : state === 'connecting'
+        ? 'Connecting…'
+        : 'Not connected';
   }
 
   protected progressValue(progress: number): number {

@@ -26,10 +26,10 @@ struct SettingsPrivateSessionSection: View {
       }
     }
     .sheet(isPresented: $isQRCodeSheetPresented) {
-      SettingsQRCode()
+      SettingsQRCodeView()
     }
     .sheet(isPresented: $isJoinPrivateSessionPresented) {
-      SettingsJoinPrivate(onSessionJoin: onSessionJoin)
+      SettingsJoinPrivateView(onSessionJoin: onSessionJoin)
     }
   }
 

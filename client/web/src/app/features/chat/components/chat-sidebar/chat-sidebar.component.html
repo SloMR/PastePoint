@@ -217,9 +217,8 @@
             >
               <div
                 class="h-4 w-4 rounded-full transition-colors duration-300"
-                [class.bg-green-500]="isConnectedToMember(member)"
-                [class.bg-red-500]="!isConnectedToMember(member)"
-                [attr.title]="isConnectedToMember(member) ? 'Connected' : 'Not connected'"
+                [ngClass]="memberDotClass(member)"
+                [attr.title]="memberDotTitle(member)"
               ></div>
               <p class="truncate text-base font-expoArabicMedium">{{ member }}</p>
               <div class="ml-auto">
@@ -731,9 +730,8 @@
               >
                 <div
                   class="h-4 w-4 rounded-full transition-colors duration-300"
-                  [class.bg-green-500]="isConnectedToMember(member)"
-                  [class.bg-red-500]="!isConnectedToMember(member)"
-                  [attr.title]="isConnectedToMember(member) ? 'Connected' : 'Not connected'"
+                  [ngClass]="memberDotClass(member)"
+                  [attr.title]="memberDotTitle(member)"
                 ></div>
                 <p class="truncate text-base font-expoArabicMedium">{{ member }}</p>
                 <div class="ml-auto">

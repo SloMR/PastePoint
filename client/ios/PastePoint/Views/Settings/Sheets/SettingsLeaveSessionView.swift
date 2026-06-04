@@ -6,11 +6,11 @@
 import Logging
 import SwiftUI
 
-struct SettingsLeaveSession: View {
+struct SettingsLeaveSessionView: View {
   @Environment(\.dismiss) private var dismiss
   @EnvironmentObject private var services: AppServices
 
-  private let logger = Logger(label: "SettingsLeaveSession")
+  private let logger = Logger(label: "SettingsLeaveSessionView")
 
   var onSessionLeft: (() -> Void)?
 
@@ -110,7 +110,7 @@ struct SettingsLeaveSession: View {
 
 #if DEBUG
 #Preview {
-  SettingsLeaveSession()
+  SettingsLeaveSessionView()
     .environmentObject(AppServices.preview)
 }
 #endif

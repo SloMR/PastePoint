@@ -10,6 +10,8 @@ struct ChatView: View {
   @State private var scrolledID: ChatMessage.ID?
 
   let messages: [ChatMessage]
+  let onAcceptFile: (_ fromUser: String, _ fileId: String) -> Void
+  let onDeclineFile: (_ fromUser: String, _ fileId: String) -> Void
 
   private var isPrivate: Bool {
     services.wsService.currentSessionCode != nil
@@ -28,9 +30,12 @@ struct ChatView: View {
             ForEach(messages) { message in
               ChatMessageBubble(
                 alignment: alignment(for: message),
-                name: message.from,
+                name: message.isMine ? "You" : message.from,
                 time: timeString(message.timestamp),
                 text: message.text,
+                fileTransfer: message.fileTransfer,
+                onAccept: acceptHandler(for: message),
+                onDecline: declineHandler(for: message),
               )
               .transition(.asymmetric(
                 insertion: .move(edge: .bottom).combined(with: .opacity),
@@ -102,11 +107,39 @@ struct ChatView: View {
   }
 
   private func alignment(for message: ChatMessage) -> MessageAlignment {
-    message.from == services.userService.user ? .trailing : .leading
+    message.isMine ? .trailing : .leading
   }
 
   private func timeString(_ date: Date) -> String {
     date.formatted(date: .omitted, time: .shortened)
+  }
+
+  private func acceptHandler(for message: ChatMessage) -> (() -> Void)? {
+    guard
+      let transfer = message.fileTransfer,
+      transfer.status == .pending,
+      message.from != services.userService.user
+    else {
+      return nil
+    }
+
+    return {
+      onAcceptFile(transfer.fromUser, transfer.fileId)
+    }
+  }
+
+  private func declineHandler(for message: ChatMessage) -> (() -> Void)? {
+    guard
+      let transfer = message.fileTransfer,
+      transfer.status == .pending,
+      message.from != services.userService.user
+    else {
+      return nil
+    }
+
+    return {
+      onDeclineFile(transfer.fromUser, transfer.fileId)
+    }
   }
 }
 
@@ -117,18 +150,22 @@ struct ChatView: View {
   let services = AppServices.preview
   services.userService.user = "Gwen Kuphal"
 
-  return ChatView(messages: [
-    ChatMessage(
-      from: "Garry Schulist",
-      text: "Hello",
-      timestamp: dateAt(hour: 21, minute: 4),
-    ),
-    ChatMessage(
-      from: "Gwen Kuphal",
-      text: "Hi",
-      timestamp: dateAt(hour: 21, minute: 5),
-    ),
-  ])
+  return ChatView(
+    messages: [
+      ChatMessage(
+        from: "Garry Schulist",
+        text: "Hello",
+        timestamp: dateAt(hour: 21, minute: 4),
+      ),
+      ChatMessage(
+        from: "Gwen Kuphal",
+        text: "Hi",
+        timestamp: dateAt(hour: 21, minute: 5),
+      ),
+    ],
+    onAcceptFile: { _, _ in },
+    onDeclineFile: { _, _ in },
+  )
   .environmentObject(services)
 }
 

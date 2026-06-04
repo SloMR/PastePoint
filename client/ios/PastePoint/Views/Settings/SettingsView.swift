@@ -142,13 +142,13 @@ struct SettingsView: View {
       }
     }
     .sheet(isPresented: $isLeaveSessionSheetPresented) {
-      SettingsLeaveSession {
+      SettingsLeaveSessionView {
         logger.info("User left a private session")
         toasts.append(.info("Left private session"))
       }
     }
     .sheet(isPresented: $isJoinRoomSheetPresented) {
-      SettingsCreateRoom {
+      SettingsCreateRoomView {
         logger.info("User created a room")
         toasts.append(.success("Room created successfully!"))
       }

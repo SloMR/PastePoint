@@ -33,6 +33,7 @@ import {
   FileDownload,
   FileTransferStatus,
   FileUpload,
+  MemberConnectionState,
   MB,
   NAVIGATION_DELAY_MS,
   CONNECTION_WARNING_DELAY_MS,
@@ -133,6 +134,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   rooms: string[] = [];
   members: string[] = [];
   memberConnectionStatus = new Map<string, boolean>(); // true = connected, false = failed
+  memberConnectionState = new Map<string, MemberConnectionState>(); // green / yellow / red dot
   showConnectionWarning = false;
 
   currentRoom = 'main';
@@ -575,6 +577,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
               );
               this.webrtcService.closeConnection(member);
               this.memberConnectionStatus.delete(member);
+              this.memberConnectionState.delete(member);
             });
 
             // Clean up timeouts for members who left
@@ -589,6 +592,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
             this.members.forEach((member) => {
               if (!this.memberConnectionStatus.has(member)) {
                 this.memberConnectionStatus.set(member, false);
+                this.memberConnectionState.set(member, 'connecting');
                 this.scheduleConnectionWarning(member);
               }
             });
@@ -647,6 +651,10 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
         this.ngZone.run(() => {
           if (!this.members.includes(member)) return;
           this.memberConnectionStatus.set(member, false);
+          this.memberConnectionState.set(
+            member,
+            this.webrtcService.isConnectedOrConnecting(member) ? 'connecting' : 'disconnected'
+          );
           this.scheduleConnectionWarning(member);
           this.cdr.detectChanges();
         });
@@ -659,6 +667,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
         this.ngZone.run(() => {
           if (!this.members.includes(member)) return;
           this.memberConnectionStatus.set(member, true);
+          this.memberConnectionState.set(member, 'connected');
           this.clearConnectionWarning(member);
           this.cdr.detectChanges();
         });
@@ -880,6 +889,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     this.activeUploads = [];
     this.activeDownloads = [];
     this.memberConnectionStatus.clear();
+    this.memberConnectionState.clear();
     this.showConnectionWarning = false;
     this.connectionWarningDismissed = false;
     this.currentRoom = 'main';
@@ -1627,9 +1637,18 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
       this.ngZone.run(() => {
         const otherMembers = this.members.filter((m) => m !== this.userService.user);
 
-        // Keep the status map in sync for the UI (red/green circles)
+        // Keep the status maps in sync for the UI (red/yellow/green circles)
         otherMembers.forEach((member) => {
-          this.memberConnectionStatus.set(member, this.webrtcService.isConnected(member));
+          const connected = this.webrtcService.isConnected(member);
+          this.memberConnectionStatus.set(member, connected);
+          this.memberConnectionState.set(
+            member,
+            connected
+              ? 'connected'
+              : this.webrtcService.isConnectedOrConnecting(member)
+                ? 'connecting'
+                : 'disconnected'
+          );
         });
 
         // Clean up warning timeouts for members who left

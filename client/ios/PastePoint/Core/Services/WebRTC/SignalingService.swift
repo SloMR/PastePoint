@@ -12,13 +12,25 @@ private struct UnsafeSendable<T>: @unchecked Sendable {
   nonisolated(unsafe) let value: T
 }
 
+enum FileChannelEvent {
+  case offer(FileOfferPayload, from: String)
+  case accept(FileAcceptPayload, from: String)
+  case decline(FileDeclinePayload, from: String)
+  case cancelUpload(FileCancelPayload, from: String)
+  case cancelDownload(FileCancelPayload, from: String)
+  case received(FileReceivedPayload, from: String)
+}
+
 @MainActor
 final class SignalingService: NSObject, ObservableObject {
 
   @Published private(set) var connectedPeers: Set<String> = []
+  @Published private(set) var connectingPeers: Set<String> = []
 
   let bufferedAmountLow = PassthroughSubject<String, Never>()
   let chatMessages = PassthroughSubject<ChatMessage, Never>()
+  let fileEvent = PassthroughSubject<FileChannelEvent, Never>()
+  let chunkReceived = PassthroughSubject<(ParsedChunk, from: String), Never>()
 
   private let logger = Logger(label: "SignalingService")
   private let wsService: WebSocketConnectionService
@@ -63,6 +75,16 @@ final class SignalingService: NSObject, ObservableObject {
         self?.syncMesh(peers: peers)
       }
       .store(in: &cancellables)
+
+    wsService.didReconnect
+      .receive(on: DispatchQueue.main)
+      .sink { [weak self] in
+        Task { @MainActor in
+          await self?.userService.waitForUsername()
+          self?.resetMesh()
+        }
+      }
+      .store(in: &cancellables)
   }
 
   // MARK: - Public API
@@ -78,7 +100,7 @@ final class SignalingService: NSObject, ObservableObject {
       return
     }
 
-    await waitForUsername()
+    await userService.waitForUsername()
     if !shouldInitiateConnection(to: peer) {
       logger.info("not the designated caller for \(peer), sending connection request")
       let request = SignalMessage(
@@ -92,6 +114,7 @@ final class SignalingService: NSObject, ObservableObject {
     }
 
     connectionLocks.insert(peer)
+    connectingPeers.insert(peer)
     startConnectionTimeout(for: peer)
 
     guard let pc = PeerConnectionFactory.shared.makePeerConnection(delegate: self) else {
@@ -181,6 +204,14 @@ final class SignalingService: NSObject, ObservableObject {
       }
     }
   }
+
+  private func resetMesh() {
+    for peer in Set(peerConnections.keys).union(connectionLocks) {
+      closePeerConnection(peer)
+    }
+
+    syncMesh(peers: peerDirectory.peers)
+  }
 }
 
 // MARK: - Inbound Signal Handling
@@ -215,7 +246,7 @@ extension SignalingService {
   }
 
   private func handleOffer(_ message: SignalMessage) async {
-    await waitForUsername()
+    await userService.waitForUsername()
 
     if isDuplicate(message.from, sequence: message.sequence) {
       logger.debug("ignoring duplicate sequence from \(message.from)")
@@ -234,6 +265,7 @@ extension SignalingService {
     }
 
     connectionLocks.insert(message.from)
+    connectingPeers.insert(message.from)
     startConnectionTimeout(for: message.from)
 
     guard case .offer(let sdpString) = message.payload else {
@@ -367,6 +399,7 @@ extension SignalingService {
     guard peerDirectory.peers.contains(peer) else {
       logger.info("\(peer) is no longer a peer, skipping")
       reconnectAttempts[peer] = nil
+      connectingPeers.remove(peer)
       return
     }
 
@@ -374,10 +407,12 @@ extension SignalingService {
     guard attempts < Self.maxReconnectAttempts else {
       logger.error("max attempts reached for \(peer)")
       reconnectAttempts[peer] = nil
+      connectingPeers.remove(peer)
       return
     }
 
     reconnectAttempts[peer] = attempts + 1
+    connectingPeers.insert(peer)
 
     // Exponential backoff: 2s, 3s, 4.5s, ...
     let delay = min(Self.baseReconnectDelay * pow(1.5, Double(attempts)), Self.maxReconnectDelay)
@@ -392,6 +427,7 @@ extension SignalingService {
       guard self.peerDirectory.peers.contains(peer) else {
         self.logger.info("\(peer) left during backoff, skipping")
         self.reconnectAttempts[peer] = nil
+        connectingPeers.remove(peer)
         return
       }
 
@@ -399,6 +435,7 @@ extension SignalingService {
       if self.connectedPeers.contains(peer) {
         self.logger.debug("\(peer) already healthy, skipping")
         self.reconnectAttempts[peer] = nil
+        connectingPeers.remove(peer)
         return
       }
 
@@ -437,6 +474,8 @@ extension SignalingService {
       reconnectTasks[peer]?.cancel()
       reconnectTasks[peer] = nil
       reconnectAttempts[peer] = nil
+      outboundSequences[peer] = nil
+      inboundSequences[peer] = nil
     }
     dataChannels[peer]?.close()
     dataChannels[peer] = nil
@@ -445,6 +484,7 @@ extension SignalingService {
     candidateQueues[peer] = nil
     connectionLocks.remove(peer)
     connectedPeers.remove(peer)
+    connectingPeers.remove(peer)
   }
 }
 
@@ -473,7 +513,10 @@ extension SignalingService {
     }
   }
 
-  private func send(_ data: Data, to peer: String) -> Bool {
+  /// Transport hook: send a pre-encoded data-channel envelope to one peer.
+  /// Returns false if the channel is closed or back-pressured.
+  /// Called by services that build their own envelopes (e.g. `FileTransferService`).
+  func send(_ data: Data, to peer: String, isBinary: Bool = false) -> Bool {
     guard let channel = dataChannels[peer], channel.readyState == .open else {
       logger.warning("no open channel to \(peer)")
       return false
@@ -484,7 +527,7 @@ extension SignalingService {
       return false
     }
 
-    return channel.sendData(RTCDataBuffer(data: data, isBinary: false))
+    return channel.sendData(RTCDataBuffer(data: data, isBinary: isBinary))
   }
 
   private func encodeChatForWire(_ chat: ChatMessage) -> Data? {
@@ -500,13 +543,6 @@ extension SignalingService {
 // MARK: - Helpers
 
 extension SignalingService {
-
-  private func waitForUsername() async {
-    if !userService.user.isEmpty { return }
-    for await user in userService.$user.values where !user.isEmpty {
-      return
-    }
-  }
 
   private func nextSequence(for peer: String) -> Int {
     let next = (outboundSequences[peer] ?? 0) + 1
@@ -577,7 +613,7 @@ extension SignalingService: RTCPeerConnectionDelegate {
 
     Task { @MainActor [weak self] in
       guard let self else { return }
-      await waitForUsername()
+      await userService.waitForUsername()
 
       guard let peer = self.peer(forConnectionID: peerConnectionID) else {
         self.logger.warning("unknown peer connection")
@@ -632,6 +668,7 @@ extension SignalingService: RTCDataChannelDelegate {
       switch state {
       case .open:
         self.connectedPeers.insert(peer)
+        self.connectingPeers.remove(peer)
         self.connectionLocks.remove(peer)
         self.reconnectAttempts[peer] = nil
         self.clearConnectionTimeout(for: peer)
@@ -666,21 +703,34 @@ extension SignalingService: RTCDataChannelDelegate {
       }
 
       if isBinary {
-        // TODO: Add file chunk handler here
-        self.logger.info("received \(bytes.count) bytes from \(peer)")
+        guard let parsed = BinaryChunk.decode(bytes) else {
+          self.logger.warning("dropped malformed binary chunk from \(peer)")
+          return
+        }
+
+        self.chunkReceived.send((parsed, from: peer))
         return
       }
 
       do {
-        switch try DataChannelMessage.decode(bytes) {
-        case .chat(let msg):
-          self.chatMessages.send(msg)
-        case .unknown(let type):
-          self.logger.warning("unknown data-channel type \(type) from \(peer)")
-        }
+        let decoded = try DataChannelMessage.decode(bytes)
+        self.route(decoded, from: peer)
       } catch {
         self.logger.error("failed to decode data-channel message from \(peer): \(error)")
       }
+    }
+  }
+
+  private func route(_ decoded: DataChannelMessage.Decoded, from peer: String) {
+    switch decoded {
+    case .chat(let msg): chatMessages.send(msg)
+    case .fileOffer(let payload): fileEvent.send(.offer(payload, from: peer))
+    case .fileAccept(let payload): fileEvent.send(.accept(payload, from: peer))
+    case .fileDecline(let payload): fileEvent.send(.decline(payload, from: peer))
+    case .fileCancelUpload(let payload): fileEvent.send(.cancelUpload(payload, from: peer))
+    case .fileCancelDownload(let payload): fileEvent.send(.cancelDownload(payload, from: peer))
+    case .fileReceived(let payload): fileEvent.send(.received(payload, from: peer))
+    case .unknown(let type): logger.warning("unknown data-channel type \(type) from \(peer)")
     }
   }
 
@@ -693,7 +743,6 @@ extension SignalingService: RTCDataChannelDelegate {
       guard let peer = self.peer(forChannelID: dataChannelID) else { return }
 
       if currentBuffered < WebRTCConfig.bufferedAmountLowThreshold {
-        self.logger.debug("dataChannel: buffer low for \(peer) (\(currentBuffered) bytes)")
         self.bufferedAmountLow.send(peer)
       }
     }
