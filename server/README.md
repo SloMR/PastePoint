@@ -2,7 +2,7 @@
 
 The PastePoint server is a high-performance Rust-based backend built with Actix Web, providing WebSocket-based file sharing and communication services for local networks. Features comprehensive session management, WebRTC signaling, and secure file transfer capabilities.
 
-[![Actix](https://img.shields.io/badge/Actix-0.13.5-blue)](https://actix.rs/)
+[![Actix](https://img.shields.io/badge/Actix-4.13-blue)](https://actix.rs/)
 [![OpenSSL](https://img.shields.io/badge/OpenSSL-0.10-yellow)](https://www.openssl.org/)
 [![Rust](https://img.shields.io/badge/Rust-Backend-orange)](https://www.rust-lang.org/)
 
@@ -37,7 +37,7 @@ server/
 
 ### Prerequisites
 
-- **Rust**: stable toolchain (specified in `../rust-toolchain`)
+- **Rust**: 1.93.1 (specified in `../rust-toolchain`, edition 2024)
 - **OpenSSL**: Required for SSL/TLS support
   - Linux: `sudo apt-get install libssl-dev pkg-config`
   - macOS: `brew install openssl pkg-config`

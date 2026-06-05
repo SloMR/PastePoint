@@ -2,9 +2,9 @@
 
 The PastePoint client is a modern Angular application with Server-Side Rendering (SSR) support, providing an intuitive interface for file sharing and communication on local networks. Features WebRTC file transfer capabilities, real-time chat, and comprehensive user experience enhancements.
 
-[![Angular](https://img.shields.io/badge/Angular-19-red)](https://angular.io/)
+[![Angular](https://img.shields.io/badge/Angular-21-red)](https://angular.io/)
 [![Tailwind](https://img.shields.io/badge/Tailwind-3.4-blue)](https://tailwindcss.com/)
-[![Flowbite](https://img.shields.io/badge/Flowbite-3.0-cyan)](https://flowbite.com/)
+[![Flowbite](https://img.shields.io/badge/Flowbite-3.1-cyan)](https://flowbite.com/)
 
 ## Tech Stack
 
@@ -26,12 +26,16 @@ web/
 │   ├── app/
 │   │   ├── core/
 │   │   │   ├── i18n/           # Internationalization
+│   │   │   ├── components/     # Reusable layout & cross-cutting UI
 │   │   │   ├── services/       # Core services
 │   │   │   │   ├── communication/    # WebRTC, WebSocket, Chat
 │   │   │   │   ├── file-management/  # File transfer services
-│   │   │   │   ├── ui/              # Theme, Language services
-│   │   │   │   ├── user-management/ # User services
-│   │   │   │   └── migration/       # App migration
+│   │   │   │   ├── room-management/  # Room/session join, list, create
+│   │   │   │   ├── session/          # Session lifecycle & QR sharing
+│   │   │   │   ├── user-management/  # User identity & presence
+│   │   │   │   ├── ui/               # Theme, Language services
+│   │   │   │   ├── monitoring/       # Error tracking (Sentry)
+│   │   │   │   └── migration/        # App migration
 │   │   │   └── interfaces/     # TypeScript interfaces
 │   │   ├── features/           # Features such as chat, file sharing, etc.
 │   │   ├── utils/              # Utility functions
@@ -75,7 +79,7 @@ web/
 1. **Navigate to client directory**:
 
    ```bash
-   cd client
+   cd client/web
    ```
 
 2. **Install dependencies**:
