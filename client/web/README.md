@@ -66,7 +66,7 @@ web/
 
 ### Prerequisites
 
-- **Node.js**: v22.14.0 (specified in `../.nvmrc`)
+- **Node.js**: v24.16.0 (specified in `../.nvmrc`)
 - **npm**: Latest version
 - **Angular CLI**: `npm install -g @angular/cli`
 
@@ -230,7 +230,7 @@ this.translate.instant('WELCOME');
    # Use correct Node version
    nvm use
    # Or install the specified version
-   nvm install 22.14.0
+   nvm install 24.16.0
    ```
 
 2. **WebSocket Connection Issues**:
