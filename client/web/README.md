@@ -8,6 +8,17 @@ The PastePoint client is a modern Angular application with Server-Side Rendering
 
 ## Tech Stack
 
+### Core Features
+
+- **Rendering**: Server-Side Rendering with Angular SSR (`@angular/ssr` + Express)
+- **WebRTC**: Native WebRTC API for peer-to-peer file transfers
+- **File Integrity**: `hash-wasm` for fast client-side file hashing
+- **QR Sharing**: `qrcode` for generation, `jsqr` for camera-based scanning
+- **I18n**: `@ngx-translate/core` (English, Arabic with RTL support)
+- **Styling**: Tailwind CSS with class-based dark mode + Flowbite components
+- **Notifications**: Hot-toast (`@ngxpert/hot-toast`) for real-time user feedback
+- **Error Tracking**: `@sentry/angular` with privacy-tight redaction (off by default in dev)
+
 ### Development Tools
 
 - **Build Tool**: Angular CLI with custom webpack configuration
@@ -15,8 +26,6 @@ The PastePoint client is a modern Angular application with Server-Side Rendering
 - **Linting**: ESLint with Angular-specific rules
 - **Formatting**: Prettier with custom configuration
 - **Styling**: stylelint for CSS/SCSS validation
-- **WebRTC**: Native WebRTC API for peer-to-peer file transfers
-- **Notifications**: Hot-toast for real-time user feedback
 
 ## Project Structure
 
@@ -97,6 +106,23 @@ web/
 4. **Open browser**:
    Navigate to `http://localhost:4200`
 
+### Available Scripts
+
+```bash
+npm start              # dev server (ng serve)
+npm run start-local    # dev server bound to your local network IP
+npm run watch          # rebuild on change (development configuration)
+npm run build:dev      # development build
+npm run build:prod     # production build
+npm run serve:ssr:web  # run the built SSR server locally
+npm run test           # unit tests (Karma/Jasmine)
+npm run test:coverage  # unit tests with coverage report
+npm run test:ci        # headless CI tests with coverage
+npm run lint           # ESLint
+npm run lint:fix       # ESLint with autofix
+npm run format         # Prettier
+```
+
 ## Configuration
 
 ### Environment Files
@@ -114,8 +140,19 @@ export const environment = {
   enableSourceMaps: true,
   disableFileDetails: false,
   disableConsoleLogging: false,
+  sentry: {
+    enabled: false,
+    dsn: '',
+    environment: 'development',
+    tracesSampleRate: 0.1,
+    enableLogs: true,
+  },
 };
 ```
+
+> **Note:** `apiUrl` is host:port without a scheme — the client derives `https`/`wss`
+> at runtime. Sentry is compiled into the bundle from these files; set `sentry.enabled`
+> and `sentry.dsn` here to turn it on.
 
 ### Angular Configuration
 
@@ -124,7 +161,6 @@ Key configurations in `angular.json`:
 - **Build optimization**: Bundle optimization and tree shaking
 - **SSR configuration**: Server-side rendering setup
 - **Asset optimization**: Image and font optimization
-- **Service worker**: PWA configuration
 
 ## Testing
 

@@ -4,6 +4,7 @@ The PastePoint server is a high-performance Rust-based backend built with Actix 
 
 [![Actix](https://img.shields.io/badge/Actix-4.13-blue)](https://actix.rs/)
 [![OpenSSL](https://img.shields.io/badge/OpenSSL-0.10-yellow)](https://www.openssl.org/)
+[![Sentry](https://img.shields.io/badge/Sentry-0.48-purple)](https://sentry.io/)
 [![Rust](https://img.shields.io/badge/Rust-Backend-orange)](https://www.rust-lang.org/)
 
 ## Tech Stack
@@ -15,6 +16,7 @@ The PastePoint server is a high-performance Rust-based backend built with Actix 
 - **UUID**: UUID generation for session management
 - **Rate Limiting**: [Actix-governor](https://github.com/AaronErhardt/actix-governor) for request throttling
 - **Logging**: Built-in logging with configurable levels
+- **Error Tracking**: [`sentry`](https://sentry.io/) + `sentry-actix` with privacy-tight redaction (off by default in dev)
 
 ## Project Structure
 
@@ -75,6 +77,10 @@ server/
 - `config/development.toml`: Development environment settings
 - `config/production.toml`: Production environment settings
 - `config/docker-dev.toml`: Docker development environment settings
+
+The active config is selected via the `RUN_ENV` environment variable (e.g.
+`RUN_ENV=development`, `production`, or `docker-dev`), defaulting to the
+development configuration when unset.
 
 ## Testing
 
