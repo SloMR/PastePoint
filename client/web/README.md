@@ -2,11 +2,22 @@
 
 The PastePoint client is a modern Angular application with Server-Side Rendering (SSR) support, providing an intuitive interface for file sharing and communication on local networks. Features WebRTC file transfer capabilities, real-time chat, and comprehensive user experience enhancements.
 
-[![Angular](https://img.shields.io/badge/Angular-19-red)](https://angular.io/)
+[![Angular](https://img.shields.io/badge/Angular-21-red)](https://angular.io/)
 [![Tailwind](https://img.shields.io/badge/Tailwind-3.4-blue)](https://tailwindcss.com/)
-[![Flowbite](https://img.shields.io/badge/Flowbite-3.0-cyan)](https://flowbite.com/)
+[![Flowbite](https://img.shields.io/badge/Flowbite-3.1-cyan)](https://flowbite.com/)
 
 ## Tech Stack
+
+### Core Features
+
+- **Rendering**: Server-Side Rendering with Angular SSR (`@angular/ssr` + Express)
+- **WebRTC**: Native WebRTC API for peer-to-peer file transfers
+- **File Integrity**: `hash-wasm` for fast client-side file hashing
+- **QR Sharing**: `qrcode` for generation, `jsqr` for camera-based scanning
+- **I18n**: `@ngx-translate/core` (English, Arabic with RTL support)
+- **Styling**: Tailwind CSS with class-based dark mode + Flowbite components
+- **Notifications**: Hot-toast (`@ngxpert/hot-toast`) for real-time user feedback
+- **Error Tracking**: `@sentry/angular` with privacy-tight redaction (off by default in dev)
 
 ### Development Tools
 
@@ -15,8 +26,6 @@ The PastePoint client is a modern Angular application with Server-Side Rendering
 - **Linting**: ESLint with Angular-specific rules
 - **Formatting**: Prettier with custom configuration
 - **Styling**: stylelint for CSS/SCSS validation
-- **WebRTC**: Native WebRTC API for peer-to-peer file transfers
-- **Notifications**: Hot-toast for real-time user feedback
 
 ## Project Structure
 
@@ -26,12 +35,16 @@ web/
 │   ├── app/
 │   │   ├── core/
 │   │   │   ├── i18n/           # Internationalization
+│   │   │   ├── components/     # Reusable layout & cross-cutting UI
 │   │   │   ├── services/       # Core services
 │   │   │   │   ├── communication/    # WebRTC, WebSocket, Chat
 │   │   │   │   ├── file-management/  # File transfer services
-│   │   │   │   ├── ui/              # Theme, Language services
-│   │   │   │   ├── user-management/ # User services
-│   │   │   │   └── migration/       # App migration
+│   │   │   │   ├── room-management/  # Room/session join, list, create
+│   │   │   │   ├── session/          # Session lifecycle & QR sharing
+│   │   │   │   ├── user-management/  # User identity & presence
+│   │   │   │   ├── ui/               # Theme, Language services
+│   │   │   │   ├── monitoring/       # Error tracking (Sentry)
+│   │   │   │   └── migration/        # App migration
 │   │   │   └── interfaces/     # TypeScript interfaces
 │   │   ├── features/           # Features such as chat, file sharing, etc.
 │   │   ├── utils/              # Utility functions
@@ -66,7 +79,7 @@ web/
 
 ### Prerequisites
 
-- **Node.js**: v22.14.0 (specified in `../.nvmrc`)
+- **Node.js**: v24.16.0 (specified in `../.nvmrc`)
 - **npm**: Latest version
 - **Angular CLI**: `npm install -g @angular/cli`
 
@@ -75,7 +88,7 @@ web/
 1. **Navigate to client directory**:
 
    ```bash
-   cd client
+   cd client/web
    ```
 
 2. **Install dependencies**:
@@ -92,6 +105,23 @@ web/
 
 4. **Open browser**:
    Navigate to `http://localhost:4200`
+
+### Available Scripts
+
+```bash
+npm start              # dev server (ng serve)
+npm run start-local    # dev server bound to your local network IP
+npm run watch          # rebuild on change (development configuration)
+npm run build:dev      # development build
+npm run build:prod     # production build
+npm run serve:ssr:web  # run the built SSR server locally
+npm run test           # unit tests (Karma/Jasmine)
+npm run test:coverage  # unit tests with coverage report
+npm run test:ci        # headless CI tests with coverage
+npm run lint           # ESLint
+npm run lint:fix       # ESLint with autofix
+npm run format         # Prettier
+```
 
 ## Configuration
 
@@ -110,8 +140,19 @@ export const environment = {
   enableSourceMaps: true,
   disableFileDetails: false,
   disableConsoleLogging: false,
+  sentry: {
+    enabled: false,
+    dsn: '',
+    environment: 'development',
+    tracesSampleRate: 0.1,
+    enableLogs: true,
+  },
 };
 ```
+
+> **Note:** `apiUrl` is host:port without a scheme — the client derives `https`/`wss`
+> at runtime. Sentry is compiled into the bundle from these files; set `sentry.enabled`
+> and `sentry.dsn` here to turn it on.
 
 ### Angular Configuration
 
@@ -120,7 +161,6 @@ Key configurations in `angular.json`:
 - **Build optimization**: Bundle optimization and tree shaking
 - **SSR configuration**: Server-side rendering setup
 - **Asset optimization**: Image and font optimization
-- **Service worker**: PWA configuration
 
 ## Testing
 
@@ -230,7 +270,7 @@ this.translate.instant('WELCOME');
    # Use correct Node version
    nvm use
    # Or install the specified version
-   nvm install 22.14.0
+   nvm install 24.16.0
    ```
 
 2. **WebSocket Connection Issues**:

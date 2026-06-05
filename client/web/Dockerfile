@@ -1,5 +1,5 @@
 # ---------- Stage 1: Build the Angular app ----------
-FROM node:22.14.0-slim AS builder
+FROM node:24.16.0-slim AS builder
 WORKDIR /usr/src/app
 
 ARG NPM_BUILD_CONFIG=docker
@@ -18,11 +18,11 @@ COPY client/web/ ./
 RUN npm run build -- --configuration=$NPM_BUILD_CONFIG
 
 # ---------- Stage 2: SSR Server ----------
-FROM node:22.14.0-alpine AS ssr
+FROM node:24.16.0-alpine AS ssr
 WORKDIR /usr/src/app
 
 # Install only necessary packages
-RUN apk add --no-cache wget=1.25.0-r0
+RUN apk add --no-cache wget=1.25.0-r2
 
 # Copy built artifacts & package files
 COPY --from=builder /usr/src/app/dist /usr/src/app/dist

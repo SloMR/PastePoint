@@ -169,7 +169,7 @@ pastepoint/
 ### Prerequisites:
 
 - Docker and Docker Compose
-- Node.js (v22.14.0 as specified in `.nvmrc`)
+- Node.js (v24.16.0 as specified in `.nvmrc`)
 - Rust 1.93.1 (specified in `rust-toolchain`, edition 2024)
 
 #### Windows-Specific Requirements:
