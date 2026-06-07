@@ -1,11 +1,10 @@
 use crate::{
-    CONTENT_TYPE_TEXT_PLAIN, MAX_FRAME_SIZE, SAFE_CHARSET, SESSION_EXPIRATION_TIME, ServerConfig,
-    WsChatServer, WsChatSession, message::CleanupSession,
+    CONTENT_TYPE_TEXT_PLAIN, SAFE_CHARSET, SESSION_EXPIRATION_TIME, ServerConfig, WsChatServer,
+    WsChatSession, message::CleanupSession,
 };
 use actix::SystemService;
 use actix_rt::{spawn, task, time};
 use actix_web::{Error, HttpRequest, HttpResponse, web::Payload};
-use actix_web_actors::ws as actix_actor_ws;
 use rand::{RngExt, rng};
 use std::{
     collections::{HashMap, HashSet},
@@ -14,6 +13,7 @@ use std::{
         atomic::{AtomicUsize, Ordering},
     },
 };
+use tokio::sync::mpsc::unbounded_channel;
 use uuid::Uuid;
 
 /// Stores the session's UUID and whether it's private.
@@ -126,14 +126,26 @@ impl SessionStore {
     ) -> Result<HttpResponse, Error> {
         match self.get_or_create_session_uuid(key, strict_mode, is_private) {
             Some(uuid_str) => match Uuid::parse_str(&uuid_str) {
-                Ok(_) => actix_actor_ws::WsResponseBuilder::new(
-                    WsChatSession::new(&uuid_str, config.auto_join, self.clone()),
-                    req,
-                    stream,
-                )
-                .codec(actix_http::ws::Codec::new())
-                .frame_size(MAX_FRAME_SIZE)
-                .start(),
+                Ok(_) => {
+                    let (response, session, msg_stream) = actix_ws::handle(req, stream)
+                        .inspect_err(|e| {
+                            log::error!(target: "Websocket", "WebSocket handshake failed: {e}");
+                        })?;
+
+                    let (tx, rx) = unbounded_channel::<String>();
+                    let server = WsChatServer::from_registry();
+                    let state = WsChatSession::new(&uuid_str, config.auto_join, self.clone());
+
+                    let handle =
+                        actix_web::rt::spawn(state.run(session, msg_stream, rx, tx, server));
+                    actix_web::rt::spawn(async move {
+                        if let Err(e) = handle.await {
+                            log::error!(target: "Websocket", "Session task terminated abnormally: {e}");
+                        }
+                    });
+
+                    Ok(response)
+                }
                 Err(_) => {
                     log::error!(target: "Websocket", "Invalid UUID returned: {uuid_str}");
                     Ok(HttpResponse::InternalServerError()
