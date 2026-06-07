@@ -1,8 +1,9 @@
 use crate::SessionStore;
 use actix::prelude::*;
 use std::{collections::HashMap, time::Instant};
+use tokio::sync::mpsc::UnboundedSender;
 
-pub type Client = Recipient<ChatMessage>;
+pub type Client = UnboundedSender<String>;
 pub type Room = HashMap<usize, ClientMetadata>;
 
 #[derive(Default)]
@@ -23,21 +24,17 @@ pub struct WsChatSession {
 }
 
 pub struct ClientMetadata {
-    pub recipient: Client, // client
-    pub name: String,      // client name
+    pub tx: Client,   // outbound channel to the client
+    pub name: String, // client name
 }
-
-#[derive(Clone, Message)]
-#[rtype(result = "()")]
-pub struct ChatMessage(pub String /* message */);
 
 #[derive(Clone, Message)]
 #[rtype(result = "usize")]
 pub struct JoinRoom(
-    pub String,                 // session_id
-    pub String,                 // room_name
-    pub String,                 // client_name
-    pub Recipient<ChatMessage>, // client
+    pub String, // session_id
+    pub String, // room_name
+    pub String, // client_name
+    pub Client, // outbound channel to the client
 );
 
 #[derive(Clone, Message)]
@@ -55,10 +52,10 @@ pub struct ListRooms(pub String /* session_id */);
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct RelaySignalMessage {
-    pub(crate) session_id: String,   // session_id
-    pub(crate) from: String,         // from user
-    pub(crate) to: String,           // to user
-    pub(crate) message: ChatMessage, // signal message
+    pub(crate) session_id: String, // session_id
+    pub(crate) from: String,       // from user
+    pub(crate) to: String,         // to user
+    pub(crate) message: String,    // signal message
 }
 
 #[derive(Message)]
