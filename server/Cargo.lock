@@ -28,17 +28,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "actix-broker"
-version = "0.4.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4d1b33c405e9ddb48ac2e4dba41fe547572010b3976be1e59fc54ca60569d890"
-dependencies = [
- "actix",
- "ahash",
- "log",
-]
-
-[[package]]
 name = "actix-codec"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -309,24 +298,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "actix-web-actors"
-version = "4.3.1+deprecated"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f98c5300b38fd004fe7d2a964f9a90813fdbe8a81fed500587e78b1b71c6f980"
-dependencies = [
- "actix",
- "actix-codec",
- "actix-http",
- "actix-web",
- "bytes",
- "bytestring",
- "futures-core",
- "pin-project-lite",
- "tokio",
- "tokio-util",
-]
-
-[[package]]
 name = "actix-web-codegen"
 version = "4.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -336,6 +307,20 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "actix-ws"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "12d4f2fbee3ef7a22fa6cb0e416b962237a167ed0419f22d4e451da2d7f082f8"
+dependencies = [
+ "actix-codec",
+ "actix-http",
+ "actix-web",
+ "bytestring",
+ "futures-core",
+ "tokio",
 ]
 
 [[package]]
@@ -363,18 +348,6 @@ name = "adler2"
 version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "320119579fcad9c21884f5c4861d16174d0e06250625266f50fe6898340abefa"
-
-[[package]]
-name = "ahash"
-version = "0.8.12"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5a15f179cd60c4584b8a8c596927aadc462e27f2ca70c04e0071964a73ba7a75"
-dependencies = [
- "cfg-if",
- "once_cell",
- "version_check",
- "zerocopy",
-]
 
 [[package]]
 name = "aho-corasick"
@@ -2815,14 +2788,13 @@ name = "server"
 version = "0.10.1"
 dependencies = [
  "actix",
- "actix-broker",
  "actix-cors",
  "actix-governor",
  "actix-http",
  "actix-rt",
  "actix-test",
  "actix-web",
- "actix-web-actors",
+ "actix-ws",
  "awc",
  "bytes",
  "config",
@@ -3066,7 +3038,19 @@ dependencies = [
  "pin-project-lite",
  "signal-hook-registry",
  "socket2 0.6.3",
+ "tokio-macros",
  "windows-sys 0.61.2",
+]
+
+[[package]]
+name = "tokio-macros"
+version = "2.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "385a6cb71ab9ab790c5fe8d67f1645e6c450a7ce006a33de03daa956cf70a496"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
