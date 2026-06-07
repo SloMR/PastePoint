@@ -1,7 +1,7 @@
 use crate::{
     CLEANUP_INTERVAL, WS_PREFIX_SYSTEM_MEMBERS, WS_PREFIX_SYSTEM_ROOMS,
     consts::{MAX_ROOMS_PER_SESSION, MAX_SESSIONS},
-    message::{ChatMessage, Client, ClientMetadata, Room, WsChatServer},
+    message::{Client, ClientMetadata, Room, WsChatServer},
 };
 use actix::prelude::*;
 use rand::{RngExt, rng};
@@ -40,10 +40,7 @@ impl WsChatServer {
         {
             return if let Vacant(e) = existing_room.entry(id) {
                 log::debug!(target: "Websocket", "Adding client to room: {}", room_name);
-                e.insert(ClientMetadata {
-                    recipient: client,
-                    name,
-                });
+                e.insert(ClientMetadata { tx: client, name });
                 Some(id)
             } else {
                 log::debug!(
@@ -75,13 +72,7 @@ impl WsChatServer {
         }
 
         let mut room: Room = HashMap::new();
-        room.insert(
-            id,
-            ClientMetadata {
-                recipient: client,
-                name,
-            },
-        );
+        room.insert(id, ClientMetadata { tx: client, name });
 
         self.rooms
             .entry(session_id.to_string())
@@ -109,11 +100,7 @@ impl WsChatServer {
 
             for id in client_ids {
                 if let Some(client) = room.get(&id) {
-                    if client
-                        .recipient
-                        .try_send(ChatMessage(msg.to_owned()))
-                        .is_ok()
-                    {
+                    if client.tx.send(msg.to_owned()).is_ok() {
                         log::debug!(
                             target: "Websocket",
                             "Join Message sent to client {id}, staying in room: {room_name}"
@@ -145,7 +132,13 @@ impl WsChatServer {
 
             for room in users.values() {
                 for client in room.values() {
-                    let _ = client.recipient.try_send(ChatMessage(message.clone()));
+                    if client.tx.send(message.clone()).is_err() {
+                        log::debug!(
+                            target: "Websocket",
+                            "Failed to send room list to {}: client may have disconnected",
+                            client.name
+                        );
+                    }
                 }
             }
         }
@@ -168,11 +161,7 @@ impl WsChatServer {
             let member_message = format!("{} {}", WS_PREFIX_SYSTEM_MEMBERS, member_list.join(", "));
 
             for client_metadata in room.values() {
-                if client_metadata
-                    .recipient
-                    .try_send(ChatMessage(member_message.clone()))
-                    .is_err()
-                {
+                if client_metadata.tx.send(member_message.clone()).is_err() {
                     log::debug!(
                         target: "Websocket",
                         "Failed to send member list to client {}, client may have disconnected",
@@ -243,7 +232,7 @@ impl WsChatServer {
         &self,
         session_id: &str,
         to_user: &str,
-        message: ChatMessage,
+        message: String,
         from_user: &str,
     ) {
         if to_user == from_user {
@@ -258,7 +247,7 @@ impl WsChatServer {
             for room in rooms.values() {
                 for client in room.values() {
                     if client.name == to_user {
-                        if let Err(e) = client.recipient.try_send(message) {
+                        if let Err(e) = client.tx.send(message) {
                             log::error!(
                                 target: "Websocket",
                                 "Failed to relay signal from {from_user} to {to_user}: {e:?}"
@@ -279,6 +268,14 @@ impl WsChatServer {
             target: "Websocket",
             "Could not find target user {to_user} in session {session_id} to relay message from {from_user}"
         );
+    }
+}
+
+impl Actor for WsChatServer {
+    type Context = Context<Self>;
+
+    fn started(&mut self, ctx: &mut Self::Context) {
+        self.start_cleanup_interval(ctx);
     }
 }
 
