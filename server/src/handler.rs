@@ -1,8 +1,8 @@
 use actix::{Handler, MessageResult};
 
 use crate::{
-    ChatMessage, JoinRoom, LeaveRoom, ListRooms, WS_PREFIX_SIGNAL_MESSAGE, WS_PREFIX_SYSTEM_ERROR,
-    WS_PREFIX_SYSTEM_JOIN, WsChatServer, WsChatSession,
+    JoinRoom, LeaveRoom, ListRooms, WS_PREFIX_SIGNAL_MESSAGE, WS_PREFIX_SYSTEM_ERROR,
+    WS_PREFIX_SYSTEM_JOIN, WsChatServer,
     message::{CleanupSession, RelaySignalMessage, ValidateAndRelaySignal},
 };
 
@@ -26,9 +26,17 @@ impl Handler<JoinRoom> for WsChatServer {
                 MessageResult(id)
             }
             None => {
-                let _ = client.try_send(ChatMessage(format!(
-                    "{WS_PREFIX_SYSTEM_ERROR} Room limit or session limit reached"
-                )));
+                if client
+                    .send(format!(
+                        "{WS_PREFIX_SYSTEM_ERROR} Room limit or session limit reached"
+                    ))
+                    .is_err()
+                {
+                    log::debug!(
+                        target: "Websocket",
+                        "Could not notify client of room/session limit: already disconnected"
+                    );
+                }
                 MessageResult(0)
             }
         }
@@ -83,14 +91,6 @@ impl Handler<ListRooms> for WsChatServer {
             .map(|rooms_map| rooms_map.keys().cloned().collect())
             .unwrap_or_default();
         MessageResult(rooms_list)
-    }
-}
-
-impl Handler<ChatMessage> for WsChatSession {
-    type Result = ();
-
-    fn handle(&mut self, msg: ChatMessage, ctx: &mut Self::Context) {
-        ctx.text(msg.0);
     }
 }
 
@@ -170,7 +170,7 @@ impl Handler<ValidateAndRelaySignal> for WsChatServer {
             return;
         }
 
-        let relay_msg = ChatMessage(format!("{} {}", WS_PREFIX_SIGNAL_MESSAGE, msg.payload));
+        let relay_msg = format!("{} {}", WS_PREFIX_SIGNAL_MESSAGE, msg.payload);
         self.relay_message_to_user(&msg.session_id, &msg.to_user, relay_msg, &msg.from_user);
         if let Some(tx) = tx {
             tx.set_status(sentry::protocol::SpanStatus::Ok);
