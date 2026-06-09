@@ -10,7 +10,6 @@ name = "server_bin"
 path = "src/main.rs"
 
 [dependencies]
-actix = "0.13.5"
 actix-web = { version = "4.13.0", features = ["openssl"] }
 actix-ws = "0.3.0"
 actix-http = "3.12.1"
