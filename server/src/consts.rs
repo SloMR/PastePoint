@@ -5,9 +5,9 @@ pub const MAX_FRAME_SIZE: usize = 64 * 1024;
 pub const MAX_SIGNAL_SIZE: usize = 128 * 1024;
 
 // Security limits
-pub const MAX_ROOMS_PER_SESSION: usize = 50;
-pub const MAX_SESSIONS: usize = 100_000;
-pub const MAX_WS_MESSAGES_PER_SEC: usize = 30;
+pub(crate) const MAX_ROOMS_PER_SESSION: usize = 50;
+pub(crate) const MAX_SESSIONS: usize = 100_000;
+pub(crate) const MAX_WS_MESSAGES_PER_SEC: usize = 30;
 
 // Timing intervals
 pub const KEEP_ALIVE_INTERVAL: Duration = Duration::from_secs(3600);
