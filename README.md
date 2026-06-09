@@ -70,7 +70,7 @@ PastePoint is a secure, feature-rich file-sharing service designed for local net
 [![Actix](https://img.shields.io/badge/Actix-4.13-blue)](https://actix.rs/)
 [![OpenSSL](https://img.shields.io/badge/OpenSSL-0.10-yellow)](https://www.openssl.org/)
 
-- **Framework**: Actix Web with WebSocket support (Rust edition 2024, toolchain 1.93.1)
+- **Framework**: Actix Web for HTTP/TLS, `actix-ws` for WebSocket signaling (Rust edition 2024, toolchain 1.93.1)
 - **Security**: OpenSSL for TLS termination
 - **Utilities**: UUID generation, Serde serialization
 - **Rate Limiting**: Actix-governor for request throttling
