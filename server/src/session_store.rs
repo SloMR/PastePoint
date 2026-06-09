@@ -1,15 +1,14 @@
 use crate::{
-    CONTENT_TYPE_TEXT_PLAIN, SAFE_CHARSET, SESSION_EXPIRATION_TIME, ServerConfig, WsChatServer,
-    WsChatSession, message::CleanupSession,
+    CONTENT_TYPE_TEXT_PLAIN, ChatServerHandle, SAFE_CHARSET, SESSION_EXPIRATION_TIME, ServerConfig,
+    session::WsChatSession,
 };
-use actix::SystemService;
 use actix_rt::{spawn, task, time};
 use actix_web::{Error, HttpRequest, HttpResponse, web::Payload};
 use rand::{RngExt, rng};
 use std::{
     collections::{HashMap, HashSet},
     sync::{
-        Arc, Mutex,
+        Arc, LockResult, Mutex, MutexGuard,
         atomic::{AtomicUsize, Ordering},
     },
 };
@@ -18,31 +17,37 @@ use uuid::Uuid;
 
 /// Stores the session's UUID and whether it's private.
 #[derive(Clone, Copy)]
-pub struct SessionData {
-    pub uuid: Uuid,
-    pub is_private: bool,
+pub(crate) struct SessionData {
+    pub(crate) uuid: Uuid,
+    pub(crate) is_private: bool,
 }
 
 #[derive(Default, Clone)]
 pub struct SessionStore {
+    /// Shared room/session state, replacing the former WsChatServer actor.
+    pub chat_server: ChatServerHandle,
     /// Maps a key (IP for public or generated code for private sessions)
     /// to its session data.
-    pub key_to_session: Arc<Mutex<HashMap<String, SessionData>>>,
+    pub(crate) key_to_session: Arc<Mutex<HashMap<String, SessionData>>>,
     /// Tracks how many WebSocket clients reference each UUID.
-    pub uuid_client_counts: Arc<Mutex<HashMap<Uuid, AtomicUsize>>>,
+    uuid_client_counts: Arc<Mutex<HashMap<Uuid, AtomicUsize>>>,
     /// For private sessions, tracks expired codes.
-    pub expired_private_codes: Arc<Mutex<HashSet<String>>>,
+    expired_private_codes: Arc<Mutex<HashSet<String>>>,
     /// For private sessions, tracks scheduled expirations.
-    pub scheduled_expirations: Arc<Mutex<HashMap<String, task::JoinHandle<()>>>>,
+    scheduled_expirations: Arc<Mutex<HashMap<String, task::JoinHandle<()>>>>,
 }
 
 impl SessionStore {
     /// Returns true if the private session code has been marked expired.
     fn is_code_expired(&self, key: &str) -> bool {
-        self.expired_private_codes
-            .lock()
-            .expect("lock poisoned")
-            .contains(key)
+        let Some(expired) =
+            Self::lock_or_log(self.expired_private_codes.lock(), "expired_private_codes")
+        else {
+            // Fail closed: if we can't read the expiry set, treat the code as
+            // expired so a poisoned lock can't be used to bypass expiration.
+            return true;
+        };
+        expired.contains(key)
     }
 
     /// Looks up (or creates) a session UUID for the given key.
@@ -63,25 +68,17 @@ impl SessionStore {
         }
 
         // Make sure to always cancel any scheduled expiration when reconnecting
-        if is_private {
-            let mut scheduled = self.scheduled_expirations.lock().expect("lock poisoned");
-            if let Some(handle) = scheduled.remove(key) {
-                handle.abort();
-                log::debug!("Cancelled scheduled expiration for {key}");
-            }
+        if is_private
+            && let Some(mut scheduled) =
+                Self::lock_or_log(self.scheduled_expirations.lock(), "scheduled_expirations")
+            && let Some(handle) = scheduled.remove(key)
+        {
+            handle.abort();
+            log::debug!("Cancelled scheduled expiration for {key}");
         }
 
         {
-            let map = match self.key_to_session.lock() {
-                Ok(guard) => guard,
-                Err(e) => {
-                    log::error!(
-                        target: "Websocket",
-                        "Failed to acquire lock on key_to_session: {e:?}"
-                    );
-                    return None;
-                }
-            };
+            let map = Self::lock_or_log(self.key_to_session.lock(), "key_to_session")?;
             if let Some(data) = map.get(key) {
                 self.increment_client_count(data.uuid);
                 return Some(data.uuid.to_string());
@@ -98,16 +95,7 @@ impl SessionStore {
             is_private,
         };
         {
-            let mut map = match self.key_to_session.lock() {
-                Ok(guard) => guard,
-                Err(e) => {
-                    log::error!(
-                        target: "Websocket",
-                        "Failed to acquire lock on key_to_session: {e:?}"
-                    );
-                    return None;
-                }
-            };
+            let mut map = Self::lock_or_log(self.key_to_session.lock(), "key_to_session")?;
             map.insert(key.to_string(), new_data);
         }
         self.increment_client_count(new_uuid);
@@ -115,7 +103,7 @@ impl SessionStore {
     }
 
     /// Starts a WebSocket session using the stored session UUID.
-    pub fn start_websocket(
+    pub(crate) fn start_websocket(
         &self,
         config: &ServerConfig,
         req: &HttpRequest,
@@ -133,7 +121,7 @@ impl SessionStore {
                         })?;
 
                     let (tx, rx) = unbounded_channel::<String>();
-                    let server = WsChatServer::from_registry();
+                    let server = self.chat_server.clone();
                     let state = WsChatSession::new(&uuid_str, config.auto_join, self.clone());
 
                     let handle =
@@ -167,15 +155,10 @@ impl SessionStore {
 
     /// Increments the client count for the session with the given UUID.
     fn increment_client_count(&self, uuid: Uuid) {
-        let mut counts = match self.uuid_client_counts.lock() {
-            Ok(guard) => guard,
-            Err(e) => {
-                log::error!(
-                    target: "Websocket",
-                    "Failed to acquire lock on uuid_client_counts: {e:?}"
-                );
-                return;
-            }
+        let Some(mut counts) =
+            Self::lock_or_log(self.uuid_client_counts.lock(), "uuid_client_counts")
+        else {
+            return;
         };
         let counter = counts.entry(uuid).or_default();
         let new_count = counter.fetch_add(1, Ordering::SeqCst) + 1;
@@ -184,8 +167,12 @@ impl SessionStore {
 
     /// Decrements the client count. If it reaches zero for a private session,
     /// the key is removed and marked as expired.
-    pub fn remove_client(&self, uuid: &Uuid) {
-        let mut counts = self.uuid_client_counts.lock().expect("lock poisoned");
+    pub(crate) fn remove_client(&self, uuid: &Uuid) {
+        let Some(mut counts) =
+            Self::lock_or_log(self.uuid_client_counts.lock(), "uuid_client_counts")
+        else {
+            return;
+        };
         if let Some(counter) = counts.get_mut(uuid) {
             let prev = counter.fetch_sub(1, Ordering::SeqCst);
             let new_count = prev.saturating_sub(1);
@@ -196,14 +183,13 @@ impl SessionStore {
             if new_count == 0 {
                 counts.remove(uuid);
 
-                if WsChatServer::from_registry()
-                    .try_send(CleanupSession(uuid.to_string()))
-                    .is_ok()
-                {
-                    log::debug!(target: "Websocket", "Sent cleanup request for session {uuid}");
-                }
+                self.chat_server.cleanup_session(&uuid.to_string());
+                log::debug!(target: "Websocket", "Cleaned up rooms for session {uuid}");
 
-                let map = self.key_to_session.lock().expect("lock poisoned");
+                let Some(map) = Self::lock_or_log(self.key_to_session.lock(), "key_to_session")
+                else {
+                    return;
+                };
                 let keys: Vec<(String, bool)> = map
                     .iter()
                     .filter(|(_, data)| data.uuid == *uuid)
@@ -213,7 +199,11 @@ impl SessionStore {
 
                 for (key, is_private) in keys {
                     if !is_private {
-                        let mut map = self.key_to_session.lock().expect("lock poisoned");
+                        let Some(mut map) =
+                            Self::lock_or_log(self.key_to_session.lock(), "key_to_session")
+                        else {
+                            continue;
+                        };
                         map.remove(&key);
                         log::debug!(target: "Websocket", "Public session code {key} removed");
                     } else {
@@ -223,30 +213,40 @@ impl SessionStore {
                         let handle = spawn(async move {
                             time::sleep(SESSION_EXPIRATION_TIME).await;
 
-                            let mut scheduled = store_clone
-                                .scheduled_expirations
-                                .lock()
-                                .expect("lock poisoned");
+                            let Some(mut scheduled) = Self::lock_or_log(
+                                store_clone.scheduled_expirations.lock(),
+                                "scheduled_expirations",
+                            ) else {
+                                return;
+                            };
 
                             if scheduled.remove(&key_clone).is_some() {
-                                let mut map =
-                                    store_clone.key_to_session.lock().expect("lock poisoned");
+                                let Some(mut map) = Self::lock_or_log(
+                                    store_clone.key_to_session.lock(),
+                                    "key_to_session",
+                                ) else {
+                                    return;
+                                };
 
                                 if map.remove(&key_clone).is_some() {
-                                    let mut expired = store_clone
-                                        .expired_private_codes
-                                        .lock()
-                                        .expect("lock poisoned");
+                                    let Some(mut expired) = Self::lock_or_log(
+                                        store_clone.expired_private_codes.lock(),
+                                        "expired_private_codes",
+                                    ) else {
+                                        return;
+                                    };
                                     expired.insert(key_clone.clone());
                                     log::debug!("Private session code {key_clone} expired");
                                 }
                             }
                         });
 
-                        self.scheduled_expirations
-                            .lock()
-                            .expect("lock poisoned")
-                            .insert(key.clone(), handle);
+                        if let Some(mut scheduled) = Self::lock_or_log(
+                            self.scheduled_expirations.lock(),
+                            "scheduled_expirations",
+                        ) {
+                            scheduled.insert(key.clone(), handle);
+                        }
                     }
                 }
             }
@@ -258,8 +258,22 @@ impl SessionStore {
         }
     }
 
+    /// Locks `result`, logging and returning `None` if the mutex is poisoned.
+    fn lock_or_log<'a, T>(
+        result: LockResult<MutexGuard<'a, T>>,
+        name: &str,
+    ) -> Option<MutexGuard<'a, T>> {
+        match result {
+            Ok(guard) => Some(guard),
+            Err(e) => {
+                log::error!(target: "Websocket", "Failed to acquire lock on {name} (poisoned): {e:?}");
+                None
+            }
+        }
+    }
+
     /// Generates a random alphanumeric code.
-    pub fn generate_random_code(length: usize) -> String {
+    pub(crate) fn generate_random_code(length: usize) -> String {
         let mut rng = rng();
         (0..length)
             .map(|_| {
