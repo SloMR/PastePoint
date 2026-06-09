@@ -82,7 +82,7 @@ impl ChatServerHandle {
     }
 
     /// Prune sessions whose rooms are all empty.
-    pub fn cleanup_stale_sessions(&self) {
+    pub(crate) fn cleanup_stale_sessions(&self) {
         self.lock().cleanup_stale_sessions();
     }
 }

@@ -25,7 +25,7 @@ pub(crate) struct SessionData {
 #[derive(Default, Clone)]
 pub struct SessionStore {
     /// Shared room/session state, replacing the former WsChatServer actor.
-    pub chat_server: ChatServerHandle,
+    pub(crate) chat_server: ChatServerHandle,
     /// Maps a key (IP for public or generated code for private sessions)
     /// to its session data.
     pub(crate) key_to_session: Arc<Mutex<HashMap<String, SessionData>>>,
@@ -124,9 +124,8 @@ impl SessionStore {
                     let server = self.chat_server.clone();
                     let state = WsChatSession::new(&uuid_str, config.auto_join, self.clone());
 
-                    let handle =
-                        actix_web::rt::spawn(state.run(session, msg_stream, rx, tx, server));
-                    actix_web::rt::spawn(async move {
+                    let handle = spawn(state.run(session, msg_stream, rx, tx, server));
+                    spawn(async move {
                         if let Err(e) = handle.await {
                             log::error!(target: "Websocket", "Session task terminated abnormally: {e}");
                         }
