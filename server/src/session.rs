@@ -12,7 +12,6 @@ use fake::{
     faker::name::{en::FirstName, en::LastName},
 };
 use futures_util::StreamExt;
-use rand::{RngExt, rng};
 use serde_json::Value;
 use std::time::{Duration, Instant};
 use tokio::sync::mpsc::UnboundedReceiver;
@@ -56,14 +55,13 @@ impl<'a> UserCommand<'a> {
 
 impl WsChatSession {
     pub(crate) fn new(session_id: &str, auto_join: bool, session_store: SessionStore) -> Self {
-        let id = rng().random_range(0..usize::MAX);
         let first_name = FirstName().fake::<String>();
         let last_name = LastName().fake::<String>();
         let name = format!("{first_name} {last_name}");
 
         WsChatSession {
             session_id: session_id.to_owned(),
-            id,
+            id: 0,
             room: "".to_owned(),
             name,
             auto_join,
