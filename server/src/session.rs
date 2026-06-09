@@ -2,13 +2,10 @@ use crate::{
     HEARTBEAT_INTERVAL, HEARTBEAT_TIMEOUT, SessionStore, WS_PREFIX_KEEP_ALIVE,
     WS_PREFIX_SIGNAL_MESSAGE, WS_PREFIX_SYSTEM_ERROR, WS_PREFIX_SYSTEM_NAME,
     WS_PREFIX_SYSTEM_ROOMS, WS_PREFIX_USER_COMMAND, WS_PREFIX_USER_DISCONNECTED,
+    chat_server::{ChatServerHandle, Client, WsChatServer},
     consts::{MAX_FRAME_SIZE, MAX_SIGNAL_SIZE, MAX_WS_MESSAGES_PER_SEC},
     error::ServerError,
-    message::{
-        Client, JoinRoom, LeaveRoom, ListRooms, ValidateAndRelaySignal, WsChatServer, WsChatSession,
-    },
 };
-use actix::Addr;
 use actix_ws::{AggregatedMessage, MessageStream, Session};
 use fake::{
     Fake,
@@ -19,6 +16,19 @@ use rand::{RngExt, rng};
 use serde_json::Value;
 use std::time::{Duration, Instant};
 use tokio::sync::mpsc::UnboundedReceiver;
+
+/// Per-connection state for one WebSocket client, driven by [`WsChatSession::run`].
+pub(crate) struct WsChatSession {
+    session_id: String,              // session id
+    id: usize,                       // client id
+    room: String,                    // room name
+    name: String,                    // client name
+    auto_join: bool,                 // flag to control auto-join
+    session_store: SessionStore,     // reference to SessionStore
+    last_heartbeat: Option<Instant>, // last heartbeat time
+    message_count: usize,            // rate limiting: messages in current window
+    rate_limit_reset: Instant,       // rate limiting: when to reset counter
+}
 
 /// A parsed `[UserCommand]` sent by a client.
 enum UserCommand<'a> {
@@ -45,7 +55,7 @@ impl<'a> UserCommand<'a> {
 }
 
 impl WsChatSession {
-    pub fn new(session_id: &str, auto_join: bool, session_store: SessionStore) -> Self {
+    pub(crate) fn new(session_id: &str, auto_join: bool, session_store: SessionStore) -> Self {
         let id = rng().random_range(0..usize::MAX);
         let first_name = FirstName().fake::<String>();
         let last_name = LastName().fake::<String>();
@@ -64,13 +74,13 @@ impl WsChatSession {
         }
     }
 
-    pub async fn run(
+    pub(crate) async fn run(
         mut self,
         mut session: Session,
         msg_stream: MessageStream,
         mut outbound: UnboundedReceiver<String>,
         tx: Client,
-        server: Addr<WsChatServer>,
+        server: ChatServerHandle,
     ) {
         let mut stream = msg_stream
             .max_frame_size(MAX_FRAME_SIZE)
@@ -87,7 +97,7 @@ impl WsChatSession {
 
         self.last_heartbeat = Some(Instant::now());
         if self.auto_join {
-            self.join_room("main", &server, &tx).await;
+            self.join_room("main", &server, &tx);
         }
 
         let mut heartbeat = tokio::time::interval_at(
@@ -114,7 +124,7 @@ impl WsChatSession {
                 incoming = stream.next() => {
                     match incoming {
                         Some(Ok(AggregatedMessage::Text(text))) => {
-                            self.handle_text(&text, &server, &tx).await;
+                            self.handle_text(&text, &server, &tx);
                         }
                         Some(Ok(AggregatedMessage::Ping(bytes))) => {
                             log::debug!(target: "Websocket", "Received ping message");
@@ -170,7 +180,7 @@ impl WsChatSession {
         let _ = session.close(close_reason).await;
     }
 
-    async fn join_room(&mut self, room_name: &str, server: &Addr<WsChatServer>, tx: &Client) {
+    fn join_room(&mut self, room_name: &str, server: &ChatServerHandle, tx: &Client) {
         if self.room == room_name {
             log::debug!(
                 target: "Websocket",
@@ -181,71 +191,37 @@ impl WsChatSession {
             return;
         }
 
-        let leave_msg = LeaveRoom(self.session_id.clone(), self.room.clone(), self.id);
-        if let Err(e) = server.send(leave_msg).await {
-            log::warn!(
-                target: "Websocket",
-                "Failed to deliver LeaveRoom to server for {}: {e}",
-                self.name
-            );
-        }
+        server.leave_room(&self.session_id, &self.room, self.id);
 
-        let join_msg = JoinRoom(
-            self.session_id.clone(),
-            room_name.to_owned(),
-            self.name.clone(),
-            tx.clone(),
+        let id = server.join_room(&self.session_id, room_name, &self.name, tx.clone());
+        log::debug!(
+            target: "Websocket",
+            "{} successfully joined room '{}'",
+            self.session_id,
+            room_name
         );
-
-        match server.send(join_msg).await {
-            Ok(id) => {
-                log::debug!(
-                    target: "Websocket",
-                    "{} successfully joined room '{}'",
-                    self.session_id,
-                    room_name
-                );
-                self.id = id;
-                self.room = room_name.to_owned();
-            }
-            Err(e) => {
-                log::warn!(
-                    target: "Websocket",
-                    "Failed to join room '{room_name}' for {}: {e}",
-                    self.name
-                );
-            }
-        }
+        self.id = id;
+        self.room = room_name.to_owned();
     }
 
-    async fn list_rooms(&self, server: &Addr<WsChatServer>, tx: &Client) {
-        match server.send(ListRooms(self.session_id.clone())).await {
-            Ok(rooms) => {
-                log::debug!(target: "Websocket", "{WS_PREFIX_SYSTEM_ROOMS} Rooms Available: {rooms:?}");
-                let room_list = rooms.join(", ");
-                Self::deliver(tx, format!("{WS_PREFIX_SYSTEM_ROOMS} {room_list}"));
-            }
-            Err(e) => {
-                log::warn!(target: "Websocket", "Failed to retrieve room list: {e}");
-                Self::deliver(
-                    tx,
-                    format!("{WS_PREFIX_SYSTEM_ERROR} Failed to retrieve room list."),
-                );
-            }
-        }
+    fn list_rooms(&self, server: &ChatServerHandle, tx: &Client) {
+        let rooms = server.list_rooms(&self.session_id);
+        log::debug!(target: "Websocket", "{WS_PREFIX_SYSTEM_ROOMS} Rooms Available: {rooms:?}");
+        let room_list = rooms.join(", ");
+        Self::deliver(tx, format!("{WS_PREFIX_SYSTEM_ROOMS} {room_list}"));
     }
 
-    async fn user_command(&mut self, command_str: &str, server: &Addr<WsChatServer>, tx: &Client) {
+    fn user_command(&mut self, command_str: &str, server: &ChatServerHandle, tx: &Client) {
         log::debug!(target: "Websocket", "Processing command: '{}'", command_str.trim());
 
         match UserCommand::parse(command_str) {
             UserCommand::List => {
                 log::debug!(target: "Websocket", "Received list command");
-                self.list_rooms(server, tx).await;
+                self.list_rooms(server, tx);
             }
             UserCommand::Join(Some(room_name)) if WsChatServer::is_valid_room_name(room_name) => {
                 log::debug!(target: "Websocket", "Received join command for room '{room_name}'");
-                self.join_room(room_name, server, tx).await;
+                self.join_room(room_name, server, tx);
             }
             UserCommand::Join(Some(_)) => {
                 Self::deliver(
@@ -279,7 +255,7 @@ impl WsChatSession {
         }
     }
 
-    fn handle_signal_message(&self, msg: &str, server: &Addr<WsChatServer>, tx: &Client) {
+    fn handle_signal_message(&self, msg: &str, server: &ChatServerHandle, tx: &Client) {
         // 1. Size validation
         if msg.len() > MAX_SIGNAL_SIZE {
             log::warn!(
@@ -322,22 +298,16 @@ impl WsChatSession {
             }
         };
 
-        // 4. Send validation and relay message to server instead of trying to check here
-        server.do_send(ValidateAndRelaySignal {
-            session_id: self.session_id.clone(),
-            from_user: self.name.clone(),
-            to_user: to_user.to_string(),
-            payload: payload.to_string(),
-        });
+        // 4. Validate room membership and relay through the shared server.
+        server.validate_and_relay_signal(&self.session_id, &self.name, to_user, payload);
     }
 
-    fn handle_user_disconnect(&self, server: &Addr<WsChatServer>) {
-        let leave_msg = LeaveRoom(self.session_id.clone(), self.room.clone(), self.id);
-        server.do_send(leave_msg);
+    fn handle_user_disconnect(&self, server: &ChatServerHandle) {
+        server.leave_room(&self.session_id, &self.room, self.id);
         log::debug!(target: "Websocket", "User {} disconnected", self.name);
     }
 
-    async fn handle_text(&mut self, text: &str, server: &Addr<WsChatServer>, tx: &Client) {
+    fn handle_text(&mut self, text: &str, server: &ChatServerHandle, tx: &Client) {
         let now = Instant::now();
         if now > self.rate_limit_reset {
             self.message_count = 0;
@@ -360,7 +330,7 @@ impl WsChatSession {
         } else if msg.starts_with(WS_PREFIX_USER_COMMAND) {
             let command_str = msg.trim_start_matches(WS_PREFIX_USER_COMMAND).trim();
             log::debug!(target: "Websocket", "Command string after trimming: '{command_str}'");
-            self.user_command(command_str, server, tx).await;
+            self.user_command(command_str, server, tx);
         } else if msg.starts_with(WS_PREFIX_USER_DISCONNECTED) {
             log::debug!(target: "Websocket", "Received disconnect command");
             self.handle_user_disconnect(server);
@@ -381,7 +351,7 @@ impl WsChatSession {
     }
 
     /// Connection teardown, formerly the actor's `stopped` hook.
-    fn on_stop(&self, server: &Addr<WsChatServer>) {
+    fn on_stop(&self, server: &ChatServerHandle) {
         log::debug!(
             target: "Websocket",
             "WsChatSession closed for {}({}) in room {}",
