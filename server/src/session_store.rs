@@ -1,6 +1,6 @@
 use crate::{
-    CONTENT_TYPE_TEXT_PLAIN, ChatServerHandle, SAFE_CHARSET, SESSION_EXPIRATION_TIME, ServerConfig,
-    session::WsChatSession,
+    CLEANUP_INTERVAL, CONTENT_TYPE_TEXT_PLAIN, ChatServerHandle, SAFE_CHARSET,
+    SESSION_EXPIRATION_TIME, ServerConfig, session::WsChatSession,
 };
 use actix_rt::{spawn, task, time};
 use actix_web::{Error, HttpRequest, HttpResponse, web::Payload};
@@ -150,6 +150,18 @@ impl SessionStore {
                     .body("Unknown session code"))
             }
         }
+    }
+
+    /// Spawns a background task that periodically prunes empty sessions.
+    pub fn spawn_cleanup_task(&self) {
+        let chat_server = self.chat_server.clone();
+        spawn(async move {
+            let mut ticker = time::interval(CLEANUP_INTERVAL);
+            loop {
+                ticker.tick().await;
+                chat_server.cleanup_stale_sessions();
+            }
+        });
     }
 
     /// Increments the client count for the session with the given UUID.
