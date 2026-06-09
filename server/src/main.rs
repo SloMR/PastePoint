@@ -8,8 +8,8 @@ use actix_web::{
 };
 use openssl::ssl::{SslAcceptor, SslFiletype, SslMethod};
 use server::{
-    CORS_MAX_AGE, KEEP_ALIVE_INTERVAL, SentryConfig, ServerConfig, SessionStore, chat_ws,
-    create_session, health, index, private_chat_ws,
+    CLEANUP_INTERVAL, CORS_MAX_AGE, KEEP_ALIVE_INTERVAL, SentryConfig, ServerConfig, SessionStore,
+    chat_ws, create_session, health, index, private_chat_ws,
 };
 use std::borrow::Cow;
 use std::io::Result;
@@ -141,6 +141,19 @@ async fn main() -> Result<()> {
     log::debug!(target: "Websocket","Using cert file: {}", &config.cert_file_path);
 
     let session_manager = Data::new(SessionStore::default());
+
+    // Periodically prune empty sessions.
+    {
+        let chat_server = session_manager.chat_server.clone();
+        actix_web::rt::spawn(async move {
+            let mut ticker = tokio::time::interval(CLEANUP_INTERVAL);
+            loop {
+                ticker.tick().await;
+                chat_server.cleanup_stale_sessions();
+            }
+        });
+    }
+
     let server_config = Data::new(config.clone());
     let sentry_enabled = _sentry_guard.is_some();
 
