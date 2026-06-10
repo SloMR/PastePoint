@@ -3,7 +3,10 @@ use crate::{
     WS_PREFIX_SIGNAL_MESSAGE, WS_PREFIX_SYSTEM_ERROR, WS_PREFIX_SYSTEM_NAME,
     WS_PREFIX_SYSTEM_ROOMS, WS_PREFIX_USER_COMMAND, WS_PREFIX_USER_DISCONNECTED,
     chat_server::{ChatServerHandle, Client, WsChatServer},
-    consts::{MAX_FRAME_SIZE, MAX_SIGNAL_SIZE, MAX_WS_MESSAGES_PER_SEC},
+    consts::{
+        DEFAULT_ROOM, MAX_CONTINUATION_SIZE, MAX_FRAME_SIZE, MAX_SIGNAL_SIZE,
+        MAX_WS_MESSAGES_PER_SEC,
+    },
     error::ServerError,
 };
 use actix_ws::{AggregatedMessage, MessageStream, Session};
@@ -14,7 +17,8 @@ use fake::{
 use futures_util::StreamExt;
 use serde_json::Value;
 use std::time::{Duration, Instant};
-use tokio::sync::mpsc::UnboundedReceiver;
+use tokio::sync::mpsc::Receiver;
+use tokio::time::MissedTickBehavior;
 
 /// Per-connection state for one WebSocket client, driven by [`WsChatSession::run`].
 pub(crate) struct WsChatSession {
@@ -76,14 +80,14 @@ impl WsChatSession {
         mut self,
         mut session: Session,
         msg_stream: MessageStream,
-        mut outbound: UnboundedReceiver<String>,
+        mut outbound: Receiver<String>,
         tx: Client,
         server: ChatServerHandle,
     ) {
         let mut stream = msg_stream
             .max_frame_size(MAX_FRAME_SIZE)
             .aggregate_continuations()
-            .max_continuation_size(MAX_SIGNAL_SIZE);
+            .max_continuation_size(MAX_CONTINUATION_SIZE);
 
         log::debug!(
             target: "Websocket",
@@ -95,13 +99,15 @@ impl WsChatSession {
 
         self.last_heartbeat = Some(Instant::now());
         if self.auto_join {
-            self.join_room("main", &server, &tx);
+            self.join_room(DEFAULT_ROOM, &server, &tx);
         }
 
         let mut heartbeat = tokio::time::interval_at(
             tokio::time::Instant::now() + HEARTBEAT_INTERVAL,
             HEARTBEAT_INTERVAL,
         );
+        // Don't replay missed ticks back-to-back after a stall; keep the cadence.
+        heartbeat.set_missed_tick_behavior(MissedTickBehavior::Delay);
 
         let close_reason = loop {
             tokio::select! {
@@ -174,6 +180,13 @@ impl WsChatSession {
             }
         };
 
+        // Flush any frames still queued for this client before closing the connection.
+        while let Ok(text) = outbound.try_recv() {
+            if session.text(text).await.is_err() {
+                break;
+            }
+        }
+
         self.on_stop(&server);
         let _ = session.close(close_reason).await;
     }
@@ -189,17 +202,27 @@ impl WsChatSession {
             return;
         }
 
-        server.leave_room(&self.session_id, &self.room, self.id);
+        let new_id = server.join_room(&self.session_id, room_name, &self.name, tx.clone());
+        if new_id == 0 {
+            log::warn!(
+                target: "Websocket",
+                "Join rejected for room '{}'; user '{}' stays in '{}'",
+                room_name,
+                self.name,
+                self.room
+            );
+            return;
+        }
 
-        let id = server.join_room(&self.session_id, room_name, &self.name, tx.clone());
+        server.leave_room(&self.session_id, &self.room, self.id);
+        self.id = new_id;
+        self.room = room_name.to_owned();
         log::debug!(
             target: "Websocket",
             "{} successfully joined room '{}'",
             self.session_id,
             room_name
         );
-        self.id = id;
-        self.room = room_name.to_owned();
     }
 
     fn list_rooms(&self, server: &ChatServerHandle, tx: &Client) {
@@ -381,8 +404,8 @@ impl WsChatSession {
     }
 
     fn deliver(tx: &Client, msg: String) {
-        if tx.send(msg).is_err() {
-            log::debug!(target: "Websocket", "Dropped outbound frame: client channel already closed");
+        if tx.try_send(msg).is_err() {
+            log::debug!(target: "Websocket", "Dropped outbound frame: client channel full or closed");
         }
     }
 }
