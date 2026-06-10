@@ -21,8 +21,8 @@ RUN npm run build -- --configuration=$NPM_BUILD_CONFIG
 FROM node:24.16.0-alpine AS ssr
 WORKDIR /usr/src/app
 
-# Install only necessary packages
-RUN apk add --no-cache wget=1.25.0-r2
+# hadolint ignore=DL3018
+RUN apk add --no-cache wget
 
 # Copy built artifacts & package files
 COPY --from=builder /usr/src/app/dist /usr/src/app/dist
