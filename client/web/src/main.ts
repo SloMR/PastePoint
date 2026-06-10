@@ -6,6 +6,15 @@ import { TranslateService } from '@ngx-translate/core';
 import { LANGUAGE_PREFERENCE_KEY } from './app/utils/constants';
 import { environment } from './environments/environment';
 import { name as pkgName, version as pkgVersion } from '../package.json';
+import { reloadOnceForChunkError } from './app/utils/chunk-reload';
+
+// Background chunk preloads that fail after a deploy reject as unhandled
+// promise rejections, which bypass Angular's ErrorHandler — reload here too.
+if (typeof window !== 'undefined') {
+  window.addEventListener('unhandledrejection', (event) => {
+    reloadOnceForChunkError(event.reason);
+  });
+}
 
 // Initialize Sentry before bootstrapping the app so it can capture errors.
 // Skip during SSR/prerender (no `window`)

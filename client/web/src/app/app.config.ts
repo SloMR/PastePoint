@@ -23,30 +23,17 @@ import { environment } from '../environments/environment';
 import { DatePipe } from '@angular/common';
 import { provideHotToastConfig } from '@ngxpert/hot-toast';
 import { SentryLoggerMonitor } from './core/services/monitoring/sentry-logger-monitor';
+import { reloadOnceForChunkError } from './utils/chunk-reload';
 
-// A new deploy renames chunks, so old tabs fail to load them. Reload once to
-// fetch the fresh bundle; if this load was already a reload, report instead.
+// Reload once on a stale-chunk load error (after a deploy); otherwise report.
 function createAppErrorHandler(): ErrorHandler {
   const sentryHandler = Sentry.createErrorHandler({ showDialog: false });
 
-  const wasReloaded = (): boolean => {
-    const [navigation] = performance.getEntriesByType('navigation');
-    return (navigation as PerformanceNavigationTiming | undefined)?.type === 'reload';
-  };
-
   return {
     handleError(error: unknown): void {
-      const message = error instanceof Error ? error.message : String(error);
-      const isChunkLoadError =
-        /Failed to fetch dynamically imported module|Loading chunk \d+ failed|ChunkLoadError/i.test(
-          message
-        );
-
-      if (isChunkLoadError && typeof window !== 'undefined' && !wasReloaded()) {
-        window.location.reload();
+      if (reloadOnceForChunkError(error)) {
         return;
       }
-
       sentryHandler.handleError(error);
     },
   };
