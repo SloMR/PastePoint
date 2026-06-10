@@ -1,17 +1,17 @@
 use crate::{
     WS_PREFIX_SIGNAL_MESSAGE, WS_PREFIX_SYSTEM_ERROR, WS_PREFIX_SYSTEM_JOIN,
     WS_PREFIX_SYSTEM_MEMBERS, WS_PREFIX_SYSTEM_ROOMS,
-    consts::{MAX_ROOMS_PER_SESSION, MAX_SESSIONS},
+    consts::{DEFAULT_ROOM, MAX_ROOMS_PER_SESSION, MAX_SESSIONS},
 };
 use rand::{RngExt, rng};
 use std::{
     collections::{HashMap, hash_map::Entry::Vacant},
     sync::{Arc, Mutex, MutexGuard},
 };
-use tokio::sync::mpsc::UnboundedSender;
+use tokio::sync::mpsc::Sender;
 
 /// Sender used by the server to push outbound text frames to a client's task.
-pub(crate) type Client = UnboundedSender<String>;
+pub(crate) type Client = Sender<String>;
 pub(crate) type Room = HashMap<usize, ClientMetadata>;
 
 /// Owns all room and session state — the single source of truth for which
@@ -104,13 +104,13 @@ impl WsChatServer {
         ) {
             Some(id) => {
                 let join_msg = format!("{client_name} {WS_PREFIX_SYSTEM_JOIN} {room_name}");
-                self.send_join_message(session_id, room_name, &join_msg, id);
+                self.send_join_message(session_id, room_name, &join_msg);
                 self.broadcast_room_members(session_id, room_name);
                 id
             }
             None => {
                 if client
-                    .send(format!(
+                    .try_send(format!(
                         "{WS_PREFIX_SYSTEM_ERROR} Room limit or session limit reached"
                     ))
                     .is_err()
@@ -131,7 +131,7 @@ impl WsChatServer {
         {
             room.remove(&id);
 
-            if room.is_empty() && room_name != "main" {
+            if room.is_empty() && room_name != DEFAULT_ROOM {
                 rooms.remove(room_name);
                 log::debug!(
                     target: "Websocket",
@@ -193,23 +193,69 @@ impl WsChatServer {
             ))
         });
 
-        if !self.users_share_room(session_id, from_user, to_user) {
-            log::warn!(
-                target: "Websocket",
-                "Attempted signal to user not in same room: {from_user} -> {to_user}"
-            );
+        if from_user == to_user {
+            log::debug!(target: "Websocket", "Skipping self-relay from {from_user} to {to_user}");
             if let Some(tx) = tx {
-                tx.set_status(sentry::protocol::SpanStatus::PermissionDenied);
+                tx.set_status(sentry::protocol::SpanStatus::Ok);
                 tx.finish();
             }
             return;
         }
 
         let relay_msg = format!("{WS_PREFIX_SIGNAL_MESSAGE} {payload}");
-        self.relay_message_to_user(session_id, to_user, relay_msg, from_user);
+        let status = if self.relay_to_shared_room(session_id, from_user, to_user, relay_msg) {
+            sentry::protocol::SpanStatus::Ok
+        } else {
+            log::warn!(
+                target: "Websocket",
+                "Attempted signal to user not in same room: {from_user} -> {to_user}"
+            );
+            sentry::protocol::SpanStatus::PermissionDenied
+        };
         if let Some(tx) = tx {
-            tx.set_status(sentry::protocol::SpanStatus::Ok);
+            tx.set_status(status);
             tx.finish();
+        }
+    }
+
+    /// Sends `message` to `to_user` if they share a room with `from_user`, in a
+    /// single pass over the session's rooms. Returns whether such a room was found.
+    fn relay_to_shared_room(
+        &self,
+        session_id: &str,
+        from_user: &str,
+        to_user: &str,
+        message: String,
+    ) -> bool {
+        let Some(rooms) = self.rooms.get(session_id) else {
+            return false;
+        };
+
+        let target_tx = rooms.values().find_map(|room| {
+            if !room.values().any(|cm| cm.name == from_user) {
+                return None;
+            }
+            room.values()
+                .find(|cm| cm.name == to_user)
+                .map(|cm| cm.tx.clone())
+        });
+
+        match target_tx {
+            Some(tx) => {
+                if let Err(e) = tx.try_send(message) {
+                    log::error!(
+                        target: "Websocket",
+                        "Failed to relay signal from {from_user} to {to_user}: {e:?}"
+                    );
+                } else {
+                    log::debug!(
+                        target: "Websocket",
+                        "Successfully relayed signal from {from_user} to {to_user}"
+                    );
+                }
+                true
+            }
+            None => false,
         }
     }
 
@@ -282,45 +328,19 @@ impl WsChatServer {
         Some(id)
     }
 
-    fn send_join_message(
-        &mut self,
-        session_id: &str,
-        room_name: &str,
-        msg: &str,
-        _src: usize,
-    ) -> Option<()> {
-        log::debug!(
-            target: "Websocket",
-            "Sending join message to room {room_name}: {msg}"
-        );
+    fn send_join_message(&self, session_id: &str, room_name: &str, msg: &str) {
+        log::debug!(target: "Websocket", "Sending join message to room {room_name}: {msg}");
 
-        if let Some(room) = self.rooms.get_mut(session_id)?.get_mut(room_name) {
-            let client_ids: Vec<usize> = room.keys().cloned().collect();
-
-            for id in client_ids {
-                if let Some(client) = room.get(&id) {
-                    if client.tx.send(msg.to_owned()).is_ok() {
-                        log::debug!(
-                            target: "Websocket",
-                            "Join Message sent to client {id}, staying in room: {room_name}"
-                        );
-                    } else {
-                        log::debug!(
-                            target: "Websocket",
-                            "Failed to send join message to client {id}, removing from room: {room_name}"
-                        );
-                        room.remove(&id);
-                    }
-                }
-            }
-
-            Some(())
-        } else {
-            log::debug!(
+        match self
+            .rooms
+            .get(session_id)
+            .and_then(|rooms| rooms.get(room_name))
+        {
+            Some(room) => Self::send_to_clients(room.values(), msg),
+            None => log::debug!(
                 target: "Websocket",
                 "Room {room_name} not found in session {session_id}"
-            );
-            None
+            ),
         }
     }
 
@@ -328,18 +348,7 @@ impl WsChatServer {
         if let Some(users) = self.rooms.get(session_id) {
             let room_list = users.keys().cloned().collect::<Vec<String>>().join(", ");
             let message = format!("{WS_PREFIX_SYSTEM_ROOMS} {room_list}");
-
-            for room in users.values() {
-                for client in room.values() {
-                    if client.tx.send(message.clone()).is_err() {
-                        log::debug!(
-                            target: "Websocket",
-                            "Failed to send room list to {}: client may have disconnected",
-                            client.name
-                        );
-                    }
-                }
-            }
+            Self::send_to_clients(users.values().flat_map(|room| room.values()), &message);
         }
     }
 
@@ -358,15 +367,20 @@ impl WsChatServer {
                 member_list
             );
             let member_message = format!("{} {}", WS_PREFIX_SYSTEM_MEMBERS, member_list.join(", "));
+            Self::send_to_clients(room.values(), &member_message);
+        }
+    }
 
-            for client_metadata in room.values() {
-                if client_metadata.tx.send(member_message.clone()).is_err() {
-                    log::debug!(
-                        target: "Websocket",
-                        "Failed to send member list to client {}, client may have disconnected",
-                        client_metadata.name
-                    );
-                }
+    /// Pushes `message` to each client, shedding (logging) any whose bounded
+    /// outbound channel is full or closed.
+    fn send_to_clients<'a>(clients: impl Iterator<Item = &'a ClientMetadata>, message: &str) {
+        for client in clients {
+            if client.tx.try_send(message.to_owned()).is_err() {
+                log::debug!(
+                    target: "Websocket",
+                    "Dropped frame to {}: outbound channel full or closed",
+                    client.name
+                );
             }
         }
     }
@@ -388,62 +402,6 @@ impl WsChatServer {
             target: "Websocket",
             "Current server state: {} active sessions",
             self.rooms.len()
-        );
-    }
-
-    fn users_share_room(&self, session_id: &str, user1: &str, user2: &str) -> bool {
-        if let Some(rooms) = self.rooms.get(session_id) {
-            for room in rooms.values() {
-                let user1_in_room = room.values().any(|cm| cm.name == user1);
-                let user2_in_room = room.values().any(|cm| cm.name == user2);
-
-                if user1_in_room && user2_in_room {
-                    return true;
-                }
-            }
-        }
-        false
-    }
-
-    fn relay_message_to_user(
-        &self,
-        session_id: &str,
-        to_user: &str,
-        message: String,
-        from_user: &str,
-    ) {
-        if to_user == from_user {
-            log::debug!(
-                target: "Websocket",
-                "Skipping self-relay from {from_user} to {to_user}"
-            );
-            return;
-        }
-
-        if let Some(rooms) = self.rooms.get(session_id) {
-            for room in rooms.values() {
-                for client in room.values() {
-                    if client.name == to_user {
-                        if let Err(e) = client.tx.send(message) {
-                            log::error!(
-                                target: "Websocket",
-                                "Failed to relay signal from {from_user} to {to_user}: {e:?}"
-                            );
-                        } else {
-                            log::debug!(
-                                target: "Websocket",
-                                "Successfully relayed signal from {from_user} to {to_user}"
-                            );
-                        }
-                        return;
-                    }
-                }
-            }
-        }
-
-        log::debug!(
-            target: "Websocket",
-            "Could not find target user {to_user} in session {session_id} to relay message from {from_user}"
         );
     }
 }
