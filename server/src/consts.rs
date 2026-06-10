@@ -4,10 +4,19 @@ use std::time::Duration;
 pub const MAX_FRAME_SIZE: usize = 64 * 1024;
 pub const MAX_SIGNAL_SIZE: usize = 128 * 1024;
 
+// Continuation frames can be used for messages larger than MAX_SIGNAL_SIZE, but we set a reasonable upper limit
+pub(crate) const MAX_CONTINUATION_SIZE: usize = MAX_SIGNAL_SIZE * 2;
+
+// Channel capacities
+pub(crate) const OUTBOUND_CHANNEL_CAPACITY: usize = 256;
+
+// Default room name
+pub(crate) const DEFAULT_ROOM: &str = "main";
+
 // Security limits
-pub const MAX_ROOMS_PER_SESSION: usize = 50;
-pub const MAX_SESSIONS: usize = 100_000;
-pub const MAX_WS_MESSAGES_PER_SEC: usize = 30;
+pub(crate) const MAX_ROOMS_PER_SESSION: usize = 50;
+pub(crate) const MAX_SESSIONS: usize = 100_000;
+pub(crate) const MAX_WS_MESSAGES_PER_SEC: usize = 30;
 
 // Timing intervals
 pub const KEEP_ALIVE_INTERVAL: Duration = Duration::from_secs(3600);

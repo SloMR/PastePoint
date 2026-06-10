@@ -14,6 +14,7 @@ import {
   RTC_CONFIGURATION,
   ICE_GATHERING_TIMEOUT,
   CONNECTION_REQUEST_TIMEOUT,
+  CONNECTION_ESTABLISH_TIMEOUT,
 } from '../../../utils/constants';
 import { TranslateService } from '@ngx-translate/core';
 import { NGXLogger } from 'ngx-logger';
@@ -47,6 +48,7 @@ export class WebRTCSignalingService {
   private connectionRequestDelays = new Map<string, ReturnType<typeof setTimeout>>();
   private reconnectionTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
   private stateMismatchTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
+  private establishmentTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
   private collectedCandidates = new Map<string, RTCIceCandidate[]>();
 
   private activeConnectSpans = new Map<string, Sentry.Span>();
@@ -262,6 +264,7 @@ export class WebRTCSignalingService {
       this.communicationService.setupDataChannel(dataChannel, targetUser);
 
       const handleDataChannelOpen = () => {
+        this.clearEstablishmentWatchdog(targetUser);
         this.connectionLocks.delete(targetUser);
         this.communicationService.sendQueuedMessages(targetUser);
         if (peerConnection.connectionState === 'connected') {
@@ -417,6 +420,8 @@ export class WebRTCSignalingService {
       this.stateMismatchTimeouts.delete(targetUser);
     }
 
+    this.clearEstablishmentWatchdog(targetUser);
+
     if (force) {
       this.candidateQueues.delete(targetUser);
       this.collectedCandidates.delete(targetUser);
@@ -471,6 +476,12 @@ export class WebRTCSignalingService {
       clearTimeout(timeout);
     });
     this.stateMismatchTimeouts.clear();
+
+    // Clear all establishment watchdog timeouts
+    this.establishmentTimeouts.forEach((timeout) => {
+      clearTimeout(timeout);
+    });
+    this.establishmentTimeouts.clear();
   }
 
   /**
@@ -631,6 +642,7 @@ export class WebRTCSignalingService {
         }
         // Only clear retry counter and emit connected when data channel is also open
         if (this.communicationService.isConnected(targetUser)) {
+          this.clearEstablishmentWatchdog(targetUser);
           this.reconnectAttempts.delete(targetUser);
           this.logger.info('createPeerConnection', `Successfully connected to ${targetUser}`);
           this.finishConnectSpanAsSuccess(targetUser);
@@ -680,6 +692,7 @@ export class WebRTCSignalingService {
 
     this.peerConnections.set(targetUser, peerConnection);
     this.candidateQueues.set(targetUser, []);
+    this.startEstablishmentWatchdog(targetUser);
 
     return peerConnection;
   }
@@ -759,6 +772,45 @@ export class WebRTCSignalingService {
       }
       this.closePeerConnection(targetUser, true);
       this.peerDisconnected$.next(targetUser);
+    }
+  }
+
+  /**
+   * Retries the connection if it doesn't fully establish (data channel open)
+   * within CONNECTION_ESTABLISH_TIMEOUT, catching connections that hang without
+   * ever emitting a `failed` event.
+   * @param targetUser The user whose connection to watch
+   */
+  private startEstablishmentWatchdog(targetUser: string): void {
+    this.clearEstablishmentWatchdog(targetUser);
+
+    const timeoutId = setTimeout(() => {
+      this.establishmentTimeouts.delete(targetUser);
+
+      // The data channel opened in the meantime; nothing to do.
+      if (this.communicationService.isConnected(targetUser)) {
+        return;
+      }
+
+      this.logger.warn(
+        'startEstablishmentWatchdog',
+        `Connection with ${targetUser} did not establish in time; retrying`
+      );
+      this.handleDisconnection(targetUser);
+    }, CONNECTION_ESTABLISH_TIMEOUT);
+
+    this.establishmentTimeouts.set(targetUser, timeoutId);
+  }
+
+  /**
+   * Clears the establishment watchdog for a target user, if any.
+   * @param targetUser The user whose watchdog to clear
+   */
+  private clearEstablishmentWatchdog(targetUser: string): void {
+    const timeoutId = this.establishmentTimeouts.get(targetUser);
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      this.establishmentTimeouts.delete(targetUser);
     }
   }
 
@@ -1238,6 +1290,7 @@ export class WebRTCSignalingService {
       this.communicationService.setupDataChannel(dataChannel, targetUser);
 
       const handleDataChannelOpen = () => {
+        this.clearEstablishmentWatchdog(targetUser);
         this.connectionLocks.delete(targetUser);
         this.communicationService.sendQueuedMessages(targetUser);
         if (peerConnection.connectionState === 'connected') {

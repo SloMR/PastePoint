@@ -141,6 +141,8 @@ async fn main() -> Result<()> {
     log::debug!(target: "Websocket","Using cert file: {}", &config.cert_file_path);
 
     let session_manager = Data::new(SessionStore::default());
+    session_manager.spawn_cleanup_task();
+
     let server_config = Data::new(config.clone());
     let sentry_enabled = _sentry_guard.is_some();
 

@@ -10,7 +10,7 @@ The PastePoint server is a high-performance Rust-based backend built with Actix 
 ## Tech Stack
 
 - **Framework**: [Actix Web](https://actix.rs/) - High-performance async web framework
-- **WebSockets**: Native Actix WebSocket support
+- **WebSockets**: [`actix-ws`](https://crates.io/crates/actix-ws) — each connection is an async task (no actors); shared room state lives behind a cloneable handle
 - **Security**: [OpenSSL](https://www.openssl.org/) for TLS termination
 - **Serialization**: [Serde](https://serde.rs/) for JSON handling
 - **UUID**: UUID generation for session management

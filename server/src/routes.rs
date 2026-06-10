@@ -1,3 +1,5 @@
+#![allow(unreachable_pub)]
+
 use crate::{
     CONTENT_TYPE_TEXT_PLAIN, MIN_USER_AGENT_LENGTH, SESSION_CODE_LENGTH, ServerConfig, ServerError,
     SessionStore, consts::MAX_SESSIONS, session_store::SessionData,

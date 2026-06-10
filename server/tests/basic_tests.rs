@@ -1,10 +1,8 @@
-use actix::prelude::*;
 use actix_cors::Cors;
 use actix_web::{App, http::StatusCode, test, web};
 use bytes::Bytes;
-use server::{
-    ChatMessage, ServerConfig, SessionStore, WsChatServer, chat_ws, health, index, private_chat_ws,
-};
+use server::{ServerConfig, SessionStore, WsChatServer, chat_ws, health, index, private_chat_ws};
+use tokio::sync::mpsc::channel;
 
 #[actix_rt::test]
 async fn test_index() {
@@ -150,30 +148,14 @@ async fn test_join_leave_room() {
     let session_id = "test_session";
     let room_name = "test_room";
     let client_name = "test_client";
-
-    struct DummyActor;
-
-    impl Actor for DummyActor {
-        type Context = Context<Self>;
-    }
-
-    impl Handler<ChatMessage> for DummyActor {
-        type Result = ();
-
-        fn handle(&mut self, _msg: ChatMessage, _ctx: &mut Context<Self>) {
-            // Do nothing just for testing purposes
-        }
-    }
-
-    let dummy_actor = DummyActor.start();
-    let client_recipient = dummy_actor.recipient();
+    let (client_tx, _client_rx) = channel::<String>(8);
 
     let id = server
         .add_client_to_room(
             session_id,
             room_name,
             None,
-            client_recipient,
+            client_tx,
             client_name.to_string(),
         )
         .expect("Failed to add client to room");
