@@ -27,13 +27,14 @@ export const NAVIGATION_DELAY_MS = 100;
 // Inactivity timeout constants
 export const IDLE_TIMEOUT = 12 * 60 * 60 * 1000; // 12 hours
 export const BACKGROUND_EXPIRY_THRESHOLD = 5 * 60 * 1000; // 5 minutes
-export const CONNECTION_WARNING_DELAY_MS = 5_000; // 5 seconds before showing connection warning
+export const CONNECTION_WARNING_DELAY_MS = 15_000; // 15 seconds before showing connection warning
 
 // WebRTC constants
 export const MAX_RECONNECT_ATTEMPTS = 5;
 export const RECONNECT_DELAY = 2000;
 export const ICE_GATHERING_TIMEOUT = 30000;
 export const CONNECTION_REQUEST_TIMEOUT = 15000;
+export const CONNECTION_ESTABLISH_TIMEOUT = 8000;
 export const MAX_PREVIEW_DATA_URL_SIZE = 150 * KB;
 export const PREVIEW_MIME_TYPE = 'image/jpeg';
 export const PREVIEW_QUALITY = 0.7;
