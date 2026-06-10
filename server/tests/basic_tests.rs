@@ -2,7 +2,7 @@ use actix_cors::Cors;
 use actix_web::{App, http::StatusCode, test, web};
 use bytes::Bytes;
 use server::{ServerConfig, SessionStore, WsChatServer, chat_ws, health, index, private_chat_ws};
-use tokio::sync::mpsc::unbounded_channel;
+use tokio::sync::mpsc::channel;
 
 #[actix_rt::test]
 async fn test_index() {
@@ -148,7 +148,7 @@ async fn test_join_leave_room() {
     let session_id = "test_session";
     let room_name = "test_room";
     let client_name = "test_client";
-    let (client_tx, _client_rx) = unbounded_channel::<String>();
+    let (client_tx, _client_rx) = channel::<String>(8);
 
     let id = server
         .add_client_to_room(
