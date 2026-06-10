@@ -1,6 +1,7 @@
 use crate::{
     CLEANUP_INTERVAL, CONTENT_TYPE_TEXT_PLAIN, ChatServerHandle, SAFE_CHARSET,
-    SESSION_EXPIRATION_TIME, ServerConfig, session::WsChatSession,
+    SESSION_EXPIRATION_TIME, ServerConfig, consts::OUTBOUND_CHANNEL_CAPACITY,
+    session::WsChatSession,
 };
 use actix_rt::{spawn, task, time};
 use actix_web::{Error, HttpRequest, HttpResponse, web::Payload};
@@ -12,7 +13,7 @@ use std::{
         atomic::{AtomicUsize, Ordering},
     },
 };
-use tokio::sync::mpsc::unbounded_channel;
+use tokio::sync::mpsc::channel;
 use uuid::Uuid;
 
 /// Stores the session's UUID and whether it's private.
@@ -60,7 +61,7 @@ impl SessionStore {
         key: &str,
         strict_mode: bool,
         is_private: bool,
-    ) -> Option<String> {
+    ) -> Option<Uuid> {
         // For private sessions, check if the code is expired.
         if is_private && self.is_code_expired(key) {
             log::debug!(target: "Websocket", "Private session code {key} is expired");
@@ -81,7 +82,7 @@ impl SessionStore {
             let map = Self::lock_or_log(self.key_to_session.lock(), "key_to_session")?;
             if let Some(data) = map.get(key) {
                 self.increment_client_count(data.uuid);
-                return Some(data.uuid.to_string());
+                return Some(data.uuid);
             }
         }
 
@@ -99,7 +100,7 @@ impl SessionStore {
             map.insert(key.to_string(), new_data);
         }
         self.increment_client_count(new_uuid);
-        Some(new_uuid.to_string())
+        Some(new_uuid)
     }
 
     /// Starts a WebSocket session using the stored session UUID.
@@ -113,16 +114,12 @@ impl SessionStore {
         is_private: bool,
     ) -> Result<HttpResponse, Error> {
         match self.get_or_create_session_uuid(key, strict_mode, is_private) {
-            Some(uuid_str) => match Uuid::parse_str(&uuid_str) {
-                Ok(_) => {
-                    let (response, session, msg_stream) = actix_ws::handle(req, stream)
-                        .inspect_err(|e| {
-                            log::error!(target: "Websocket", "WebSocket handshake failed: {e}");
-                        })?;
-
-                    let (tx, rx) = unbounded_channel::<String>();
+            Some(uuid) => match actix_ws::handle(req, stream) {
+                Ok((response, session, msg_stream)) => {
+                    let (tx, rx) = channel::<String>(OUTBOUND_CHANNEL_CAPACITY);
                     let server = self.chat_server.clone();
-                    let state = WsChatSession::new(&uuid_str, config.auto_join, self.clone());
+                    let state =
+                        WsChatSession::new(&uuid.to_string(), config.auto_join, self.clone());
 
                     let handle = spawn(state.run(session, msg_stream, rx, tx, server));
                     spawn(async move {
@@ -133,11 +130,12 @@ impl SessionStore {
 
                     Ok(response)
                 }
-                Err(_) => {
-                    log::error!(target: "Websocket", "Invalid UUID returned: {uuid_str}");
-                    Ok(HttpResponse::InternalServerError()
-                        .content_type(CONTENT_TYPE_TEXT_PLAIN)
-                        .body("Server configuration error"))
+                Err(e) => {
+                    // The client count was already incremented while resolving the
+                    // UUID; undo it here since no session task will run to do so.
+                    log::error!(target: "Websocket", "WebSocket handshake failed: {e}");
+                    self.remove_client(&uuid);
+                    Err(e)
                 }
             },
             None => {
