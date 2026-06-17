@@ -23,9 +23,11 @@ final class FileTransferService: ObservableObject {
   let fileTransferCancelled = PassthroughSubject<String, Never>()
   let fileTransferFailed = PassthroughSubject<(fileId: String, reason: FileTransferFailureReason), Never>()
 
+  private let downloadStallTimeout: TimeInterval = 30
   private var pendingChunkIndices: [String: Set<Int>] = [:]
   private var uploadTasks: [String: Task<Void, Never>] = [:]
   private var offerTasks: [String: Task<Void, Never>] = [:]
+  private var stallWatchdog: Task<Void, Never>?
   private var knownPeers: Set<String> = []
   private var cancellables: Set<AnyCancellable> = []
 
@@ -236,7 +238,9 @@ final class FileTransferService: ObservableObject {
 
     var download = incomingFileOffers.remove(at: idx)
     download.isAccepted = true
+    download.lastActivityAt = Date()
     activeDownloads.append(download)
+    startStallWatchdog()
 
     logger.info("file-accept sent: \(fileId) → \(uploader)")
     return true
@@ -512,6 +516,7 @@ extension FileTransferService {
       totalChunks: 0,
       receivedSize: 0,
       receivedChunkURLs: [:],
+      lastActivityAt: Date(),
       progress: 0,
       isAccepted: false,
       expectedHash: payload.fileHash,
@@ -605,6 +610,7 @@ extension FileTransferService {
     }
     activeDownloads[i].receivedChunkURLs[chunkIndex] = chunkURL
     activeDownloads[i].receivedSize += Int64(data.count)
+    activeDownloads[i].lastActivityAt = Date()
 
     let received = activeDownloads[i].receivedSize
     let size = activeDownloads[i].fileSize
@@ -682,6 +688,7 @@ extension FileTransferService {
 
       sendFileReceived(fileId: download.id, to: peer)
       activeDownloads.removeAll { $0.id == download.id && $0.fromUser == peer }
+      stopStallWatchdogIfIdle()
       downloadCompleted.send((fileId: download.id, fileURL: finalURL))
       logger.info("download complete: \(download.fileName) ← \(peer)")
     }
@@ -742,6 +749,7 @@ extension FileTransferService {
       file.id == fileId && file.fromUser == fromUser
     }
 
+    stopStallWatchdogIfIdle()
     pendingChunkIndices[fileId] = nil
     let dir = chunkDirectory(for: fileId)
     try? FileManager.default.removeItem(at: dir)
@@ -777,6 +785,40 @@ extension FileTransferService {
       reason: reason,
     ))
   }
+
+  // MARK: Stall Watchdog
+
+  private func startStallWatchdog() {
+    guard stallWatchdog == nil else { return }
+    stallWatchdog = Task { [weak self] in
+      while true {
+        try? await Task.sleep(nanoseconds: 5_000_000_000) // TODO: change this as const
+        if Task.isCancelled { return }
+
+        guard let self else { return }
+        self.sweepStalledDownloads()
+      }
+    }
+  }
+
+  private func stopStallWatchdogIfIdle() {
+    guard activeDownloads.isEmpty else { return }
+    stallWatchdog?.cancel()
+    stallWatchdog = nil
+  }
+
+  private func sweepStalledDownloads() {
+    let now = Date()
+    let stalled = activeDownloads.filter {
+      now.timeIntervalSince($0.lastActivityAt) > downloadStallTimeout
+    }
+    for download in stalled {
+      logger.warning("download \(download.id) stalled (\(downloadStallTimeout)s no chunk) — failing")
+      failDownload(fileId: download.id, from: download.fromUser, reason: .stalled)
+    }
+  }
+
+  // MARK: Helpers
 
   /// Per-file scratch directory for incoming chunks: <tmp>/incoming/<fileId>/.
   private func chunkDirectory(for fileId: String) -> URL {

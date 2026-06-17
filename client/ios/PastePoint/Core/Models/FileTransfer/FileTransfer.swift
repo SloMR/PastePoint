@@ -49,6 +49,7 @@ enum FileTransferFailureReason: Sendable {
   case assembly // couldn't read/write chunks to disk
   case noHash // receiver: sender sent no hash -> reject (verify is mandatory)
   case sendHashFailed // sender: couldn't hash the file -> send aborted
+  case stalled // download received no new chunk within the stall window -> abort
 }
 
 // MARK: Attachment Bubble Data
@@ -88,6 +89,7 @@ struct FileDownload: Identifiable, Sendable {
   var totalChunks: Int
   var receivedSize: Int64
   var receivedChunkURLs: [Int: URL]
+  var lastActivityAt: Date
   var progress: Double
   var isAccepted: Bool
   var expectedHash: String?

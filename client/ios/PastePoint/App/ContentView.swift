@@ -95,6 +95,8 @@ struct ContentView: View {
         toasts.append(.error("File rejected — sender sent no integrity hash"))
       case .sendHashFailed:
         toasts.append(.error("Couldn’t verify file before sending — cancelled"))
+      case .stalled:
+        toasts.append(.error("Transfer stalled — connection lost data"))
       }
     }
     .onReceive(services.wsService.didConnect) {
