@@ -157,6 +157,8 @@ export class FileTransferService implements IFileTransferService {
    */
   public async acceptFileOffer(fromUser: string, fileId: string): Promise<void> {
     await this.fileOfferService.acceptFileOffer(fromUser, fileId);
+
+    this.fileDownloadService.startStallWatchdog();
     this.logger.debug('FileTransferService', `File offer ${fileId} accepted by ${fromUser}`);
   }
 

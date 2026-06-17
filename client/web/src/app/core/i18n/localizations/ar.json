@@ -140,6 +140,7 @@
   "FILE_DOWNLOAD_CANCELLED": "تم إلغاء تحميل الملف من قبل المرسل",
   "FILE_DOWNLOAD_COMPLETED": "{{fileName}} جاهز للحفظ.",
   "FILE_REJECTED_NO_HASH": "تم رفض {{fileName}} — لم يُرسِل المُرسِل بصمة تحقق للسلامة.",
+  "FILE_TRANSFER_STALLED": "توقّف نقل {{fileName}} — توقّف الاتصال عن إرسال البيانات.",
   "FILE_SEND_HASH_FAILED": "تعذّر التحقق من {{fileName}} قبل الإرسال — تم إلغاء النقل.",
   "FILE_EMPTY_ERROR": "{{fileName}} فارغ — لا يوجد ما يُرسَل.",
   "FILE_UPLOAD_COMPLETED": "تم إرسال {{fileName}} بنجاح.",

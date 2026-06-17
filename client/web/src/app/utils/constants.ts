@@ -193,6 +193,7 @@ export interface FileDownload {
   totalChunks: number;
   progress: number;
   isAccepted: boolean;
+  lastActivity: number;
   previewDataUrl?: string;
   previewMime?: string;
   expectedHash?: string;
