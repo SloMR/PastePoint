@@ -73,6 +73,7 @@ struct FileUpload: Identifiable, Sendable {
 
   let id: String
   let fileURL: URL
+  let kind: FileSourceKind
   let displayName: String
   let fileSize: Int64
   let targetUser: String
@@ -98,6 +99,27 @@ struct FileDownload: Identifiable, Sendable {
   //       and generate a JPEG thumbnail (≤150KB) at send time to match web's
 }
 
+// MARK: Soruce Kind
+
+enum FileSourceKind: Sendable, Equatable {
+  case ownedTemp // our/system temp — delete on release
+  case securityScoped // Files original — stopAccessing on release, never delete
+}
+
+extension FileSourceKind {
+  /// Releases a source URL per its kind.
+  /// owned temp → deleted; security-scoped
+  /// original → access stopped.
+  func releaseSource(at url: URL) {
+    switch self {
+    case .ownedTemp:
+      try? FileManager.default.removeItem(at: url)
+    case .securityScoped:
+      url.stopAccessingSecurityScopedResource()
+    }
+  }
+}
+
 // MARK: Staging
 
 /// A file the user has picked but not yet sent. Lives in the input bar until
@@ -107,4 +129,5 @@ struct StagedFile: Identifiable, Sendable, Equatable {
   let name: String
   let size: Int64
   let url: URL
+  let kind: FileSourceKind
 }

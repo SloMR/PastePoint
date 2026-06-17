@@ -98,6 +98,7 @@ final class FileTransferService: ObservableObject {
       FileUpload(
         id: fileId,
         fileURL: stagedFile.url,
+        kind: stagedFile.kind,
         displayName: stagedFile.name,
         fileSize: stagedFile.size,
         targetUser: targetUser,
@@ -759,15 +760,10 @@ extension FileTransferService {
     let stillReferenced = activeUploads.contains { file in
       file.fileURL == upload.fileURL
     }
+    guard !stillReferenced else { return }
 
-    if !stillReferenced {
-      do {
-        try FileManager.default.removeItem(at: upload.fileURL)
-        logger.info("removed tmp file: \(upload.fileURL.lastPathComponent)")
-      } catch {
-        logger.warning("failed to remove tmp file \(upload.fileURL.lastPathComponent): \(error)")
-      }
-    }
+    upload.kind.releaseSource(at: upload.fileURL)
+    logger.info("released source (\(upload.kind)): \(upload.fileURL.lastPathComponent)")
   }
 
   private func failDownload(fileId: String, from peer: String, reason: FileTransferFailureReason) {
