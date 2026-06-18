@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+import { Subject } from 'rxjs';
 import * as Sentry from '@sentry/angular';
 import { startNewTrace } from '@sentry/core';
 import {
@@ -38,6 +39,16 @@ export class FileUploadService extends FileTransferBaseService {
   // not N times. WeakMap so entries are GC'd when the File is released.
   private fileHashCache = new WeakMap<File, Promise<string>>();
 
+  // Outgoing group aggregation: one logical send (a file fanned out to N peers)
+  // so the sender's echo bubble can show "Sent / Sent to X of N / Not delivered".
+  private outgoingGroups = new Map<string, { total: number; completed: number; failed: number }>();
+  public outgoingGroupStatus$ = new Subject<{
+    groupId: string;
+    delivered: number;
+    total: number;
+    resolved: boolean;
+  }>();
+
   // =============== Constructor ===============
   constructor() {
     super();
@@ -47,7 +58,11 @@ export class FileUploadService extends FileTransferBaseService {
   /**
    * Prepares a file for sending by creating necessary transfer metadata
    */
-  public async prepareFileForSending(file: File, targetUser: string): Promise<void> {
+  public async prepareFileForSending(
+    file: File,
+    targetUser: string,
+    groupId: string
+  ): Promise<void> {
     if (file.size === 0) {
       this.logger.warn('prepareFileForSending', `Skipping empty file ${file.name}`);
       this.toaster.error(this.translate.instant('FILE_EMPTY_ERROR', { fileName: file.name }));
@@ -69,6 +84,7 @@ export class FileUploadService extends FileTransferBaseService {
       targetUser,
       progress: 0,
       phase: 'sending',
+      groupId,
     };
 
     userMap.set(fileId, fileTransfer);
@@ -240,6 +256,7 @@ export class FileUploadService extends FileTransferBaseService {
 
     const userMap = await this.getFileTransfers(targetUser);
     if (userMap) {
+      this.markGroupOutcome(userMap.get(fileId)?.groupId, false);
       userMap.delete(fileId);
       await this.setFileTransfers(targetUser, userMap);
     }
@@ -267,6 +284,7 @@ export class FileUploadService extends FileTransferBaseService {
         await this.setFileTransfers(targetUser, userMap);
       }
 
+      this.markGroupOutcome(fileTransfer?.groupId, false);
       userMap.delete(fileId);
       const key = this.getOrCreateStatusKey(targetUser, fileId);
       await this.deleteFileTransferStatus(key);
@@ -342,6 +360,7 @@ export class FileUploadService extends FileTransferBaseService {
 
     const key = this.getOrCreateStatusKey(targetUser, fileId);
     await this.setFileTransferStatus(key, FileTransferStatus.COMPLETED);
+    this.markGroupOutcome(fileTransfer.groupId, true);
 
     this.toaster.success(
       this.translate.instant('FILE_UPLOAD_COMPLETED', { fileName: fileTransfer.file.name })
@@ -700,5 +719,34 @@ export class FileUploadService extends FileTransferBaseService {
         );
       }
     }
+  }
+
+  // =============== Outgoing Group Aggregation ===============
+  /** Registers a logical send to `total` recipients before per-peer prep. */
+  public beginUploadGroup(groupId: string, total: number): void {
+    this.outgoingGroups.set(groupId, { total, completed: 0, failed: 0 });
+  }
+
+  /** Records a per-peer terminal outcome and re-derives the bubble status. */
+  private markGroupOutcome(groupId: string | undefined, success: boolean): void {
+    if (!groupId) return;
+    const group = this.outgoingGroups.get(groupId);
+    if (!group) return;
+    if (success) group.completed++;
+    else group.failed++;
+    this.recomputeGroup(groupId);
+  }
+
+  private recomputeGroup(groupId: string): void {
+    const group = this.outgoingGroups.get(groupId);
+    if (!group) return;
+    const resolved = group.completed + group.failed >= group.total;
+    this.outgoingGroupStatus$.next({
+      groupId,
+      delivered: group.completed,
+      total: group.total,
+      resolved,
+    });
+    if (resolved) this.outgoingGroups.delete(groupId);
   }
 }

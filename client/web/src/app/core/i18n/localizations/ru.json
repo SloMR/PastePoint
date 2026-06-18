@@ -82,6 +82,10 @@
   "FILE_TRANSFER": "Передача файлов",
   "ACTIVE_TRANSFERS_COUNT": "Передачи",
   "FILE_SENT": "Файл отправлен",
+  "FILE_SEND_SENDING": "Отправка…",
+  "FILE_SEND_DELIVERED": "Отправлено",
+  "FILE_SEND_PARTIAL": "Отправлено {{delivered}} из {{total}}",
+  "FILE_SEND_NONE": "Не доставлено",
   "FILE_TRANSFER_ACCEPTED": "Передача принята",
   "FILE_TRANSFER_DECLINED": "Передача отклонена",
 

@@ -566,6 +566,37 @@
                               />
                               {{ message.text }}
                             </p>
+                            @if (message.fileTransfer?.groupId) {
+                              <p
+                                class="mt-1 text-xs font-expoArabic text-content/70 dark:text-contentMuted/70"
+                              >
+                                @if (
+                                  message.fileTransfer?.status === FileTransferStatus.COMPLETED
+                                ) {
+                                  @if (
+                                    (message.fileTransfer?.deliveredCount || 0) >=
+                                    (message.fileTransfer?.recipientCount || 0)
+                                  ) {
+                                    {{ 'FILE_SEND_DELIVERED' | translate }}
+                                  } @else {
+                                    {{
+                                      'FILE_SEND_PARTIAL'
+                                        | translate
+                                          : {
+                                              delivered: message.fileTransfer?.deliveredCount,
+                                              total: message.fileTransfer?.recipientCount,
+                                            }
+                                    }}
+                                  }
+                                } @else if (
+                                  message.fileTransfer?.status === FileTransferStatus.DECLINED
+                                ) {
+                                  {{ 'FILE_SEND_NONE' | translate }}
+                                } @else {
+                                  {{ 'FILE_SEND_SENDING' | translate }}
+                                }
+                              </p>
+                            }
                           </div>
                         }
                       </div>

@@ -117,12 +117,28 @@ export class FileTransferService implements IFileTransferService {
     return FileTransferBaseService.incomingFileOffers$;
   }
 
+  /**
+   * Aggregate status of an outgoing send (drives the sender's echo bubble).
+   */
+  public get outgoingGroupStatus$() {
+    return this.fileUploadService.outgoingGroupStatus$;
+  }
+
   // =============== Upload Methods ===============
+  /** Registers a logical send to `total` recipients before per-peer prep. */
+  public beginUploadGroup(groupId: string, total: number): void {
+    this.fileUploadService.beginUploadGroup(groupId, total);
+  }
+
   /**
    * Prepares a file for sending to a target user
    */
-  public async prepareFileForSending(file: File, targetUser: string): Promise<void> {
-    await this.fileUploadService.prepareFileForSending(file, targetUser);
+  public async prepareFileForSending(
+    file: File,
+    targetUser: string,
+    groupId: string
+  ): Promise<void> {
+    await this.fileUploadService.prepareFileForSending(file, targetUser, groupId);
     this.logger.debug('FileTransferService', `File upload prepared for sending to ${targetUser}`);
   }
 

@@ -82,6 +82,10 @@
   "FILE_TRANSFER": "Transferencia de archivos",
   "ACTIVE_TRANSFERS_COUNT": "Transferencias",
   "FILE_SENT": "Archivo enviado",
+  "FILE_SEND_SENDING": "Enviando…",
+  "FILE_SEND_DELIVERED": "Enviado",
+  "FILE_SEND_PARTIAL": "Enviado a {{delivered}} de {{total}}",
+  "FILE_SEND_NONE": "No entregado",
   "FILE_TRANSFER_ACCEPTED": "Transferencia aceptada",
   "FILE_TRANSFER_DECLINED": "Transferencia rechazada",
 

@@ -82,6 +82,10 @@
   "FILE_TRANSFER": "文件传输",
   "ACTIVE_TRANSFERS_COUNT": "传输任务",
   "FILE_SENT": "文件已发送",
+  "FILE_SEND_SENDING": "发送中…",
+  "FILE_SEND_DELIVERED": "已发送",
+  "FILE_SEND_PARTIAL": "已发送给 {{total}} 人中的 {{delivered}} 人",
+  "FILE_SEND_NONE": "未送达",
   "FILE_TRANSFER_ACCEPTED": "文件传输已接受",
   "FILE_TRANSFER_DECLINED": "文件传输已拒绝",
 
