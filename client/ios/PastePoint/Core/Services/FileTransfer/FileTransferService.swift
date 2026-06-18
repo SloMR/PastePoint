@@ -20,7 +20,7 @@ final class FileTransferService: ObservableObject {
   let attachmentMessages = PassthroughSubject<ChatMessage, Never>()
   let outgoingAttachment = PassthroughSubject<ChatMessage, Never>()
   let downloadCompleted = PassthroughSubject<(fileId: String, fileURL: URL?), Never>()
-  let outgoingGroupStatus = PassthroughSubject<(groupId: String, status: FileTransferStatus, delivered: Int, total: Int), Never>()
+  let outgoingGroupStatus = PassthroughSubject<OutgoingGroupStatus, Never>()
   let fileTransferCancelled = PassthroughSubject<String, Never>()
   let fileTransferFailed = PassthroughSubject<(fileId: String, reason: FileTransferFailureReason), Never>()
 
@@ -63,7 +63,12 @@ final class FileTransferService: ObservableObject {
   }
 
   @discardableResult
-  func prepareFileForSending(stagedFile: StagedFile, targetUser: String, groupId: String, hashTask: Task<String?, Never>? = nil) async -> Bool {
+  func prepareFileForSending(
+    stagedFile: StagedFile,
+    targetUser: String,
+    groupId: String,
+    hashTask: Task<String?, Never>? = nil,
+  ) async -> Bool {
     guard stagedFile.size > 0 else {
       logger.warning("skipping empty file \(stagedFile.name)")
       return false
@@ -849,6 +854,13 @@ extension FileTransferService {
 // MARK: - Outgoing Group Aggregation
 
 extension FileTransferService {
+  struct OutgoingGroupStatus: Sendable {
+    let groupId: String
+    let status: FileTransferStatus
+    let delivered: Int
+    let total: Int
+  }
+
   private struct UploadGroup {
     let total: Int
     var completed = 0
@@ -874,7 +886,7 @@ extension FileTransferService {
       : resolved ? .failed // Not delivered
       : .pending
 
-    outgoingGroupStatus.send((groupId: groupId, status: status, delivered: group.completed, total: group.total))
+    outgoingGroupStatus.send(OutgoingGroupStatus(groupId: groupId, status: status, delivered: group.completed, total: group.total))
     if resolved {
       outgoingGroups[groupId] = nil
     }

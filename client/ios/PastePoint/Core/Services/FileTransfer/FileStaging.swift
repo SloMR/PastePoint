@@ -19,7 +19,7 @@ private struct StagedPhotoFile: Transferable {
       let dest = FileManager.default.temporaryDirectory
         .appendingPathComponent("\(UUID().uuidString)-\(received.file.lastPathComponent)")
       try FileManager.default.copyItem(at: received.file, to: dest)
-      return StagedPhotoFile(url: dest)
+      return Self(url: dest)
     }
   }
 }

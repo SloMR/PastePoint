@@ -81,8 +81,8 @@ struct ContentView: View {
     .onReceive(services.fileTransferService.downloadCompleted) { fileId, fileURL in
       updateFileStatus(fileId: fileId, fileURL: fileURL, status: .completed)
     }
-    .onReceive(services.fileTransferService.outgoingGroupStatus) { groupId, status, delivered, total in
-      updateOutgoingGroup(groupId: groupId, status: status, delivered: delivered, total: total)
+    .onReceive(services.fileTransferService.outgoingGroupStatus) { update in
+      updateOutgoingGroup(groupId: update.groupId, status: update.status, delivered: update.delivered, total: update.total)
     }
     .onReceive(services.fileTransferService.fileTransferCancelled) { fileId in
       updateFileStatus(fileId: fileId, status: .cancelled)

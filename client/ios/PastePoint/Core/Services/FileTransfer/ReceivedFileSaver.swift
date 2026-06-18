@@ -83,11 +83,11 @@ enum ReceivedFileSaver {
     let base = (fileName as NSString).deletingPathExtension
     let ext = (fileName as NSString).pathExtension
     var candidate = dir.appendingPathComponent(fileName)
-    var n = 1
+    var number = 1
     while FileManager.default.fileExists(atPath: candidate.path) {
-      let name = ext.isEmpty ? "\(base)-\(n)" : "\(base)-\(n).\(ext)"
+      let name = ext.isEmpty ? "\(base)-\(number)" : "\(base)-\(number).\(ext)"
       candidate = dir.appendingPathComponent(name)
-      n += 1
+      number += 1
     }
     return candidate
   }
