@@ -90,13 +90,17 @@ struct ContentView: View {
       case .integrity:
         toasts.append(.error("File transfer failed — data was corrupted"))
       case .assembly:
-        toasts.append(.error("Couldn't save the received file"))
+        toasts.append(.error("Couldn’t assemble the received file"))
       case .noHash:
         toasts.append(.error("File rejected — sender sent no integrity hash"))
       case .sendHashFailed:
         toasts.append(.error("Couldn’t verify file before sending — cancelled"))
       case .stalled:
         toasts.append(.error("Transfer stalled — connection lost data"))
+      case .saveFailed:
+        toasts.append(.error("Couldn’t save the received file"))
+      case .photosPermissionDenied:
+        toasts.append(.error("Allow Photos access in Settings to save received media"))
       }
     }
     .onReceive(services.wsService.didConnect) {

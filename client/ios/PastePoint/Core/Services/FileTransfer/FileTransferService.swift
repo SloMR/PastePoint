@@ -19,7 +19,7 @@ final class FileTransferService: ObservableObject {
 
   let attachmentMessages = PassthroughSubject<ChatMessage, Never>()
   let outgoingAttachment = PassthroughSubject<ChatMessage, Never>()
-  let downloadCompleted = PassthroughSubject<(fileId: String, fileURL: URL), Never>()
+  let downloadCompleted = PassthroughSubject<(fileId: String, fileURL: URL?), Never>()
   let fileTransferCancelled = PassthroughSubject<String, Never>()
   let fileTransferFailed = PassthroughSubject<(fileId: String, reason: FileTransferFailureReason), Never>()
 
@@ -683,14 +683,25 @@ extension FileTransferService {
         return
       }
 
-      if let i = activeDownloads.firstIndex(where: { $0.id == download.id && $0.fromUser == peer }) {
-        activeDownloads[i].fileURL = finalURL
-      }
-
       sendFileReceived(fileId: download.id, to: peer)
       activeDownloads.removeAll { $0.id == download.id && $0.fromUser == peer }
       stopStallWatchdogIfIdle()
-      downloadCompleted.send((fileId: download.id, fileURL: finalURL))
+
+      let outcome = await ReceivedFileSaver.save(at: finalURL, fileName: download.fileName)
+      try? FileManager.default.removeItem(at: completedDir)
+
+      switch outcome {
+      case .photos:
+        downloadCompleted.send((fileId: download.id, fileURL: nil))
+      case let .documents(dest):
+        downloadCompleted.send((fileId: download.id, fileURL: dest))
+      case .permissionDenied:
+        fileTransferFailed.send((fileId: download.id, reason: .photosPermissionDenied))
+        return
+      case .failed:
+        fileTransferFailed.send((fileId: download.id, reason: .saveFailed))
+        return
+      }
       logger.info("download complete: \(download.fileName) ← \(peer)")
     }
   }

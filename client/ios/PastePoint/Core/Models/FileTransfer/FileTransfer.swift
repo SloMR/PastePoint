@@ -50,6 +50,8 @@ enum FileTransferFailureReason: Sendable {
   case noHash // receiver: sender sent no hash -> reject (verify is mandatory)
   case sendHashFailed // sender: couldn't hash the file -> send aborted
   case stalled // download received no new chunk within the stall window -> abort
+  case saveFailed // receiver: file transferred OK but couldn't be saved locally
+  case photosPermissionDenied // receiver: Photos access denied -> can't save media
 }
 
 // MARK: Attachment Bubble Data

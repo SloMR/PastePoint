@@ -126,11 +126,13 @@ struct ChatMessageBubble: View {
           .controlSize(.small)
         }
       } else if alignment == .leading {
-        if transfer.status == .completed, let fileURL = transfer.fileURL {
-          ShareLink(item: fileURL) {
-            Label("Save", systemImage: "square.and.arrow.down")
-              .font(.caption2)
-          }
+        if transfer.status == .completed {
+          Label(
+            transfer.fileURL == nil ? "Saved to Photos" : "Saved to Files",
+            systemImage: "checkmark.circle",
+          )
+          .font(.caption2)
+          .foregroundStyle(.secondary)
         } else {
           Text(statusLabel(transfer.status))
             .font(.caption2)
