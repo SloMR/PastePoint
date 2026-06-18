@@ -63,6 +63,9 @@ struct FileTransferData: Codable, Sendable, Equatable {
   let fromUser: String
   var status: FileTransferStatus
   var fileURL: URL?
+  var groupId: String?
+  var deliveredCount: Int?
+  var recipientCount: Int?
 }
 
 // MARK: Local State
@@ -74,6 +77,7 @@ struct FileUpload: Identifiable, Sendable {
   }
 
   let id: String
+  let groupId: String
   let fileURL: URL
   let kind: FileSourceKind
   let displayName: String

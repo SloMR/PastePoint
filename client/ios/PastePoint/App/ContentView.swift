@@ -81,6 +81,9 @@ struct ContentView: View {
     .onReceive(services.fileTransferService.downloadCompleted) { fileId, fileURL in
       updateFileStatus(fileId: fileId, fileURL: fileURL, status: .completed)
     }
+    .onReceive(services.fileTransferService.outgoingGroupStatus) { groupId, status, delivered, total in
+      updateOutgoingGroup(groupId: groupId, status: status, delivered: delivered, total: total)
+    }
     .onReceive(services.fileTransferService.fileTransferCancelled) { fileId in
       updateFileStatus(fileId: fileId, status: .cancelled)
     }
@@ -212,6 +215,16 @@ struct ContentView: View {
     if let fileURL {
       messages[idx].fileTransfer?.fileURL = fileURL
     }
+  }
+
+  private func updateOutgoingGroup(groupId: String, status: FileTransferStatus, delivered: Int, total: Int) {
+    guard let idx = messages.firstIndex(where: { $0.fileTransfer?.groupId == groupId }) else {
+      return
+    }
+
+    messages[idx].fileTransfer?.status = status
+    messages[idx].fileTransfer?.deliveredCount = delivered
+    messages[idx].fileTransfer?.recipientCount = total
   }
 
   private func peerWarning() -> ToastItem {

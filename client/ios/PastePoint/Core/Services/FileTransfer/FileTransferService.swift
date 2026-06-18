@@ -20,12 +20,14 @@ final class FileTransferService: ObservableObject {
   let attachmentMessages = PassthroughSubject<ChatMessage, Never>()
   let outgoingAttachment = PassthroughSubject<ChatMessage, Never>()
   let downloadCompleted = PassthroughSubject<(fileId: String, fileURL: URL?), Never>()
+  let outgoingGroupStatus = PassthroughSubject<(groupId: String, status: FileTransferStatus, delivered: Int, total: Int), Never>()
   let fileTransferCancelled = PassthroughSubject<String, Never>()
   let fileTransferFailed = PassthroughSubject<(fileId: String, reason: FileTransferFailureReason), Never>()
 
   private let downloadStallTimeout: TimeInterval = 30
   private var pendingChunkIndices: [String: Set<Int>] = [:]
   private var uploadTasks: [String: Task<Void, Never>] = [:]
+  private var outgoingGroups: [String: UploadGroup] = [:]
   private var offerTasks: [String: Task<Void, Never>] = [:]
   private var stallWatchdog: Task<Void, Never>?
   private var knownPeers: Set<String> = []
@@ -61,7 +63,7 @@ final class FileTransferService: ObservableObject {
   }
 
   @discardableResult
-  func prepareFileForSending(stagedFile: StagedFile, targetUser: String, hashTask: Task<String?, Never>? = nil) async -> Bool {
+  func prepareFileForSending(stagedFile: StagedFile, targetUser: String, groupId: String, hashTask: Task<String?, Never>? = nil) async -> Bool {
     guard stagedFile.size > 0 else {
       logger.warning("skipping empty file \(stagedFile.name)")
       return false
@@ -97,6 +99,7 @@ final class FileTransferService: ObservableObject {
     activeUploads.append(
       FileUpload(
         id: fileId,
+        groupId: groupId,
         fileURL: stagedFile.url,
         kind: stagedFile.kind,
         displayName: stagedFile.name,
@@ -130,6 +133,8 @@ final class FileTransferService: ObservableObject {
 
     await userService.waitForUsername()
     let sender = userService.user
+    let groupId = UUID().uuidString
+    outgoingGroups[groupId] = UploadGroup(total: peers.count)
 
     outgoingAttachment.send(
       ChatMessage(
@@ -142,6 +147,9 @@ final class FileTransferService: ObservableObject {
           fileSize: stagedFile.size,
           fromUser: sender,
           status: .pending,
+          groupId: groupId,
+          deliveredCount: 0,
+          recipientCount: peers.count,
         ),
         isMine: true,
       ),
@@ -151,7 +159,7 @@ final class FileTransferService: ObservableObject {
       try? BinaryChunk.sha256Hex(ofFileAt: stagedFile.url)
     }
     for peer in peers {
-      await prepareFileForSending(stagedFile: stagedFile, targetUser: peer, hashTask: hashTask)
+      await prepareFileForSending(stagedFile: stagedFile, targetUser: peer, groupId: groupId, hashTask: hashTask)
     }
   }
 
@@ -176,6 +184,7 @@ final class FileTransferService: ObservableObject {
       return false
     }
     let removed = activeUploads.remove(at: idx)
+    markGroupOutcome(removed.groupId, success: false)
     releaseSourceFile(of: removed)
 
     if notifyRecipient {
@@ -726,6 +735,7 @@ extension FileTransferService {
     }
 
     let removed = activeUploads.remove(at: idx)
+    markGroupOutcome(removed.groupId, success: true)
     logger.info("file-received ack: \(payload.fileId) ← \(peer)")
 
     // Delete the tmp file only if no other in-flight upload references it.
@@ -833,5 +843,40 @@ extension FileTransferService {
     FileManager.default.temporaryDirectory
       .appendingPathComponent("incoming", isDirectory: true)
       .appendingPathComponent(fileId, isDirectory: true)
+  }
+}
+
+// MARK: - Outgoing Group Aggregation
+
+extension FileTransferService {
+  private struct UploadGroup {
+    let total: Int
+    var completed = 0
+    var failed = 0
+  }
+
+  private func markGroupOutcome(_ groupId: String, success: Bool) {
+    guard outgoingGroups[groupId] != nil else { return }
+    if success {
+      outgoingGroups[groupId]?.completed += 1
+    } else {
+      outgoingGroups[groupId]?.failed += 1
+    }
+
+    recomputeGroup(groupId)
+  }
+
+  private func recomputeGroup(_ groupId: String) {
+    guard let group = outgoingGroups[groupId] else { return }
+    let resolved = group.completed + group.failed >= group.total
+    let status: FileTransferStatus =
+      group.completed > 0 ? .completed // Sent
+      : resolved ? .failed // Not delivered
+      : .pending
+
+    outgoingGroupStatus.send((groupId: groupId, status: status, delivered: group.completed, total: group.total))
+    if resolved {
+      outgoingGroups[groupId] = nil
+    }
   }
 }
