@@ -331,30 +331,23 @@ extension SignalingService {
   }
 
   private func handleCandidate(_ message: SignalMessage) async {
-    guard let pc = peerConnections[message.from] else {
-      logger.warning("no peer connection for \(message.from)")
-      return
-    }
-
     guard case .candidate(let sdpString, let sdpMid, let sdpMLineIndex) = message.payload else {
       logger.error("payload is not .candidate")
       return
     }
     let candidate = RTCIceCandidate(sdp: sdpString, sdpMLineIndex: sdpMLineIndex, sdpMid: sdpMid)
 
-    if pc.remoteDescription != nil {
-      do {
-        try await pc.add(candidate)
-        logger.info("candidate added for \(message.from)")
-      } catch {
-        logger.error("add failed: \(error.localizedDescription)")
-      }
-    } else {
-      if candidateQueues[message.from] == nil {
-        candidateQueues[message.from] = []
-      }
-      candidateQueues[message.from]?.append(candidate)
+    guard let pc = peerConnections[message.from], pc.remoteDescription != nil else {
+      candidateQueues[message.from, default: []].append(candidate)
       logger.info("queued candidate for \(message.from) (queue size: \(candidateQueues[message.from]?.count ?? 0))")
+      return
+    }
+
+    do {
+      try await pc.add(candidate)
+      logger.info("candidate added for \(message.from)")
+    } catch {
+      logger.error("add failed: \(error.localizedDescription)")
     }
   }
 
@@ -645,6 +638,9 @@ extension SignalingService: RTCPeerConnectionDelegate {
       box.value.delegate = self
       self.dataChannels[peer] = box.value
       self.logger.info("data channel attached to peer: \(peer)")
+      if box.value.readyState == .open {
+        self.handleChannelOpened(peer)
+      }
     }
   }
 }
@@ -667,12 +663,7 @@ extension SignalingService: RTCDataChannelDelegate {
 
       switch state {
       case .open:
-        self.connectedPeers.insert(peer)
-        self.connectingPeers.remove(peer)
-        self.connectionLocks.remove(peer)
-        self.reconnectAttempts[peer] = nil
-        self.clearConnectionTimeout(for: peer)
-        self.logger.info("connected to \(peer)")
+        handleChannelOpened(peer)
       case .closed:
         self.connectedPeers.remove(peer)
         self.connectionLocks.remove(peer)
@@ -687,6 +678,16 @@ extension SignalingService: RTCDataChannelDelegate {
       }
 
     }
+  }
+
+  private func handleChannelOpened(_ peer: String) {
+    guard !connectedPeers.contains(peer) else { return }
+    connectedPeers.insert(peer)
+    connectingPeers.remove(peer)
+    connectionLocks.remove(peer)
+    reconnectAttempts[peer] = nil
+    clearConnectionTimeout(for: peer)
+    self.logger.info("connected to \(peer)")
   }
 
   nonisolated func dataChannel(_ dataChannel: RTCDataChannel, didReceiveMessageWith buffer: RTCDataBuffer) {
