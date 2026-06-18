@@ -169,4 +169,14 @@ export class FileTransferService implements IFileTransferService {
     await this.fileOfferService.declineFileOffer(fromUser, fileId);
     this.logger.debug('FileTransferService', `File offer ${fileId} declined by ${fromUser}`);
   }
+
+  /**
+   * Cleans up all transfers tied to a peer that left the room: stops uploads to
+   * them and purges their incoming offers/downloads (clearing stale Accept/Decline).
+   */
+  public async handlePeerLeft(user: string): Promise<void> {
+    await this.fileUploadService.stopUploadsToPeer(user);
+    await this.fileDownloadService.purgeIncomingFromPeer(user);
+    this.logger.debug('FileTransferService', `Cleaned up transfers for departed peer ${user}`);
+  }
 }

@@ -420,6 +420,25 @@ export class FileDownloadService extends FileTransferBaseService {
     this.stopStallWatchdogIfIdle();
   }
 
+  /**
+   * Purges all incoming offers and in-flight downloads from a peer that left the
+   * room, so stale offers don't keep their Accept/Decline buttons. No sender
+   * notification — the peer is already gone.
+   */
+  public async purgeIncomingFromPeer(user: string): Promise<void> {
+    const userMap = await this.getIncomingFileTransfers(user);
+    if (!userMap || userMap.size === 0) return;
+
+    for (const fileId of userMap.keys()) {
+      this.finishReceiveSpan(user, fileId, 'cancelled', { cancelled_by: 'peer_left' });
+    }
+
+    await this.deleteIncomingFileTransfers(user);
+    await this.updateActiveDownloads();
+    await this.updateIncomingFileOffers();
+    this.stopStallWatchdogIfIdle();
+  }
+
   // =============== Stall Watchdog ===============
   /**
    * Starts the periodic stall sweep if it isn't already running. Called when a

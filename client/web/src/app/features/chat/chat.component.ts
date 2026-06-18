@@ -578,6 +578,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
               this.webrtcService.closeConnection(member);
               this.memberConnectionStatus.delete(member);
               this.memberConnectionState.delete(member);
+              void this.fileTransferService.handlePeerLeft(member);
             });
 
             // Clean up timeouts for members who left

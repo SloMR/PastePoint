@@ -308,6 +308,24 @@ export class FileUploadService extends FileTransferBaseService {
   }
 
   /**
+   * Stops every in-flight upload to a peer that left the room and clears its
+   * per-user queue state. No notification — the peer is already gone.
+   */
+  public async stopUploadsToPeer(user: string): Promise<void> {
+    const userMap = await this.getFileTransfers(user);
+    if (userMap) {
+      for (const fileId of Array.from(userMap.keys())) {
+        await this.stopFileUpload(user, fileId, false);
+      }
+    }
+    this.userFileQueues.delete(user);
+    this.activeFilePerUser.delete(user);
+    this.processingQueues.delete(user);
+    this.consecutiveErrorCounts.delete(user);
+    this.offerReady.delete(user);
+  }
+
+  /**
    * Completes an upload once the receiver confirms the file was assembled.
    */
   public async completeFileUpload(targetUser: string, fileId: string): Promise<void> {
