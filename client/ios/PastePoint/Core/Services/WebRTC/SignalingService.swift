@@ -38,7 +38,7 @@ final class SignalingService: NSObject, ObservableObject {
   private let peerDirectory: PeerDirectory
   private var cancellables: Set<AnyCancellable> = []
 
-  private static let connectionTimeout: TimeInterval = 30.0 // Seconds
+  private static let connectionTimeout: TimeInterval = 8.0 // Seconds
   private static let maxReconnectAttempts = 5
   private static let baseReconnectDelay: TimeInterval = 2.0 // Seconds
   private static let maxReconnectDelay: TimeInterval = 10.0 // Seconds
