@@ -15,6 +15,12 @@ build/
 *.dSYM.zip
 *.dSYM
 
+# SPM Package.resolved
+!*.xcodeproj/project.xcworkspace/
+!*.xcodeproj/project.xcworkspace/xcshareddata/
+!*.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
+!*.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+
 # Swift Package Manager
 .build/
 .swiftpm/
