@@ -578,6 +578,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
               this.webrtcService.closeConnection(member);
               this.memberConnectionStatus.delete(member);
               this.memberConnectionState.delete(member);
+              void this.fileTransferService.handlePeerLeft(member);
             });
 
             // Clean up timeouts for members who left
@@ -612,6 +613,41 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
           this.cdr.detectChanges();
         });
       })
+    );
+
+    // Aggregate status for the sender's own outgoing files (echo bubble).
+    this.subscriptions.push(
+      this.fileTransferService.outgoingGroupStatus$.subscribe(
+        ({ groupId, delivered, total, resolved }) => {
+          this.ngZone.run(() => {
+            const updated = this.chatService.messages$.value.map((msg) => {
+              if (
+                msg.type === ChatMessageType.ATTACHMENT &&
+                msg.fileTransfer?.groupId === groupId
+              ) {
+                const status =
+                  delivered > 0
+                    ? FileTransferStatus.COMPLETED // Sent / Sent to X of N
+                    : resolved
+                      ? FileTransferStatus.DECLINED // Not delivered
+                      : FileTransferStatus.ACCEPTED; // Sending…
+                return {
+                  ...msg,
+                  fileTransfer: {
+                    ...msg.fileTransfer,
+                    status,
+                    deliveredCount: delivered,
+                    recipientCount: total,
+                  },
+                };
+              }
+              return msg;
+            });
+            this.chatService.replaceMessages(updated as ChatMessage[]);
+            this.cdr.detectChanges();
+          });
+        }
+      )
     );
 
     // Listen for active file downloads
@@ -1016,7 +1052,11 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
    * Recipients create their own messages from the file offer directly.
    * ==========================================================
    */
-  private async createLocalFileMessages(files: File[]): Promise<void> {
+  private async createLocalFileMessages(
+    files: File[],
+    groupIds: Map<File, string>,
+    recipientCount: number
+  ): Promise<void> {
     for (const file of files) {
       const truncatedFilename = this.truncateFilename(file.name);
       const fileSizeLabel = this.fileSizePipe.transform(file.size, 2);
@@ -1046,9 +1086,20 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
         }
       }
 
+      const groupId = groupIds.get(file)!;
       this.chatService.addMessageToLocal(fileMessageText, ChatMessageType.ATTACHMENT, {
         previewUrl,
         previewMime,
+        fileTransfer: {
+          fileId: groupId,
+          fileName: file.name,
+          fileSize: file.size,
+          fromUser: this.userService.user,
+          status: FileTransferStatus.ACCEPTED,
+          groupId,
+          deliveredCount: 0,
+          recipientCount,
+        },
       });
     }
   }
@@ -1077,13 +1128,25 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
         return;
       }
 
+      // One group id per file links its echo bubble to its per-peer uploads.
+      const groupIds = new Map<File, string>();
+      for (const file of filesToSend) {
+        const groupId = crypto.randomUUID();
+        groupIds.set(file, groupId);
+        this.fileTransferService.beginUploadGroup(groupId, recipients.length);
+      }
+
       // Create local chat messages for each file being sent
-      await this.createLocalFileMessages(filesToSend);
+      await this.createLocalFileMessages(filesToSend, groupIds, recipients.length);
 
       // First prepare all files for all recipients
       for (const fileToSend of filesToSend) {
         for (const member of recipients) {
-          await this.fileTransferService.prepareFileForSending(fileToSend, member);
+          await this.fileTransferService.prepareFileForSending(
+            fileToSend,
+            member,
+            groupIds.get(fileToSend)!
+          );
           if (!this.webrtcService.isConnectedOrConnecting(member)) {
             this.logger.info(
               'sendAttachments',
@@ -1782,13 +1845,25 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
 
     if (files.length === 0) return;
 
+    // One group id per file links its echo bubble to its per-peer uploads.
+    const groupIds = new Map<File, string>();
+    for (const file of files) {
+      const groupId = crypto.randomUUID();
+      groupIds.set(file, groupId);
+      this.fileTransferService.beginUploadGroup(groupId, otherMembers.length);
+    }
+
     // Create local chat messages for each file being sent
-    await this.createLocalFileMessages(files);
+    await this.createLocalFileMessages(files, groupIds, otherMembers.length);
 
     // First prepare all files for all members
     for (const fileToSend of files) {
       for (const member of otherMembers) {
-        await this.fileTransferService.prepareFileForSending(fileToSend, member);
+        await this.fileTransferService.prepareFileForSending(
+          fileToSend,
+          member,
+          groupIds.get(fileToSend)!
+        );
         if (!this.webrtcService.isConnectedOrConnecting(member)) {
           this.logger.info(
             'handleFilesDropped',

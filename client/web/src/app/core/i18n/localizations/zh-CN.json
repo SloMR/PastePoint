@@ -82,6 +82,10 @@
   "FILE_TRANSFER": "文件传输",
   "ACTIVE_TRANSFERS_COUNT": "传输任务",
   "FILE_SENT": "文件已发送",
+  "FILE_SEND_SENDING": "发送中…",
+  "FILE_SEND_DELIVERED": "已发送",
+  "FILE_SEND_PARTIAL": "已发送给 {{total}} 人中的 {{delivered}} 人",
+  "FILE_SEND_NONE": "未送达",
   "FILE_TRANSFER_ACCEPTED": "文件传输已接受",
   "FILE_TRANSFER_DECLINED": "文件传输已拒绝",
 
@@ -140,6 +144,7 @@
   "FILE_DOWNLOAD_CANCELLED": "发送方已取消下载。",
   "FILE_DOWNLOAD_COMPLETED": "{{fileName}} 已可保存。",
   "FILE_REJECTED_NO_HASH": "{{fileName}} 已被拒绝——发送方未提供完整性校验值。",
+  "FILE_TRANSFER_STALLED": "{{fileName}} 传输已停滞——连接停止发送数据。",
   "FILE_SEND_HASH_FAILED": "发送前无法校验 {{fileName}}——传输已取消。",
   "FILE_EMPTY_ERROR": "{{fileName}} 为空——没有可发送的内容。",
   "FILE_UPLOAD_COMPLETED": "{{fileName}} 发送完成。",

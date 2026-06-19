@@ -117,12 +117,28 @@ export class FileTransferService implements IFileTransferService {
     return FileTransferBaseService.incomingFileOffers$;
   }
 
+  /**
+   * Aggregate status of an outgoing send (drives the sender's echo bubble).
+   */
+  public get outgoingGroupStatus$() {
+    return this.fileUploadService.outgoingGroupStatus$;
+  }
+
   // =============== Upload Methods ===============
+  /** Registers a logical send to `total` recipients before per-peer prep. */
+  public beginUploadGroup(groupId: string, total: number): void {
+    this.fileUploadService.beginUploadGroup(groupId, total);
+  }
+
   /**
    * Prepares a file for sending to a target user
    */
-  public async prepareFileForSending(file: File, targetUser: string): Promise<void> {
-    await this.fileUploadService.prepareFileForSending(file, targetUser);
+  public async prepareFileForSending(
+    file: File,
+    targetUser: string,
+    groupId: string
+  ): Promise<void> {
+    await this.fileUploadService.prepareFileForSending(file, targetUser, groupId);
     this.logger.debug('FileTransferService', `File upload prepared for sending to ${targetUser}`);
   }
 
@@ -157,6 +173,8 @@ export class FileTransferService implements IFileTransferService {
    */
   public async acceptFileOffer(fromUser: string, fileId: string): Promise<void> {
     await this.fileOfferService.acceptFileOffer(fromUser, fileId);
+
+    this.fileDownloadService.startStallWatchdog();
     this.logger.debug('FileTransferService', `File offer ${fileId} accepted by ${fromUser}`);
   }
 
@@ -166,5 +184,15 @@ export class FileTransferService implements IFileTransferService {
   public async declineFileOffer(fromUser: string, fileId: string): Promise<void> {
     await this.fileOfferService.declineFileOffer(fromUser, fileId);
     this.logger.debug('FileTransferService', `File offer ${fileId} declined by ${fromUser}`);
+  }
+
+  /**
+   * Cleans up all transfers tied to a peer that left the room: stops uploads to
+   * them and purges their incoming offers/downloads (clearing stale Accept/Decline).
+   */
+  public async handlePeerLeft(user: string): Promise<void> {
+    await this.fileUploadService.stopUploadsToPeer(user);
+    await this.fileDownloadService.purgeIncomingFromPeer(user);
+    this.logger.debug('FileTransferService', `Cleaned up transfers for departed peer ${user}`);
   }
 }

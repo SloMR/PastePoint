@@ -35,7 +35,7 @@ struct ChatInputBar: View {
                 Button {
                   if let idx = stagedFiles.firstIndex(where: { $0.id == file.id }) {
                     let removed = stagedFiles.remove(at: idx)
-                    try? FileManager.default.removeItem(at: removed.url)
+                    removed.kind.releaseSource(at: removed.url)
                   }
                 } label: {
                   Image(systemName: "xmark.circle.fill")

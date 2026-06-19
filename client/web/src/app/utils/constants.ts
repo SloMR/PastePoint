@@ -152,6 +152,9 @@ export interface FileTransferData {
   fileSize: number;
   fromUser: string;
   status: FileTransferStatus;
+  groupId?: string;
+  deliveredCount?: number;
+  recipientCount?: number;
 }
 
 export interface ChatMessage {
@@ -181,6 +184,7 @@ export interface FileUpload {
   targetUser: string;
   progress: number;
   phase: 'sending' | 'finalizing';
+  groupId: string;
 }
 
 export interface FileDownload {
@@ -193,6 +197,7 @@ export interface FileDownload {
   totalChunks: number;
   progress: number;
   isAccepted: boolean;
+  lastActivity: number;
   previewDataUrl?: string;
   previewMime?: string;
   expectedHash?: string;

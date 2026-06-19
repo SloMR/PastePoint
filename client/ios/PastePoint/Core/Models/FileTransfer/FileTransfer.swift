@@ -49,6 +49,9 @@ enum FileTransferFailureReason: Sendable {
   case assembly // couldn't read/write chunks to disk
   case noHash // receiver: sender sent no hash -> reject (verify is mandatory)
   case sendHashFailed // sender: couldn't hash the file -> send aborted
+  case stalled // download received no new chunk within the stall window -> abort
+  case saveFailed // receiver: file transferred OK but couldn't be saved locally
+  case photosPermissionDenied // receiver: Photos access denied -> can't save media
 }
 
 // MARK: Attachment Bubble Data
@@ -60,6 +63,9 @@ struct FileTransferData: Codable, Sendable, Equatable {
   let fromUser: String
   var status: FileTransferStatus
   var fileURL: URL?
+  var groupId: String?
+  var deliveredCount: Int?
+  var recipientCount: Int?
 }
 
 // MARK: Local State
@@ -71,7 +77,9 @@ struct FileUpload: Identifiable, Sendable {
   }
 
   let id: String
+  let groupId: String
   let fileURL: URL
+  let kind: FileSourceKind
   let displayName: String
   let fileSize: Int64
   let targetUser: String
@@ -88,12 +96,34 @@ struct FileDownload: Identifiable, Sendable {
   var totalChunks: Int
   var receivedSize: Int64
   var receivedChunkURLs: [Int: URL]
+  var lastActivityAt: Date
   var progress: Double
   var isAccepted: Bool
   var expectedHash: String?
   var fileURL: URL?
   // TODO: file-transfer preview — add `previewDataUrl: String?` and `previewMime: String?`
   //       and generate a JPEG thumbnail (≤150KB) at send time to match web's
+}
+
+// MARK: Soruce Kind
+
+enum FileSourceKind: Sendable, Equatable {
+  case ownedTemp // our/system temp — delete on release
+  case securityScoped // Files original — stopAccessing on release, never delete
+}
+
+extension FileSourceKind {
+  /// Releases a source URL per its kind.
+  /// owned temp → deleted; security-scoped
+  /// original → access stopped.
+  func releaseSource(at url: URL) {
+    switch self {
+    case .ownedTemp:
+      try? FileManager.default.removeItem(at: url)
+    case .securityScoped:
+      url.stopAccessingSecurityScopedResource()
+    }
+  }
 }
 
 // MARK: Staging
@@ -105,4 +135,5 @@ struct StagedFile: Identifiable, Sendable, Equatable {
   let name: String
   let size: Int64
   let url: URL
+  let kind: FileSourceKind
 }

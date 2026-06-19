@@ -21,7 +21,11 @@ import {
 export class FileDownloadService extends FileTransferBaseService {
   private previewService = inject(PreviewService);
 
+  private static readonly DOWNLOAD_STALL_TIMEOUT_MS = 30_000;
+  private static readonly STALL_SCAN_INTERVAL_MS = 5_000;
+
   private activeReceiveSpans = new Map<string, Sentry.Span>();
+  private stallWatchdog: ReturnType<typeof setInterval> | null = null;
 
   // =============== Constructor ===============
   constructor() {
@@ -54,6 +58,7 @@ export class FileDownloadService extends FileTransferBaseService {
       | 'missing_chunks'
       | 'hash_mismatch'
       | 'no_hash'
+      | 'stalled'
       | 'cancelled',
     extra?: Record<string, number | string | boolean>
   ): void {
@@ -161,6 +166,7 @@ export class FileDownloadService extends FileTransferBaseService {
     // Store chunk as Blob
     fileDownload.receivedChunks.set(chunkIndex, new Blob([chunk]));
     fileDownload.receivedSize += chunk.byteLength;
+    fileDownload.lastActivity = Date.now();
 
     const progress = (fileDownload.receivedChunks.size / totalChunks) * 100;
     fileDownload.progress = parseFloat(progress.toFixed(2));
@@ -369,6 +375,7 @@ export class FileDownloadService extends FileTransferBaseService {
     }
 
     await this.updateActiveDownloads();
+    this.stopStallWatchdogIfIdle();
   }
 
   // =============== Helper Methods ===============
@@ -410,6 +417,85 @@ export class FileDownloadService extends FileTransferBaseService {
     );
     await this.updateActiveDownloads();
     await this.updateIncomingFileOffers();
+    this.stopStallWatchdogIfIdle();
+  }
+
+  /**
+   * Purges all incoming offers and in-flight downloads from a peer that left the
+   * room, so stale offers don't keep their Accept/Decline buttons. No sender
+   * notification — the peer is already gone.
+   */
+  public async purgeIncomingFromPeer(user: string): Promise<void> {
+    const userMap = await this.getIncomingFileTransfers(user);
+    if (!userMap || userMap.size === 0) return;
+
+    for (const fileId of userMap.keys()) {
+      this.finishReceiveSpan(user, fileId, 'cancelled', { cancelled_by: 'peer_left' });
+    }
+
+    await this.deleteIncomingFileTransfers(user);
+    await this.updateActiveDownloads();
+    await this.updateIncomingFileOffers();
+    this.stopStallWatchdogIfIdle();
+  }
+
+  // =============== Stall Watchdog ===============
+  /**
+   * Starts the periodic stall sweep if it isn't already running. Called when a
+   * download becomes active (offer accepted). Single-owner lifecycle: only this
+   * sets the handle; only stopStallWatchdogIfIdle clears it.
+   */
+  public startStallWatchdog(): void {
+    if (this.stallWatchdog !== null) return; // already running
+    this.stallWatchdog = setInterval(() => {
+      void this.sweepStalledDownloads();
+    }, FileDownloadService.STALL_SCAN_INTERVAL_MS);
+  }
+
+  /**
+   * Stops the sweep once no downloads remain, so the timer doesn't tick forever.
+   * Guarded on emptiness so one finished download doesn't kill the watchdog while
+   * others are still in flight.
+   */
+  private stopStallWatchdogIfIdle(): void {
+    if (FileTransferBaseService.activeDownloads$.value.length > 0) return;
+    if (this.stallWatchdog !== null) {
+      clearInterval(this.stallWatchdog);
+      this.stallWatchdog = null;
+    }
+  }
+
+  /**
+   * Fails any active download that has gone silent past the stall timeout. The
+   * 5s scan interval just bounds detection latency; the 30s timeout is the policy.
+   */
+  private async sweepStalledDownloads(): Promise<void> {
+    const now = Date.now();
+
+    // Snapshot first — cleanupAfterDownload mutates the active list.
+    const stalled = FileTransferBaseService.activeDownloads$.value.filter(
+      (download) => now - download.lastActivity > FileDownloadService.DOWNLOAD_STALL_TIMEOUT_MS
+    );
+
+    for (const fileDownload of stalled) {
+      this.logger.warn(
+        'sweepStalledDownloads',
+        `Download ${fileDownload.fileId.substring(0, 8)}... stalled ` +
+          `(${FileDownloadService.DOWNLOAD_STALL_TIMEOUT_MS}ms no chunk) - failing`
+      );
+
+      this.toaster.error(
+        this.translate.instant('FILE_TRANSFER_STALLED', { fileName: fileDownload.fileName })
+      );
+
+      this.finishReceiveSpan(fileDownload.fromUser, fileDownload.fileId, 'stalled', {
+        bytes_received: fileDownload.receivedSize,
+      });
+
+      await this.cleanupAfterDownload(fileDownload.fromUser, fileDownload.fileId);
+    }
+
+    this.stopStallWatchdogIfIdle();
   }
 
   // =============== Cancellation Methods ===============
@@ -432,6 +518,7 @@ export class FileDownloadService extends FileTransferBaseService {
         },
       };
       this.sendData(message, fromUser);
+      this.stopStallWatchdogIfIdle();
       this.logger.info('cancelDownload', `Cancel download fromUser=${fromUser}, fileId=${fileId}`);
     }
   }

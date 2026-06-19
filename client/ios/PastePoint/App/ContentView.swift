@@ -81,6 +81,9 @@ struct ContentView: View {
     .onReceive(services.fileTransferService.downloadCompleted) { fileId, fileURL in
       updateFileStatus(fileId: fileId, fileURL: fileURL, status: .completed)
     }
+    .onReceive(services.fileTransferService.outgoingGroupStatus) { update in
+      updateOutgoingGroup(groupId: update.groupId, status: update.status, delivered: update.delivered, total: update.total)
+    }
     .onReceive(services.fileTransferService.fileTransferCancelled) { fileId in
       updateFileStatus(fileId: fileId, status: .cancelled)
     }
@@ -90,11 +93,17 @@ struct ContentView: View {
       case .integrity:
         toasts.append(.error("File transfer failed — data was corrupted"))
       case .assembly:
-        toasts.append(.error("Couldn't save the received file"))
+        toasts.append(.error("Couldn’t assemble the received file"))
       case .noHash:
         toasts.append(.error("File rejected — sender sent no integrity hash"))
       case .sendHashFailed:
         toasts.append(.error("Couldn’t verify file before sending — cancelled"))
+      case .stalled:
+        toasts.append(.error("Transfer stalled — connection lost data"))
+      case .saveFailed:
+        toasts.append(.error("Couldn’t save the received file"))
+      case .photosPermissionDenied:
+        toasts.append(.error("Allow Photos access in Settings to save received media"))
       }
     }
     .onReceive(services.wsService.didConnect) {
@@ -206,6 +215,16 @@ struct ContentView: View {
     if let fileURL {
       messages[idx].fileTransfer?.fileURL = fileURL
     }
+  }
+
+  private func updateOutgoingGroup(groupId: String, status: FileTransferStatus, delivered: Int, total: Int) {
+    guard let idx = messages.firstIndex(where: { $0.fileTransfer?.groupId == groupId }) else {
+      return
+    }
+
+    messages[idx].fileTransfer?.status = status
+    messages[idx].fileTransfer?.deliveredCount = delivered
+    messages[idx].fileTransfer?.recipientCount = total
   }
 
   private func peerWarning() -> ToastItem {

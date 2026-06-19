@@ -61,6 +61,7 @@ export class FileOfferService extends FileTransferBaseService {
         totalChunks: 0,
         progress: 0,
         isAccepted: false,
+        lastActivity: Date.now(),
         previewDataUrl,
         previewMime,
         expectedHash: fileHash,
@@ -90,6 +91,7 @@ export class FileOfferService extends FileTransferBaseService {
     }
 
     fileDownload.isAccepted = true;
+    fileDownload.lastActivity = Date.now();
     await this.setIncomingFileTransfers(fromUser, userMap);
     await this.updateIncomingFileOffers();
 

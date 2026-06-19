@@ -19,13 +19,17 @@ final class FileTransferService: ObservableObject {
 
   let attachmentMessages = PassthroughSubject<ChatMessage, Never>()
   let outgoingAttachment = PassthroughSubject<ChatMessage, Never>()
-  let downloadCompleted = PassthroughSubject<(fileId: String, fileURL: URL), Never>()
+  let downloadCompleted = PassthroughSubject<(fileId: String, fileURL: URL?), Never>()
+  let outgoingGroupStatus = PassthroughSubject<OutgoingGroupStatus, Never>()
   let fileTransferCancelled = PassthroughSubject<String, Never>()
   let fileTransferFailed = PassthroughSubject<(fileId: String, reason: FileTransferFailureReason), Never>()
 
+  private let downloadStallTimeout: TimeInterval = 30
   private var pendingChunkIndices: [String: Set<Int>] = [:]
   private var uploadTasks: [String: Task<Void, Never>] = [:]
+  private var outgoingGroups: [String: UploadGroup] = [:]
   private var offerTasks: [String: Task<Void, Never>] = [:]
+  private var stallWatchdog: Task<Void, Never>?
   private var knownPeers: Set<String> = []
   private var cancellables: Set<AnyCancellable> = []
 
@@ -59,7 +63,12 @@ final class FileTransferService: ObservableObject {
   }
 
   @discardableResult
-  func prepareFileForSending(stagedFile: StagedFile, targetUser: String, hashTask: Task<String?, Never>? = nil) async -> Bool {
+  func prepareFileForSending(
+    stagedFile: StagedFile,
+    targetUser: String,
+    groupId: String,
+    hashTask: Task<String?, Never>? = nil,
+  ) async -> Bool {
     guard stagedFile.size > 0 else {
       logger.warning("skipping empty file \(stagedFile.name)")
       return false
@@ -95,7 +104,9 @@ final class FileTransferService: ObservableObject {
     activeUploads.append(
       FileUpload(
         id: fileId,
+        groupId: groupId,
         fileURL: stagedFile.url,
+        kind: stagedFile.kind,
         displayName: stagedFile.name,
         fileSize: stagedFile.size,
         targetUser: targetUser,
@@ -127,6 +138,8 @@ final class FileTransferService: ObservableObject {
 
     await userService.waitForUsername()
     let sender = userService.user
+    let groupId = UUID().uuidString
+    outgoingGroups[groupId] = UploadGroup(total: peers.count)
 
     outgoingAttachment.send(
       ChatMessage(
@@ -139,6 +152,9 @@ final class FileTransferService: ObservableObject {
           fileSize: stagedFile.size,
           fromUser: sender,
           status: .pending,
+          groupId: groupId,
+          deliveredCount: 0,
+          recipientCount: peers.count,
         ),
         isMine: true,
       ),
@@ -148,7 +164,7 @@ final class FileTransferService: ObservableObject {
       try? BinaryChunk.sha256Hex(ofFileAt: stagedFile.url)
     }
     for peer in peers {
-      await prepareFileForSending(stagedFile: stagedFile, targetUser: peer, hashTask: hashTask)
+      await prepareFileForSending(stagedFile: stagedFile, targetUser: peer, groupId: groupId, hashTask: hashTask)
     }
   }
 
@@ -173,6 +189,7 @@ final class FileTransferService: ObservableObject {
       return false
     }
     let removed = activeUploads.remove(at: idx)
+    markGroupOutcome(removed.groupId, success: false)
     releaseSourceFile(of: removed)
 
     if notifyRecipient {
@@ -236,7 +253,9 @@ final class FileTransferService: ObservableObject {
 
     var download = incomingFileOffers.remove(at: idx)
     download.isAccepted = true
+    download.lastActivityAt = Date()
     activeDownloads.append(download)
+    startStallWatchdog()
 
     logger.info("file-accept sent: \(fileId) → \(uploader)")
     return true
@@ -512,6 +531,7 @@ extension FileTransferService {
       totalChunks: 0,
       receivedSize: 0,
       receivedChunkURLs: [:],
+      lastActivityAt: Date(),
       progress: 0,
       isAccepted: false,
       expectedHash: payload.fileHash,
@@ -605,6 +625,7 @@ extension FileTransferService {
     }
     activeDownloads[i].receivedChunkURLs[chunkIndex] = chunkURL
     activeDownloads[i].receivedSize += Int64(data.count)
+    activeDownloads[i].lastActivityAt = Date()
 
     let received = activeDownloads[i].receivedSize
     let size = activeDownloads[i].fileSize
@@ -676,13 +697,25 @@ extension FileTransferService {
         return
       }
 
-      if let i = activeDownloads.firstIndex(where: { $0.id == download.id && $0.fromUser == peer }) {
-        activeDownloads[i].fileURL = finalURL
-      }
-
       sendFileReceived(fileId: download.id, to: peer)
       activeDownloads.removeAll { $0.id == download.id && $0.fromUser == peer }
-      downloadCompleted.send((fileId: download.id, fileURL: finalURL))
+      stopStallWatchdogIfIdle()
+
+      let outcome = await ReceivedFileSaver.save(at: finalURL, fileName: download.fileName)
+      try? FileManager.default.removeItem(at: completedDir)
+
+      switch outcome {
+      case .photos:
+        downloadCompleted.send((fileId: download.id, fileURL: nil))
+      case let .documents(dest):
+        downloadCompleted.send((fileId: download.id, fileURL: dest))
+      case .permissionDenied:
+        fileTransferFailed.send((fileId: download.id, reason: .photosPermissionDenied))
+        return
+      case .failed:
+        fileTransferFailed.send((fileId: download.id, reason: .saveFailed))
+        return
+      }
       logger.info("download complete: \(download.fileName) ← \(peer)")
     }
   }
@@ -707,6 +740,7 @@ extension FileTransferService {
     }
 
     let removed = activeUploads.remove(at: idx)
+    markGroupOutcome(removed.groupId, success: true)
     logger.info("file-received ack: \(payload.fileId) ← \(peer)")
 
     // Delete the tmp file only if no other in-flight upload references it.
@@ -742,6 +776,7 @@ extension FileTransferService {
       file.id == fileId && file.fromUser == fromUser
     }
 
+    stopStallWatchdogIfIdle()
     pendingChunkIndices[fileId] = nil
     let dir = chunkDirectory(for: fileId)
     try? FileManager.default.removeItem(at: dir)
@@ -751,15 +786,10 @@ extension FileTransferService {
     let stillReferenced = activeUploads.contains { file in
       file.fileURL == upload.fileURL
     }
+    guard !stillReferenced else { return }
 
-    if !stillReferenced {
-      do {
-        try FileManager.default.removeItem(at: upload.fileURL)
-        logger.info("removed tmp file: \(upload.fileURL.lastPathComponent)")
-      } catch {
-        logger.warning("failed to remove tmp file \(upload.fileURL.lastPathComponent): \(error)")
-      }
-    }
+    upload.kind.releaseSource(at: upload.fileURL)
+    logger.info("released source (\(upload.kind)): \(upload.fileURL.lastPathComponent)")
   }
 
   private func failDownload(fileId: String, from peer: String, reason: FileTransferFailureReason) {
@@ -778,11 +808,87 @@ extension FileTransferService {
     ))
   }
 
+  // MARK: Stall Watchdog
+
+  private func startStallWatchdog() {
+    guard stallWatchdog == nil else { return }
+    stallWatchdog = Task { [weak self] in
+      while true {
+        try? await Task.sleep(nanoseconds: 5_000_000_000) // TODO: change this as const
+        if Task.isCancelled { return }
+
+        guard let self else { return }
+        self.sweepStalledDownloads()
+      }
+    }
+  }
+
+  private func stopStallWatchdogIfIdle() {
+    guard activeDownloads.isEmpty else { return }
+    stallWatchdog?.cancel()
+    stallWatchdog = nil
+  }
+
+  private func sweepStalledDownloads() {
+    let now = Date()
+    let stalled = activeDownloads.filter {
+      now.timeIntervalSince($0.lastActivityAt) > downloadStallTimeout
+    }
+    for download in stalled {
+      logger.warning("download \(download.id) stalled (\(downloadStallTimeout)s no chunk) — failing")
+      failDownload(fileId: download.id, from: download.fromUser, reason: .stalled)
+    }
+  }
+
+  // MARK: Helpers
+
   /// Per-file scratch directory for incoming chunks: <tmp>/incoming/<fileId>/.
   private func chunkDirectory(for fileId: String) -> URL {
     // TODO: Change the path name from incoming to something better.
     FileManager.default.temporaryDirectory
       .appendingPathComponent("incoming", isDirectory: true)
       .appendingPathComponent(fileId, isDirectory: true)
+  }
+}
+
+// MARK: - Outgoing Group Aggregation
+
+extension FileTransferService {
+  struct OutgoingGroupStatus: Sendable {
+    let groupId: String
+    let status: FileTransferStatus
+    let delivered: Int
+    let total: Int
+  }
+
+  private struct UploadGroup {
+    let total: Int
+    var completed = 0
+    var failed = 0
+  }
+
+  private func markGroupOutcome(_ groupId: String, success: Bool) {
+    guard outgoingGroups[groupId] != nil else { return }
+    if success {
+      outgoingGroups[groupId]?.completed += 1
+    } else {
+      outgoingGroups[groupId]?.failed += 1
+    }
+
+    recomputeGroup(groupId)
+  }
+
+  private func recomputeGroup(_ groupId: String) {
+    guard let group = outgoingGroups[groupId] else { return }
+    let resolved = group.completed + group.failed >= group.total
+    let status: FileTransferStatus =
+      group.completed > 0 ? .completed // Sent
+      : resolved ? .failed // Not delivered
+      : .pending
+
+    outgoingGroupStatus.send(OutgoingGroupStatus(groupId: groupId, status: status, delivered: group.completed, total: group.total))
+    if resolved {
+      outgoingGroups[groupId] = nil
+    }
   }
 }

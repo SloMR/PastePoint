@@ -82,6 +82,10 @@
   "FILE_TRANSFER": "Transfert de fichier",
   "ACTIVE_TRANSFERS_COUNT": "Transferts",
   "FILE_SENT": "Fichier envoyé",
+  "FILE_SEND_SENDING": "Envoi…",
+  "FILE_SEND_DELIVERED": "Envoyé",
+  "FILE_SEND_PARTIAL": "Envoyé à {{delivered}} sur {{total}}",
+  "FILE_SEND_NONE": "Non remis",
   "FILE_TRANSFER_ACCEPTED": "Transfert accepté",
   "FILE_TRANSFER_DECLINED": "Transfert refusé",
 
@@ -140,6 +144,7 @@
   "FILE_DOWNLOAD_CANCELLED": "L'expéditeur a annulé le téléchargement.",
   "FILE_DOWNLOAD_COMPLETED": "{{fileName}} est prêt à être enregistré.",
   "FILE_REJECTED_NO_HASH": "{{fileName}} a été rejeté — l’expéditeur n’a fourni aucune empreinte d’intégrité.",
+  "FILE_TRANSFER_STALLED": "Le transfert de {{fileName}} s’est interrompu — la connexion a cessé d’envoyer des données.",
   "FILE_SEND_HASH_FAILED": "Impossible de vérifier {{fileName}} avant l’envoi — transfert annulé.",
   "FILE_EMPTY_ERROR": "{{fileName}} est vide — rien à envoyer.",
   "FILE_UPLOAD_COMPLETED": "{{fileName}} envoyé avec succès.",

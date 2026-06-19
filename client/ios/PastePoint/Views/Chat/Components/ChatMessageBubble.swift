@@ -126,16 +126,22 @@ struct ChatMessageBubble: View {
           .controlSize(.small)
         }
       } else if alignment == .leading {
-        if transfer.status == .completed, let fileURL = transfer.fileURL {
-          ShareLink(item: fileURL) {
-            Label("Save", systemImage: "square.and.arrow.down")
-              .font(.caption2)
-          }
+        if transfer.status == .completed {
+          Label(
+            transfer.fileURL == nil ? "Saved to Photos" : "Saved to Files",
+            systemImage: "checkmark.circle",
+          )
+          .font(.caption2)
+          .foregroundStyle(.secondary)
         } else {
           Text(statusLabel(transfer.status))
             .font(.caption2)
             .foregroundStyle(.secondary)
         }
+      } else if alignment == .trailing {
+        Text(outgoingStatusLabel(transfer))
+          .font(.caption2)
+          .foregroundStyle(.secondary)
       }
     }
     .foregroundStyle(alignment == .trailing ? .textPrimary : .white)
@@ -165,6 +171,19 @@ struct ChatMessageBubble: View {
     case .declined: return "Declined"
     case .cancelled: return "Cancelled"
     case .failed: return "Failed"
+    }
+  }
+
+  private func outgoingStatusLabel(_ transfer: FileTransferData) -> String {
+    let delivered = transfer.deliveredCount ?? 0
+    let total = transfer.recipientCount ?? 0
+    switch transfer.status {
+    case .completed:
+      return delivered >= total ? "Sent" : "Sent to \(delivered) of \(total)"
+    case .failed, .cancelled:
+      return "Not delivered"
+    default:
+      return "Sending…"
     }
   }
 }
