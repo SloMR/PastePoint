@@ -59,6 +59,15 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Read pinned Xcode version
+        id: xcode-pin
+        run: echo "version=$(sed 's/^Xcode //' client/ios/.xcode-version)" >> "$GITHUB_OUTPUT"
+
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: ${{ steps.xcode-pin.outputs.version }}
+
       - name: Get Xcode version
         id: xcode
         run: echo "version=$(xcodebuild -version | head -1 | sed 's/Xcode //')" >> "$GITHUB_OUTPUT"
