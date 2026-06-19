@@ -73,19 +73,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-spm-${{ steps.xcode.outputs.version }}-
 
-      - name: Cache DerivedData
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.DERIVED_DATA }}
-          key: ${{ runner.os }}-dd-${{ steps.xcode.outputs.version }}-${{ hashFiles('client/ios/PastePoint.xcodeproj/project.pbxproj') }}
-          restore-keys: |
-            ${{ runner.os }}-dd-${{ steps.xcode.outputs.version }}-
-
-      - name: Clear stale module cache
-        run: |
-          rm -rf ~/Library/Developer/Xcode/DerivedData/ModuleCache.noindex
-          rm -rf ${{ env.DERIVED_DATA }}/ModuleCache.noindex 2>/dev/null || true
-
       - name: Boot iOS Simulator
         run: |
           xcrun simctl list devices available
@@ -108,6 +95,9 @@ jobs:
             -destination '${{ env.DESTINATION }}' \
             -derivedDataPath '${{ env.DERIVED_DATA }}' \
             -configuration Debug \
+            -skipMacroValidation \
+            -skipPackagePluginValidation \
+            COMPILER_INDEX_STORE_ENABLE=NO \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO
@@ -121,11 +111,13 @@ jobs:
             -destination '${{ env.DESTINATION }}' \
             -derivedDataPath '${{ env.DERIVED_DATA }}' \
             -configuration Debug \
+            COMPILER_INDEX_STORE_ENABLE=NO \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO
 
       - name: Build Release
+        if: github.ref == 'refs/heads/main'
         working-directory: client/ios
         run: |
           xcodebuild build \
