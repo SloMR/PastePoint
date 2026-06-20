@@ -192,31 +192,36 @@ struct ChatMessageBubble: View {
 
 #if DEBUG
 #Preview {
-  ChatMessageBubble(
-    alignment: .leading,
-    name: "Garry Schulist",
-    time: "9:04 PM",
-    text: "Hello",
-    fileTransfer: FileTransferData(
-      fileId: "preview-id",
-      fileName: "report.pdf",
-      fileSize: 4_127_524,
-      fromUser: "Garry Schulist",
-      status: .pending,
-      fileURL: nil,
-    ),
-    onAccept: { },
-    onDecline: { },
-  )
+  PreviewStage {
+    VStack(spacing: 12) {
+      ChatMessageBubble(
+        alignment: .leading,
+        name: "Garry Schulist",
+        time: "9:04 PM",
+        text: "Hello",
+        fileTransfer: FileTransferData(
+          fileId: "preview-id",
+          fileName: "report.pdf",
+          fileSize: 4_127_524,
+          fromUser: "Garry Schulist",
+          status: .pending,
+          fileURL: nil,
+        ),
+        onAccept: { },
+        onDecline: { },
+      )
 
-  ChatMessageBubble(
-    alignment: .trailing,
-    name: "Gwen Kuphal",
-    time: "9:05 PM",
-    text: "Hi",
-    fileTransfer: nil,
-    onAccept: nil,
-    onDecline: nil,
-  )
+      ChatMessageBubble(
+        alignment: .trailing,
+        name: "Gwen Kuphal",
+        time: "9:05 PM",
+        text: "Hi",
+        fileTransfer: nil,
+        onAccept: nil,
+        onDecline: nil,
+      )
+    }
+    .padding()
+  }
 }
 #endif

@@ -44,9 +44,9 @@ struct ContentView: View {
         onSendFiles: handleSendFiles,
         hasConnectedPeers: !services.signalingService.connectedPeers.isEmpty,
       )
-      .padding(.horizontal, 16)
-      .padding(.top, 6)
-      .padding(.bottom, 8)
+      .padding(.horizontal, 8)
+      .padding(.top, 4)
+      .padding(.bottom, 0)
       .frame(maxWidth: .infinity)
       .background {
         AppColors.Background.background

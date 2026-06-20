@@ -19,50 +19,27 @@ struct ChatInputBar: View {
     message.trimmingCharacters(in: .whitespacesAndNewlines)
   }
 
+  private var isSendDisabled: Bool {
+    trimmed.isEmpty && stagedFiles.isEmpty
+  }
+
   var body: some View {
-    VStack(spacing: 10) {
+    VStack(spacing: 8) {
 
       if !stagedFiles.isEmpty {
         ScrollView(.horizontal, showsIndicators: false) {
           HStack(spacing: 8) {
             ForEach(stagedFiles) { file in
-              HStack(spacing: 6) {
-                Image(systemName: "doc")
-                  .font(.caption)
-                Text(file.name)
-                  .font(.caption)
-                  .lineLimit(1)
-                Button {
-                  if let idx = stagedFiles.firstIndex(where: { $0.id == file.id }) {
-                    let removed = stagedFiles.remove(at: idx)
-                    removed.kind.releaseSource(at: removed.url)
-                  }
-                } label: {
-                  Image(systemName: "xmark.circle.fill")
-                    .font(.caption)
-                }
-                .buttonStyle(.plain)
-              }
-              .padding(.horizontal, 8)
-              .padding(.vertical, 4)
-              .background {
-                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                  .fill(.textSecondary.opacity(0.15))
+              ChatStagedFileTile(file: file) {
+                removeStagedFile(file)
               }
             }
           }
+          .padding(.horizontal, 4)
         }
       }
 
-      TextField("Type your message", text: $message, axis: .vertical)
-        .lineLimit(1...5)
-        .textFieldStyle(.plain)
-        .font(.body)
-        .foregroundStyle(.textPrimary)
-        .autocorrectionDisabled()
-        .textInputAutocapitalization(.never)
-
-      HStack(alignment: .center) {
+      HStack(alignment: .bottom, spacing: 8) {
 
         // TODO: Show toast on picker/stage failure (see logger.error sites)
         AttachmentMenu { staged in
@@ -72,47 +49,58 @@ struct ChatInputBar: View {
             .renderingMode(.template)
             .resizable()
             .scaledToFit()
-            .frame(width: 18, height: 18)
+            .frame(width: 16, height: 16)
+            .frame(width: 22, height: 32)
         }
         .foregroundStyle(.textSecondary)
         .disabled(!hasConnectedPeers)
         .opacity(hasConnectedPeers ? 1 : 0.3)
 
-        Spacer()
+        TextField("Type your message", text: $message, axis: .vertical)
+          .lineLimit(1...5)
+          .textFieldStyle(.plain)
+          .textInputAutocapitalization(.never)
+          .autocorrectionDisabled(true)
+          .font(.subheadline)
+          .foregroundStyle(.textPrimary)
+          .padding(.horizontal, 14)
+          .padding(.vertical, 5)
+          .frame(maxWidth: .infinity)
+          .background(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+              .fill(.inputBackground),
+          )
 
         Button {
           handleSubmit()
         } label: {
-          HStack(spacing: 8) {
-            Text("Send")
-              .font(.headline)
-              .fontWeight(.bold)
-
-            Image("send")
-              .renderingMode(.template)
-              .resizable()
-              .scaledToFit()
-              .frame(width: 16, height: 16)
-          }
-          .foregroundStyle(.white)
-          .padding(.horizontal, 14)
-          .padding(.vertical, 8)
-          .background(
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-              .fill(.brand),
-          )
+          Image("send")
+            .renderingMode(.template)
+            .resizable()
+            .scaledToFit()
+            .frame(width: 18, height: 18)
+            .foregroundStyle(.white)
+            .frame(width: 32, height: 32)
+            .background(
+              Circle()
+                .fill(.brand),
+            )
+            .frame(width: 30, height: 32)
         }
         .buttonStyle(.plain)
-        .disabled(trimmed.isEmpty && stagedFiles.isEmpty)
-        .opacity((trimmed.isEmpty && stagedFiles.isEmpty) ? 0.6 : 1)
+        .disabled(isSendDisabled)
+        .opacity(isSendDisabled ? 0.6 : 1)
       }
     }
-    .padding(.horizontal, 18)
-    .padding(.vertical, 14)
-    .background(
-      RoundedRectangle(cornerRadius: 18, style: .continuous)
-        .fill(.inputBackground),
-    )
+    .padding(.horizontal, 4)
+    .padding(.top, 8)
+    .padding(.bottom, 6)
+  }
+
+  private func removeStagedFile(_ file: StagedFile) {
+    guard let idx = stagedFiles.firstIndex(where: { $0.id == file.id }) else { return }
+    let removed = stagedFiles.remove(at: idx)
+    removed.kind.releaseSource(at: removed.url)
   }
 
   private func handleSubmit() {
@@ -144,11 +132,50 @@ struct ChatInputBar: View {
 // MARK: - Preview
 
 #if DEBUG
+extension ChatInputBar {
+  init(
+    onSend: @escaping (String) -> Bool,
+    onSendFiles: @escaping ([StagedFile]) -> Bool,
+    hasConnectedPeers: Bool,
+    stagedFiles: [StagedFile],
+  ) {
+    self.onSend = onSend
+    self.onSendFiles = onSendFiles
+    self.hasConnectedPeers = hasConnectedPeers
+    self._stagedFiles = State(initialValue: stagedFiles)
+  }
+}
+
 #Preview {
-  ChatInputBar(
-    onSend: { _ in true },
-    onSendFiles: { _ in true },
-    hasConnectedPeers: true,
-  )
+  PreviewStage(alignment: .bottom) {
+    ChatInputBar(
+      onSend: { _ in true },
+      onSendFiles: { _ in true },
+      hasConnectedPeers: true,
+      stagedFiles: [
+        StagedFile(
+          id: UUID(),
+          name: "Quarterly-Report.pdf",
+          size: 248_000,
+          url: URL(fileURLWithPath: "/dev/null"),
+          kind: .ownedTemp,
+        ),
+        StagedFile(
+          id: UUID(),
+          name: "Photo-2026-06-20.heic",
+          size: 1_900_000,
+          url: URL(fileURLWithPath: "/dev/null"),
+          kind: .ownedTemp,
+        ),
+        StagedFile(
+          id: UUID(),
+          name: "archive.zip",
+          size: 5_400_000,
+          url: URL(fileURLWithPath: "/dev/null"),
+          kind: .ownedTemp,
+        ),
+      ],
+    )
+  }
 }
 #endif

@@ -23,6 +23,12 @@ struct WelcomeStepBadge: View {
 
 #if DEBUG
 #Preview {
-  WelcomeStepBadge(number: 1)
+  PreviewStage {
+    HStack(spacing: 12) {
+      WelcomeStepBadge(number: 1)
+      WelcomeStepBadge(number: 2)
+      WelcomeStepBadge(number: 3)
+    }
+  }
 }
 #endif
