@@ -147,34 +147,35 @@ extension ChatInputBar {
 }
 
 #Preview {
-  ChatInputBar(
-    onSend: { _ in true },
-    onSendFiles: { _ in true },
-    hasConnectedPeers: true,
-    stagedFiles: [
-      StagedFile(
-        id: UUID(),
-        name: "Quarterly-Report.pdf",
-        size: 248_000,
-        url: URL(fileURLWithPath: "/dev/null"),
-        kind: .ownedTemp,
-      ),
-      StagedFile(
-        id: UUID(),
-        name: "Photo-2026-06-20.heic",
-        size: 1_900_000,
-        url: URL(fileURLWithPath: "/dev/null"),
-        kind: .ownedTemp,
-      ),
-      StagedFile(
-        id: UUID(),
-        name: "archive.zip",
-        size: 5_400_000,
-        url: URL(fileURLWithPath: "/dev/null"),
-        kind: .ownedTemp,
-      ),
-    ],
-  )
-  .frame(maxHeight: .infinity, alignment: .bottom)
+  PreviewStage(alignment: .bottom) {
+    ChatInputBar(
+      onSend: { _ in true },
+      onSendFiles: { _ in true },
+      hasConnectedPeers: true,
+      stagedFiles: [
+        StagedFile(
+          id: UUID(),
+          name: "Quarterly-Report.pdf",
+          size: 248_000,
+          url: URL(fileURLWithPath: "/dev/null"),
+          kind: .ownedTemp,
+        ),
+        StagedFile(
+          id: UUID(),
+          name: "Photo-2026-06-20.heic",
+          size: 1_900_000,
+          url: URL(fileURLWithPath: "/dev/null"),
+          kind: .ownedTemp,
+        ),
+        StagedFile(
+          id: UUID(),
+          name: "archive.zip",
+          size: 5_400_000,
+          url: URL(fileURLWithPath: "/dev/null"),
+          kind: .ownedTemp,
+        ),
+      ],
+    )
+  }
 }
 #endif

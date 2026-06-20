@@ -32,6 +32,11 @@ struct ChatRoomHeader: View {
 
 #if DEBUG
 #Preview {
-  ChatRoomHeader(isPrivate: false)
+  PreviewStage(alignment: .top) {
+    VStack(spacing: 0) {
+      ChatRoomHeader(isPrivate: false)
+      ChatRoomHeader(isPrivate: true)
+    }
+  }
 }
 #endif

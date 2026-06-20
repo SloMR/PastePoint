@@ -84,26 +84,28 @@ private extension StagedFile {
 
 #if DEBUG
 #Preview {
-  VStack(spacing: 8) {
-    ChatStagedFileTile(
-      file: StagedFile(
-        id: UUID(),
-        name: "Quarterly-Report.pdf",
-        size: 248_000,
-        url: URL(fileURLWithPath: "/dev/null"),
-        kind: .ownedTemp,
-      )
-    )      {}
-    ChatStagedFileTile(
-      file: StagedFile(
-        id: UUID(),
-        name: "archive.zip",
-        size: 5_400_000,
-        url: URL(fileURLWithPath: "/dev/null"),
-        kind: .ownedTemp,
-      )
-    )      {}
+  PreviewStage {
+    VStack(spacing: 8) {
+      ChatStagedFileTile(
+        file: StagedFile(
+          id: UUID(),
+          name: "Quarterly-Report.pdf",
+          size: 248_000,
+          url: URL(fileURLWithPath: "/dev/null"),
+          kind: .ownedTemp,
+        ),
+      ) {}
+      ChatStagedFileTile(
+        file: StagedFile(
+          id: UUID(),
+          name: "archive.zip",
+          size: 5_400_000,
+          url: URL(fileURLWithPath: "/dev/null"),
+          kind: .ownedTemp,
+        ),
+      ) {}
+    }
+    .padding()
   }
-  .padding()
 }
 #endif

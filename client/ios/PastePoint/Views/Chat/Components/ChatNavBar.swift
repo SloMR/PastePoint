@@ -81,6 +81,8 @@ struct ChatNavBar: View {
 
 #if DEBUG
 #Preview {
-  ChatNavBar()
+  PreviewStage(alignment: .top) {
+    ChatNavBar()
+  }
 }
 #endif

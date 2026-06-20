@@ -34,10 +34,12 @@ struct WelcomeStepList: View {
 
 #if DEBUG
 #Preview {
-  WelcomeStepList(steps: [
-    "Invite others on the same network to join this room",
-    "Start the conversation by sending a message",
-  ])
-  .padding()
+  PreviewStage {
+    WelcomeStepList(steps: [
+      "Invite others on the same network to join this room",
+      "Start the conversation by sending a message",
+    ])
+    .padding()
+  }
 }
 #endif
