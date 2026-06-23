@@ -332,6 +332,15 @@ final class FileTransferService: ObservableObject {
       fileTransferCancelled.send(fileId)
     }
   }
+
+  func cancelAllTransfers() {
+    let peers = Set(activeUploads.map(\.targetUser))
+      .union(activeDownloads.map(\.fromUser))
+      .union(incomingFileOffers.map(\.fromUser))
+    for peer in peers {
+      purgeTransfers(for: peer)
+    }
+  }
 }
 
 // MARK: - Sending
