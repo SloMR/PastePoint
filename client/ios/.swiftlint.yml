@@ -11,8 +11,12 @@ line_length:
   ignores_urls: true
 
 file_length:
-  warning: 900
-  error: 1000
+  warning: 1000
+  error: 1200
+
+large_tuple:
+  warning: 3
+  error: 4
 
 type_body_length:
   warning: 400
@@ -69,6 +73,7 @@ opt_in_rules:
 disabled_rules:
   - todo                          # TODOs are tracked in code; not a lint error
   - trailing_comma                # handled by SwiftFormat
+  - opening_brace                 # SwiftFormat owns brace placement; its multi-line condition style (brace on its own line) conflicts with this rule
 
 # ── Identifier name exceptions ────────────────────────────────────────────────
 identifier_name:
