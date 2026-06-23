@@ -606,6 +606,9 @@ export class FileUploadService extends FileTransferBaseService {
           const errorCount = this.consecutiveErrorCounts.get(transferId) ?? 0;
           this.consecutiveErrorCounts.set(transferId, errorCount + 1);
           if (errorCount > this.maxConsecutiveErrors) {
+            span.setAttribute('outcome', 'aborted_channel_unavailable');
+            span.setStatus({ code: 2, message: 'channel_unavailable' });
+            await this.stopFileUpload(fileTransfer.targetUser, fileTransfer.fileId);
             break;
           }
           continue;
