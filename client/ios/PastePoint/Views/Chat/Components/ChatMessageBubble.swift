@@ -11,6 +11,8 @@ enum MessageAlignment {
 }
 
 struct ChatMessageBubble: View {
+  @State private var previewImage: UIImage?
+
   let alignment: MessageAlignment
   let name: String
   let time: String
@@ -97,6 +99,15 @@ struct ChatMessageBubble: View {
 
   private func attachmentBody(transfer: FileTransferData) -> some View {
     VStack(alignment: .leading, spacing: 8) {
+      if let previewImage {
+        Image(uiImage: previewImage)
+          .resizable()
+          .scaledToFill()
+          .frame(maxWidth: .infinity, minHeight: 150, maxHeight: 150)
+          .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+          .allowsHitTesting(false)
+      }
+
       HStack(spacing: 8) {
         Image(systemName: "doc")
           .font(.title3)
@@ -144,6 +155,9 @@ struct ChatMessageBubble: View {
           .foregroundStyle(.secondary)
       }
     }
+    .task(id: transfer.previewDataUrl) {
+      previewImage = Self.decodePreview(transfer.previewDataUrl)
+    }
     .foregroundStyle(alignment == .trailing ? .textPrimary : .white)
     .padding(.horizontal, 12)
     .padding(.vertical, 10)
@@ -161,6 +175,18 @@ struct ChatMessageBubble: View {
 
   private func formatBytes(_ bytes: Int64) -> String {
     ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)
+  }
+
+  private static func decodePreview(_ dataUrl: String?) -> UIImage? {
+    guard
+      let dataUrl,
+      let comma = dataUrl.firstIndex(of: ","),
+      let data = Data(base64Encoded: String(dataUrl[dataUrl.index(after: comma)...]))
+    else {
+      return nil
+    }
+
+    return UIImage(data: data)
   }
 
   private func statusLabel(_ status: FileTransferStatus) -> String {
