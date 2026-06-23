@@ -118,7 +118,7 @@ struct ChatView: View {
     guard
       let transfer = message.fileTransfer,
       transfer.status == .pending,
-      message.from != services.userService.user
+      !message.isMine
     else {
       return nil
     }
@@ -132,7 +132,7 @@ struct ChatView: View {
     guard
       let transfer = message.fileTransfer,
       transfer.status == .pending,
-      message.from != services.userService.user
+      !message.isMine
     else {
       return nil
     }
