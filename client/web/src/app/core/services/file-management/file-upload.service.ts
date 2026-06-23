@@ -482,8 +482,9 @@ export class FileUploadService extends FileTransferBaseService {
       try {
         const mime = fileTransfer.file.type || '';
         if (mime.startsWith('image/')) {
-          previewDataUrl = await this.previewService.createImageThumbnail(fileTransfer.file);
-          previewMime = 'image/png';
+          const thumb = await this.previewService.createImageThumbnail(fileTransfer.file);
+          previewDataUrl = thumb.dataUrl;
+          previewMime = thumb.mime;
         } else if (mime === 'application/pdf') {
           previewDataUrl = await this.previewService.createPdfThumbnailFromFile(fileTransfer.file);
           if (previewDataUrl) {
