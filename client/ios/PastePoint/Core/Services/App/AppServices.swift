@@ -117,6 +117,7 @@ final class AppServices: ObservableObject {
   func handleBackground() {
     logger.info("handleBackground — disconnecting")
     isInBackground = true
+    fileTransferService.cancelAllTransfers()
     wsService.disconnect(manual: false)
   }
 

@@ -21,6 +21,7 @@ final class FileTransferService: ObservableObject {
   let outgoingAttachment = PassthroughSubject<ChatMessage, Never>()
   let downloadCompleted = PassthroughSubject<(fileId: String, fileURL: URL?), Never>()
   let outgoingGroupStatus = PassthroughSubject<OutgoingGroupStatus, Never>()
+  let attachmentPreviewUpdated = PassthroughSubject<(fileId: String, previewDataUrl: String, previewMime: String?), Never>()
   let fileTransferCancelled = PassthroughSubject<String, Never>()
   let fileTransferFailed = PassthroughSubject<(fileId: String, reason: FileTransferFailureReason), Never>()
 
@@ -68,6 +69,7 @@ final class FileTransferService: ObservableObject {
     targetUser: String,
     groupId: String,
     hashTask: Task<String?, Never>? = nil,
+    preview: PreviewGenerator.Preview? = nil,
   ) async -> Bool {
     guard stagedFile.size > 0 else {
       logger.warning("skipping empty file \(stagedFile.name)")
@@ -124,6 +126,7 @@ final class FileTransferService: ObservableObject {
         sender: sender,
         to: targetUser,
         hashTask: hashTask,
+        preview: preview,
       )
       self?.offerTasks[fileId] = nil
     }
@@ -140,6 +143,7 @@ final class FileTransferService: ObservableObject {
     let sender = userService.user
     let groupId = UUID().uuidString
     outgoingGroups[groupId] = UploadGroup(total: peers.count)
+    let preview = await PreviewGenerator.make(forFileAt: stagedFile.url)
 
     outgoingAttachment.send(
       ChatMessage(
@@ -152,6 +156,8 @@ final class FileTransferService: ObservableObject {
           fileSize: stagedFile.size,
           fromUser: sender,
           status: .pending,
+          previewDataUrl: preview?.dataUrl,
+          previewMime: preview?.mime,
           groupId: groupId,
           deliveredCount: 0,
           recipientCount: peers.count,
@@ -164,7 +170,13 @@ final class FileTransferService: ObservableObject {
       try? BinaryChunk.sha256Hex(ofFileAt: stagedFile.url)
     }
     for peer in peers {
-      await prepareFileForSending(stagedFile: stagedFile, targetUser: peer, groupId: groupId, hashTask: hashTask)
+      await prepareFileForSending(
+        stagedFile: stagedFile,
+        targetUser: peer,
+        groupId: groupId,
+        hashTask: hashTask,
+        preview: preview,
+      )
     }
   }
 
@@ -320,6 +332,15 @@ final class FileTransferService: ObservableObject {
       fileTransferCancelled.send(fileId)
     }
   }
+
+  func cancelAllTransfers() {
+    let peers = Set(activeUploads.map(\.targetUser))
+      .union(activeDownloads.map(\.fromUser))
+      .union(incomingFileOffers.map(\.fromUser))
+    for peer in peers {
+      purgeTransfers(for: peer)
+    }
+  }
 }
 
 // MARK: - Sending
@@ -450,6 +471,7 @@ extension FileTransferService {
     sender: String,
     to targetUser: String,
     hashTask: Task<String?, Never>? = nil,
+    preview: PreviewGenerator.Preview? = nil,
   ) async {
     let hash: String?
     if let hashTask {
@@ -467,14 +489,21 @@ extension FileTransferService {
       return
     }
 
+    let resolvedPreview: PreviewGenerator.Preview?
+    if let preview {
+      resolvedPreview = preview
+    } else {
+      resolvedPreview = await PreviewGenerator.make(forFileAt: stagedFile.url)
+    }
+
     let enriched = FileOfferPayload(
       fileId: fileId,
       fileName: stagedFile.name,
       fileSize: stagedFile.size,
       fromUser: sender,
       fileHash: hash,
-      previewDataUrl: nil,
-      previewMime: nil,
+      previewDataUrl: resolvedPreview?.dataUrl,
+      previewMime: resolvedPreview?.mime,
     )
 
     do {
@@ -512,6 +541,18 @@ extension FileTransferService {
         incomingFileOffers[i].expectedHash = hash
         logger.info("merged hash into pending offer \(payload.fileId)")
       }
+
+      if
+        let preview = payload.previewDataUrl,
+        let previewMime = payload.previewMime,
+        incomingFileOffers[i].previewDataUrl == nil
+      {
+        incomingFileOffers[i].previewDataUrl = preview
+        incomingFileOffers[i].previewMime = previewMime
+
+        attachmentPreviewUpdated.send((fileId: payload.fileId, previewDataUrl: preview, previewMime: previewMime))
+        logger.info("merged preview into pending offer \(payload.fileId)")
+      }
       return
     }
 
@@ -519,6 +560,18 @@ extension FileTransferService {
       if let hash = payload.fileHash, activeDownloads[i].expectedHash == nil {
         activeDownloads[i].expectedHash = hash
         logger.info("merged hash into accepted download \(payload.fileId)")
+      }
+
+      if
+        let preview = payload.previewDataUrl,
+        let previewMime = payload.previewMime,
+        activeDownloads[i].previewDataUrl == nil
+      {
+        activeDownloads[i].previewDataUrl = preview
+        activeDownloads[i].previewMime = previewMime
+
+        attachmentPreviewUpdated.send((fileId: payload.fileId, previewDataUrl: preview, previewMime: previewMime))
+        logger.info("merged preview into accepted download \(payload.fileId)")
       }
       return
     }
@@ -535,6 +588,8 @@ extension FileTransferService {
       progress: 0,
       isAccepted: false,
       expectedHash: payload.fileHash,
+      previewDataUrl: payload.previewDataUrl,
+      previewMime: payload.previewMime,
     )
     incomingFileOffers.append(download)
 
@@ -544,6 +599,8 @@ extension FileTransferService {
       fileSize: payload.fileSize,
       fromUser: peer,
       status: .pending,
+      previewDataUrl: payload.previewDataUrl,
+      previewMime: payload.previewMime,
     )
     let message = ChatMessage(
       from: peer,

@@ -1,6 +1,10 @@
 import { Injectable, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { PREVIEW_MIME_TYPE, PREVIEW_QUALITY } from '../../../utils/constants';
+import {
+  MAX_PREVIEW_DATA_URL_SIZE,
+  PREVIEW_MIME_TYPE,
+  PREVIEW_QUALITY,
+} from '../../../utils/constants';
 
 @Injectable({
   providedIn: 'root',
@@ -48,8 +52,8 @@ export class PreviewService {
     file: File,
     maxWidth: number = 320,
     maxHeight: number = 192
-  ): Promise<string> {
-    return new Promise<string>((resolve, reject) => {
+  ): Promise<{ dataUrl: string; mime: string }> {
+    return new Promise<{ dataUrl: string; mime: string }>((resolve, reject) => {
       // Use createObjectURL - more memory efficient than readAsDataURL
       // It creates a reference to the file, not a copy
       const objectUrl = URL.createObjectURL(file);
@@ -75,13 +79,21 @@ export class PreviewService {
         }
 
         ctx.drawImage(img, 0, 0, width, height);
-        const dataUrl = canvas.toDataURL('image/png');
+
+        const png = canvas.toDataURL('image/png');
+        const result =
+          png.length > MAX_PREVIEW_DATA_URL_SIZE
+            ? {
+                dataUrl: canvas.toDataURL(PREVIEW_MIME_TYPE, PREVIEW_QUALITY),
+                mime: PREVIEW_MIME_TYPE,
+              }
+            : { dataUrl: png, mime: 'image/png' };
 
         // Clear canvas to help garbage collection
         canvas.width = 0;
         canvas.height = 0;
 
-        resolve(dataUrl);
+        resolve(result);
       };
       img.onerror = () => {
         URL.revokeObjectURL(objectUrl);

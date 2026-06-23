@@ -482,8 +482,9 @@ export class FileUploadService extends FileTransferBaseService {
       try {
         const mime = fileTransfer.file.type || '';
         if (mime.startsWith('image/')) {
-          previewDataUrl = await this.previewService.createImageThumbnail(fileTransfer.file);
-          previewMime = 'image/png';
+          const thumb = await this.previewService.createImageThumbnail(fileTransfer.file);
+          previewDataUrl = thumb.dataUrl;
+          previewMime = thumb.mime;
         } else if (mime === 'application/pdf') {
           previewDataUrl = await this.previewService.createPdfThumbnailFromFile(fileTransfer.file);
           if (previewDataUrl) {
@@ -606,6 +607,9 @@ export class FileUploadService extends FileTransferBaseService {
           const errorCount = this.consecutiveErrorCounts.get(transferId) ?? 0;
           this.consecutiveErrorCounts.set(transferId, errorCount + 1);
           if (errorCount > this.maxConsecutiveErrors) {
+            span.setAttribute('outcome', 'aborted_channel_unavailable');
+            span.setStatus({ code: 2, message: 'channel_unavailable' });
+            await this.stopFileUpload(fileTransfer.targetUser, fileTransfer.fileId);
             break;
           }
           continue;

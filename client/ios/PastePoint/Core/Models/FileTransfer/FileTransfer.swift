@@ -63,6 +63,8 @@ struct FileTransferData: Codable, Sendable, Equatable {
   let fromUser: String
   var status: FileTransferStatus
   var fileURL: URL?
+  var previewDataUrl: String?
+  var previewMime: String?
   var groupId: String?
   var deliveredCount: Int?
   var recipientCount: Int?
@@ -101,8 +103,8 @@ struct FileDownload: Identifiable, Sendable {
   var isAccepted: Bool
   var expectedHash: String?
   var fileURL: URL?
-  // TODO: file-transfer preview — add `previewDataUrl: String?` and `previewMime: String?`
-  //       and generate a JPEG thumbnail (≤150KB) at send time to match web's
+  var previewDataUrl: String?
+  var previewMime: String?
 }
 
 // MARK: Soruce Kind
