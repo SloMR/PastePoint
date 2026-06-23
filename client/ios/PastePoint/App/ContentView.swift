@@ -84,6 +84,9 @@ struct ContentView: View {
     .onReceive(services.fileTransferService.outgoingGroupStatus) { update in
       updateOutgoingGroup(groupId: update.groupId, status: update.status, delivered: update.delivered, total: update.total)
     }
+    .onReceive(services.fileTransferService.attachmentPreviewUpdated) { update in
+      updatePreview(fileId: update.fileId, previewDataUrl: update.previewDataUrl, previewMime: update.previewMime)
+    }
     .onReceive(services.fileTransferService.fileTransferCancelled) { fileId in
       updateFileStatus(fileId: fileId, status: .cancelled)
     }
@@ -225,6 +228,14 @@ struct ContentView: View {
     messages[idx].fileTransfer?.status = status
     messages[idx].fileTransfer?.deliveredCount = delivered
     messages[idx].fileTransfer?.recipientCount = total
+  }
+
+  private func updatePreview(fileId: String, previewDataUrl: String, previewMime: String?) {
+    guard let idx = messages.firstIndex(where: { $0.fileTransfer?.fileId == fileId }) else {
+      return
+    }
+    messages[idx].fileTransfer?.previewDataUrl = previewDataUrl
+    messages[idx].fileTransfer?.previewMime = previewMime
   }
 
   private func peerWarning() -> ToastItem {
