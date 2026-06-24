@@ -108,19 +108,32 @@ final class AppServices: ObservableObject {
     }
     isForegroundHandling = true
     defer { isForegroundHandling = false }
-    let denied = await LocalNetworkPermission.isDenied()
-    localNetworkDenied = denied
-    guard !denied else {
-      logger.warning("handleForeground — local network permission denied, skipping connect")
-      wsService.disconnect(manual: false)
-      return
-    }
-    logger.info("handleForeground — connecting")
-    await wsService.connect(sessionCode: wsService.currentSessionCode)
+    await connectIfPermitted(sessionCode: wsService.currentSessionCode)
   }
 
   func clearLocalNetworkDenied() {
     localNetworkDenied = false
+  }
+
+  @discardableResult
+  func connectIfPermitted(sessionCode: String? = nil) async -> Bool {
+#if DEBUG
+    guard !AppBuildInfo.isXcodePreview else {
+      await wsService.connect(sessionCode: sessionCode)
+      return true
+    }
+#endif
+
+    let denied = await LocalNetworkPermission.isDenied()
+    localNetworkDenied = denied
+    guard !denied else {
+      logger.warning("connectIfPermitted — local network denied, skipping connect")
+      wsService.disconnect(manual: false)
+      return false
+    }
+
+    await wsService.connect(sessionCode: sessionCode)
+    return true
   }
 
   func handleBackground() {

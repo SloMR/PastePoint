@@ -30,9 +30,10 @@ struct SettingsLeaveSessionView: View {
             logger.info("User confirmed leaving private session")
             services.wsService.disconnect(manual: true)
             Task {
-              await services.wsService.connect(sessionCode: nil)
-              await services.roomService.listRooms()
-              await services.userService.getUsername()
+              if await services.connectIfPermitted(sessionCode: nil) {
+                await services.roomService.listRooms()
+                await services.userService.getUsername()
+              }
               logger.info("Successfully left private session")
               dismiss()
               onSessionLeft?()

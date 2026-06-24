@@ -166,7 +166,11 @@ struct SettingsJoinPrivateView: View {
     logger.info("Joining private session with code: \(trimmed)")
     isJoining = true
     await services.wsService.setupPrivateSession(trimmed)
-    await services.wsService.connect()
+    guard await services.connectIfPermitted() else {
+      isJoining = false
+      toasts.append(.error("Local network is off — enable it in Settings to join"))
+      return
+    }
     isJoining = false
     dismiss()
     onSessionJoin?()
