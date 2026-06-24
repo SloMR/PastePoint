@@ -30,6 +30,7 @@ final class AppServices: ObservableObject {
   private var isInBackground = false
   private var isForegroundHandling = false
   private let networkMonitor = NWPathMonitor()
+  private var lastPathStatus: NWPath.Status?
   private var cancellables = Set<AnyCancellable>()
 
   private init() {
@@ -150,10 +151,16 @@ final class AppServices: ObservableObject {
   /// while the network was down, then the network came back.
   private func startNetworkMonitoring() {
     networkMonitor.pathUpdateHandler = { [weak self] path in
-      self?.logger.debug("Network path updated: \(path.status)")
-      guard path.status == .satisfied else { return }
       Task { @MainActor [weak self] in
-        guard let self, !self.isInBackground else { return }
+        guard let self else { return }
+
+        let previous = self.lastPathStatus
+        self.lastPathStatus = path.status
+        self.logger.debug("Network path updated: \(path.status)")
+
+        guard path.status == .satisfied, previous != .satisfied else { return }
+        guard !self.isInBackground else { return }
+
         self.logger.info("Network restored — triggering reconnect")
         await self.handleForeground()
       }
