@@ -32,8 +32,8 @@ struct NetworkPermissionBanner: View {
 
 #if DEBUG
 #Preview {
-  NetworkPermissionBanner {}
-    .frame(maxHeight: .infinity, alignment: .top)
-    .background(AppColors.Background.background)
+  PreviewStage(alignment: .top) {
+    NetworkPermissionBanner {}
+  }
 }
 #endif

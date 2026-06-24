@@ -29,9 +29,9 @@ struct PulsingDot: View {
 
 #if DEBUG
 #Preview {
-  PulsingDot(color: AppColors.Status.warning)
-    .frame(width: 22, height: 22)
-    .padding()
-    .background(AppColors.Background.background)
+  PreviewStage {
+    PulsingDot(color: AppColors.Status.warning)
+      .frame(width: 22, height: 22)
+  }
 }
 #endif

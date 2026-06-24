@@ -23,8 +23,8 @@ struct ChatConnectionWarningBanner: View {
 
 #if DEBUG
 #Preview {
-  ChatConnectionWarningBanner {}
-    .frame(maxHeight: .infinity, alignment: .top)
-    .background(AppColors.Background.background)
+  PreviewStage(alignment: .top) {
+    ChatConnectionWarningBanner {}
+  }
 }
 #endif

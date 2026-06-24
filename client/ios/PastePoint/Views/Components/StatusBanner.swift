@@ -76,34 +76,34 @@ struct StatusBanner<Leading: View>: View {
 
 #if DEBUG
 #Preview {
-  VStack(spacing: 0) {
-    StatusBanner(
-      tint: AppColors.Status.danger,
-      title: "Local network access is off",
-      message: "PastePoint needs it to find people nearby.",
-      actionTitle: "Open Settings",
-      onAction: {},
-      onDismiss: {},
-      leading: {
-        Image(systemName: "wifi.slash")
-          .font(.system(size: 17, weight: .semibold))
-          .foregroundStyle(AppColors.Status.danger)
-      },
-    )
+  PreviewStage(alignment: .top) {
+    VStack(spacing: 0) {
+      StatusBanner(
+        tint: AppColors.Status.danger,
+        title: "Local network access is off",
+        message: "PastePoint needs it to find people nearby.",
+        actionTitle: "Open Settings",
+        onAction: {},
+        onDismiss: {},
+        leading: {
+          Image(systemName: "wifi.slash")
+            .font(.system(size: 17, weight: .semibold))
+            .foregroundStyle(AppColors.Status.danger)
+        },
+      )
 
-    StatusBanner(
-      tint: AppColors.Status.warning,
-      title: "Still connecting…",
-      message: "Some members aren't reachable yet.",
-      onDismiss: {},
-      leading: {
-        Circle()
-          .fill(AppColors.Status.warning)
-          .frame(width: 9, height: 9)
-      },
-    )
+      StatusBanner(
+        tint: AppColors.Status.warning,
+        title: "Still connecting…",
+        message: "Some members aren't reachable yet.",
+        onDismiss: {},
+        leading: {
+          Circle()
+            .fill(AppColors.Status.warning)
+            .frame(width: 9, height: 9)
+        },
+      )
+    }
   }
-  .frame(maxHeight: .infinity, alignment: .top)
-  .background(AppColors.Background.background)
 }
 #endif
