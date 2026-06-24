@@ -21,6 +21,7 @@ final class AppServices: ObservableObject {
   let roomService: RoomService
   let peerDirectory: PeerDirectory
   let fileTransferService: FileTransferService
+  let connectionWarningMonitor: ConnectionWarningMonitor
 
   static let shared = AppServices()
 
@@ -42,6 +43,10 @@ final class AppServices: ObservableObject {
       signalingService: signalingService,
       userService: userService,
       peerDirectory: peerDirectory,
+    )
+    connectionWarningMonitor = ConnectionWarningMonitor(
+      peerDirectory: peerDirectory,
+      signalingService: signalingService,
     )
 
 #if DEBUG
@@ -69,6 +74,10 @@ final class AppServices: ObservableObject {
       signalingService: signalingService,
       userService: userService,
       peerDirectory: peerDirectory,
+    )
+    connectionWarningMonitor = ConnectionWarningMonitor(
+      peerDirectory: peerDirectory,
+      signalingService: signalingService,
     )
 
     forwardServiceChanges()
@@ -167,6 +176,9 @@ final class AppServices: ObservableObject {
       .sink { [weak self] _ in self?.objectWillChange.send() }
       .store(in: &cancellables)
     fileTransferService.objectWillChange
+      .sink { [weak self] _ in self?.objectWillChange.send() }
+      .store(in: &cancellables)
+    connectionWarningMonitor.objectWillChange
       .sink { [weak self] _ in self?.objectWillChange.send() }
       .store(in: &cancellables)
   }

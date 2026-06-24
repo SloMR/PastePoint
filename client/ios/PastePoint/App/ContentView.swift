@@ -30,6 +30,10 @@ struct ContentView: View {
 
       if services.localNetworkDenied {
         NetworkPermissionBanner { services.clearLocalNetworkDenied() }
+      } else if services.connectionWarningMonitor.showWarning {
+        ChatConnectionWarningBanner {
+          services.connectionWarningMonitor.dismiss()
+        }
       }
 
       ChatContainerView(
