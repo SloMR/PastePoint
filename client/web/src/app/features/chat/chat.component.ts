@@ -694,7 +694,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     );
 
     // Receiver bubble: reflect the terminal status of an incoming download
-    // (completed / cancelled / failed) once it stops, matching iOS.
+    // (completed / cancelled / failed) once it stops.
     this.subscriptions.push(
       this.fileTransferService.downloadStatus$.subscribe(({ fileId, status }) => {
         this.ngZone.run(() => {

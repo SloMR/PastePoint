@@ -28,10 +28,6 @@ export class FileDownloadService extends FileTransferBaseService {
 
   private activeReceiveSpans = new Map<string, Sentry.Span>();
   private stallWatchdog: ReturnType<typeof setInterval> | null = null;
-
-  // Receiver-side terminal status of an incoming download, keyed by fileId.
-  // Drives the incoming (receiver) bubble's COMPLETED/CANCELLED/FAILED label
-  // — parity with iOS, where ChatMessageBubble renders the full status set.
   public downloadStatus$ = new Subject<{ fileId: string; status: FileTransferStatus }>();
 
   // =============== Constructor ===============
@@ -69,9 +65,6 @@ export class FileDownloadService extends FileTransferBaseService {
       | 'cancelled',
     extra?: Record<string, number | string | boolean>
   ): void {
-    // Drive the receiver bubble first — every terminal transition flows through
-    // here, and we must emit even when no span exists yet (e.g. early no_hash
-    // reject, before the first chunk starts the span), so this precedes the guard.
     this.downloadStatus$.next({ fileId, status: this.receiverBubbleStatus(outcome) });
 
     const key = this.receiveSpanKey(fromUser, fileId);
