@@ -39,6 +39,7 @@ final class SignalingService: NSObject, ObservableObject {
   private var cancellables: Set<AnyCancellable> = []
 
   private static let connectionTimeout: TimeInterval = 8.0 // Seconds
+  private static let connectionRequestTimeout: TimeInterval = 15.0 // Seconds
   private static let maxReconnectAttempts = 5
   private static let baseReconnectDelay: TimeInterval = 2.0 // Seconds
   private static let maxReconnectDelay: TimeInterval = 10.0 // Seconds
@@ -54,6 +55,7 @@ final class SignalingService: NSObject, ObservableObject {
   private var reconnectAttempts: [String: Int] = [:]
   private var reconnectTasks: [String: Task<Void, Never>] = [:]
   private var connectionTimeouts: [String: Task<Void, Never>] = [:]
+  private var connectionRequestTimeouts: [String: Task<Void, Never>] = [:]
 
   // MARK: - Init
 
@@ -90,7 +92,7 @@ final class SignalingService: NSObject, ObservableObject {
 
   // MARK: - Public API
 
-  func initiateConnection(to peer: String) async {
+  func initiateConnection(to peer: String, force: Bool = false) async {
     guard !connectionLocks.contains(peer) else {
       logger.debug("already locked for \(peer)")
       return
@@ -102,7 +104,7 @@ final class SignalingService: NSObject, ObservableObject {
     }
 
     await userService.waitForUsername()
-    if !shouldInitiateConnection(to: peer) {
+    if !force, !shouldInitiateConnection(to: peer) {
       logger.info("not the designated caller for \(peer), sending connection request")
       let request = SignalMessage(
         payload: .connectionRequest,
@@ -111,6 +113,9 @@ final class SignalingService: NSObject, ObservableObject {
         sequence: nextSequence(for: peer),
       )
       await wsService.sendSignal(request)
+      connectingPeers.insert(peer)
+      // If the designated caller never re-offers, take over and initiate ourselves
+      startConnectionRequestTimeout(for: peer)
       return
     }
 
@@ -441,6 +446,8 @@ extension SignalingService {
   }
 
   private func startConnectionTimeout(for peer: String) {
+    connectionRequestTimeouts[peer]?.cancel()
+    connectionRequestTimeouts[peer] = nil
     connectionTimeouts[peer]?.cancel()
     connectionTimeouts[peer] = Task { [weak self] in
       try? await Task.sleep(nanoseconds: UInt64(Self.connectionTimeout * 1_000_000_000))
@@ -463,8 +470,28 @@ extension SignalingService {
     connectionTimeouts[peer] = nil
   }
 
+  /// Watchdog for the non-caller: if the designated caller never re-offers within
+  /// `connectionRequestTimeout`, force-initiate ourselves.
+  /// Superseded by `startConnectionTimeout` once a real
+  /// peer connection attempt begins; cleared in `closePeerConnection`.
+  private func startConnectionRequestTimeout(for peer: String) {
+    connectionRequestTimeouts[peer]?.cancel()
+    connectionRequestTimeouts[peer] = Task { [weak self] in
+      try? await Task.sleep(nanoseconds: UInt64(Self.connectionRequestTimeout * 1_000_000_000))
+
+      guard !Task.isCancelled, let self else { return }
+      self.connectionRequestTimeouts[peer] = nil
+
+      guard self.peerConnections[peer] == nil, self.peerDirectory.peers.contains(peer) else { return }
+      self.logger.warning("no offer from \(peer) within \(Self.connectionRequestTimeout)s — force-initiating")
+      await self.initiateConnection(to: peer, force: true)
+    }
+  }
+
   private func closePeerConnection(_ peer: String, resetReconnectState: Bool = true) {
     clearConnectionTimeout(for: peer)
+    connectionRequestTimeouts[peer]?.cancel()
+    connectionRequestTimeouts[peer] = nil
     if resetReconnectState {
       reconnectTasks[peer]?.cancel()
       reconnectTasks[peer] = nil
