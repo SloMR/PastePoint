@@ -30,6 +30,8 @@ struct ContentView: View {
 
       if services.localNetworkDenied {
         NetworkPermissionBanner { services.clearLocalNetworkDenied() }
+      } else if let reconnect = services.wsService.reconnectState {
+        ChatServerReconnectBanner(attempt: reconnect.attempt, nextAttemptDate: reconnect.nextAttemptDate)
       } else if services.connectionWarningMonitor.showWarning {
         ChatConnectionWarningBanner {
           services.connectionWarningMonitor.dismiss()

@@ -14,10 +14,9 @@ struct ChatConnectionWarningBanner: View {
       title: "Still connecting…",
       message: "Some members aren't reachable yet.",
       onDismiss: onDismiss,
-      leading: {
-        PulsingDot(color: AppColors.Status.warning)
-      },
-    )
+    ) {
+      PulsingDot(color: AppColors.Status.warning)
+    }
   }
 }
 

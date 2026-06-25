@@ -16,12 +16,11 @@ struct NetworkPermissionBanner: View {
       actionTitle: "Open Settings",
       onAction: openSettings,
       onDismiss: onDismiss,
-      leading: {
-        Image(systemName: "wifi.slash")
-          .font(.system(size: 17, weight: .semibold))
-          .foregroundStyle(AppColors.Status.danger)
-      },
-    )
+    ) {
+      Image(systemName: "wifi.slash")
+        .font(.system(size: 17, weight: .semibold))
+        .foregroundStyle(AppColors.Status.danger)
+    }
   }
 
   private func openSettings() {
