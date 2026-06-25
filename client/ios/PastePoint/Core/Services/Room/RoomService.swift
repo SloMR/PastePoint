@@ -34,6 +34,15 @@ final class RoomService: ObservableObject {
         Task { await self?.listRooms() }
       }
       .store(in: &cancellables)
+
+    wsService.$isConnected
+      .receive(on: DispatchQueue.main)
+      .sink { [weak self] connected in
+        if !connected {
+          self?.members = []
+        }
+      }
+      .store(in: &cancellables)
   }
 
   func listRooms() async {

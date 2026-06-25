@@ -31,6 +31,7 @@ final class WebSocketConnectionService: ObservableObject {
   let signalMessage = PassthroughSubject<SignalMessage, Never>()
   let didConnect = PassthroughSubject<Void, Never>()
   let didReconnect = PassthroughSubject<Void, Never>()
+  let sessionRejected = PassthroughSubject<Void, Never>()
 
   // MARK: - Properties
 
@@ -138,6 +139,13 @@ final class WebSocketConnectionService: ObservableObject {
         if let error {
           self.logger.warning("Connection handshake ping failed: \(error.localizedDescription)")
           self.teardownConnection()
+          if self.isPermanentError(error) {
+            self.logger.warning("Session code invalid or expired — falling back to public session")
+            self.sessionRejected.send()
+            self.clearSessionCode()
+            await self.connect(sessionCode: nil, isReconnectAttempt: false)
+            return
+          }
           self.scheduleReconnect()
         } else {
           self.isConnected = true
@@ -178,6 +186,7 @@ final class WebSocketConnectionService: ObservableObject {
 
           if isPermanentError(error) {
             logger.warning("Session code invalid or expired — falling back to public session")
+            sessionRejected.send()
             clearSessionCode()
             teardownConnection()
             await connect(sessionCode: nil, isReconnectAttempt: false)

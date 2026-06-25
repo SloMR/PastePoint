@@ -19,6 +19,8 @@ struct ContentView: View {
   @State private var hasConnectedBefore = false
   @State private var showSettings = false
   @State private var toasts: [ToastItem] = []
+  @State private var pendingPrivateJoin = false
+  @State private var suppressNextConnectToast = false
 
   var body: some View {
     VStack(spacing: 0) {
@@ -65,7 +67,7 @@ struct ContentView: View {
       NavigationStack {
         SettingsView {
           showSettings = false
-          toasts.append(.success("Private session joined"))
+          pendingPrivateJoin = true
         }
       }
     }
@@ -115,13 +117,28 @@ struct ContentView: View {
         toasts.append(.error("Allow Photos access in Settings to save received media"))
       }
     }
+    .onReceive(services.wsService.sessionRejected) {
+      pendingPrivateJoin = false
+      suppressNextConnectToast = true
+      toasts.append(.warning("That session code is invalid or expired — you’re back in the public room"))
+    }
     .onReceive(services.wsService.didConnect) {
-      guard !showSettings else {
-        hasConnectedBefore = true
+      let wasReconnect = hasConnectedBefore
+      hasConnectedBefore = true
+
+      if suppressNextConnectToast {
+        suppressNextConnectToast = false
+        pendingPrivateJoin = false
         return
       }
-      toasts.append(hasConnectedBefore ? .success("Reconnected") : .success("Connected"))
-      hasConnectedBefore = true
+      guard !showSettings else { return }
+
+      if pendingPrivateJoin {
+        pendingPrivateJoin = false
+        toasts.append(.success("Private session joined"))
+      } else {
+        toasts.append(wasReconnect ? .success("Reconnected") : .success("Connected"))
+      }
     }
     .onChange(of: services.roomService.currentRoom) {
       messages = []
