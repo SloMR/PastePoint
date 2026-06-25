@@ -46,6 +46,7 @@ final class SignalingService: NSObject, ObservableObject {
   private var peerConnections: [String: RTCPeerConnection] = [:]
   private var dataChannels: [String: RTCDataChannel] = [:]
   private var candidateQueues: [String: [RTCIceCandidate]] = [:]
+  private var collectedCandidates: [String: [String]] = [:]
   private var connectionLocks: Set<String> = []
   private var outboundSequences: [String: Int] = [:]
   private var inboundSequences: [String: Int] = [:]
@@ -452,6 +453,7 @@ extension SignalingService {
       if self.connectedPeers.contains(peer) { return }
 
       self.logger.warning("connectionTimeout: \(peer) did not reach connected in \(Self.connectionTimeout)s, treating as failure")
+      self.logConnectionDiagnostics(for: peer)
       self.scheduleReconnect(to: peer)
     }
   }
@@ -475,9 +477,37 @@ extension SignalingService {
     peerConnections[peer]?.close()
     peerConnections[peer] = nil
     candidateQueues[peer] = nil
+    collectedCandidates[peer] = nil
     connectionLocks.remove(peer)
     connectedPeers.remove(peer)
     connectingPeers.remove(peer)
+  }
+
+  // MARK: - Diagnostics
+
+  /// Extracts the ICE candidate type (`host` / `srflx` / `relay` / `prflx`) from
+  /// a candidate SDP line, which carries a `typ <type>` token.
+  private func candidateType(from sdp: String) -> String {
+    let parts = sdp.split(separator: " ")
+    if let i = parts.firstIndex(of: "typ"), i + 1 < parts.count {
+      return String(parts[i + 1])
+    }
+    return "unknown"
+  }
+
+  private func logConnectionDiagnostics(for peer: String) {
+    guard let pc = peerConnections[peer] else { return }
+    let candidates = collectedCandidates[peer] ?? []
+    let hasRelay = candidates.contains("relay")
+    let hasSrflx = candidates.contains("srflx")
+
+    var report = "Connection FAILED with \(peer):\n"
+    report += "  State: \(pc.connectionState.rawValue) / ICE: \(pc.iceConnectionState.rawValue)\n"
+    report += "  Candidates: \(candidates.count) total (relay: \(hasRelay ? "✓" : "✗"), srflx: \(hasSrflx ? "✓" : "✗"))"
+    if !hasRelay {
+      report += "\n  ISSUE: No TURN relay candidates — connection will fail behind symmetric NAT"
+    }
+    logger.error("\(report)")
   }
 }
 
@@ -612,6 +642,8 @@ extension SignalingService: RTCPeerConnectionDelegate {
         self.logger.warning("unknown peer connection")
         return
       }
+
+      self.collectedCandidates[peer, default: []].append(self.candidateType(from: sdp))
 
       let candidateMessage = SignalMessage(
         payload: .candidate(sdp: sdp, sdpMid: sdpMid, sdpMLineIndex: sdpMLineIndex),
