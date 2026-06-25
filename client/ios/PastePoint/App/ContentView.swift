@@ -124,17 +124,17 @@ struct ContentView: View {
     }
     .onReceive(services.wsService.didConnect) {
       let wasReconnect = hasConnectedBefore
+      let wasPrivateJoin = pendingPrivateJoin
       hasConnectedBefore = true
+      pendingPrivateJoin = false // consume regardless of branch so it can't leak into a later reconnect
 
       if suppressNextConnectToast {
         suppressNextConnectToast = false
-        pendingPrivateJoin = false
         return
       }
       guard !showSettings else { return }
 
-      if pendingPrivateJoin {
-        pendingPrivateJoin = false
+      if wasPrivateJoin {
         toasts.append(.success("Private session joined"))
       } else {
         toasts.append(wasReconnect ? .success("Reconnected") : .success("Connected"))
