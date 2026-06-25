@@ -58,6 +58,7 @@ import { CreateRoomPopupComponent } from './components/popups/create-room-popup/
 import { EndSessionPopupComponent } from './components/popups/end-session-popup/end-session-popup.component';
 import { QrCodePopupComponent } from './components/popups/qr-code-popup/qr-code-popup.component';
 import { ConnectionWarningComponent } from './components/connection-warning/connection-warning.component';
+import { ServerReconnectComponent } from './components/server-reconnect/server-reconnect.component';
 import { ChatInputComponent } from './components/chat-input/chat-input.component';
 import { ChatMessagesComponent } from './components/chat-messages/chat-messages.component';
 import { ChatSidebarComponent } from './components/chat-sidebar/chat-sidebar.component';
@@ -81,6 +82,7 @@ import { LanguageSwitcherComponent } from '../../core/components/language-switch
     EndSessionPopupComponent,
     QrCodePopupComponent,
     ConnectionWarningComponent,
+    ServerReconnectComponent,
     ChatInputComponent,
     ChatMessagesComponent,
     ChatSidebarComponent,
@@ -136,6 +138,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   memberConnectionStatus = new Map<string, boolean>(); // true = connected, false = failed
   memberConnectionState = new Map<string, MemberConnectionState>(); // green / yellow / red dot
   showConnectionWarning = false;
+  isReconnectingToServer = false;
 
   currentRoom = 'main';
   isDarkMode = false;
@@ -248,6 +251,15 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     this.flowbiteService.loadFlowbite(() => {
       this.logger.debug('ngOnInit', `Flowbite loaded`);
     });
+
+    this.subscriptions.push(
+      this.wsConnectionService.reconnectState$.subscribe((state) => {
+        this.ngZone.run(() => {
+          this.isReconnectingToServer = state !== null;
+          this.cdr.detectChanges();
+        });
+      })
+    );
 
     // Check if route has a session code in URL but don't connect yet.
     // First emission seeds SessionCode for ngAfterViewInit's initial connect();
@@ -798,10 +810,10 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
 
     const attemptedCode = this.SessionCode;
     this.connect(attemptedCode || undefined).catch(() => {
+      // Public session keeps retrying behind the reconnect banner; only a
+      // private session falls back to public on failure.
       if (attemptedCode) {
         this.fallbackToPublic();
-      } else {
-        this.toaster.error(this.translate.instant('SERVER_CONNECTION_FAILED'));
       }
     });
 
@@ -956,8 +968,6 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
       this.logger.error('enterSession', `Failed to connect to new session: ${err}`);
       if (code) {
         this.fallbackToPublic();
-      } else {
-        this.toaster.error(this.translate.instant('SERVER_CONNECTION_FAILED'));
       }
     } finally {
       if (transitionId === this.currentTransitionId) {

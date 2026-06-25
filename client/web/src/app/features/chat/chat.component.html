@@ -166,12 +166,17 @@
           </div>
         }
 
+        <!-- MARK: - Server Reconnect Banner -->
+        <app-server-reconnect />
+
         <!-- MARK: - Connection Warning Banner -->
-        <app-connection-warning
-          [show]="showConnectionWarning"
-          (refreshed)="refreshPage()"
-          (dismissed)="dismissConnectionWarning()"
-        />
+        @if (!isReconnectingToServer) {
+          <app-connection-warning
+            [show]="showConnectionWarning"
+            (refreshed)="refreshPage()"
+            (dismissed)="dismissConnectionWarning()"
+          />
+        }
 
         <app-chat-messages
           [messages]="messages"

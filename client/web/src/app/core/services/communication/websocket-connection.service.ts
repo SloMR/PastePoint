@@ -3,7 +3,6 @@ import { BehaviorSubject, Subject } from 'rxjs';
 import * as Sentry from '@sentry/angular';
 import { startNewTrace } from '@sentry/core';
 import { environment } from '../../../../environments/environment';
-import { Router } from '@angular/router';
 import { NGXLogger } from 'ngx-logger';
 import { isPlatformBrowser } from '@angular/common';
 import { TranslateService } from '@ngx-translate/core';
@@ -17,7 +16,6 @@ import { HotToastService } from '@ngxpert/hot-toast';
   providedIn: 'root',
 })
 export class WebSocketConnectionService implements OnDestroy {
-  private router = inject(Router);
   private logger = inject(NGXLogger);
   private toaster = inject(HotToastService);
   private translate = inject<TranslateService>(TranslateService);
@@ -59,6 +57,12 @@ export class WebSocketConnectionService implements OnDestroy {
   /** Fires once after a successful automatic reconnect. Services subscribe
    *  to this to refresh stale state (e.g. username) without polling. */
   public reconnected$ = new Subject<void>();
+
+  /** Live reconnect status (attempt # and when the next try fires), or `null`
+   *  when connected / not retrying. Drives the server-reconnect banner. */
+  public reconnectState$ = new BehaviorSubject<{ attempt: number; nextAttemptAt: number } | null>(
+    null
+  );
 
   /**
    * ==========================================================
@@ -218,6 +222,7 @@ export class WebSocketConnectionService implements OnDestroy {
         }
         this.reconnectAttempts = 0;
         this.reconnectDelay = 1000;
+        this.reconnectState$.next(null);
         this.isConnecting = false;
         this.startKeepAlive();
         settleResolve();
@@ -268,30 +273,12 @@ export class WebSocketConnectionService implements OnDestroy {
         this.stopKeepAlive();
         this.socket = undefined;
 
-        // Only treat 1006 as an invalid session if it's not the first attempt
-        if (event.code === 1006 && this.reconnectAttempts > 0) {
-          this.logger.warn('connect', 'WebSocket closed: Invalid session code (1006)');
-          this.clearSessionCode();
-          this.router.navigate(['/404']);
-          return;
-        }
-
-        if (event.code === 1006) {
-          if (!this.manualDisconnect && this.reconnectAttempts < this.maxReconnectAttempts) {
-            this.scheduleReconnect();
-          } else {
-            this.logger.warn(
-              'connect',
-              `WebSocket closed with code ${event.code}. Navigating to 404 after max reconnect attempts.`
-            );
-            this.toaster.error(this.translate.instant('SESSION_RECONNECT_FAILED'));
-            this.router.navigate(['/404']);
-          }
-        } else {
-          this.logger.warn('connect', `WebSocket closed with code ${event.code}`);
-          if (!this.manualDisconnect && this.reconnectAttempts < this.maxReconnectAttempts) {
-            this.scheduleReconnect();
-          }
+        // Keep retrying any non-manual close (server down / network blip) so we
+        // recover whenever the server comes back. No dead-end to
+        // /404: the reconnect banner conveys status while we retry.
+        this.logger.warn('connect', `WebSocket closed with code ${event.code}`);
+        if (!this.manualDisconnect) {
+          this.scheduleReconnect();
         }
       };
 
@@ -302,6 +289,11 @@ export class WebSocketConnectionService implements OnDestroy {
         this.stopKeepAlive();
         this.socket = undefined;
         settleReject(new Error('WebSocket connection error'));
+        // onerror fires before onclose on a failed connect and nulls the socket,
+        // so the onclose stale-guard skips its reconnect — schedule it here.
+        if (!this.manualDisconnect) {
+          this.scheduleReconnect();
+        }
       };
     });
   }
@@ -314,37 +306,31 @@ export class WebSocketConnectionService implements OnDestroy {
     }
 
     this.reconnectAttempts++;
-    const currentDelay = Math.min(
-      this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1),
-      this.maxReconnectDelay
-    );
+    const currentDelay =
+      this.reconnectAttempts <= this.maxReconnectAttempts
+        ? Math.min(
+            this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1),
+            this.maxReconnectDelay
+          )
+        : this.maxReconnectDelay;
 
     this.logger.info(
       'scheduleReconnect',
-      `Scheduling reconnect attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts} in ${currentDelay}ms`
+      `Scheduling reconnect attempt ${this.reconnectAttempts} in ${currentDelay}ms`
     );
+    this.reconnectState$.next({
+      attempt: this.reconnectAttempts,
+      nextAttemptAt: Date.now() + currentDelay,
+    });
 
     this.reconnectTimer = setTimeout(() => {
       if (this.isConnected()) {
         this.logger.info('scheduleReconnect', 'Already connected, skipping reconnect');
         return;
-      } else {
-        this.connect(this.sessionCode).catch((error: unknown) => {
-          this.logger.error('scheduleReconnect', `Reconnect failed: ${error}`);
-
-          if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-            this.logger.warn('scheduleReconnect', 'Maximum reconnect attempts reached');
-            if (!this.manualDisconnect) {
-              this.toaster.error(this.translate.instant('SERVER_CONNECTION_LOST_PERMANENTLY'));
-              this.router.navigate(['/404']);
-            }
-          } else {
-            if (this.reconnectAttempts % 3 === 1) {
-              this.toaster.info(this.translate.instant('RECONNECTING_TO_SERVER'));
-            }
-          }
-        });
       }
+      this.connect(this.sessionCode).catch((error: unknown) => {
+        this.logger.error('scheduleReconnect', `Reconnect failed: ${error}`);
+      });
     }, currentDelay);
   }
 
@@ -366,6 +352,7 @@ export class WebSocketConnectionService implements OnDestroy {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
     }
+    this.reconnectState$.next(null);
 
     const socket = this.socket;
     this.socket = undefined;

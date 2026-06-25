@@ -1,0 +1,27 @@
+<!-- MARK: - Server Reconnect Banner -->
+@if (show()) {
+  <div
+    class="w-full mb-3 rounded-lg border border-sky-300 bg-sky-50 px-4 py-3 dark:border-sky-600/50 dark:bg-sky-900/20"
+  >
+    <div class="flex items-start gap-3">
+      <span
+        class="mt-1.5 inline-flex h-2.5 w-2.5 shrink-0 animate-pulse rounded-full bg-sky-500 dark:bg-sky-400"
+      ></span>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-expoArabicMedium text-sky-800 dark:text-sky-200">
+          {{ 'SERVER_RECONNECT_TITLE' | translate }}
+        </p>
+        <p class="mt-1 text-xs text-sky-700 dark:text-sky-300/80">
+          @if (secondsRemaining() > 0) {
+            {{
+              'SERVER_RECONNECT_COUNTDOWN'
+                | translate: { seconds: secondsRemaining(), attempt: attempt() }
+            }}
+          } @else {
+            {{ 'SERVER_RECONNECT_NOW' | translate: { attempt: attempt() } }}
+          }
+        </p>
+      </div>
+    </div>
+  </div>
+}
