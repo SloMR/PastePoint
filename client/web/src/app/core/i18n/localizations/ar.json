@@ -156,8 +156,6 @@
   "CONNECTION_CLOSED_WITH_USER": "تم إغلاق الاتصال مع المستخدم {{userName}}.",
   "WEBRTC_NOT_SUPPORTED": "متصفحك لا يدعم تقنية WebRTC. يرجى تجربة متصفح آخر (Chrome أو Firefox أو Safari أو Edge).",
   "SESSION_JOIN_FAILED": "تعذّر الانضمام إلى هذه الجلسة — قد يكون الرمز غير صالح أو منتهي الصلاحية. تم نقلك إلى الغرفة العامة.",
-  "SERVER_CONNECTION_LOST_PERMANENTLY": "تم فقد الاتصال بالخادم. يرجى تحديث الصفحة.",
-  "RECONNECTING_TO_SERVER": "جارٍ إعادة الاتصال بالخادم...",
   "SERVER_RECONNECT_TITLE": "تعذّر الوصول إلى الخادم",
   "SERVER_RECONNECT_COUNTDOWN": "إعادة الاتصال خلال {{seconds}} ث · المحاولة {{attempt}}",
   "SERVER_RECONNECT_NOW": "إعادة الاتصال… · المحاولة {{attempt}}",

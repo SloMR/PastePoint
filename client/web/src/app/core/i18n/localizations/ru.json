@@ -156,8 +156,6 @@
   "CONNECTION_CLOSED_WITH_USER": "Соединение с {{userName}} закрыто.",
   "WEBRTC_NOT_SUPPORTED": "Ваш браузер не поддерживает WebRTC. Попробуйте другой браузер (Chrome, Firefox, Safari или Edge).",
   "SESSION_JOIN_FAILED": "Не удалось войти в эту сессию — код недействителен или истёк. Вы переключены в публичную комнату.",
-  "SERVER_CONNECTION_LOST_PERMANENTLY": "Связь с сервером потеряна. Пожалуйста, обновите страницу.",
-  "RECONNECTING_TO_SERVER": "Переподключение к серверу...",
   "SERVER_RECONNECT_TITLE": "Сервер недоступен",
   "SERVER_RECONNECT_COUNTDOWN": "Переподключение через {{seconds}} с · попытка {{attempt}}",
   "SERVER_RECONNECT_NOW": "Переподключение… · попытка {{attempt}}",

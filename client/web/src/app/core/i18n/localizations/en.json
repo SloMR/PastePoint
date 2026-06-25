@@ -156,8 +156,6 @@
   "CONNECTION_CLOSED_WITH_USER": "Connection with {{userName}} was closed.",
   "WEBRTC_NOT_SUPPORTED": "Your browser doesn't support peer-to-peer connections. Please try a different browser (Chrome, Firefox, Safari, or Edge).",
   "SESSION_JOIN_FAILED": "Couldn't join that session — the code may be invalid or expired. You're now in the public room.",
-  "SERVER_CONNECTION_LOST_PERMANENTLY": "Lost connection to server. Please refresh the page.",
-  "RECONNECTING_TO_SERVER": "Reconnecting to server...",
   "SERVER_RECONNECT_TITLE": "Can't reach the server",
   "SERVER_RECONNECT_COUNTDOWN": "Reconnecting in {{seconds}}s · attempt {{attempt}}",
   "SERVER_RECONNECT_NOW": "Reconnecting… · attempt {{attempt}}",
