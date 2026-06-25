@@ -88,6 +88,9 @@
   "FILE_SEND_NONE": "Не доставлено",
   "FILE_TRANSFER_ACCEPTED": "Передача принята",
   "FILE_TRANSFER_DECLINED": "Передача отклонена",
+  "FILE_TRANSFER_COMPLETED": "Передача завершена",
+  "FILE_TRANSFER_CANCELLED": "Передача отменена",
+  "FILE_TRANSFER_FAILED": "Ошибка передачи",
 
   "_404_PAGE_SECTION": "==== 404 PAGE ====",
   "PAGE_NOT_FOUND": "Страница не найдена",

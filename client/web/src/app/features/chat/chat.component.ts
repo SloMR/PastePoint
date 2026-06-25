@@ -693,6 +693,17 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
       })
     );
 
+    // Receiver bubble: reflect the terminal status of an incoming download
+    // (completed / cancelled / failed) once it stops.
+    this.subscriptions.push(
+      this.fileTransferService.downloadStatus$.subscribe(({ fileId, status }) => {
+        this.ngZone.run(() => {
+          this.updateFileTransferMessageStatus(fileId, status);
+          this.cdr.detectChanges();
+        });
+      })
+    );
+
     // When a peer disconnects after being connected, restart warning timeout
     this.subscriptions.push(
       this.webrtcService.peerDisconnected$.subscribe((member) => {
@@ -1239,17 +1250,11 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
    * Updates the status and text of a file transfer message
    * ==========================================================
    */
-  private updateFileTransferMessageStatus(
-    fileId: string,
-    status: FileTransferStatus.ACCEPTED | FileTransferStatus.DECLINED
-  ): void {
+  private updateFileTransferMessageStatus(fileId: string, status: FileTransferStatus): void {
     const currentMessages = this.chatService.messages$.value;
     const updatedMessages = currentMessages.map((msg) => {
       if (msg.type === ChatMessageType.ATTACHMENT && msg.fileTransfer?.fileId === fileId) {
-        const statusText =
-          status === FileTransferStatus.ACCEPTED
-            ? this.translate.instant('FILE_TRANSFER_ACCEPTED')
-            : this.translate.instant('FILE_TRANSFER_DECLINED');
+        const statusText = this.translate.instant(this.fileTransferStatusLabelKey(status));
         const fileSizeLabel = this.fileSizePipe.transform(msg.fileTransfer.fileSize, 2);
 
         return {
@@ -1265,6 +1270,24 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     });
 
     this.chatService.replaceMessages(updatedMessages);
+  }
+
+  /** i18n key for the status line shown under a file-transfer bubble. */
+  private fileTransferStatusLabelKey(status: FileTransferStatus): string {
+    switch (status) {
+      case FileTransferStatus.ACCEPTED:
+        return 'FILE_TRANSFER_ACCEPTED';
+      case FileTransferStatus.DECLINED:
+        return 'FILE_TRANSFER_DECLINED';
+      case FileTransferStatus.COMPLETED:
+        return 'FILE_TRANSFER_COMPLETED';
+      case FileTransferStatus.CANCELLED:
+        return 'FILE_TRANSFER_CANCELLED';
+      case FileTransferStatus.FAILED:
+        return 'FILE_TRANSFER_FAILED';
+      default:
+        return 'FILE_TRANSFER_ACCEPTED';
+    }
   }
 
   /**

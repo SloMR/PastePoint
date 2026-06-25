@@ -88,6 +88,9 @@
   "FILE_SEND_NONE": "No entregado",
   "FILE_TRANSFER_ACCEPTED": "Transferencia aceptada",
   "FILE_TRANSFER_DECLINED": "Transferencia rechazada",
+  "FILE_TRANSFER_COMPLETED": "Transferencia completada",
+  "FILE_TRANSFER_CANCELLED": "Transferencia cancelada",
+  "FILE_TRANSFER_FAILED": "Transferencia fallida",
 
   "_404_PAGE_SECTION": "==== 404 PAGE ====",
   "PAGE_NOT_FOUND": "Página no encontrada",

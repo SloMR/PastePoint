@@ -1,9 +1,11 @@
 import { Injectable, inject } from '@angular/core';
 import * as Sentry from '@sentry/angular';
 import { startNewTrace } from '@sentry/core';
+import { Subject } from 'rxjs';
 import {
   FILE_TRANSFER_MESSAGE_TYPES,
   FileDownload,
+  FileTransferStatus,
   PREVIEW_MIME_TYPE,
 } from '../../../utils/constants';
 import { FileTransferBaseService } from './file-transfer-base.service';
@@ -26,6 +28,7 @@ export class FileDownloadService extends FileTransferBaseService {
 
   private activeReceiveSpans = new Map<string, Sentry.Span>();
   private stallWatchdog: ReturnType<typeof setInterval> | null = null;
+  public downloadStatus$ = new Subject<{ fileId: string; status: FileTransferStatus }>();
 
   // =============== Constructor ===============
   constructor() {
@@ -62,6 +65,8 @@ export class FileDownloadService extends FileTransferBaseService {
       | 'cancelled',
     extra?: Record<string, number | string | boolean>
   ): void {
+    this.downloadStatus$.next({ fileId, status: this.receiverBubbleStatus(outcome) });
+
     const key = this.receiveSpanKey(fromUser, fileId);
     const span = this.activeReceiveSpans.get(key);
     if (!span) return;
@@ -76,6 +81,28 @@ export class FileDownloadService extends FileTransferBaseService {
     );
     span.end();
     this.activeReceiveSpans.delete(key);
+  }
+
+  /** Maps a receive-span outcome to the receiver bubble's terminal status. */
+  private receiverBubbleStatus(
+    outcome:
+      | 'completed'
+      | 'crc_failed'
+      | 'missing_chunks'
+      | 'hash_mismatch'
+      | 'no_hash'
+      | 'stalled'
+      | 'cancelled'
+  ): FileTransferStatus {
+    switch (outcome) {
+      case 'completed':
+        return FileTransferStatus.COMPLETED;
+      case 'cancelled':
+        return FileTransferStatus.CANCELLED;
+      default:
+        // crc_failed | missing_chunks | hash_mismatch | no_hash | stalled
+        return FileTransferStatus.FAILED;
+    }
   }
 
   // =============== Data Handling Methods ===============

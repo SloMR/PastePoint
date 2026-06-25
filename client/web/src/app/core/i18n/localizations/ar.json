@@ -88,6 +88,9 @@
   "FILE_SEND_NONE": "لم يتم التسليم",
   "FILE_TRANSFER_ACCEPTED": "تم قبول الملف",
   "FILE_TRANSFER_DECLINED": "تم رفض الملف",
+  "FILE_TRANSFER_COMPLETED": "اكتمل نقل الملف",
+  "FILE_TRANSFER_CANCELLED": "تم إلغاء نقل الملف",
+  "FILE_TRANSFER_FAILED": "فشل نقل الملف",
 
   "_404_PAGE_SECTION": "==== 404 PAGE ====",
   "PAGE_NOT_FOUND": "الصفحة غير موجودة",
