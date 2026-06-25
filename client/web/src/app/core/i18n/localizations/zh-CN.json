@@ -88,6 +88,9 @@
   "FILE_SEND_NONE": "未送达",
   "FILE_TRANSFER_ACCEPTED": "文件传输已接受",
   "FILE_TRANSFER_DECLINED": "文件传输已拒绝",
+  "FILE_TRANSFER_COMPLETED": "文件传输已完成",
+  "FILE_TRANSFER_CANCELLED": "文件传输已取消",
+  "FILE_TRANSFER_FAILED": "文件传输失败",
 
   "_404_PAGE_SECTION": "==== 404 PAGE ====",
   "PAGE_NOT_FOUND": "页面未找到",

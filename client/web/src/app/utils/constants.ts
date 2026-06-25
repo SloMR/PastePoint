@@ -174,6 +174,8 @@ export enum FileTransferStatus {
   ACCEPTED = 'accepted',
   DECLINED = 'declined',
   COMPLETED = 'completed',
+  CANCELLED = 'cancelled',
+  FAILED = 'failed',
 }
 
 export interface FileUpload {

@@ -124,6 +124,14 @@ export class FileTransferService implements IFileTransferService {
     return this.fileUploadService.outgoingGroupStatus$;
   }
 
+  /**
+   * Receiver-side terminal status of an incoming download (drives the incoming
+   * bubble's COMPLETED/CANCELLED/FAILED label).
+   */
+  public get downloadStatus$() {
+    return this.fileDownloadService.downloadStatus$;
+  }
+
   // =============== Upload Methods ===============
   /** Registers a logical send to `total` recipients before per-peer prep. */
   public beginUploadGroup(groupId: string, total: number): void {
