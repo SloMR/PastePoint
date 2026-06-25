@@ -8,6 +8,11 @@ import Foundation
 import Logging
 import SwiftUI
 
+struct ReconnectState: Equatable {
+  let attempt: Int
+  let nextAttemptDate: Date
+}
+
 @MainActor
 final class WebSocketConnectionService: ObservableObject {
   private let logger = Logger(label: "WebSocket")
@@ -17,6 +22,7 @@ final class WebSocketConnectionService: ObservableObject {
   @Published private(set) var isConnected = false
   @Published private(set) var isConnecting = false
   @Published private(set) var isLeavingSession = false
+  @Published private(set) var reconnectState: ReconnectState?
 
   // MARK: - Message Subjects
 
@@ -25,6 +31,7 @@ final class WebSocketConnectionService: ObservableObject {
   let signalMessage = PassthroughSubject<SignalMessage, Never>()
   let didConnect = PassthroughSubject<Void, Never>()
   let didReconnect = PassthroughSubject<Void, Never>()
+  let sessionRejected = PassthroughSubject<Void, Never>()
 
   // MARK: - Properties
 
@@ -40,6 +47,7 @@ final class WebSocketConnectionService: ObservableObject {
   private var manualDisconnect = false
   private var hasConnectedOnce = false
   private var reconnectAttempts = 0
+  private var reconnectTask: Task<Void, Never>?
   private let maxReconnectAttempts = 5
   private let baseReconnectDelaySec: Double = 1
   private let maxReconnectDelaySec: Double = 30
@@ -131,9 +139,17 @@ final class WebSocketConnectionService: ObservableObject {
         if let error {
           self.logger.warning("Connection handshake ping failed: \(error.localizedDescription)")
           self.teardownConnection()
-          await self.scheduleReconnect()
+          if self.isPermanentError(error) {
+            self.logger.warning("Session code invalid or expired — falling back to public session")
+            self.sessionRejected.send()
+            self.clearSessionCode()
+            await self.connect(sessionCode: nil, isReconnectAttempt: false)
+            return
+          }
+          self.scheduleReconnect()
         } else {
           self.isConnected = true
+          self.reconnectState = nil
           self.didConnect.send()
           if self.hasConnectedOnce {
             self.didReconnect.send()
@@ -170,6 +186,7 @@ final class WebSocketConnectionService: ObservableObject {
 
           if isPermanentError(error) {
             logger.warning("Session code invalid or expired — falling back to public session")
+            sessionRejected.send()
             clearSessionCode()
             teardownConnection()
             await connect(sessionCode: nil, isReconnectAttempt: false)
@@ -177,7 +194,7 @@ final class WebSocketConnectionService: ObservableObject {
           }
 
           logger.error("Receive error: \(error.localizedDescription)")
-          await scheduleReconnect()
+          scheduleReconnect()
           break
         }
       }
@@ -278,7 +295,7 @@ final class WebSocketConnectionService: ObservableObject {
               Task { @MainActor in
                 guard self.isConnected, !self.isConnecting else { return }
                 self.teardownConnection()
-                await self.scheduleReconnect()
+                self.scheduleReconnect()
               }
             }
           }
@@ -296,6 +313,9 @@ final class WebSocketConnectionService: ObservableObject {
     isConnected = false
     isConnecting = false
 
+    reconnectTask?.cancel()
+    reconnectTask = nil
+
     receiveTask?.cancel()
     receiveTask = nil
 
@@ -308,26 +328,23 @@ final class WebSocketConnectionService: ObservableObject {
 
   // MARK: - Reconnect
 
-  private func scheduleReconnect() async {
+  private func scheduleReconnect() {
     isConnected = false
     guard !manualDisconnect, !isConnecting else { return }
 
     reconnectAttempts += 1
-    guard reconnectAttempts <= maxReconnectAttempts else {
-      logger.warning("Max reconnect attempts (\(maxReconnectAttempts)) reached — giving up")
-      return
+    let delay = reconnectAttempts <= maxReconnectAttempts
+      ? min(baseReconnectDelaySec * pow(2.0, Double(reconnectAttempts - 1)), maxReconnectDelaySec)
+      : maxReconnectDelaySec
+    logger.info("Reconnecting in \(Int(delay))s (attempt \(reconnectAttempts))")
+    reconnectState = ReconnectState(attempt: reconnectAttempts, nextAttemptDate: Date().addingTimeInterval(delay))
+
+    reconnectTask?.cancel()
+    reconnectTask = Task { [weak self] in
+      try? await Task.sleep(for: .seconds(delay))
+      guard !Task.isCancelled, let self, !self.manualDisconnect else { return }
+      await self.connect(sessionCode: self.sessionCode, isReconnectAttempt: true)
     }
-
-    let delay = min(
-      baseReconnectDelaySec * pow(2.0, Double(reconnectAttempts - 1)),
-      maxReconnectDelaySec,
-    )
-    logger.info("Reconnecting in \(Int(delay))s (attempt \(reconnectAttempts)/\(maxReconnectAttempts))")
-
-    try? await Task.sleep(for: .seconds(delay))
-    guard !manualDisconnect else { return }
-
-    await connect(sessionCode: sessionCode, isReconnectAttempt: true)
   }
 
   // MARK: - Disconnect
@@ -335,6 +352,7 @@ final class WebSocketConnectionService: ObservableObject {
   func disconnect(manual: Bool = true) {
     logger.info("Disconnecting (manual: \(manual))")
     manualDisconnect = manual
+    reconnectState = nil
     if manual {
       isLeavingSession = true
       clearSessionCode()

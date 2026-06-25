@@ -21,6 +21,7 @@ final class AppServices: ObservableObject {
   let roomService: RoomService
   let peerDirectory: PeerDirectory
   let fileTransferService: FileTransferService
+  let connectionWarningMonitor: ConnectionWarningMonitor
 
   static let shared = AppServices()
 
@@ -29,6 +30,7 @@ final class AppServices: ObservableObject {
   private var isInBackground = false
   private var isForegroundHandling = false
   private let networkMonitor = NWPathMonitor()
+  private var lastPathStatus: NWPath.Status?
   private var cancellables = Set<AnyCancellable>()
 
   private init() {
@@ -42,6 +44,10 @@ final class AppServices: ObservableObject {
       signalingService: signalingService,
       userService: userService,
       peerDirectory: peerDirectory,
+    )
+    connectionWarningMonitor = ConnectionWarningMonitor(
+      peerDirectory: peerDirectory,
+      signalingService: signalingService,
     )
 
 #if DEBUG
@@ -69,6 +75,10 @@ final class AppServices: ObservableObject {
       signalingService: signalingService,
       userService: userService,
       peerDirectory: peerDirectory,
+    )
+    connectionWarningMonitor = ConnectionWarningMonitor(
+      peerDirectory: peerDirectory,
+      signalingService: signalingService,
     )
 
     forwardServiceChanges()
@@ -99,19 +109,32 @@ final class AppServices: ObservableObject {
     }
     isForegroundHandling = true
     defer { isForegroundHandling = false }
-    let denied = await LocalNetworkPermission.isDenied()
-    localNetworkDenied = denied
-    guard !denied else {
-      logger.warning("handleForeground — local network permission denied, skipping connect")
-      wsService.disconnect(manual: false)
-      return
-    }
-    logger.info("handleForeground — connecting")
-    await wsService.connect(sessionCode: wsService.currentSessionCode)
+    await connectIfPermitted(sessionCode: wsService.currentSessionCode)
   }
 
   func clearLocalNetworkDenied() {
     localNetworkDenied = false
+  }
+
+  @discardableResult
+  func connectIfPermitted(sessionCode: String? = nil) async -> Bool {
+#if DEBUG
+    guard !AppBuildInfo.isXcodePreview else {
+      await wsService.connect(sessionCode: sessionCode)
+      return true
+    }
+#endif
+
+    let denied = await LocalNetworkPermission.isDenied()
+    localNetworkDenied = denied
+    guard !denied else {
+      logger.warning("connectIfPermitted — local network denied, skipping connect")
+      wsService.disconnect(manual: false)
+      return false
+    }
+
+    await wsService.connect(sessionCode: sessionCode)
+    return true
   }
 
   func handleBackground() {
@@ -128,10 +151,16 @@ final class AppServices: ObservableObject {
   /// while the network was down, then the network came back.
   private func startNetworkMonitoring() {
     networkMonitor.pathUpdateHandler = { [weak self] path in
-      self?.logger.debug("Network path updated: \(path.status)")
-      guard path.status == .satisfied else { return }
       Task { @MainActor [weak self] in
-        guard let self, !self.isInBackground else { return }
+        guard let self else { return }
+
+        let previous = self.lastPathStatus
+        self.lastPathStatus = path.status
+        self.logger.debug("Network path updated: \(path.status)")
+
+        guard path.status == .satisfied, previous != .satisfied else { return }
+        guard !self.isInBackground else { return }
+
         self.logger.info("Network restored — triggering reconnect")
         await self.handleForeground()
       }
@@ -167,6 +196,9 @@ final class AppServices: ObservableObject {
       .sink { [weak self] _ in self?.objectWillChange.send() }
       .store(in: &cancellables)
     fileTransferService.objectWillChange
+      .sink { [weak self] _ in self?.objectWillChange.send() }
+      .store(in: &cancellables)
+    connectionWarningMonitor.objectWillChange
       .sink { [weak self] _ in self?.objectWillChange.send() }
       .store(in: &cancellables)
   }

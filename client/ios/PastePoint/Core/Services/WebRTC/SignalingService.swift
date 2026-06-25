@@ -39,6 +39,7 @@ final class SignalingService: NSObject, ObservableObject {
   private var cancellables: Set<AnyCancellable> = []
 
   private static let connectionTimeout: TimeInterval = 8.0 // Seconds
+  private static let connectionRequestTimeout: TimeInterval = 15.0 // Seconds
   private static let maxReconnectAttempts = 5
   private static let baseReconnectDelay: TimeInterval = 2.0 // Seconds
   private static let maxReconnectDelay: TimeInterval = 10.0 // Seconds
@@ -46,6 +47,7 @@ final class SignalingService: NSObject, ObservableObject {
   private var peerConnections: [String: RTCPeerConnection] = [:]
   private var dataChannels: [String: RTCDataChannel] = [:]
   private var candidateQueues: [String: [RTCIceCandidate]] = [:]
+  private var collectedCandidates: [String: [String]] = [:]
   private var connectionLocks: Set<String> = []
   private var outboundSequences: [String: Int] = [:]
   private var inboundSequences: [String: Int] = [:]
@@ -53,6 +55,7 @@ final class SignalingService: NSObject, ObservableObject {
   private var reconnectAttempts: [String: Int] = [:]
   private var reconnectTasks: [String: Task<Void, Never>] = [:]
   private var connectionTimeouts: [String: Task<Void, Never>] = [:]
+  private var connectionRequestTimeouts: [String: Task<Void, Never>] = [:]
 
   // MARK: - Init
 
@@ -89,7 +92,7 @@ final class SignalingService: NSObject, ObservableObject {
 
   // MARK: - Public API
 
-  func initiateConnection(to peer: String) async {
+  func initiateConnection(to peer: String, force: Bool = false) async {
     guard !connectionLocks.contains(peer) else {
       logger.debug("already locked for \(peer)")
       return
@@ -101,7 +104,7 @@ final class SignalingService: NSObject, ObservableObject {
     }
 
     await userService.waitForUsername()
-    if !shouldInitiateConnection(to: peer) {
+    if !force, !shouldInitiateConnection(to: peer) {
       logger.info("not the designated caller for \(peer), sending connection request")
       let request = SignalMessage(
         payload: .connectionRequest,
@@ -110,6 +113,9 @@ final class SignalingService: NSObject, ObservableObject {
         sequence: nextSequence(for: peer),
       )
       await wsService.sendSignal(request)
+      connectingPeers.insert(peer)
+      // If the designated caller never re-offers, take over and initiate ourselves
+      startConnectionRequestTimeout(for: peer)
       return
     }
 
@@ -440,6 +446,8 @@ extension SignalingService {
   }
 
   private func startConnectionTimeout(for peer: String) {
+    connectionRequestTimeouts[peer]?.cancel()
+    connectionRequestTimeouts[peer] = nil
     connectionTimeouts[peer]?.cancel()
     connectionTimeouts[peer] = Task { [weak self] in
       try? await Task.sleep(nanoseconds: UInt64(Self.connectionTimeout * 1_000_000_000))
@@ -452,6 +460,7 @@ extension SignalingService {
       if self.connectedPeers.contains(peer) { return }
 
       self.logger.warning("connectionTimeout: \(peer) did not reach connected in \(Self.connectionTimeout)s, treating as failure")
+      self.logConnectionDiagnostics(for: peer)
       self.scheduleReconnect(to: peer)
     }
   }
@@ -461,8 +470,28 @@ extension SignalingService {
     connectionTimeouts[peer] = nil
   }
 
+  /// Watchdog for the non-caller: if the designated caller never re-offers within
+  /// `connectionRequestTimeout`, force-initiate ourselves.
+  /// Superseded by `startConnectionTimeout` once a real
+  /// peer connection attempt begins; cleared in `closePeerConnection`.
+  private func startConnectionRequestTimeout(for peer: String) {
+    connectionRequestTimeouts[peer]?.cancel()
+    connectionRequestTimeouts[peer] = Task { [weak self] in
+      try? await Task.sleep(nanoseconds: UInt64(Self.connectionRequestTimeout * 1_000_000_000))
+
+      guard !Task.isCancelled, let self else { return }
+      self.connectionRequestTimeouts[peer] = nil
+
+      guard self.peerConnections[peer] == nil, self.peerDirectory.peers.contains(peer) else { return }
+      self.logger.warning("no offer from \(peer) within \(Self.connectionRequestTimeout)s — force-initiating")
+      await self.initiateConnection(to: peer, force: true)
+    }
+  }
+
   private func closePeerConnection(_ peer: String, resetReconnectState: Bool = true) {
     clearConnectionTimeout(for: peer)
+    connectionRequestTimeouts[peer]?.cancel()
+    connectionRequestTimeouts[peer] = nil
     if resetReconnectState {
       reconnectTasks[peer]?.cancel()
       reconnectTasks[peer] = nil
@@ -475,9 +504,37 @@ extension SignalingService {
     peerConnections[peer]?.close()
     peerConnections[peer] = nil
     candidateQueues[peer] = nil
+    collectedCandidates[peer] = nil
     connectionLocks.remove(peer)
     connectedPeers.remove(peer)
     connectingPeers.remove(peer)
+  }
+
+  // MARK: - Diagnostics
+
+  /// Extracts the ICE candidate type (`host` / `srflx` / `relay` / `prflx`) from
+  /// a candidate SDP line, which carries a `typ <type>` token.
+  private func candidateType(from sdp: String) -> String {
+    let parts = sdp.split(separator: " ")
+    if let i = parts.firstIndex(of: "typ"), i + 1 < parts.count {
+      return String(parts[i + 1])
+    }
+    return "unknown"
+  }
+
+  private func logConnectionDiagnostics(for peer: String) {
+    guard let pc = peerConnections[peer] else { return }
+    let candidates = collectedCandidates[peer] ?? []
+    let hasRelay = candidates.contains("relay")
+    let hasSrflx = candidates.contains("srflx")
+
+    var report = "Connection FAILED with \(peer):\n"
+    report += "  State: \(pc.connectionState.rawValue) / ICE: \(pc.iceConnectionState.rawValue)\n"
+    report += "  Candidates: \(candidates.count) total (relay: \(hasRelay ? "✓" : "✗"), srflx: \(hasSrflx ? "✓" : "✗"))"
+    if !hasRelay {
+      report += "\n  ISSUE: No TURN relay candidates — connection will fail behind symmetric NAT"
+    }
+    logger.error("\(report)")
   }
 }
 
@@ -612,6 +669,8 @@ extension SignalingService: RTCPeerConnectionDelegate {
         self.logger.warning("unknown peer connection")
         return
       }
+
+      self.collectedCandidates[peer, default: []].append(self.candidateType(from: sdp))
 
       let candidateMessage = SignalMessage(
         payload: .candidate(sdp: sdp, sdpMid: sdpMid, sdpMLineIndex: sdpMLineIndex),
