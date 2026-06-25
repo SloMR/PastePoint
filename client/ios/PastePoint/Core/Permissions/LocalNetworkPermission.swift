@@ -37,9 +37,15 @@ enum LocalNetworkPermission {
             continuation.resume(returning: false)
           case .waiting(let error):
             guard claim() else { return }
-            Self.logger.warning("Connection waiting — \(error.localizedDescription) — assuming denied")
-            connection.cancel()
-            continuation.resume(returning: true)
+            if case .posix(.ECONNREFUSED) = error {
+              Self.logger.info("Connection refused — server down, permission granted")
+              connection.cancel()
+              continuation.resume(returning: false)
+            } else {
+              Self.logger.warning("Connection waiting — \(error.localizedDescription) — assuming denied")
+              connection.cancel()
+              continuation.resume(returning: true)
+            }
           case .failed(let error):
             guard claim() else { return }
             Self.logger.error("Connection failed — \(error.localizedDescription)")
