@@ -5,6 +5,12 @@
       "comment" : "Button: accept an incoming file transfer.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "قبول"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -17,6 +23,12 @@
       "comment" : "App version line in the settings footer. %@ is the version number.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الإصدار %@"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -29,6 +41,12 @@
       "comment" : "Message shown when camera permission is denied.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يحتاج PastePoint إلى إذن الكاميرا لمسح رموز QR. فعّله من الإعدادات."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -41,6 +59,12 @@
       "comment" : "Title shown when camera permission is denied.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إذن الكاميرا مطلوب"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -53,6 +77,12 @@
       "comment" : "Button: dismiss a sheet without action.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إلغاء"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -65,6 +95,12 @@
       "comment" : "File transfer status: cancelled.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تم الإلغاء"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -77,6 +113,12 @@
       "comment" : "Toast: accepting a file offer failed.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تعذّر قبول الملف"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -89,6 +131,12 @@
       "comment" : "Toast: declining a file offer failed.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تعذّر رفض الملف"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -101,6 +149,12 @@
       "comment" : "Attachment menu option: pick files via the Files app.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "اختيار ملفات"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -113,6 +167,12 @@
       "comment" : "Label above the private session code.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الرمز"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -125,6 +185,12 @@
       "comment" : "Toast: session code copied.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تم نسخ الرمز إلى الحافظة"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -137,6 +203,12 @@
       "comment" : "Toast: connected to the server.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تم الاتصال"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -149,6 +221,12 @@
       "comment" : "Placeholder shown in the settings header while the username is being assigned.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "جارٍ الاتصال…"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -161,6 +239,12 @@
       "comment" : "Connection warning banner message.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تعذّر الوصول إلى بعض الأعضاء حتى الآن."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -173,6 +257,12 @@
       "comment" : "Connection warning banner title.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لا يزال الاتصال جارياً…"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -185,6 +275,12 @@
       "comment" : "Toast: peers present but data channels not open yet.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "جارٍ الاتصال بالأقران… أعد المحاولة بعد قليل"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -197,6 +293,12 @@
       "comment" : "Toast: connection dropped unexpectedly.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تم فقد الاتصال"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -209,6 +311,12 @@
       "comment" : "Copyright line in the settings footer.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "© 2026 PastePoint. جميع الحقوق محفوظة."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -221,6 +329,12 @@
       "comment" : "Create-room sheet navigation title.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أنشئ غرفة جديدة"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -233,6 +347,12 @@
       "comment" : "Button: open the create-room sheet.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إنشاء غرفة جديدة"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -245,6 +365,12 @@
       "comment" : "Button: start a new private session.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إنشاء جلسة خاصة"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -257,6 +383,12 @@
       "comment" : "Button: decline an incoming file transfer.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "رفض"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -269,6 +401,12 @@
       "comment" : "File transfer status: declined.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مرفوض"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -281,6 +419,12 @@
       "comment" : "Button: confirm and submit a form.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تم"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -293,6 +437,12 @@
       "comment" : "Button / title: leave the current private session.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إنهاء الجلسة"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -305,6 +455,12 @@
       "comment" : "Confirmation prompt before leaving a session.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "هل أنت متأكد من إنهاء الجلسة؟"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -317,6 +473,12 @@
       "comment" : "Button: confirm ending the session.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "نعم، إنهِها"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -329,6 +491,12 @@
       "comment" : "Label above the room-name field.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أدخل اسم الغرفة"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -341,6 +509,12 @@
       "comment" : "Label above the session-code field.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أدخل رمز الجلسة"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -353,6 +527,12 @@
       "comment" : "Welcome feature bullet: supports any file.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أي نوع وحجم ملف"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -365,6 +545,12 @@
       "comment" : "Welcome feature bullet: end-to-end encryption.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تشفير من طرف إلى طرف"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -377,6 +563,12 @@
       "comment" : "Welcome feature bullet: free and open source.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مجاني ومفتوح المصدر"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -389,6 +581,12 @@
       "comment" : "Welcome feature bullet: local network speed.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "سرعة الشبكة المحلية"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -401,6 +599,12 @@
       "comment" : "Welcome feature bullet: no account needed.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "بدون إنشاء حساب"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -413,6 +617,12 @@
       "comment" : "Welcome feature bullet: no cloud storage.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "بدون تخزين سحابي"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -425,6 +635,12 @@
       "comment" : "Toast: received file could not be reassembled.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تعذّر تجميع الملف المُستلَم"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -437,6 +653,12 @@
       "comment" : "Toast: incoming transfer failed integrity check.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "فشل نقل الملف — البيانات تالفة"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -449,6 +671,12 @@
       "comment" : "Toast: a selected file is empty. %@ is the file name.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ فارغ — لا يوجد ما يُرسَل"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -461,6 +689,12 @@
       "comment" : "Toast: file rejected for missing integrity hash.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تم رفض الملف — لم يُرسِل المُرسِل بصمة تحقق للسلامة"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -473,6 +707,12 @@
       "comment" : "Toast: received file could not be saved.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تعذّر حفظ الملف المُستلَم"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -485,6 +725,12 @@
       "comment" : "Outgoing file transfer status: delivered to everyone.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تم الإرسال"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -497,6 +743,12 @@
       "comment" : "Toast: outgoing file failed hashing, send cancelled.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تعذّر التحقق من الملف قبل الإرسال — تم الإلغاء"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -509,6 +761,12 @@
       "comment" : "Outgoing file transfer status: not delivered to anyone.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لم يتم التسليم"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -521,6 +779,12 @@
       "comment" : "Outgoing file transfer status: delivered to some recipients. First number delivered, second total.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تم الإرسال إلى %lld من %lld"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -533,6 +797,12 @@
       "comment" : "Outgoing file transfer status: in progress.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "جارٍ الإرسال…"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -545,6 +815,12 @@
       "comment" : "Incoming file transfer status: finished.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "اكتمل"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -557,6 +833,12 @@
       "comment" : "File transfer status: failed.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "فشل"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -569,6 +851,12 @@
       "comment" : "Incoming file transfer status: waiting to start.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "قيد الانتظار..."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -581,6 +869,12 @@
       "comment" : "Incoming file transfer status: download in progress.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "جارٍ الاستلام..."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -593,6 +887,12 @@
       "comment" : "Toast: transfer stalled due to lost data.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "توقّف النقل — فقد الاتصال البيانات"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -605,6 +905,12 @@
       "comment" : "Transfer progress label during the finalizing phase.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "جارٍ الإنهاء..."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -617,6 +923,12 @@
       "comment" : "Toast: scanned QR code is not a valid PastePoint code.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "رمز PastePoint غير صالح"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -629,6 +941,12 @@
       "comment" : "Toast: entered session code is invalid.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "رمز جلسة غير صالح"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -641,6 +959,12 @@
       "comment" : "Welcome step (public room): invite others on the same network.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إدعِ أشخاص آخرين على نفس شبكة للانضمام إلى هذه الغرفة"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -653,6 +977,12 @@
       "comment" : "Join-private-session sheet navigation title.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أدخل جلسة خاصة"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -665,6 +995,12 @@
       "comment" : "Button: open the join-private-session sheet.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الانضمام إلى جلسة خاصة"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -677,6 +1013,12 @@
       "comment" : "Button label while a private session is being joined.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "جارٍ الانضمام…"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -689,6 +1031,12 @@
       "comment" : "Toast: the user left a private session.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تمت مغادرة الجلسة الخاصة"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -701,6 +1049,12 @@
       "comment" : "Banner message when Local Network permission is denied.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يحتاجه PastePoint للعثور على الأشخاص القريبين."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -713,6 +1067,12 @@
       "comment" : "Toast: Local Network permission needed to join a session.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الشبكة المحلية معطّلة — فعّلها من الإعدادات للانضمام"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -725,6 +1085,12 @@
       "comment" : "Toast: Local Network permission needed to start a session.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الشبكة المحلية معطّلة — فعّلها من الإعدادات"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -737,6 +1103,12 @@
       "comment" : "Banner title when Local Network permission is denied.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إذن الشبكة المحلية معطّل"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -749,6 +1121,12 @@
       "comment" : "Heading for the members list.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الأعضاء"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -761,6 +1139,12 @@
       "comment" : "Shown when no other members are online.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لا يوجد أعضاء متصلون"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -773,6 +1157,12 @@
       "comment" : "Toast: no peers available to send to.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لا يوجد مستخدمون متصلون"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -785,6 +1175,48 @@
       "comment" : "Count of members online now.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "variations" : {
+            "plural" : {
+              "zero" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld متصلون الآن"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "متصل واحد الآن"
+                }
+              },
+              "two" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "متصلان الآن"
+                }
+              },
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld متصلين الآن"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld متصلاً الآن"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld متصل الآن"
+                }
+              }
+            }
+          }
+        },
         "en" : {
           "variations" : {
             "plural" : {
@@ -809,6 +1241,12 @@
       "comment" : "Button that opens the system Settings app.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "فتح الإعدادات"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -821,6 +1259,12 @@
       "comment" : "Attachment menu option: pick from the photo library.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مكتبة الصور"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -833,6 +1277,12 @@
       "comment" : "Toast: Photos permission needed to save media.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "اسمح بالوصول إلى الصور من الإعدادات لحفظ الوسائط المُستلَمة"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -845,6 +1295,12 @@
       "comment" : "Instruction shown on the QR scanner screen.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "وجّه الكاميرا نحو رمز PastePoint"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -857,6 +1313,12 @@
       "comment" : "Footer link to the privacy and terms page.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الخصوصية والشروط"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -869,6 +1331,12 @@
       "comment" : "Title shown when the user is in a private room.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "غرفة خاصة"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -881,6 +1349,12 @@
       "comment" : "Description shown for a private room.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الجلسة الخاصة جاهزة. شارك رمز الجلسة مع الآخرين لدعوتهم للانضمام."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -893,6 +1367,12 @@
       "comment" : "Toast: successfully joined a private session.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تم الانضمام إلى الجلسة الخاصة"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -905,6 +1385,12 @@
       "comment" : "Toast: a private session was started.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تم بدء الجلسة الخاصة"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -917,6 +1403,12 @@
       "comment" : "Title shown when the user is in a public room.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "غرفة عامة"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -929,6 +1421,12 @@
       "comment" : "Description shown for a public room.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أنت في غرفة عامة – يمكن لأي شخص على نفس شبكة الانضمام تلقائياً."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -941,6 +1439,12 @@
       "comment" : "QR code sheet navigation title.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "رمز QR"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -953,6 +1457,12 @@
       "comment" : "Description shown when the device has no supported QR scanner.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مسح رموز QR غير مدعوم على هذا الجهاز."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -965,6 +1475,12 @@
       "comment" : "Toast: connection re-established after a drop.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تمت إعادة الاتصال"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -977,6 +1493,12 @@
       "comment" : "Toast: a room was created.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تم إنشاء الغرفة بنجاح!"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -989,6 +1511,12 @@
       "comment" : "Toast: joined a room. %@ is the room name.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تم الانضمام إلى %@"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1001,6 +1529,12 @@
       "comment" : "Helper text under the room-name field.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أدخل اسم الغرفة التي تريد الانضمام إليها أو إنشاؤها."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1013,6 +1547,12 @@
       "comment" : "Placeholder in the room-name field.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "اسم الغرفة"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1025,6 +1565,12 @@
       "comment" : "Heading for the chat rooms list.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الغرف"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1037,6 +1583,48 @@
       "comment" : "Count of available chat rooms.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "variations" : {
+            "plural" : {
+              "zero" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld غرفة"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "غرفة واحدة"
+                }
+              },
+              "two" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "غرفتان"
+                }
+              },
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld غرف"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld غرفة"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld غرفة"
+                }
+              }
+            }
+          }
+        },
         "en" : {
           "variations" : {
             "plural" : {
@@ -1061,6 +1649,12 @@
       "comment" : "Label on a received file that was saved to Files.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تم الحفظ في الملفات"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1073,6 +1667,12 @@
       "comment" : "Label on a received file that was saved to the photo library.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تم الحفظ في الصور"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1085,6 +1685,12 @@
       "comment" : "Instruction under the displayed QR code.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "امسح الرمز باستخدام جهاز آخر للانضمام إلى الجلسة"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1097,6 +1703,12 @@
       "comment" : "Title shown when the device has no supported QR scanner.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الماسح غير متاح"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1109,6 +1721,12 @@
       "comment" : "Server reconnect banner countdown. First number seconds remaining, second attempt count.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إعادة الاتصال خلال %lld ث · المحاولة %lld"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1121,6 +1739,12 @@
       "comment" : "Server reconnect banner while a reconnect attempt is in flight. Number is the attempt count.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إعادة الاتصال… · المحاولة %lld"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1133,6 +1757,12 @@
       "comment" : "Server reconnect banner title.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تعذّر الوصول إلى الخادم"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1145,6 +1775,12 @@
       "comment" : "Helper text under the session-code field.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أدخل رمز الجلسة للانضمام"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1157,6 +1793,12 @@
       "comment" : "Placeholder in the session-code field.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "رمز الجلسة"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1169,6 +1811,12 @@
       "comment" : "Toast: private session join failed, fell back to public room.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تعذّر الانضمام إلى هذه الجلسة — قد يكون الرمز غير صالح أو منتهي الصلاحية. تم نقلك إلى الغرفة العامة."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1181,6 +1829,12 @@
       "comment" : "Settings screen navigation title.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الإعدادات"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1193,6 +1847,12 @@
       "comment" : "Welcome step (private room): share your session code.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "شارك رمز الجلسة مع الأشخاص الذين تريد دعوتهم"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1205,6 +1865,12 @@
       "comment" : "Welcome step (private room): start chatting and sharing files.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ابدأ التحدث وشارك الملفات!"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1217,6 +1883,12 @@
       "comment" : "Welcome step (public room): start the conversation.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ابدأ التحدث بإرسال رسالة"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1229,6 +1901,12 @@
       "comment" : "Toast: starting a private session failed.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "فشل بدء الجلسة الخاصة"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1241,6 +1919,12 @@
       "comment" : "Button label while a private session is being started.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "جارٍ البدء…"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1253,6 +1937,12 @@
       "comment" : "Placeholder in the chat input field.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "اكتب رسالتك"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1265,6 +1955,12 @@
       "comment" : "Welcome step (private room): wait for members to join.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "انتظر أعضاء للانضمام إلى الجلسة"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1277,6 +1973,12 @@
       "comment" : "Heading above the list of next steps. Displayed uppercased via styling.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ما التالي"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1289,6 +1991,12 @@
       "comment" : "Sender name shown on your own chat messages.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أنت"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",

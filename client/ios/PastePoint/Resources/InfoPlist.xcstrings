@@ -17,6 +17,12 @@
       "comment" : "Permission prompt shown when requesting camera access (QR code scanning).",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يستخدم PastePoint الكاميرا لمسح رموز QR للانضمام إلى الجلسات الخاصة."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -29,6 +35,12 @@
       "comment" : "Permission prompt shown when requesting Local Network access.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يحتاج PastePoint إلى الوصول إلى الشبكة المحلية للاتصال بالخادم على شبكتك."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -41,6 +53,12 @@
       "comment" : "Permission prompt shown when saving received photos/videos to the photo library.",
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يحفظ PastePoint الصور ومقاطع الفيديو التي تستلمها في مكتبة صورك."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
