@@ -27,8 +27,10 @@ struct ChatNavBar: View {
 
         // Language
         // TODO: Implement language switching; add toast = .success("Language changed") on change
-        Button("AR") {
+        Button {
           logger.info("Language Button Clicked")
+        } label: {
+          Text(verbatim: "AR")
         }
         .foregroundStyle(.brand)
         .font(.headline)

@@ -56,7 +56,7 @@ struct ChatInputBar: View {
         .disabled(!hasConnectedPeers)
         .opacity(hasConnectedPeers ? 1 : 0.3)
 
-        TextField("Type your message", text: $message, axis: .vertical)
+        TextField(String(localized: .typeYourMessage), text: $message, axis: .vertical)
           .lineLimit(1...5)
           .textFieldStyle(.plain)
           .textInputAutocapitalization(.never)

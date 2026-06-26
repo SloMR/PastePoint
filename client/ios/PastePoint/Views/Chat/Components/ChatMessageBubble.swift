@@ -125,12 +125,12 @@ struct ChatMessageBubble: View {
 
       if transfer.status == .pending, onAccept != nil, onDecline != nil {
         HStack(spacing: 8) {
-          Button("Accept") {
+          Button(.accept) {
             onAccept?()
           }
           .buttonStyle(.borderedProminent)
           .controlSize(.small)
-          Button("Decline", role: .destructive) {
+          Button(.decline, role: .destructive) {
             onDecline?()
           }
           .buttonStyle(.bordered)
@@ -139,7 +139,7 @@ struct ChatMessageBubble: View {
       } else if alignment == .leading {
         if transfer.status == .completed {
           Label(
-            transfer.fileURL == nil ? "Saved to Photos" : "Saved to Files",
+            transfer.fileURL == nil ? .savedToPhotos : .savedToFiles,
             systemImage: "checkmark.circle",
           )
           .font(.caption2)
@@ -189,27 +189,27 @@ struct ChatMessageBubble: View {
     return UIImage(data: data)
   }
 
-  private func statusLabel(_ status: FileTransferStatus) -> String {
+  private func statusLabel(_ status: FileTransferStatus) -> LocalizedStringResource {
     switch status {
-    case .pending: return "Pending..."
-    case .accepted: return "Receiving..."
-    case .completed: return "Completed"
-    case .declined: return "Declined"
-    case .cancelled: return "Cancelled"
-    case .failed: return "Failed"
+    case .pending: return .fileStatusPending
+    case .accepted: return .fileStatusReceiving
+    case .completed: return .fileStatusCompleted
+    case .declined: return .declined
+    case .cancelled: return .cancelled
+    case .failed: return .fileStatusFailed
     }
   }
 
-  private func outgoingStatusLabel(_ transfer: FileTransferData) -> String {
+  private func outgoingStatusLabel(_ transfer: FileTransferData) -> LocalizedStringResource {
     let delivered = transfer.deliveredCount ?? 0
     let total = transfer.recipientCount ?? 0
     switch transfer.status {
     case .completed:
-      return delivered >= total ? "Sent" : "Sent to \(delivered) of \(total)"
+      return delivered >= total ? .fileSendDelivered : .fileSendPartial(delivered, total)
     case .failed, .cancelled:
-      return "Not delivered"
+      return .fileSendNone
     default:
-      return "Sending…"
+      return .fileSendSending
     }
   }
 }

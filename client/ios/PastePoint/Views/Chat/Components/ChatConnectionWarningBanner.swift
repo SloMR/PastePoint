@@ -11,8 +11,8 @@ struct ChatConnectionWarningBanner: View {
   var body: some View {
     StatusBanner(
       tint: AppColors.Status.warning,
-      title: "Still connecting…",
-      message: "Some members aren't reachable yet.",
+      title: .connectingTitle,
+      message: .connectingDesc,
       onDismiss: onDismiss,
     ) {
       PulsingDot(color: AppColors.Status.warning)

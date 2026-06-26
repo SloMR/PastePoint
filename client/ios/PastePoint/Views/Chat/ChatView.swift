@@ -30,7 +30,7 @@ struct ChatView: View {
             ForEach(messages) { message in
               ChatMessageBubble(
                 alignment: alignment(for: message),
-                name: message.isMine ? "You" : message.from,
+                name: message.isMine ? String(localized: .you) : message.from,
                 time: timeString(message.timestamp),
                 text: message.text,
                 fileTransfer: message.fileTransfer,
