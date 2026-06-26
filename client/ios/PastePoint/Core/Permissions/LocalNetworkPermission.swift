@@ -14,8 +14,8 @@ enum LocalNetworkPermission {
   static func isDenied() async -> Bool {
     logger.info("Checking local network permission")
 
-    let port = NWEndpoint.Port(integerLiteral: UInt16(AppEnvironment.wsPort ?? 443))
-    let connection = NWConnection(host: NWEndpoint.Host(AppEnvironment.host), port: port, using: .tcp)
+    let port = NWEndpoint.Port(integerLiteral: UInt16(AppEnvironment.localNetworkProbePort))
+    let connection = NWConnection(host: NWEndpoint.Host(AppEnvironment.localNetworkProbeHost), port: port, using: .tcp)
     let resolved = OSAllocatedUnfairLock(initialState: false)
 
     let claim: @Sendable () -> Bool = {

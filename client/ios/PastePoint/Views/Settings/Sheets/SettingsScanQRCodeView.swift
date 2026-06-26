@@ -53,24 +53,8 @@ private struct QRCodeScannerRepresentable: UIViewControllerRepresentable {
 
     // Parses PastePoint private-session URLs and returns the embedded code.
     static func extractSessionCode(from payload: String) -> String? {
-      let trimmedPayload = payload.trimmingCharacters(in: .whitespacesAndNewlines)
-
       guard
-        let url = URL(string: trimmedPayload),
-        let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
-        components.scheme == "https",
-        components.host == AppEnvironment.webUrl
-      else { return nil }
-
-      let pathComponents = components.path
-        .split(separator: "/")
-        .map(String.init)
-
-      guard pathComponents.count == 2 else { return nil }
-
-      guard
-        pathComponents[0] == "private",
-        let sessionCode = pathComponents[1] as String?,
+        let sessionCode = AppEnvironment.privateSessionCode(from: payload),
         SessionService.isValidSessionCode(sessionCode)
       else {
         return nil

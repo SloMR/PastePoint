@@ -103,7 +103,7 @@ final class WebSocketConnectionService: ObservableObject {
       reconnectAttempts = 0
     }
 
-    let urlString = "wss://\(AppEnvironment.apiUrl)/ws\(effectiveCode.map { "/\($0)" } ?? "")"
+    let urlString = AppEnvironment.webSocketUrl(sessionCode: effectiveCode)
     guard let url = URL(string: urlString) else {
       logger.error("Invalid WS URL: \(urlString)")
       isConnecting = false

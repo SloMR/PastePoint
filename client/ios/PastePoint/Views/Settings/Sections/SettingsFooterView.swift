@@ -45,7 +45,7 @@ struct SettingsFooterView: View {
       }
 
       Button {
-        if let url = URL(string: "https://\(AppEnvironment.webUrl)/privacy?app=1") {
+        if let url = URL(string: AppEnvironment.legalUrl) {
           privacyURLToShow = IdentifiableURL(url: url)
         }
       } label: {

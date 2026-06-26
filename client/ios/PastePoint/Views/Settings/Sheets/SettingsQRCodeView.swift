@@ -50,7 +50,7 @@ struct SettingsQRCodeView: View {
     NavigationStack {
       VStack(spacing: 16) {
         QRCodeView(
-          text: "https://\(AppEnvironment.webUrl)/private/\(services.wsService.currentSessionCode ?? "")",
+          text: AppEnvironment.privateSessionUrl(sessionCode: services.wsService.currentSessionCode ?? ""),
           size: 220,
         )
         .padding(20)
