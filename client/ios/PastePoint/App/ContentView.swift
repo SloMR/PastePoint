@@ -102,25 +102,25 @@ struct ContentView: View {
       updateFileStatus(fileId: fileId, status: .failed)
       switch reason {
       case .integrity:
-        toasts.append(.error("File transfer failed — data was corrupted"))
+        toasts.append(.error(.fileCorrupted))
       case .assembly:
-        toasts.append(.error("Couldn’t assemble the received file"))
+        toasts.append(.error(.fileAssemblyFailed))
       case .noHash:
-        toasts.append(.error("File rejected — sender sent no integrity hash"))
+        toasts.append(.error(.fileRejectedNoHash))
       case .sendHashFailed:
-        toasts.append(.error("Couldn’t verify file before sending — cancelled"))
+        toasts.append(.error(.fileSendHashFailed))
       case .stalled:
-        toasts.append(.error("Transfer stalled — connection lost data"))
+        toasts.append(.error(.fileTransferStalled))
       case .saveFailed:
-        toasts.append(.error("Couldn’t save the received file"))
+        toasts.append(.error(.fileSaveFailed))
       case .photosPermissionDenied:
-        toasts.append(.error("Allow Photos access in Settings to save received media"))
+        toasts.append(.error(.photosPermissionDenied))
       }
     }
     .onReceive(services.wsService.sessionRejected) {
       pendingPrivateJoin = false
       suppressNextConnectToast = true
-      toasts.append(.warning("That session code is invalid or expired — you’re back in the public room"))
+      toasts.append(.warning(.sessionJoinFailed))
     }
     .onReceive(services.wsService.didConnect) {
       let wasReconnect = hasConnectedBefore
@@ -135,9 +135,9 @@ struct ContentView: View {
       guard !showSettings else { return }
 
       if wasPrivateJoin {
-        toasts.append(.success("Private session joined"))
+        toasts.append(.success(.privateSessionJoined))
       } else {
-        toasts.append(wasReconnect ? .success("Reconnected") : .success("Connected"))
+        toasts.append(wasReconnect ? .success(.reconnected) : .success(.connected))
       }
     }
     .onChange(of: services.roomService.currentRoom) {
@@ -150,7 +150,7 @@ struct ContentView: View {
       // Only surface unexpected drops while active; ignore background/manual teardown.
       guard wasConnected, !connected else { return }
       guard !services.wsService.isLeavingSession, scenePhase == .active else { return }
-      toasts.append(.warning("Connection lost"))
+      toasts.append(.warning(.connectionLost))
     }
     .appToast(items: $toasts)
   }
@@ -172,7 +172,7 @@ struct ContentView: View {
     }()
 
     guard !from.isEmpty else {
-      toasts.append(.warning("Connecting…"))
+      toasts.append(.warning(.connecting))
       return false
     }
 
@@ -197,7 +197,7 @@ struct ContentView: View {
 
     for file in files {
       guard file.size > 0 else {
-        toasts.append(.error("\(file.name) is empty — nothing to send"))
+        toasts.append(.error(.fileEmptyError(file.name)))
         continue
       }
 
@@ -215,7 +215,7 @@ struct ContentView: View {
       if result {
         updateFileStatus(fileId: fileId, status: .accepted)
       } else {
-        toasts.append(.warning("Couldn't accept file"))
+        toasts.append(.warning(.cantAcceptFile))
       }
     }
   }
@@ -227,7 +227,7 @@ struct ContentView: View {
       if result {
         updateFileStatus(fileId: fileId, status: .declined)
       } else {
-        toasts.append(.warning("Couldn't decline file"))
+        toasts.append(.warning(.cantDeclineFile))
       }
     }
   }
@@ -264,9 +264,9 @@ struct ContentView: View {
   private func peerWarning() -> ToastItem {
     // Peers are in the room but no data channel is open yet still (re)connecting.
     if !services.peerDirectory.peers.isEmpty {
-      return .warning("Connecting to peers… try again in a moment")
+      return .warning(.connectingToPeers)
     }
-    return .warning("No peers connected")
+    return .warning(.noPeersConnected)
   }
 }
 
