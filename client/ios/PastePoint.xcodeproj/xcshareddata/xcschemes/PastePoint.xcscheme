@@ -30,7 +30,7 @@
       shouldUseLaunchSchemeArgsEnv = "YES">
       <TestPlans>
          <TestPlanReference
-            reference = "container:PastePoint/Resources/PastePoint.xctestplan"
+            reference = "container:PastePoint/Resources/PastePointTests.xctestplan"
             default = "YES">
          </TestPlanReference>
       </TestPlans>

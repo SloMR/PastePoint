@@ -39,7 +39,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Resources/Info.plist,
-				Resources/PastePoint.xctestplan,
+				Resources/PastePointTests.xctestplan,
 			);
 			target = 4C2326FF2F1ECB1B005FED3A /* PastePoint */;
 		};
