@@ -12,8 +12,22 @@ struct ContentView: View {
   @AppStorage(AppColors.Scheme.storageKey) private var colorSchemeRaw: String = AppColors.Scheme.default
   @EnvironmentObject private var services: AppServices
   @Environment(\.scenePhase) private var scenePhase
+  @Environment(\.colorScheme) private var colorScheme
 
   private let logger = Logger(label: "ContentView")
+
+  @ViewBuilder
+  private var connectionBanner: some View {
+    if services.localNetworkDenied {
+      NetworkPermissionBanner { services.clearLocalNetworkDenied() }
+    } else if let reconnect = services.wsService.reconnectState {
+      ChatServerReconnectBanner(attempt: reconnect.attempt, nextAttemptDate: reconnect.nextAttemptDate)
+    } else if services.connectionWarningMonitor.showWarning {
+      ChatConnectionWarningBanner {
+        services.connectionWarningMonitor.dismiss()
+      }
+    }
+  }
 
   @State private var messages: [ChatMessage] = []
   @State private var hasConnectedBefore = false
@@ -23,42 +37,45 @@ struct ContentView: View {
   @State private var suppressNextConnectToast = false
 
   var body: some View {
-    VStack(spacing: 0) {
-      ChatNavBar(
-        onMenuTap: { showSettings = true },
-        onThemeTap: { colorSchemeRaw = AppColors.Scheme.next(after: colorSchemeRaw) },
-      )
-      Divider()
-
-      if services.localNetworkDenied {
-        NetworkPermissionBanner { services.clearLocalNetworkDenied() }
-      } else if let reconnect = services.wsService.reconnectState {
-        ChatServerReconnectBanner(attempt: reconnect.attempt, nextAttemptDate: reconnect.nextAttemptDate)
-      } else if services.connectionWarningMonitor.showWarning {
-        ChatConnectionWarningBanner {
-          services.connectionWarningMonitor.dismiss()
-        }
-      }
-
+    NavigationStack {
       ChatContainerView(
         messages: messages,
         onAcceptFile: handleAcceptFile,
         onDeclineFile: handleDeclineFile,
       )
-    }
-    .safeAreaInset(edge: .bottom, spacing: 0) {
-      ChatInputBar(
-        onSend: handleSend,
-        onSendFiles: handleSendFiles,
-        hasConnectedPeers: !services.signalingService.connectedPeers.isEmpty,
-      )
-      .padding(.horizontal, 8)
-      .padding(.top, 4)
-      .padding(.bottom, 0)
-      .frame(maxWidth: .infinity)
-      .background {
-        AppColors.Background.background
-          .ignoresSafeArea(edges: .bottom)
+      .safeAreaInset(edge: .top, spacing: 0) {
+        connectionBanner
+      }
+      .safeAreaInset(edge: .bottom, spacing: 0) {
+        ChatInputBar(
+          onSend: handleSend,
+          onSendFiles: handleSendFiles,
+          hasConnectedPeers: !services.signalingService.connectedPeers.isEmpty,
+        )
+        .padding(.horizontal, 8)
+        .padding(.top, 4)
+        .padding(.bottom, 0)
+        .frame(maxWidth: .infinity)
+        .background {
+          AppColors.Background.background
+            .ignoresSafeArea(edges: .bottom)
+        }
+      }
+      .navigationBarTitleDisplayMode(.inline)
+      .toolbar {
+        ToolbarItemGroup(placement: .topBarTrailing) {
+          Button {
+            colorSchemeRaw = AppColors.Scheme.next(after: colorSchemeRaw)
+          } label: {
+            Image(systemName: colorScheme == .dark ? "sun.max.fill" : "moon")
+          }
+
+          Button {
+            showSettings = true
+          } label: {
+            Image(systemName: "gearshape")
+          }
+        }
       }
     }
     .background(AppColors.Background.background)

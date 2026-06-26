@@ -62,7 +62,11 @@ struct StatusBanner<Leading: View>: View {
     .padding(.vertical, 11)
     .background(
       RoundedRectangle(cornerRadius: 14, style: .continuous)
-        .fill(tint.opacity(0.12)),
+        .fill(.regularMaterial)
+        .overlay(
+          RoundedRectangle(cornerRadius: 14, style: .continuous)
+            .fill(tint.opacity(0.12)),
+        ),
     )
     .overlay(
       RoundedRectangle(cornerRadius: 14, style: .continuous)

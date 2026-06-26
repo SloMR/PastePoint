@@ -127,6 +127,16 @@ struct SettingsView: View {
     .navigationTitle(Text(.settings))
     .navigationBarTitleDisplayMode(.inline)
     .toolbar {
+      ToolbarItem(placement: .topBarLeading) {
+        Button {
+          guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
+          UIApplication.shared.open(url)
+        } label: {
+          Image(systemName: "globe")
+        }
+        .accessibilityLabel(Text(.changeLanguage))
+      }
+
       ToolbarItem(placement: .topBarTrailing) {
         if #available(iOS 26, *) {
           Button(role: .close) {
