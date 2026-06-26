@@ -1,6 +1,6 @@
 import { Component, ChangeDetectorRef, PLATFORM_ID, OnInit, inject } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { PageHeaderComponent } from '../../core/components/layout/page-header/page-header.component';
@@ -28,12 +28,17 @@ export class PrivacyAndTermsComponent implements OnInit {
   private logger = inject(NGXLogger);
   private migrationService = inject(MigrationService);
   private metaService = inject(MetaService);
+  private route = inject(ActivatedRoute);
 
   isDarkMode = false;
+  isEmbedded = false;
+
   currentLanguage: LanguageCode = 'en';
   appVersion: string = packageJson.version;
 
   ngOnInit(): void {
+    this.isEmbedded = this.route.snapshot.queryParamMap.get('app') === '1';
+
     if (!isPlatformBrowser(this.platformId)) {
       this.metaService.updatePrivacyAndTermsMetadata();
       return;

@@ -45,7 +45,7 @@ struct SettingsFooterView: View {
       }
 
       Button {
-        if let url = URL(string: "https://pastepoint.com/privacy") {
+        if let url = URL(string: "https://\(AppEnvironment.webUrl)/privacy?app=1") {
           privacyURLToShow = IdentifiableURL(url: url)
         }
       } label: {
