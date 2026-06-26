@@ -57,6 +57,7 @@ struct ChatInputBar: View {
         .foregroundStyle(.textSecondary)
         .disabled(!hasConnectedPeers)
         .opacity(hasConnectedPeers ? 1 : 0.3)
+        .accessibilityLabel(Text(.attachFiles))
 
         TextField(String(localized: .typeYourMessage), text: $message, axis: .vertical)
           .lineLimit(1...5)
@@ -93,6 +94,7 @@ struct ChatInputBar: View {
         .buttonStyle(.plain)
         .disabled(isSendDisabled)
         .opacity(isSendDisabled ? 0.6 : 1)
+        .accessibilityLabel(Text(.send))
       }
     }
     .padding(.horizontal, 4)

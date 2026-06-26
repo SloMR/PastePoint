@@ -51,6 +51,7 @@ struct SettingsCreateRoomView: View {
                   .frame(width: 36, height: 44)
               }
               .buttonStyle(.plain)
+              .accessibilityLabel(Text(.clear))
               .padding(.trailing, 8)
             }
           }

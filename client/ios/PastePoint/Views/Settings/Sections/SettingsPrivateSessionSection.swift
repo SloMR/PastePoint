@@ -77,6 +77,7 @@ struct SettingsPrivateSessionSection: View {
             )
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(Text(.copy))
 
         // QR Button
         Button {
@@ -93,6 +94,7 @@ struct SettingsPrivateSessionSection: View {
             )
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(Text(.qrCode))
 
         Spacer()
       }

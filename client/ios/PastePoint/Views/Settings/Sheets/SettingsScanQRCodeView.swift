@@ -232,6 +232,7 @@ struct SettingsScanQRCodeView: View {
           .contentShape(Circle())
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(Text(.close))
         .padding(.horizontal)
         .padding(.top, 56)
       }
@@ -284,6 +285,7 @@ struct SettingsScanQRCodeView: View {
             .contentShape(Circle())
           }
           .buttonStyle(.plain)
+          .accessibilityLabel(Text(.close))
         }
         .padding(.horizontal, 24)
         .padding(.top, 56)

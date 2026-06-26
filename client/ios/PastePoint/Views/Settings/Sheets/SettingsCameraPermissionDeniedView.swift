@@ -58,6 +58,7 @@ struct CameraPermissionDeniedView: View {
       .contentShape(Circle())
     }
     .buttonStyle(.plain)
+    .accessibilityLabel(Text(.close))
     .padding(.horizontal)
     .padding(.top, 56)
   }

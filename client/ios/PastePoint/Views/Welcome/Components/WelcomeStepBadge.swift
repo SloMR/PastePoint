@@ -13,6 +13,8 @@ struct WelcomeStepBadge: View {
       .font(.caption)
       .fontWeight(.semibold)
       .foregroundStyle(.white)
+      .lineLimit(1)
+      .minimumScaleFactor(0.5)
       .frame(width: 26, height: 26)
       .background(.brand)
       .clipShape(Circle())

@@ -69,12 +69,14 @@ struct ContentView: View {
           } label: {
             Image(systemName: colorScheme == .dark ? "sun.max.fill" : "moon")
           }
+          .accessibilityLabel(Text(.switchAppearance))
 
           Button {
             showSettings = true
           } label: {
             Image(systemName: "gearshape")
           }
+          .accessibilityLabel(Text(.settings))
         }
       }
     }
@@ -105,6 +107,7 @@ struct ContentView: View {
     }
     .onReceive(services.fileTransferService.downloadCompleted) { fileId, fileURL in
       updateFileStatus(fileId: fileId, fileURL: fileURL, status: .completed)
+      haptic(.success)
     }
     .onReceive(services.fileTransferService.outgoingGroupStatus) { update in
       updateOutgoingGroup(groupId: update.groupId, status: update.status, delivered: update.delivered, total: update.total)
@@ -117,6 +120,7 @@ struct ContentView: View {
     }
     .onReceive(services.fileTransferService.fileTransferFailed) { fileId, reason in
       updateFileStatus(fileId: fileId, status: .failed)
+      haptic(.error)
       switch reason {
       case .integrity:
         toasts.append(.error(.fileCorrupted))
@@ -284,6 +288,10 @@ struct ContentView: View {
       return .warning(.connectingToPeers)
     }
     return .warning(.noPeersConnected)
+  }
+
+  private func haptic(_ type: UINotificationFeedbackGenerator.FeedbackType) {
+    UINotificationFeedbackGenerator().notificationOccurred(type)
   }
 }
 

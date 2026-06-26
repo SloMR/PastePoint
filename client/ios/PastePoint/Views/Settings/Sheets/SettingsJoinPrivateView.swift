@@ -48,6 +48,7 @@ struct SettingsJoinPrivateView: View {
                   .frame(width: 36, height: 44)
               }
               .buttonStyle(.plain)
+              .accessibilityLabel(Text(.clear))
             }
 
             Button {
@@ -59,6 +60,7 @@ struct SettingsJoinPrivateView: View {
                 .frame(width: 44, height: 44)
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(Text(.scanQrCode))
             .padding(.trailing, 4)
           }
           .background(AppColors.Background.input, in: RoundedRectangle(cornerRadius: 8))

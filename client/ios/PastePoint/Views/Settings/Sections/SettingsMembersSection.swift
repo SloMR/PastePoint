@@ -40,20 +40,29 @@ struct SettingsMembersSection: View {
         } else {
           ForEach(others, id: \.self) { member in
             let isConnected = services.signalingService.connectedPeers.contains(member)
+            let isConnecting = services.signalingService.connectingPeers.contains(member)
+
             let uploads = services.fileTransferService.activeUploads.filter { $0.targetUser == member }
             let downloads = services.fileTransferService.activeDownloads.filter { $0.fromUser == member }
+
             let dotColor: Color = {
-              if services.signalingService.connectedPeers.contains(member) { return .green }
-              if services.signalingService.connectingPeers.contains(member) { return .yellow }
+              if isConnected { return .green }
+              if isConnecting { return .yellow }
               return .red
             }()
 
             VStack(alignment: .leading, spacing: 6) {
               HStack(alignment: .center, spacing: 0) {
-                Circle()
-                  .fill(dotColor)
-                  .frame(width: 14, height: 14)
-                  .padding(.trailing, 6)
+                Group {
+                  if isConnecting {
+                    PulsingDot(color: dotColor, size: 14)
+                  } else {
+                    Circle()
+                      .fill(dotColor)
+                      .frame(width: 14, height: 14)
+                  }
+                }
+                .padding(.trailing, 6)
 
                 Text(member)
                   .font(.subheadline)
@@ -74,6 +83,7 @@ struct SettingsMembersSection: View {
                 }
                 .disabled(!isConnected)
                 .opacity(isConnected ? 1 : 0.3)
+                .accessibilityLabel(Text(.sendFileToUser))
               }
               .animation(.easeInOut(duration: 0.2), value: dotColor)
 
@@ -148,6 +158,7 @@ struct SettingsMembersSection: View {
             .foregroundStyle(.textSecondary)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(Text(.cancel))
       }
       ProgressView(value: max(0, min(1, progress)))
         .progressViewStyle(.linear)

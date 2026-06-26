@@ -7,6 +7,7 @@ import SwiftUI
 
 struct PulsingDot: View {
   let color: Color
+  var size: CGFloat = 9
 
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @State private var pulsing = false
@@ -14,7 +15,7 @@ struct PulsingDot: View {
   var body: some View {
     Circle()
       .fill(color)
-      .frame(width: 9, height: 9)
+      .frame(width: size, height: size)
       .scaleEffect(reduceMotion ? 1.0 : (pulsing ? 1.0 : 0.62))
       .opacity(reduceMotion ? 1.0 : (pulsing ? 1.0 : 0.45))
       .onAppear {
