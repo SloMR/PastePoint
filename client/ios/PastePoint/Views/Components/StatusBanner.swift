@@ -7,9 +7,9 @@ import SwiftUI
 
 struct StatusBanner<Leading: View>: View {
   let tint: Color
-  let title: String
-  var message: String?
-  var actionTitle: String?
+  let title: LocalizedStringResource
+  var message: LocalizedStringResource?
+  var actionTitle: LocalizedStringResource?
   var onAction: (() -> Void)?
   var onDismiss: (() -> Void)?
   @ViewBuilder var leading: () -> Leading
@@ -80,9 +80,9 @@ struct StatusBanner<Leading: View>: View {
     VStack(spacing: 0) {
       StatusBanner(
         tint: AppColors.Status.danger,
-        title: "Local network access is off",
-        message: "PastePoint needs it to find people nearby.",
-        actionTitle: "Open Settings",
+        title: .localNetworkOffTitle,
+        message: .localNetworkOffDesc,
+        actionTitle: .openSettings,
         onAction: {},
         onDismiss: {},
         leading: {
@@ -94,8 +94,8 @@ struct StatusBanner<Leading: View>: View {
 
       StatusBanner(
         tint: AppColors.Status.warning,
-        title: "Still connecting…",
-        message: "Some members aren't reachable yet.",
+        title: .connectingTitle,
+        message: .connectingDesc,
         onDismiss: {},
         leading: {
           Circle()
