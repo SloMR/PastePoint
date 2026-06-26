@@ -50,7 +50,7 @@ struct SettingsFooterView: View {
         }
       } label: {
         HStack(spacing: 2) {
-          Text("Privacy & Terms")
+          Text(.privacyAndTerms)
             .font(.caption2)
             .foregroundColor(.brand)
 
@@ -66,12 +66,12 @@ struct SettingsFooterView: View {
       .buttonStyle(.plain)
       .padding(.vertical, 6)
 
-      Text("Version \(Bundle.main.appVersion)")
+      Text(.appVersion(Bundle.main.appVersion))
         .font(.caption2)
         .foregroundColor(.textPrimary)
         .padding(.vertical, 4)
 
-      Text("© 2026 PastePoint. All rights reserved.")
+      Text(.copyrightNotice)
         .font(.caption2)
         .foregroundColor(.textPrimary)
         .padding(.vertical, 4)

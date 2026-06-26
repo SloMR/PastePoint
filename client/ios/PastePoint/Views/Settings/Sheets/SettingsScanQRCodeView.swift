@@ -216,9 +216,9 @@ struct SettingsScanQRCodeView: View {
     } else {
       ZStack(alignment: .topTrailing) {
         ContentUnavailableView(
-          "Scanner Unavailable",
+          String(localized: .scannerUnavailable),
           systemImage: "camera.slash",
-          description: Text("QR scanning is not supported on this device."),
+          description: Text(.qrScanningNotSupported),
         )
         Button { dismiss() } label: {
           ZStack {
@@ -249,7 +249,7 @@ struct SettingsScanQRCodeView: View {
       } onInvalidCodeScanned: {
         UINotificationFeedbackGenerator().notificationOccurred(.error)
         logger.warning("Invalid QR code scanned")
-        toasts.append(.error("Invalid PastePoint QR code"))
+        toasts.append(.error(.invalidQrCode))
       }
       .ignoresSafeArea()
 
@@ -296,7 +296,7 @@ struct SettingsScanQRCodeView: View {
           Image(systemName: "qrcode.viewfinder")
             .font(.system(size: 22, weight: .medium))
             .foregroundStyle(AppColors.Brand.brand)
-          Text("Point your camera at a PastePoint QR code")
+          Text(.pointCameraAtQr)
             .font(.subheadline)
             .foregroundStyle(.white)
             .fixedSize(horizontal: false, vertical: true)

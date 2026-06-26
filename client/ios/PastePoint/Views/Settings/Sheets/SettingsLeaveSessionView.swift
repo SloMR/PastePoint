@@ -19,7 +19,7 @@ struct SettingsLeaveSessionView: View {
   var body: some View {
     NavigationStack {
       VStack(spacing: 20) {
-        Text("Are you sure you want to end the session?")
+        Text(.endSessionHeader)
           .font(.headline)
           .multilineTextAlignment(.center)
           .foregroundStyle(.primary)
@@ -39,7 +39,7 @@ struct SettingsLeaveSessionView: View {
               onSessionLeft?()
             }
           } label: {
-            Text("End Session")
+            Text(.endTheSession)
               .fontWeight(.semibold)
               .frame(maxWidth: .infinity)
               .padding(.vertical, 14)
@@ -52,7 +52,7 @@ struct SettingsLeaveSessionView: View {
             logger.info("Dismiss Leave Session view")
             dismiss()
           } label: {
-            Text("Cancel")
+            Text(.cancel)
               .fontWeight(.semibold)
               .frame(maxWidth: .infinity)
               .padding(.vertical, 14)
@@ -75,7 +75,7 @@ struct SettingsLeaveSessionView: View {
         guard height > 0 else { return }
         sheetHeight = height + 56
       }
-      .navigationTitle("Leave Session")
+      .navigationTitle(Text(.endSession))
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .topBarTrailing) {

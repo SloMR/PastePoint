@@ -29,12 +29,12 @@ struct SettingsCreateRoomView: View {
 
         // Input
         VStack(alignment: .leading, spacing: 6) {
-          Text("Enter the Room Name")
+          Text(.enterRoomName)
             .font(.subheadline)
             .foregroundStyle(.textPrimary)
 
           HStack(spacing: 0) {
-            TextField("Room name", text: $roomName)
+            TextField(String(localized: .roomNamePlaceholder), text: $roomName)
               .textFieldStyle(.plain)
               .font(.body)
               .foregroundStyle(.textPrimary)
@@ -56,7 +56,7 @@ struct SettingsCreateRoomView: View {
           }
           .background(AppColors.Background.input, in: RoundedRectangle(cornerRadius: 8))
 
-          Text("Enter a name for the room you want to join or create.")
+          Text(.roomNameDescription)
             .font(.caption)
             .foregroundStyle(.textSecondary)
         }
@@ -72,7 +72,7 @@ struct SettingsCreateRoomView: View {
               onRoomCreate?()
             }
           } label: {
-            Text("Done")
+            Text(.done)
               .fontWeight(.semibold)
               .frame(maxWidth: .infinity)
               .padding(.vertical, 14)
@@ -87,7 +87,7 @@ struct SettingsCreateRoomView: View {
             logger.info("Dismiss join private session")
             dismiss()
           } label: {
-            Text("Cancel")
+            Text(.cancel)
               .fontWeight(.semibold)
               .frame(maxWidth: .infinity)
               .padding(.vertical, 14)
@@ -107,7 +107,7 @@ struct SettingsCreateRoomView: View {
         guard height > 0 else { return }
         sheetHeight = height + 56
       }
-      .navigationTitle("Create a Room")
+      .navigationTitle(Text(.createANewRoom))
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .topBarTrailing) {

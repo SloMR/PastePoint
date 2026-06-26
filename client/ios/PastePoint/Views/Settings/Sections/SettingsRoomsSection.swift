@@ -22,13 +22,13 @@ struct SettingsRoomsSection: View {
           .frame(width: 16, height: 16)
           .padding(.trailing, 5)
 
-        Text("Chat Rooms")
+        Text(.rooms)
           .font(.subheadline)
           .foregroundColor(.textPrimary)
 
         Spacer()
 
-        Text("\(services.roomService.rooms.count) Rooms")
+        Text(.roomsCount(services.roomService.rooms.count))
           .font(.caption2)
           .foregroundColor(.textPrimary)
       }
@@ -40,7 +40,7 @@ struct SettingsRoomsSection: View {
             Task {
               logger.info("Joining room \(room)")
               await services.roomService.joinOrCreateRoom(room)
-              toasts.append(.info("Joined \(room)"))
+              toasts.append(.info(.roomJoined(room)))
             }
           } label: {
             HStack(spacing: 5) {

@@ -34,7 +34,7 @@ struct SettingsView: View {
       HStack(alignment: .center, spacing: 0) {
         avatar
 
-        Text(services.userService.user.isEmpty ? "Connecting…" : services.userService.user)
+        Text(services.userService.user.isEmpty ? String(localized: .connecting) : services.userService.user)
           .font(.title3)
           .foregroundColor(services.userService.user.isEmpty ? .textSecondary : .textPrimary)
 
@@ -60,7 +60,7 @@ struct SettingsView: View {
                 .scaledToFit()
                 .frame(width: 24, height: 24)
 
-              Text("Create New Room")
+              Text(.createNewRoom)
                 .font(.headline)
             }
             .foregroundStyle(.white)
@@ -104,7 +104,7 @@ struct SettingsView: View {
               .font(.system(size: 14, weight: .regular))
               .frame(width: 32, height: 32)
 
-            Text("Leave Session")
+            Text(.endSession)
               .font(.headline)
           }
           .foregroundStyle(.red)
@@ -124,7 +124,7 @@ struct SettingsView: View {
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
     .background(AppColors.Background.surface)
-    .navigationTitle("Settings")
+    .navigationTitle(Text(.settings))
     .navigationBarTitleDisplayMode(.inline)
     .toolbar {
       ToolbarItem(placement: .topBarTrailing) {
@@ -144,13 +144,13 @@ struct SettingsView: View {
     .sheet(isPresented: $isLeaveSessionSheetPresented) {
       SettingsLeaveSessionView {
         logger.info("User left a private session")
-        toasts.append(.info("Left private session"))
+        toasts.append(.info(.leftPrivateSession))
       }
     }
     .sheet(isPresented: $isJoinRoomSheetPresented) {
       SettingsCreateRoomView {
         logger.info("User created a room")
-        toasts.append(.success("Room created successfully!"))
+        toasts.append(.success(.roomCreated))
       }
     }
     .appToast(items: $toasts)

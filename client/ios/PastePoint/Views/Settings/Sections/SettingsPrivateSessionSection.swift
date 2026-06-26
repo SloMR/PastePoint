@@ -43,7 +43,7 @@ struct SettingsPrivateSessionSection: View {
           .frame(width: 16, height: 16)
           .padding(.trailing, 5)
 
-        Text("Code")
+        Text(.code)
           .font(.subheadline)
           .foregroundColor(.textPrimary)
       }
@@ -65,7 +65,7 @@ struct SettingsPrivateSessionSection: View {
         // Copy Button
         Button {
           UIPasteboard.general.string = code
-          toasts.append(.success("Code copied to clipboard"))
+          toasts.append(.success(.codeCopied))
         } label: {
           Image("copy")
             .font(.system(size: 18, weight: .medium))
@@ -112,16 +112,16 @@ struct SettingsPrivateSessionSection: View {
             await services.wsService.setupPrivateSession(code)
             isStarting = false
             guard await services.connectIfPermitted() else {
-              toasts.append(.error("Local network is off — enable it in Settings"))
+              toasts.append(.error(.localNetworkOffStart))
               return
             }
-            toasts.append(.success("Private session started"))
+            toasts.append(.success(.privateSessionStarted))
             await services.roomService.listRooms()
             await services.userService.getUsername()
           } catch {
             isStarting = false
             logger.error("Cannot get the session code \(error)")
-            toasts.append(.error("Failed to start private session"))
+            toasts.append(.error(.startPrivateFailed))
           }
         }
       } label: {
@@ -138,7 +138,7 @@ struct SettingsPrivateSessionSection: View {
               .scaledToFit()
               .frame(width: 24, height: 24)
           }
-          Text(isStarting ? "Starting…" : "Start Private Chat")
+          Text(isStarting ? .starting : .createPrivateSession)
             .font(.headline)
         }
         .foregroundStyle(.brand)
@@ -158,7 +158,7 @@ struct SettingsPrivateSessionSection: View {
         isJoinPrivateSessionPresented = true
       } label: {
         HStack(spacing: 8) {
-          Text("Join Private Chat")
+          Text(.joinPrivateSession)
             .font(.headline)
         }
         .foregroundStyle(.brand)

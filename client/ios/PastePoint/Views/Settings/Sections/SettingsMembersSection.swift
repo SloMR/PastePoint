@@ -18,13 +18,13 @@ struct SettingsMembersSection: View {
           .frame(width: 16, height: 16)
           .padding(.trailing, 5)
 
-        Text("Members")
+        Text(.members)
           .font(.subheadline)
           .foregroundColor(.textPrimary)
 
         Spacer()
 
-        Text("\(services.roomService.members.filter { $0 != services.userService.user }.count) Online Now")
+        Text(.onlineMembersCount(services.roomService.members.filter { $0 != services.userService.user }.count))
           .font(.caption2)
           .foregroundColor(.textPrimary)
       }
@@ -33,7 +33,7 @@ struct SettingsMembersSection: View {
       Group {
         let others = services.roomService.members.filter { $0 != services.userService.user }
         if others.isEmpty {
-          Text("No one is online right now")
+          Text(.noMembersOnline)
             .font(.subheadline)
             .foregroundColor(.textPrimary)
             .fontWeight(.bold)
@@ -157,7 +157,7 @@ struct SettingsMembersSection: View {
   }
 
   private func progressLabel(progress: Double, phase: FileUpload.Phase?) -> String {
-    if phase == .finalizing { return "Finalizing..." }
-    return "\(Int((progress * 100).rounded()))%"
+    if phase == .finalizing { return String(localized: .finalizingTransfer) }
+    return progress.formatted(.percent.precision(.fractionLength(0)))
   }
 }

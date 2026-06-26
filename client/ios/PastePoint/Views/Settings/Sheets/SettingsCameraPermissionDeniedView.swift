@@ -20,11 +20,11 @@ struct CameraPermissionDeniedView: View {
           .foregroundStyle(.white.opacity(0.5))
 
         VStack(spacing: 8) {
-          Text("Camera Access Required")
+          Text(.cameraAccessRequired)
             .font(.title3).fontWeight(.semibold)
             .foregroundStyle(.white)
 
-          Text("PastePoint needs camera access to scan QR codes. Enable it in Settings.")
+          Text(.cameraAccessMessage)
             .font(.subheadline)
             .foregroundStyle(.white.opacity(0.65))
             .multilineTextAlignment(.center)
@@ -32,7 +32,7 @@ struct CameraPermissionDeniedView: View {
         }
 
         Button { CameraPermission.openSettings() } label: {
-          Text("Open Settings")
+          Text(.openSettings)
             .fontWeight(.semibold)
             .padding(.horizontal, 32)
             .padding(.vertical, 14)
