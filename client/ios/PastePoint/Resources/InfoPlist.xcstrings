@@ -34,6 +34,12 @@
             "state" : "translated",
             "value" : "PastePoint usa la cámara para escanear códigos QR y unirse a sesiones privadas."
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PastePoint utilise la caméra pour scanner les codes QR afin de rejoindre des sessions privées."
+          }
         }
       }
     },
@@ -58,6 +64,12 @@
             "state" : "translated",
             "value" : "PastePoint necesita acceso a la red local para conectarse al servidor de tu red."
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PastePoint a besoin d'accéder au réseau local pour se connecter au serveur de votre réseau."
+          }
         }
       }
     },
@@ -81,6 +93,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "PastePoint guarda en tu fototeca las fotos y vídeos que recibes."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PastePoint enregistre dans votre photothèque les photos et vidéos que vous recevez."
           }
         }
       }

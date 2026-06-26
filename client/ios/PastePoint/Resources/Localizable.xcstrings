@@ -22,6 +22,12 @@
             "state" : "translated",
             "value" : "Aceptar"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accepter"
+          }
         }
       }
     },
@@ -45,6 +51,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Versión %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version %@"
           }
         }
       }
@@ -70,6 +82,12 @@
             "state" : "translated",
             "value" : "PastePoint necesita acceso a la cámara para escanear códigos QR. Actívalo en Ajustes."
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PastePoint a besoin d'accéder à la caméra pour scanner les codes QR. Activez-le dans Réglages."
+          }
         }
       }
     },
@@ -93,6 +111,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Se requiere acceso a la cámara"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accès à la caméra requis"
           }
         }
       }
@@ -118,6 +142,12 @@
             "state" : "translated",
             "value" : "Cancelar"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Annuler"
+          }
         }
       }
     },
@@ -141,6 +171,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cancelado"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Annulé"
           }
         }
       }
@@ -166,6 +202,12 @@
             "state" : "translated",
             "value" : "No se pudo aceptar el archivo"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible d'accepter le fichier"
+          }
         }
       }
     },
@@ -189,6 +231,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No se pudo rechazar el archivo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de refuser le fichier"
           }
         }
       }
@@ -214,6 +262,12 @@
             "state" : "translated",
             "value" : "Elegir archivos"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choisir des fichiers"
+          }
         }
       }
     },
@@ -237,6 +291,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Código"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Code"
           }
         }
       }
@@ -262,6 +322,12 @@
             "state" : "translated",
             "value" : "Código copiado al portapapeles"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Code copié dans le presse-papiers"
+          }
         }
       }
     },
@@ -285,6 +351,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Conectado"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connecté"
           }
         }
       }
@@ -310,6 +382,12 @@
             "state" : "translated",
             "value" : "Conectando…"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connexion…"
+          }
         }
       }
     },
@@ -333,6 +411,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Aún no se puede contactar con algunos miembros."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Certains membres ne sont pas encore joignables."
           }
         }
       }
@@ -358,6 +442,12 @@
             "state" : "translated",
             "value" : "Aún conectando…"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connexion en cours…"
+          }
         }
       }
     },
@@ -381,6 +471,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Conectando con los pares… inténtalo de nuevo en un momento"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connexion aux pairs… réessayez dans un instant"
           }
         }
       }
@@ -406,6 +502,12 @@
             "state" : "translated",
             "value" : "Conexión perdida"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connexion perdue"
+          }
         }
       }
     },
@@ -429,6 +531,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "© 2026 PastePoint. Todos los derechos reservados."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "© 2026 PastePoint. Tous droits réservés."
           }
         }
       }
@@ -454,6 +562,12 @@
             "state" : "translated",
             "value" : "Crear una sala"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Créer un salon"
+          }
         }
       }
     },
@@ -477,6 +591,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Crear una nueva sala"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Créer un nouveau salon"
           }
         }
       }
@@ -502,6 +622,12 @@
             "state" : "translated",
             "value" : "Iniciar chat privado"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Démarrer un chat privé"
+          }
         }
       }
     },
@@ -525,6 +651,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Rechazar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Refuser"
           }
         }
       }
@@ -550,6 +682,12 @@
             "state" : "translated",
             "value" : "Rechazado"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Refusé"
+          }
         }
       }
     },
@@ -573,6 +711,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Listo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terminé"
           }
         }
       }
@@ -598,6 +742,12 @@
             "state" : "translated",
             "value" : "Salir de la sesión"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quitter la session"
+          }
         }
       }
     },
@@ -621,6 +771,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "¿Seguro que quieres terminar la sesión?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voulez-vous vraiment terminer la session ?"
           }
         }
       }
@@ -646,6 +802,12 @@
             "state" : "translated",
             "value" : "Terminar sesión"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terminer la session"
+          }
         }
       }
     },
@@ -669,6 +831,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nombre de la sala"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nom du salon"
           }
         }
       }
@@ -694,6 +862,12 @@
             "state" : "translated",
             "value" : "Introduce el código de sesión"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saisissez le code de session"
+          }
         }
       }
     },
@@ -717,6 +891,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cualquier tipo y tamaño de archivo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tout type et toute taille de fichier"
           }
         }
       }
@@ -742,6 +922,12 @@
             "state" : "translated",
             "value" : "Cifrado de extremo a extremo"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chiffré de bout en bout"
+          }
         }
       }
     },
@@ -765,6 +951,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Gratis y de código abierto"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gratuit et open source"
           }
         }
       }
@@ -790,6 +982,12 @@
             "state" : "translated",
             "value" : "Velocidad de red local"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vitesse du réseau local"
+          }
         }
       }
     },
@@ -813,6 +1011,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sin necesidad de cuenta"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun compte requis"
           }
         }
       }
@@ -838,6 +1042,12 @@
             "state" : "translated",
             "value" : "Sin almacenamiento en la nube"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun stockage cloud"
+          }
         }
       }
     },
@@ -861,6 +1071,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No se pudo ensamblar el archivo recibido"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible d'assembler le fichier reçu"
           }
         }
       }
@@ -886,6 +1102,12 @@
             "state" : "translated",
             "value" : "Falló la transferencia — los datos estaban corruptos"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec du transfert — données corrompues"
+          }
         }
       }
     },
@@ -909,6 +1131,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ está vacío — no hay nada que enviar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ est vide — rien à envoyer"
           }
         }
       }
@@ -934,6 +1162,12 @@
             "state" : "translated",
             "value" : "Archivo rechazado — el remitente no envió una suma de verificación"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fichier rejeté — l'expéditeur n'a fourni aucune empreinte d'intégrité"
+          }
         }
       }
     },
@@ -957,6 +1191,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No se pudo guardar el archivo recibido"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible d'enregistrer le fichier reçu"
           }
         }
       }
@@ -982,6 +1222,12 @@
             "state" : "translated",
             "value" : "Enviado"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envoyé"
+          }
         }
       }
     },
@@ -1005,6 +1251,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No se pudo verificar el archivo antes de enviar — cancelado"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de vérifier le fichier avant l'envoi — annulé"
           }
         }
       }
@@ -1030,6 +1282,12 @@
             "state" : "translated",
             "value" : "No entregado"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Non remis"
+          }
         }
       }
     },
@@ -1053,6 +1311,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Enviado a %lld de %lld"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envoyé à %lld sur %lld"
           }
         }
       }
@@ -1078,6 +1342,12 @@
             "state" : "translated",
             "value" : "Enviando…"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envoi…"
+          }
         }
       }
     },
@@ -1101,6 +1371,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Completado"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terminé"
           }
         }
       }
@@ -1126,6 +1402,12 @@
             "state" : "translated",
             "value" : "Fallido"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec"
+          }
         }
       }
     },
@@ -1149,6 +1431,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pendiente..."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En attente..."
           }
         }
       }
@@ -1174,6 +1462,12 @@
             "state" : "translated",
             "value" : "Recibiendo..."
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réception..."
+          }
         }
       }
     },
@@ -1197,6 +1491,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Transferencia detenida — la conexión perdió datos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transfert interrompu — la connexion a perdu des données"
           }
         }
       }
@@ -1222,6 +1522,12 @@
             "state" : "translated",
             "value" : "Finalizando..."
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finalisation..."
+          }
         }
       }
     },
@@ -1245,6 +1551,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Código QR de PastePoint no válido"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Code QR PastePoint invalide"
           }
         }
       }
@@ -1270,6 +1582,12 @@
             "state" : "translated",
             "value" : "Código de sesión no válido"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Code de session invalide"
+          }
         }
       }
     },
@@ -1293,6 +1611,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Invita a otros en la misma red a unirse a esta sala"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invitez d'autres personnes sur le même réseau à rejoindre ce salon"
           }
         }
       }
@@ -1318,6 +1642,12 @@
             "state" : "translated",
             "value" : "Unirse a una sesión privada"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rejoindre une session privée"
+          }
         }
       }
     },
@@ -1341,6 +1671,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Unirse a un chat privado"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rejoindre un chat privé"
           }
         }
       }
@@ -1366,6 +1702,12 @@
             "state" : "translated",
             "value" : "Uniéndose…"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connexion…"
+          }
         }
       }
     },
@@ -1389,6 +1731,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Saliste de la sesión privada"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vous avez quitté la session privée"
           }
         }
       }
@@ -1414,6 +1762,12 @@
             "state" : "translated",
             "value" : "PastePoint lo necesita para encontrar personas cercanas."
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PastePoint en a besoin pour trouver les personnes à proximité."
+          }
         }
       }
     },
@@ -1437,6 +1791,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "La red local está desactivada — actívala en Ajustes para unirte"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le réseau local est désactivé — activez-le dans Réglages pour rejoindre"
           }
         }
       }
@@ -1462,6 +1822,12 @@
             "state" : "translated",
             "value" : "La red local está desactivada — actívala en Ajustes"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le réseau local est désactivé — activez-le dans Réglages"
+          }
         }
       }
     },
@@ -1485,6 +1851,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "El acceso a la red local está desactivado"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'accès au réseau local est désactivé"
           }
         }
       }
@@ -1510,6 +1882,12 @@
             "state" : "translated",
             "value" : "Miembros"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Membres"
+          }
         }
       }
     },
@@ -1534,6 +1912,12 @@
             "state" : "translated",
             "value" : "Nadie está conectado en este momento"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personne n'est en ligne pour le moment"
+          }
         }
       }
     },
@@ -1557,6 +1941,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sin usuarios conectados"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun utilisateur connecté"
           }
         }
       }
@@ -1642,6 +2032,24 @@
               }
             }
           }
+        },
+        "fr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld en ligne"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld en ligne"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -1665,6 +2073,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Abrir Ajustes"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ouvrir Réglages"
           }
         }
       }
@@ -1690,6 +2104,12 @@
             "state" : "translated",
             "value" : "Fototeca"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photothèque"
+          }
         }
       }
     },
@@ -1713,6 +2133,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Permite el acceso a Fotos en Ajustes para guardar los archivos recibidos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autorisez l'accès aux Photos dans Réglages pour enregistrer les médias reçus"
           }
         }
       }
@@ -1738,6 +2164,12 @@
             "state" : "translated",
             "value" : "Apunta la cámara a un código QR de PastePoint"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pointez votre caméra vers un code QR PastePoint"
+          }
         }
       }
     },
@@ -1761,6 +2193,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Privacidad y términos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confidentialité et conditions"
           }
         }
       }
@@ -1786,6 +2224,12 @@
             "state" : "translated",
             "value" : "Sala privada"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salon privé"
+          }
         }
       }
     },
@@ -1809,6 +2253,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "La sesión privada está lista. Comparte el código con quien quieras invitar."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La session privée est prête. Partagez votre code de session pour inviter d'autres personnes."
           }
         }
       }
@@ -1834,6 +2284,12 @@
             "state" : "translated",
             "value" : "Te has unido a la sesión privada"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Session privée rejointe"
+          }
         }
       }
     },
@@ -1857,6 +2313,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sesión privada iniciada"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Session privée démarrée"
           }
         }
       }
@@ -1882,6 +2344,12 @@
             "state" : "translated",
             "value" : "Sala pública"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salon public"
+          }
         }
       }
     },
@@ -1905,6 +2373,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Estás en una sala pública: cualquiera en la misma red puede unirse automáticamente."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vous êtes dans un salon public — toute personne sur le même réseau peut s'y connecter automatiquement."
           }
         }
       }
@@ -1930,6 +2404,12 @@
             "state" : "translated",
             "value" : "Código QR"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Code QR"
+          }
         }
       }
     },
@@ -1953,6 +2433,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Este dispositivo no admite el escaneo de códigos QR."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le scan de codes QR n'est pas pris en charge sur cet appareil."
           }
         }
       }
@@ -1978,6 +2464,12 @@
             "state" : "translated",
             "value" : "Reconectado"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reconnecté"
+          }
         }
       }
     },
@@ -2001,6 +2493,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "¡Sala creada con éxito!"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salon créé avec succès !"
           }
         }
       }
@@ -2026,6 +2524,12 @@
             "state" : "translated",
             "value" : "Te has unido a %@"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vous avez rejoint %@"
+          }
         }
       }
     },
@@ -2049,6 +2553,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Introduce el nombre de la sala a la que quieres unirte o crear."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saisissez le nom du salon que vous souhaitez rejoindre ou créer."
           }
         }
       }
@@ -2074,6 +2584,12 @@
             "state" : "translated",
             "value" : "Escribe un nombre de sala"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saisissez un nom de salon"
+          }
         }
       }
     },
@@ -2097,6 +2613,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Salas de chat"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salons de discussion"
           }
         }
       }
@@ -2182,6 +2704,24 @@
               }
             }
           }
+        },
+        "fr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld salon"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld salons"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -2205,6 +2745,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Guardado en Archivos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enregistré dans Fichiers"
           }
         }
       }
@@ -2230,6 +2776,12 @@
             "state" : "translated",
             "value" : "Guardado en Fotos"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enregistré dans Photos"
+          }
         }
       }
     },
@@ -2253,6 +2805,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Escanea el código QR en otro dispositivo para unirte a la sesión"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scannez le code QR sur un autre appareil pour rejoindre la session"
           }
         }
       }
@@ -2278,6 +2836,12 @@
             "state" : "translated",
             "value" : "Escáner no disponible"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scanner indisponible"
+          }
         }
       }
     },
@@ -2301,6 +2865,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reconectando en %lld s · intento %lld"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reconnexion dans %lld s · tentative %lld"
           }
         }
       }
@@ -2326,6 +2896,12 @@
             "state" : "translated",
             "value" : "Reconectando… · intento %lld"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reconnexion… · tentative %lld"
+          }
         }
       }
     },
@@ -2349,6 +2925,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No se puede contactar con el servidor"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serveur injoignable"
           }
         }
       }
@@ -2374,6 +2956,12 @@
             "state" : "translated",
             "value" : "Introduce el código para unirte a un chat privado."
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saisissez le code pour rejoindre un chat privé."
+          }
         }
       }
     },
@@ -2397,6 +2985,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Código de sesión"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Code de session"
           }
         }
       }
@@ -2422,6 +3016,12 @@
             "state" : "translated",
             "value" : "No se pudo unir a esa sesión: el código puede no ser válido o haber caducado. Ahora estás en la sala pública."
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de rejoindre cette session — le code est peut-être invalide ou expiré. Vous êtes maintenant dans le salon public."
+          }
         }
       }
     },
@@ -2445,6 +3045,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ajustes"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réglages"
           }
         }
       }
@@ -2470,6 +3076,12 @@
             "state" : "translated",
             "value" : "Comparte el código de sesión con las personas que quieras invitar"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Partagez votre code de session avec les personnes que vous souhaitez inviter"
+          }
         }
       }
     },
@@ -2493,6 +3105,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "¡Empieza a chatear y a compartir archivos!"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Commencez à discuter et à partager des fichiers !"
           }
         }
       }
@@ -2518,6 +3136,12 @@
             "state" : "translated",
             "value" : "Inicia la conversación enviando un mensaje"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Démarrez la conversation en envoyant un message"
+          }
         }
       }
     },
@@ -2541,6 +3165,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No se pudo iniciar la sesión privada"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec du démarrage de la session privée"
           }
         }
       }
@@ -2566,6 +3196,12 @@
             "state" : "translated",
             "value" : "Iniciando…"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Démarrage…"
+          }
         }
       }
     },
@@ -2589,6 +3225,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Escribe tu mensaje"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tapez votre message"
           }
         }
       }
@@ -2614,6 +3256,12 @@
             "state" : "translated",
             "value" : "Espera a que otros se unan a la sesión"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Attendez que d'autres membres rejoignent la session"
+          }
         }
       }
     },
@@ -2638,6 +3286,12 @@
             "state" : "translated",
             "value" : "Qué hacer ahora"
           }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Et maintenant ?"
+          }
         }
       }
     },
@@ -2661,6 +3315,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tú"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vous"
           }
         }
       }
