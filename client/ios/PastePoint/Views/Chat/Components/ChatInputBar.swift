@@ -7,6 +7,8 @@ import Logging
 import SwiftUI
 
 struct ChatInputBar: View {
+  @Environment(\.layoutDirection) private var layoutDirection
+
   private let logger = Logger(label: "ChatInputBar")
   let onSend: (String) -> Bool
   let onSendFiles: ([StagedFile]) -> Bool
@@ -79,6 +81,7 @@ struct ChatInputBar: View {
             .resizable()
             .scaledToFit()
             .frame(width: 18, height: 18)
+            .scaleEffect(x: layoutDirection == .rightToLeft ? -1 : 1, y: 1)
             .foregroundStyle(.white)
             .frame(width: 32, height: 32)
             .background(

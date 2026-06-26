@@ -7,6 +7,7 @@ import Logging
 import SwiftUI
 
 struct SettingsRoomsSection: View {
+  @Environment(\.layoutDirection) private var layoutDirection
   @EnvironmentObject private var services: AppServices
   @Binding var toasts: [ToastItem]
 
@@ -49,6 +50,7 @@ struct SettingsRoomsSection: View {
                 .resizable()
                 .scaledToFit()
                 .frame(width: 16, height: 16)
+                .scaleEffect(x: layoutDirection == .rightToLeft ? -1 : 1, y: 1)
                 .foregroundStyle(room == services.roomService.currentRoom ? .brand : .secondary)
 
               Text(room)
