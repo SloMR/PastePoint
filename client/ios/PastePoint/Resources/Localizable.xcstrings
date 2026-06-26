@@ -1,0 +1,1302 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "ACCEPT" : {
+      "comment" : "Button: accept an incoming file transfer.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accept"
+          }
+        }
+      }
+    },
+    "APP_VERSION" : {
+      "comment" : "App version line in the settings footer. %@ is the version number.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version %@"
+          }
+        }
+      }
+    },
+    "CAMERA_ACCESS_MESSAGE" : {
+      "comment" : "Message shown when camera permission is denied.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PastePoint needs camera access to scan QR codes. Enable it in Settings."
+          }
+        }
+      }
+    },
+    "CAMERA_ACCESS_REQUIRED" : {
+      "comment" : "Title shown when camera permission is denied.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Camera Access Required"
+          }
+        }
+      }
+    },
+    "CANCEL" : {
+      "comment" : "Button: dismiss a sheet without action.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        }
+      }
+    },
+    "CANCELLED" : {
+      "comment" : "File transfer status: cancelled.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancelled"
+          }
+        }
+      }
+    },
+    "CANT_ACCEPT_FILE" : {
+      "comment" : "Toast: accepting a file offer failed.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't accept file"
+          }
+        }
+      }
+    },
+    "CANT_DECLINE_FILE" : {
+      "comment" : "Toast: declining a file offer failed.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't decline file"
+          }
+        }
+      }
+    },
+    "CHOOSE_FILES" : {
+      "comment" : "Attachment menu option: pick files via the Files app.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose Files"
+          }
+        }
+      }
+    },
+    "CODE" : {
+      "comment" : "Label above the private session code.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Code"
+          }
+        }
+      }
+    },
+    "CODE_COPIED" : {
+      "comment" : "Toast: session code copied.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Code copied to clipboard"
+          }
+        }
+      }
+    },
+    "CONNECTED" : {
+      "comment" : "Toast: connected to the server.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connected"
+          }
+        }
+      }
+    },
+    "CONNECTING" : {
+      "comment" : "Placeholder shown in the settings header while the username is being assigned.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connecting…"
+          }
+        }
+      }
+    },
+    "CONNECTING_DESC" : {
+      "comment" : "Connection warning banner message.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Some members aren't reachable yet."
+          }
+        }
+      }
+    },
+    "CONNECTING_TITLE" : {
+      "comment" : "Connection warning banner title.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Still connecting…"
+          }
+        }
+      }
+    },
+    "CONNECTING_TO_PEERS" : {
+      "comment" : "Toast: peers present but data channels not open yet.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connecting to peers… try again in a moment"
+          }
+        }
+      }
+    },
+    "CONNECTION_LOST" : {
+      "comment" : "Toast: connection dropped unexpectedly.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connection lost"
+          }
+        }
+      }
+    },
+    "COPYRIGHT_NOTICE" : {
+      "comment" : "Copyright line in the settings footer.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "© 2026 PastePoint. All rights reserved."
+          }
+        }
+      }
+    },
+    "CREATE_A_NEW_ROOM" : {
+      "comment" : "Create-room sheet navigation title.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create a Room"
+          }
+        }
+      }
+    },
+    "CREATE_NEW_ROOM" : {
+      "comment" : "Button: open the create-room sheet.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create New Room"
+          }
+        }
+      }
+    },
+    "CREATE_PRIVATE_SESSION" : {
+      "comment" : "Button: start a new private session.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start Private Chat"
+          }
+        }
+      }
+    },
+    "DECLINE" : {
+      "comment" : "Button: decline an incoming file transfer.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Decline"
+          }
+        }
+      }
+    },
+    "DECLINED" : {
+      "comment" : "File transfer status: declined.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Declined"
+          }
+        }
+      }
+    },
+    "DONE" : {
+      "comment" : "Button: confirm and submit a form.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Done"
+          }
+        }
+      }
+    },
+    "END_SESSION" : {
+      "comment" : "Button / title: leave the current private session.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Leave Session"
+          }
+        }
+      }
+    },
+    "END_SESSION_HEADER" : {
+      "comment" : "Confirmation prompt before leaving a session.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Are you sure you want to end the session?"
+          }
+        }
+      }
+    },
+    "END_THE_SESSION" : {
+      "comment" : "Button: confirm ending the session.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "End Session"
+          }
+        }
+      }
+    },
+    "ENTER_ROOM_NAME" : {
+      "comment" : "Label above the room-name field.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter the Room Name"
+          }
+        }
+      }
+    },
+    "ENTER_SESSION_CODE" : {
+      "comment" : "Label above the session-code field.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter the Session Code"
+          }
+        }
+      }
+    },
+    "FEATURE_ANY_FILE" : {
+      "comment" : "Welcome feature bullet: supports any file.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Any file type & size"
+          }
+        }
+      }
+    },
+    "FEATURE_ENCRYPTED" : {
+      "comment" : "Welcome feature bullet: end-to-end encryption.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "End-to-end encrypted"
+          }
+        }
+      }
+    },
+    "FEATURE_FREE" : {
+      "comment" : "Welcome feature bullet: free and open source.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Free & open source"
+          }
+        }
+      }
+    },
+    "FEATURE_LOCAL_SPEED" : {
+      "comment" : "Welcome feature bullet: local network speed.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Local network speed"
+          }
+        }
+      }
+    },
+    "FEATURE_NO_ACCOUNT" : {
+      "comment" : "Welcome feature bullet: no account needed.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No account needed"
+          }
+        }
+      }
+    },
+    "FEATURE_NO_CLOUD" : {
+      "comment" : "Welcome feature bullet: no cloud storage.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No cloud storage"
+          }
+        }
+      }
+    },
+    "FILE_ASSEMBLY_FAILED" : {
+      "comment" : "Toast: received file could not be reassembled.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t assemble the received file"
+          }
+        }
+      }
+    },
+    "FILE_CORRUPTED" : {
+      "comment" : "Toast: incoming transfer failed integrity check.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "File transfer failed — data was corrupted"
+          }
+        }
+      }
+    },
+    "FILE_EMPTY_ERROR" : {
+      "comment" : "Toast: a selected file is empty. %@ is the file name.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ is empty — nothing to send"
+          }
+        }
+      }
+    },
+    "FILE_REJECTED_NO_HASH" : {
+      "comment" : "Toast: file rejected for missing integrity hash.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "File rejected — sender sent no integrity hash"
+          }
+        }
+      }
+    },
+    "FILE_SAVE_FAILED" : {
+      "comment" : "Toast: received file could not be saved.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t save the received file"
+          }
+        }
+      }
+    },
+    "FILE_SEND_DELIVERED" : {
+      "comment" : "Outgoing file transfer status: delivered to everyone.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sent"
+          }
+        }
+      }
+    },
+    "FILE_SEND_HASH_FAILED" : {
+      "comment" : "Toast: outgoing file failed hashing, send cancelled.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t verify file before sending — cancelled"
+          }
+        }
+      }
+    },
+    "FILE_SEND_NONE" : {
+      "comment" : "Outgoing file transfer status: not delivered to anyone.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not delivered"
+          }
+        }
+      }
+    },
+    "FILE_SEND_PARTIAL" : {
+      "comment" : "Outgoing file transfer status: delivered to some recipients. First number delivered, second total.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sent to %lld of %lld"
+          }
+        }
+      }
+    },
+    "FILE_SEND_SENDING" : {
+      "comment" : "Outgoing file transfer status: in progress.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sending…"
+          }
+        }
+      }
+    },
+    "FILE_STATUS_COMPLETED" : {
+      "comment" : "Incoming file transfer status: finished.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Completed"
+          }
+        }
+      }
+    },
+    "FILE_STATUS_FAILED" : {
+      "comment" : "File transfer status: failed.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed"
+          }
+        }
+      }
+    },
+    "FILE_STATUS_PENDING" : {
+      "comment" : "Incoming file transfer status: waiting to start.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pending..."
+          }
+        }
+      }
+    },
+    "FILE_STATUS_RECEIVING" : {
+      "comment" : "Incoming file transfer status: download in progress.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Receiving..."
+          }
+        }
+      }
+    },
+    "FILE_TRANSFER_STALLED" : {
+      "comment" : "Toast: transfer stalled due to lost data.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transfer stalled — connection lost data"
+          }
+        }
+      }
+    },
+    "FINALIZING_TRANSFER" : {
+      "comment" : "Transfer progress label during the finalizing phase.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finalizing..."
+          }
+        }
+      }
+    },
+    "INVALID_QR_CODE" : {
+      "comment" : "Toast: scanned QR code is not a valid PastePoint code.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invalid PastePoint QR code"
+          }
+        }
+      }
+    },
+    "INVALID_SESSION_CODE" : {
+      "comment" : "Toast: entered session code is invalid.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invalid session code"
+          }
+        }
+      }
+    },
+    "INVITE_OTHERS_PUBLIC" : {
+      "comment" : "Welcome step (public room): invite others on the same network.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invite others on the same network to join this room"
+          }
+        }
+      }
+    },
+    "JOIN_A_PRIVATE_SESSION" : {
+      "comment" : "Join-private-session sheet navigation title.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Join a Private Session"
+          }
+        }
+      }
+    },
+    "JOIN_PRIVATE_SESSION" : {
+      "comment" : "Button: open the join-private-session sheet.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Join Private Chat"
+          }
+        }
+      }
+    },
+    "JOINING" : {
+      "comment" : "Button label while a private session is being joined.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Joining…"
+          }
+        }
+      }
+    },
+    "LEFT_PRIVATE_SESSION" : {
+      "comment" : "Toast: the user left a private session.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Left private session"
+          }
+        }
+      }
+    },
+    "LOCAL_NETWORK_OFF_DESC" : {
+      "comment" : "Banner message when Local Network permission is denied.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PastePoint needs it to find people nearby."
+          }
+        }
+      }
+    },
+    "LOCAL_NETWORK_OFF_JOIN" : {
+      "comment" : "Toast: Local Network permission needed to join a session.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Local network is off — enable it in Settings to join"
+          }
+        }
+      }
+    },
+    "LOCAL_NETWORK_OFF_START" : {
+      "comment" : "Toast: Local Network permission needed to start a session.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Local network is off — enable it in Settings"
+          }
+        }
+      }
+    },
+    "LOCAL_NETWORK_OFF_TITLE" : {
+      "comment" : "Banner title when Local Network permission is denied.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Local network access is off"
+          }
+        }
+      }
+    },
+    "MEMBERS" : {
+      "comment" : "Heading for the members list.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Members"
+          }
+        }
+      }
+    },
+    "NO_MEMBERS_ONLINE" : {
+      "comment" : "Shown when no other members are online.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No one is online right now"
+          }
+        }
+      }
+    },
+    "NO_PEERS_CONNECTED" : {
+      "comment" : "Toast: no peers available to send to.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No peers connected"
+          }
+        }
+      }
+    },
+    "ONLINE_MEMBERS_COUNT" : {
+      "comment" : "Count of members online now.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld Online Now"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld Online Now"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "OPEN_SETTINGS" : {
+      "comment" : "Button that opens the system Settings app.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Settings"
+          }
+        }
+      }
+    },
+    "PHOTO_LIBRARY" : {
+      "comment" : "Attachment menu option: pick from the photo library.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photo Library"
+          }
+        }
+      }
+    },
+    "PHOTOS_PERMISSION_DENIED" : {
+      "comment" : "Toast: Photos permission needed to save media.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow Photos access in Settings to save received media"
+          }
+        }
+      }
+    },
+    "POINT_CAMERA_AT_QR" : {
+      "comment" : "Instruction shown on the QR scanner screen.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Point your camera at a PastePoint QR code"
+          }
+        }
+      }
+    },
+    "PRIVACY_AND_TERMS" : {
+      "comment" : "Footer link to the privacy and terms page.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy & Terms"
+          }
+        }
+      }
+    },
+    "PRIVATE_ROOM" : {
+      "comment" : "Title shown when the user is in a private room.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Private Room"
+          }
+        }
+      }
+    },
+    "PRIVATE_SESSION_INFO" : {
+      "comment" : "Description shown for a private room.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Private session is ready. Share your session code with others to invite them."
+          }
+        }
+      }
+    },
+    "PRIVATE_SESSION_JOINED" : {
+      "comment" : "Toast: successfully joined a private session.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Private session joined"
+          }
+        }
+      }
+    },
+    "PRIVATE_SESSION_STARTED" : {
+      "comment" : "Toast: a private session was started.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Private session started"
+          }
+        }
+      }
+    },
+    "PUBLIC_ROOM" : {
+      "comment" : "Title shown when the user is in a public room.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Public Room"
+          }
+        }
+      }
+    },
+    "PUBLIC_SESSION_INFO" : {
+      "comment" : "Description shown for a public room.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You're in a public room – anyone on the same network can join automatically."
+          }
+        }
+      }
+    },
+    "QR_CODE" : {
+      "comment" : "QR code sheet navigation title.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QR Code"
+          }
+        }
+      }
+    },
+    "QR_SCANNING_NOT_SUPPORTED" : {
+      "comment" : "Description shown when the device has no supported QR scanner.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QR scanning is not supported on this device."
+          }
+        }
+      }
+    },
+    "RECONNECTED" : {
+      "comment" : "Toast: connection re-established after a drop.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reconnected"
+          }
+        }
+      }
+    },
+    "ROOM_CREATED" : {
+      "comment" : "Toast: a room was created.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Room created successfully!"
+          }
+        }
+      }
+    },
+    "ROOM_JOINED" : {
+      "comment" : "Toast: joined a room. %@ is the room name.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Joined %@"
+          }
+        }
+      }
+    },
+    "ROOM_NAME_DESCRIPTION" : {
+      "comment" : "Helper text under the room-name field.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter a name for the room you want to join or create."
+          }
+        }
+      }
+    },
+    "ROOM_NAME_PLACEHOLDER" : {
+      "comment" : "Placeholder in the room-name field.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Room name"
+          }
+        }
+      }
+    },
+    "ROOMS" : {
+      "comment" : "Heading for the chat rooms list.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chat Rooms"
+          }
+        }
+      }
+    },
+    "ROOMS_COUNT" : {
+      "comment" : "Count of available chat rooms.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld Room"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld Rooms"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "SAVED_TO_FILES" : {
+      "comment" : "Label on a received file that was saved to Files.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saved to Files"
+          }
+        }
+      }
+    },
+    "SAVED_TO_PHOTOS" : {
+      "comment" : "Label on a received file that was saved to the photo library.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saved to Photos"
+          }
+        }
+      }
+    },
+    "SCAN_QR_CODE_TO_JOIN_THE_SESSION" : {
+      "comment" : "Instruction under the displayed QR code.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scan the QR code on another device to join the session"
+          }
+        }
+      }
+    },
+    "SCANNER_UNAVAILABLE" : {
+      "comment" : "Title shown when the device has no supported QR scanner.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scanner Unavailable"
+          }
+        }
+      }
+    },
+    "SERVER_RECONNECT_COUNTDOWN" : {
+      "comment" : "Server reconnect banner countdown. First number seconds remaining, second attempt count.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reconnecting in %llds · attempt %lld"
+          }
+        }
+      }
+    },
+    "SERVER_RECONNECT_NOW" : {
+      "comment" : "Server reconnect banner while a reconnect attempt is in flight. Number is the attempt count.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reconnecting… · attempt %lld"
+          }
+        }
+      }
+    },
+    "SERVER_RECONNECT_TITLE" : {
+      "comment" : "Server reconnect banner title.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can't reach the server"
+          }
+        }
+      }
+    },
+    "SESSION_CODE_DESCRIPTION" : {
+      "comment" : "Helper text under the session-code field.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter the code to join a private chat."
+          }
+        }
+      }
+    },
+    "SESSION_CODE_PLACEHOLDER" : {
+      "comment" : "Placeholder in the session-code field.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Session code"
+          }
+        }
+      }
+    },
+    "SESSION_JOIN_FAILED" : {
+      "comment" : "Toast: private session join failed, fell back to public room.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "That session code is invalid or expired — you’re back in the public room"
+          }
+        }
+      }
+    },
+    "SETTINGS" : {
+      "comment" : "Settings screen navigation title.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings"
+          }
+        }
+      }
+    },
+    "SHARE_SESSION_CODE" : {
+      "comment" : "Welcome step (private room): share your session code.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share your session code with people you want to invite"
+          }
+        }
+      }
+    },
+    "START_CHATTING" : {
+      "comment" : "Welcome step (private room): start chatting and sharing files.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start chatting and sharing files!"
+          }
+        }
+      }
+    },
+    "START_CONVERSATION" : {
+      "comment" : "Welcome step (public room): start the conversation.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start the conversation by sending a message"
+          }
+        }
+      }
+    },
+    "START_PRIVATE_FAILED" : {
+      "comment" : "Toast: starting a private session failed.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to start private session"
+          }
+        }
+      }
+    },
+    "STARTING" : {
+      "comment" : "Button label while a private session is being started.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Starting…"
+          }
+        }
+      }
+    },
+    "TYPE_YOUR_MESSAGE" : {
+      "comment" : "Placeholder in the chat input field.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Type your message"
+          }
+        }
+      }
+    },
+    "WAIT_FOR_MEMBERS" : {
+      "comment" : "Welcome step (private room): wait for members to join.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wait for members to join the session"
+          }
+        }
+      }
+    },
+    "WHAT_TO_DO_NEXT" : {
+      "comment" : "Heading above the list of next steps. Displayed uppercased via styling.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What to do next"
+          }
+        }
+      }
+    },
+    "YOU" : {
+      "comment" : "Sender name shown on your own chat messages.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.2"
+}
