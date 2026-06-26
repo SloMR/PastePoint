@@ -16,6 +16,12 @@
             "state" : "translated",
             "value" : "Accept"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aceptar"
+          }
         }
       }
     },
@@ -33,6 +39,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Version %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Versión %@"
           }
         }
       }
@@ -52,6 +64,12 @@
             "state" : "translated",
             "value" : "PastePoint needs camera access to scan QR codes. Enable it in Settings."
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PastePoint necesita acceso a la cámara para escanear códigos QR. Actívalo en Ajustes."
+          }
         }
       }
     },
@@ -69,6 +87,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Camera Access Required"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se requiere acceso a la cámara"
           }
         }
       }
@@ -88,6 +112,12 @@
             "state" : "translated",
             "value" : "Cancel"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancelar"
+          }
         }
       }
     },
@@ -105,6 +135,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cancelled"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancelado"
           }
         }
       }
@@ -124,6 +160,12 @@
             "state" : "translated",
             "value" : "Couldn't accept file"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo aceptar el archivo"
+          }
         }
       }
     },
@@ -141,6 +183,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Couldn't decline file"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo rechazar el archivo"
           }
         }
       }
@@ -160,6 +208,12 @@
             "state" : "translated",
             "value" : "Choose Files"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elegir archivos"
+          }
         }
       }
     },
@@ -177,6 +231,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Code"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Código"
           }
         }
       }
@@ -196,6 +256,12 @@
             "state" : "translated",
             "value" : "Code copied to clipboard"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Código copiado al portapapeles"
+          }
         }
       }
     },
@@ -213,6 +279,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Connected"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectado"
           }
         }
       }
@@ -232,6 +304,12 @@
             "state" : "translated",
             "value" : "Connecting…"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectando…"
+          }
         }
       }
     },
@@ -249,6 +327,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Some members aren't reachable yet."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aún no se puede contactar con algunos miembros."
           }
         }
       }
@@ -268,6 +352,12 @@
             "state" : "translated",
             "value" : "Still connecting…"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aún conectando…"
+          }
         }
       }
     },
@@ -285,6 +375,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Connecting to peers… try again in a moment"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectando con los pares… inténtalo de nuevo en un momento"
           }
         }
       }
@@ -304,6 +400,12 @@
             "state" : "translated",
             "value" : "Connection lost"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conexión perdida"
+          }
         }
       }
     },
@@ -321,6 +423,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "© 2026 PastePoint. All rights reserved."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "© 2026 PastePoint. Todos los derechos reservados."
           }
         }
       }
@@ -340,6 +448,12 @@
             "state" : "translated",
             "value" : "Create a Room"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Crear una sala"
+          }
         }
       }
     },
@@ -357,6 +471,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Create New Room"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Crear una nueva sala"
           }
         }
       }
@@ -376,6 +496,12 @@
             "state" : "translated",
             "value" : "Start Private Chat"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Iniciar chat privado"
+          }
         }
       }
     },
@@ -393,6 +519,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Decline"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rechazar"
           }
         }
       }
@@ -412,6 +544,12 @@
             "state" : "translated",
             "value" : "Declined"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rechazado"
+          }
         }
       }
     },
@@ -429,6 +567,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Done"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Listo"
           }
         }
       }
@@ -448,6 +592,12 @@
             "state" : "translated",
             "value" : "Leave Session"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salir de la sesión"
+          }
         }
       }
     },
@@ -465,6 +615,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Are you sure you want to end the session?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Seguro que quieres terminar la sesión?"
           }
         }
       }
@@ -484,6 +640,12 @@
             "state" : "translated",
             "value" : "End Session"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terminar sesión"
+          }
         }
       }
     },
@@ -501,6 +663,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Enter the Room Name"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nombre de la sala"
           }
         }
       }
@@ -520,6 +688,12 @@
             "state" : "translated",
             "value" : "Enter the Session Code"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Introduce el código de sesión"
+          }
         }
       }
     },
@@ -537,6 +711,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Any file type & size"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cualquier tipo y tamaño de archivo"
           }
         }
       }
@@ -556,6 +736,12 @@
             "state" : "translated",
             "value" : "End-to-end encrypted"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cifrado de extremo a extremo"
+          }
         }
       }
     },
@@ -573,6 +759,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Free & open source"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gratis y de código abierto"
           }
         }
       }
@@ -592,6 +784,12 @@
             "state" : "translated",
             "value" : "Local network speed"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Velocidad de red local"
+          }
         }
       }
     },
@@ -609,6 +807,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No account needed"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin necesidad de cuenta"
           }
         }
       }
@@ -628,6 +832,12 @@
             "state" : "translated",
             "value" : "No cloud storage"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin almacenamiento en la nube"
+          }
         }
       }
     },
@@ -645,6 +855,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Couldn’t assemble the received file"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo ensamblar el archivo recibido"
           }
         }
       }
@@ -664,6 +880,12 @@
             "state" : "translated",
             "value" : "File transfer failed — data was corrupted"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Falló la transferencia — los datos estaban corruptos"
+          }
         }
       }
     },
@@ -681,6 +903,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ is empty — nothing to send"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ está vacío — no hay nada que enviar"
           }
         }
       }
@@ -700,6 +928,12 @@
             "state" : "translated",
             "value" : "File rejected — sender sent no integrity hash"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Archivo rechazado — el remitente no envió una suma de verificación"
+          }
         }
       }
     },
@@ -717,6 +951,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Couldn’t save the received file"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo guardar el archivo recibido"
           }
         }
       }
@@ -736,6 +976,12 @@
             "state" : "translated",
             "value" : "Sent"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enviado"
+          }
         }
       }
     },
@@ -753,6 +999,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Couldn’t verify file before sending — cancelled"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo verificar el archivo antes de enviar — cancelado"
           }
         }
       }
@@ -772,6 +1024,12 @@
             "state" : "translated",
             "value" : "Not delivered"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No entregado"
+          }
         }
       }
     },
@@ -789,6 +1047,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sent to %lld of %lld"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enviado a %lld de %lld"
           }
         }
       }
@@ -808,6 +1072,12 @@
             "state" : "translated",
             "value" : "Sending…"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enviando…"
+          }
         }
       }
     },
@@ -825,6 +1095,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Completed"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Completado"
           }
         }
       }
@@ -844,6 +1120,12 @@
             "state" : "translated",
             "value" : "Failed"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fallido"
+          }
         }
       }
     },
@@ -861,6 +1143,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pending..."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pendiente..."
           }
         }
       }
@@ -880,6 +1168,12 @@
             "state" : "translated",
             "value" : "Receiving..."
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recibiendo..."
+          }
         }
       }
     },
@@ -897,6 +1191,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Transfer stalled — connection lost data"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transferencia detenida — la conexión perdió datos"
           }
         }
       }
@@ -916,6 +1216,12 @@
             "state" : "translated",
             "value" : "Finalizing..."
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finalizando..."
+          }
         }
       }
     },
@@ -933,6 +1239,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Invalid PastePoint QR code"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Código QR de PastePoint no válido"
           }
         }
       }
@@ -952,6 +1264,12 @@
             "state" : "translated",
             "value" : "Invalid session code"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Código de sesión no válido"
+          }
         }
       }
     },
@@ -969,6 +1287,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Invite others on the same network to join this room"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invita a otros en la misma red a unirse a esta sala"
           }
         }
       }
@@ -988,6 +1312,12 @@
             "state" : "translated",
             "value" : "Join a Private Session"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unirse a una sesión privada"
+          }
         }
       }
     },
@@ -1005,6 +1335,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Join Private Chat"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unirse a un chat privado"
           }
         }
       }
@@ -1024,6 +1360,12 @@
             "state" : "translated",
             "value" : "Joining…"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uniéndose…"
+          }
         }
       }
     },
@@ -1041,6 +1383,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Left private session"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saliste de la sesión privada"
           }
         }
       }
@@ -1060,6 +1408,12 @@
             "state" : "translated",
             "value" : "PastePoint needs it to find people nearby."
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PastePoint lo necesita para encontrar personas cercanas."
+          }
         }
       }
     },
@@ -1077,6 +1431,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Local network is off — enable it in Settings to join"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La red local está desactivada — actívala en Ajustes para unirte"
           }
         }
       }
@@ -1096,6 +1456,12 @@
             "state" : "translated",
             "value" : "Local network is off — enable it in Settings"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La red local está desactivada — actívala en Ajustes"
+          }
         }
       }
     },
@@ -1113,6 +1479,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Local network access is off"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El acceso a la red local está desactivado"
           }
         }
       }
@@ -1132,6 +1504,12 @@
             "state" : "translated",
             "value" : "Members"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Miembros"
+          }
         }
       }
     },
@@ -1150,6 +1528,12 @@
             "state" : "translated",
             "value" : "No one is online right now"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nadie está conectado en este momento"
+          }
         }
       }
     },
@@ -1167,6 +1551,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No peers connected"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin usuarios conectados"
           }
         }
       }
@@ -1234,6 +1624,24 @@
               }
             }
           }
+        },
+        "es" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld conectado ahora"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld conectados ahora"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -1251,6 +1659,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Open Settings"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir Ajustes"
           }
         }
       }
@@ -1270,6 +1684,12 @@
             "state" : "translated",
             "value" : "Photo Library"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fototeca"
+          }
         }
       }
     },
@@ -1287,6 +1707,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Allow Photos access in Settings to save received media"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permite el acceso a Fotos en Ajustes para guardar los archivos recibidos"
           }
         }
       }
@@ -1306,6 +1732,12 @@
             "state" : "translated",
             "value" : "Point your camera at a PastePoint QR code"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apunta la cámara a un código QR de PastePoint"
+          }
         }
       }
     },
@@ -1323,6 +1755,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Privacy & Terms"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacidad y términos"
           }
         }
       }
@@ -1342,6 +1780,12 @@
             "state" : "translated",
             "value" : "Private Room"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sala privada"
+          }
         }
       }
     },
@@ -1359,6 +1803,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Private session is ready. Share your session code with others to invite them."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La sesión privada está lista. Comparte el código con quien quieras invitar."
           }
         }
       }
@@ -1378,6 +1828,12 @@
             "state" : "translated",
             "value" : "Private session joined"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Te has unido a la sesión privada"
+          }
         }
       }
     },
@@ -1395,6 +1851,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Private session started"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sesión privada iniciada"
           }
         }
       }
@@ -1414,6 +1876,12 @@
             "state" : "translated",
             "value" : "Public Room"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sala pública"
+          }
         }
       }
     },
@@ -1431,6 +1899,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "You're in a public room – anyone on the same network can join automatically."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estás en una sala pública: cualquiera en la misma red puede unirse automáticamente."
           }
         }
       }
@@ -1450,6 +1924,12 @@
             "state" : "translated",
             "value" : "QR Code"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Código QR"
+          }
         }
       }
     },
@@ -1467,6 +1947,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "QR scanning is not supported on this device."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este dispositivo no admite el escaneo de códigos QR."
           }
         }
       }
@@ -1486,6 +1972,12 @@
             "state" : "translated",
             "value" : "Reconnected"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reconectado"
+          }
         }
       }
     },
@@ -1503,6 +1995,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Room created successfully!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Sala creada con éxito!"
           }
         }
       }
@@ -1522,6 +2020,12 @@
             "state" : "translated",
             "value" : "Joined %@"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Te has unido a %@"
+          }
         }
       }
     },
@@ -1539,6 +2043,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Enter a name for the room you want to join or create."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Introduce el nombre de la sala a la que quieres unirte o crear."
           }
         }
       }
@@ -1558,6 +2068,12 @@
             "state" : "translated",
             "value" : "Room name"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escribe un nombre de sala"
+          }
         }
       }
     },
@@ -1575,6 +2091,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Chat Rooms"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salas de chat"
           }
         }
       }
@@ -1642,6 +2164,24 @@
               }
             }
           }
+        },
+        "es" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld sala"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld salas"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -1659,6 +2199,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Saved to Files"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guardado en Archivos"
           }
         }
       }
@@ -1678,6 +2224,12 @@
             "state" : "translated",
             "value" : "Saved to Photos"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guardado en Fotos"
+          }
         }
       }
     },
@@ -1695,6 +2247,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Scan the QR code on another device to join the session"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escanea el código QR en otro dispositivo para unirte a la sesión"
           }
         }
       }
@@ -1714,6 +2272,12 @@
             "state" : "translated",
             "value" : "Scanner Unavailable"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escáner no disponible"
+          }
         }
       }
     },
@@ -1731,6 +2295,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reconnecting in %llds · attempt %lld"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reconectando en %lld s · intento %lld"
           }
         }
       }
@@ -1750,6 +2320,12 @@
             "state" : "translated",
             "value" : "Reconnecting… · attempt %lld"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reconectando… · intento %lld"
+          }
         }
       }
     },
@@ -1767,6 +2343,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Can't reach the server"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se puede contactar con el servidor"
           }
         }
       }
@@ -1786,6 +2368,12 @@
             "state" : "translated",
             "value" : "Enter the code to join a private chat."
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Introduce el código para unirte a un chat privado."
+          }
         }
       }
     },
@@ -1803,6 +2391,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Session code"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Código de sesión"
           }
         }
       }
@@ -1822,6 +2416,12 @@
             "state" : "translated",
             "value" : "That session code is invalid or expired — you’re back in the public room"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo unir a esa sesión: el código puede no ser válido o haber caducado. Ahora estás en la sala pública."
+          }
         }
       }
     },
@@ -1839,6 +2439,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Settings"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajustes"
           }
         }
       }
@@ -1858,6 +2464,12 @@
             "state" : "translated",
             "value" : "Share your session code with people you want to invite"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comparte el código de sesión con las personas que quieras invitar"
+          }
         }
       }
     },
@@ -1875,6 +2487,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Start chatting and sharing files!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Empieza a chatear y a compartir archivos!"
           }
         }
       }
@@ -1894,6 +2512,12 @@
             "state" : "translated",
             "value" : "Start the conversation by sending a message"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inicia la conversación enviando un mensaje"
+          }
         }
       }
     },
@@ -1911,6 +2535,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Failed to start private session"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo iniciar la sesión privada"
           }
         }
       }
@@ -1930,6 +2560,12 @@
             "state" : "translated",
             "value" : "Starting…"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Iniciando…"
+          }
         }
       }
     },
@@ -1947,6 +2583,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Type your message"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escribe tu mensaje"
           }
         }
       }
@@ -1966,6 +2608,12 @@
             "state" : "translated",
             "value" : "Wait for members to join the session"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Espera a que otros se unan a la sesión"
+          }
         }
       }
     },
@@ -1984,6 +2632,12 @@
             "state" : "translated",
             "value" : "What to do next"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qué hacer ahora"
+          }
         }
       }
     },
@@ -2001,6 +2655,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "You"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tú"
           }
         }
       }
