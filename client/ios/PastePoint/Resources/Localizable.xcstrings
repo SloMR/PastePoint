@@ -34,6 +34,12 @@
             "state" : "translated",
             "value" : "Принять"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "接受"
+          }
         }
       }
     },
@@ -69,6 +75,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Версия %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "版本 %@"
           }
         }
       }
@@ -106,6 +118,12 @@
             "state" : "translated",
             "value" : "PastePoint нужен доступ к камере для сканирования QR-кодов. Включите его в Настройках."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PastePoint 需要相机权限来扫描二维码。请在「设置」中开启。"
+          }
         }
       }
     },
@@ -141,6 +159,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Требуется доступ к камере"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "需要相机权限"
           }
         }
       }
@@ -178,6 +202,12 @@
             "state" : "translated",
             "value" : "Отмена"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取消"
+          }
         }
       }
     },
@@ -213,6 +243,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Отменено"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已取消"
           }
         }
       }
@@ -250,6 +286,12 @@
             "state" : "translated",
             "value" : "Не удалось принять файл"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法接受文件"
+          }
         }
       }
     },
@@ -285,6 +327,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Не удалось отклонить файл"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法拒绝文件"
           }
         }
       }
@@ -322,6 +370,12 @@
             "state" : "translated",
             "value" : "Выбрать файлы"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择文件"
+          }
         }
       }
     },
@@ -357,6 +411,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Код"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "代码"
           }
         }
       }
@@ -394,6 +454,12 @@
             "state" : "translated",
             "value" : "Код скопирован в буфер обмена"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "代码已复制到剪贴板"
+          }
         }
       }
     },
@@ -429,6 +495,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Подключено"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已连接"
           }
         }
       }
@@ -466,6 +538,12 @@
             "state" : "translated",
             "value" : "Подключение…"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "连接中…"
+          }
         }
       }
     },
@@ -501,6 +579,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Некоторые участники пока недоступны."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "部分成员暂时无法连接。"
           }
         }
       }
@@ -538,6 +622,12 @@
             "state" : "translated",
             "value" : "Подключение продолжается…"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仍在连接…"
+          }
         }
       }
     },
@@ -573,6 +663,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Подключение к участникам… попробуйте ещё раз через мгновение"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在连接成员…请稍后重试"
           }
         }
       }
@@ -610,6 +706,12 @@
             "state" : "translated",
             "value" : "Соединение потеряно"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "连接已断开"
+          }
         }
       }
     },
@@ -645,6 +747,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "© 2026 PastePoint. Все права защищены."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "© 2026 PastePoint。保留所有权利。"
           }
         }
       }
@@ -682,6 +790,12 @@
             "state" : "translated",
             "value" : "Создать комнату"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新建聊天室"
+          }
         }
       }
     },
@@ -717,6 +831,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Создать новую комнату"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "创建新聊天室"
           }
         }
       }
@@ -754,6 +874,12 @@
             "state" : "translated",
             "value" : "Начать приватный чат"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开始私密聊天"
+          }
         }
       }
     },
@@ -789,6 +915,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Отклонить"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "拒绝"
           }
         }
       }
@@ -826,6 +958,12 @@
             "state" : "translated",
             "value" : "Отклонено"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已拒绝"
+          }
         }
       }
     },
@@ -861,6 +999,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Готово"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "完成"
           }
         }
       }
@@ -898,6 +1042,12 @@
             "state" : "translated",
             "value" : "Покинуть сессию"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "退出会话"
+          }
         }
       }
     },
@@ -933,6 +1083,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Вы уверены, что хотите завершить сессию?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "确定要结束当前会话吗?"
           }
         }
       }
@@ -970,6 +1126,12 @@
             "state" : "translated",
             "value" : "Завершить сессию"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "结束会话"
+          }
         }
       }
     },
@@ -1005,6 +1167,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Название комнаты"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "聊天室名称"
           }
         }
       }
@@ -1042,6 +1210,12 @@
             "state" : "translated",
             "value" : "Введите код сессии"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "输入会话代码"
+          }
         }
       }
     },
@@ -1077,6 +1251,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Любой тип и размер файла"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "支持任意类型和大小的文件"
           }
         }
       }
@@ -1114,6 +1294,12 @@
             "state" : "translated",
             "value" : "Сквозное шифрование"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "端到端加密"
+          }
         }
       }
     },
@@ -1149,6 +1335,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Бесплатно и с открытым кодом"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "免费且开源"
           }
         }
       }
@@ -1186,6 +1378,12 @@
             "state" : "translated",
             "value" : "Скорость локальной сети"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本地网络速度"
+          }
         }
       }
     },
@@ -1221,6 +1419,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Без регистрации"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无需注册账号"
           }
         }
       }
@@ -1258,6 +1462,12 @@
             "state" : "translated",
             "value" : "Без облачного хранилища"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不使用云存储"
+          }
         }
       }
     },
@@ -1293,6 +1503,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Не удалось собрать полученный файл"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法组装收到的文件"
           }
         }
       }
@@ -1330,6 +1546,12 @@
             "state" : "translated",
             "value" : "Ошибка передачи — данные повреждены"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "传输失败——数据已损坏"
+          }
         }
       }
     },
@@ -1365,6 +1587,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ пуст — нечего отправлять"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 为空——没有可发送的内容"
           }
         }
       }
@@ -1402,6 +1630,12 @@
             "state" : "translated",
             "value" : "Файл отклонён — отправитель не передал контрольную сумму целостности"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文件已被拒绝——发送方未提供完整性校验值"
+          }
         }
       }
     },
@@ -1437,6 +1671,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Не удалось сохранить полученный файл"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法保存收到的文件"
           }
         }
       }
@@ -1474,6 +1714,12 @@
             "state" : "translated",
             "value" : "Отправлено"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已发送"
+          }
         }
       }
     },
@@ -1509,6 +1755,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Не удалось проверить файл перед отправкой — отменено"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "发送前无法校验文件——已取消"
           }
         }
       }
@@ -1546,6 +1798,12 @@
             "state" : "translated",
             "value" : "Не доставлено"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未送达"
+          }
         }
       }
     },
@@ -1581,6 +1839,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Отправлено %lld из %lld"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已发送给 %2$lld 人中的 %1$lld 人"
           }
         }
       }
@@ -1618,6 +1882,12 @@
             "state" : "translated",
             "value" : "Отправка…"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "发送中…"
+          }
         }
       }
     },
@@ -1653,6 +1923,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Завершено"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已完成"
           }
         }
       }
@@ -1690,6 +1966,12 @@
             "state" : "translated",
             "value" : "Ошибка"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "失败"
+          }
         }
       }
     },
@@ -1725,6 +2007,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ожидание..."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "等待中…"
           }
         }
       }
@@ -1762,6 +2050,12 @@
             "state" : "translated",
             "value" : "Получение..."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "接收中…"
+          }
         }
       }
     },
@@ -1797,6 +2091,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Передача прервана — соединение потеряло данные"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "传输已停滞——连接丢失数据"
           }
         }
       }
@@ -1834,6 +2134,12 @@
             "state" : "translated",
             "value" : "Завершение..."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在完成……"
+          }
         }
       }
     },
@@ -1869,6 +2175,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Недействительный QR-код PastePoint"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无效的 PastePoint 二维码"
           }
         }
       }
@@ -1906,6 +2218,12 @@
             "state" : "translated",
             "value" : "Недействительный код сессии"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无效的会话代码"
+          }
         }
       }
     },
@@ -1941,6 +2259,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Пригласите других в этой сети присоединиться к комнате"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "邀请同一网络中的其他人加入此聊天室"
           }
         }
       }
@@ -1978,6 +2302,12 @@
             "state" : "translated",
             "value" : "Войти в приватную сессию"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "加入私密会话"
+          }
         }
       }
     },
@@ -2013,6 +2343,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Войти в приватный чат"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "加入私密聊天"
           }
         }
       }
@@ -2050,6 +2386,12 @@
             "state" : "translated",
             "value" : "Вход…"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "加入中…"
+          }
         }
       }
     },
@@ -2085,6 +2427,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Вы покинули приватную сессию"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已退出私密会话"
           }
         }
       }
@@ -2122,6 +2470,12 @@
             "state" : "translated",
             "value" : "Это нужно PastePoint, чтобы находить людей поблизости."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PastePoint 需要它来发现附近的人。"
+          }
         }
       }
     },
@@ -2157,6 +2511,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Локальная сеть отключена — включите её в Настройках, чтобы войти"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本地网络已关闭——请在「设置」中开启以加入"
           }
         }
       }
@@ -2194,6 +2554,12 @@
             "state" : "translated",
             "value" : "Локальная сеть отключена — включите её в Настройках"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本地网络已关闭——请在「设置」中开启"
+          }
         }
       }
     },
@@ -2229,6 +2595,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Доступ к локальной сети отключён"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本地网络访问已关闭"
           }
         }
       }
@@ -2266,6 +2638,12 @@
             "state" : "translated",
             "value" : "Участники"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "成员"
+          }
         }
       }
     },
@@ -2302,6 +2680,12 @@
             "state" : "translated",
             "value" : "Сейчас никого нет в сети"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目前没有人在线"
+          }
         }
       }
     },
@@ -2337,6 +2721,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Нет подключённых пользователей"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有已连接的用户"
           }
         }
       }
@@ -2470,6 +2860,18 @@
               }
             }
           }
+        },
+        "zh-Hans" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld 人在线"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -2505,6 +2907,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Открыть Настройки"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开设置"
           }
         }
       }
@@ -2542,6 +2950,12 @@
             "state" : "translated",
             "value" : "Медиатека"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "照片图库"
+          }
         }
       }
     },
@@ -2577,6 +2991,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Разрешите доступ к Фото в Настройках, чтобы сохранять полученные медиафайлы"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请在「设置」中允许访问「照片」以保存收到的媒体"
           }
         }
       }
@@ -2614,6 +3034,12 @@
             "state" : "translated",
             "value" : "Наведите камеру на QR-код PastePoint"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请将摄像头对准 PastePoint 的二维码"
+          }
         }
       }
     },
@@ -2649,6 +3075,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Конфиденциальность и условия"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隐私与条款"
           }
         }
       }
@@ -2686,6 +3118,12 @@
             "state" : "translated",
             "value" : "Приватная комната"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "私密聊天室"
+          }
         }
       }
     },
@@ -2721,6 +3159,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Приватная сессия готова. Поделитесь кодом сессии с теми, кого хотите пригласить."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "私密会话已就绪。将会话代码分享给您想邀请的人。"
           }
         }
       }
@@ -2758,6 +3202,12 @@
             "state" : "translated",
             "value" : "Вы вошли в приватную сессию"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已加入私密会话"
+          }
         }
       }
     },
@@ -2793,6 +3243,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Приватная сессия начата"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "私密会话已开始"
           }
         }
       }
@@ -2830,6 +3286,12 @@
             "state" : "translated",
             "value" : "Публичная комната"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "公开聊天室"
+          }
         }
       }
     },
@@ -2865,6 +3327,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Вы в публичной комнате — любой пользователь в той же сети может присоединиться автоматически."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您正处于公开聊天室——同一网络中的任何人都可以自动加入。"
           }
         }
       }
@@ -2902,6 +3370,12 @@
             "state" : "translated",
             "value" : "QR-код"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "二维码"
+          }
         }
       }
     },
@@ -2937,6 +3411,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Сканирование QR-кодов не поддерживается на этом устройстве."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此设备不支持二维码扫描。"
           }
         }
       }
@@ -2974,6 +3454,12 @@
             "state" : "translated",
             "value" : "Переподключено"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已重新连接"
+          }
         }
       }
     },
@@ -3009,6 +3495,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Комната успешно создана!"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "聊天室创建成功!"
           }
         }
       }
@@ -3046,6 +3538,12 @@
             "state" : "translated",
             "value" : "Вы вошли в %@"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已加入 %@"
+          }
         }
       }
     },
@@ -3081,6 +3579,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Введите название комнаты, к которой хотите присоединиться или которую хотите создать."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "输入您要加入或创建的聊天室名称。"
           }
         }
       }
@@ -3118,6 +3622,12 @@
             "state" : "translated",
             "value" : "Введите название комнаты"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "输入聊天室名称"
+          }
         }
       }
     },
@@ -3153,6 +3663,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Комнаты чата"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "聊天室"
           }
         }
       }
@@ -3286,6 +3802,18 @@
               }
             }
           }
+        },
+        "zh-Hans" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld 个聊天室"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -3321,6 +3849,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Сохранено в Файлы"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已保存到「文件」"
           }
         }
       }
@@ -3358,6 +3892,12 @@
             "state" : "translated",
             "value" : "Сохранено в Фото"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已保存到「照片」"
+          }
         }
       }
     },
@@ -3393,6 +3933,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Отсканируйте QR-код на другом устройстве, чтобы присоединиться к сессии"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在另一台设备上扫描二维码以加入会话"
           }
         }
       }
@@ -3430,6 +3976,12 @@
             "state" : "translated",
             "value" : "Сканер недоступен"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "扫描器不可用"
+          }
         }
       }
     },
@@ -3465,6 +4017,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Переподключение через %lld с · попытка %lld"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 秒后重新连接 · 第 %lld 次尝试"
           }
         }
       }
@@ -3502,6 +4060,12 @@
             "state" : "translated",
             "value" : "Переподключение… · попытка %lld"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在重新连接… · 第 %lld 次尝试"
+          }
         }
       }
     },
@@ -3537,6 +4101,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Сервер недоступен"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法连接到服务器"
           }
         }
       }
@@ -3574,6 +4144,12 @@
             "state" : "translated",
             "value" : "Введите код, чтобы войти в приватный чат."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "输入代码以加入私密聊天。"
+          }
         }
       }
     },
@@ -3609,6 +4185,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Код сессии"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "会话代码"
           }
         }
       }
@@ -3646,6 +4228,12 @@
             "state" : "translated",
             "value" : "Не удалось войти в эту сессию — код недействителен или истёк. Вы переключены в публичную комнату."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法加入该会话——代码可能无效或已过期。已为你切换到公共聊天室。"
+          }
         }
       }
     },
@@ -3681,6 +4269,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Настройки"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "设置"
           }
         }
       }
@@ -3718,6 +4312,12 @@
             "state" : "translated",
             "value" : "Поделитесь кодом сессии с теми, кого хотите пригласить"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "将会话代码分享给您想邀请的人"
+          }
         }
       }
     },
@@ -3753,6 +4353,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Начните общаться и обмениваться файлами!"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开始聊天和共享文件吧!"
           }
         }
       }
@@ -3790,6 +4396,12 @@
             "state" : "translated",
             "value" : "Начните разговор, отправив сообщение"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "发送一条消息开始对话吧"
+          }
         }
       }
     },
@@ -3825,6 +4437,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Не удалось начать приватную сессию"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法开始私密会话"
           }
         }
       }
@@ -3862,6 +4480,12 @@
             "state" : "translated",
             "value" : "Запуск…"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启动中…"
+          }
         }
       }
     },
@@ -3897,6 +4521,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Введите сообщение"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "输入消息"
           }
         }
       }
@@ -3934,6 +4564,12 @@
             "state" : "translated",
             "value" : "Подождите, пока другие присоединятся к сессии"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "等待其他成员加入会话"
+          }
         }
       }
     },
@@ -3970,6 +4606,12 @@
             "state" : "translated",
             "value" : "Что дальше"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下一步该做什么"
+          }
         }
       }
     },
@@ -4005,6 +4647,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Вы"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你"
           }
         }
       }
