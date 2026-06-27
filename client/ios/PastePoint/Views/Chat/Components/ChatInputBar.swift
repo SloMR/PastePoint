@@ -90,6 +90,7 @@ struct ChatInputBar: View {
                 .fill(.brand),
             )
             .frame(width: 30, height: 32)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .disabled(isSendDisabled)

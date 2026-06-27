@@ -71,6 +71,7 @@ struct SettingsView: View {
               RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .fill(.brand),
             )
+            .contentShape(Rectangle())
           }
           .buttonStyle(.plain)
           .padding(.horizontal)
@@ -111,6 +112,7 @@ struct SettingsView: View {
           .padding(.horizontal, 14)
           .padding(.vertical, 8)
           .frame(maxWidth: .infinity)
+          .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
       }

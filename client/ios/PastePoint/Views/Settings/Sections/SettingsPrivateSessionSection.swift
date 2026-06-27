@@ -75,6 +75,7 @@ struct SettingsPrivateSessionSection: View {
               RoundedRectangle(cornerRadius: 12)
                 .fill(AppColors.Brand.brand),
             )
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(Text(.copy))
@@ -92,6 +93,7 @@ struct SettingsPrivateSessionSection: View {
               RoundedRectangle(cornerRadius: 12)
                 .fill(AppColors.Brand.brand),
             )
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(Text(.qrCode))
@@ -151,6 +153,7 @@ struct SettingsPrivateSessionSection: View {
           RoundedRectangle(cornerRadius: 8)
             .stroke(.brand, lineWidth: 0.8),
         )
+        .contentShape(Rectangle())
       }
       .buttonStyle(.plain)
       .disabled(isStarting)
@@ -171,6 +174,7 @@ struct SettingsPrivateSessionSection: View {
           RoundedRectangle(cornerRadius: 8)
             .stroke(.brand, lineWidth: 0.8),
         )
+        .contentShape(Rectangle())
       }
       .buttonStyle(.plain)
       .disabled(isStarting)

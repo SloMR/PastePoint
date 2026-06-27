@@ -45,6 +45,7 @@ struct SettingsLeaveSessionView: View {
               .padding(.vertical, 14)
               .foregroundStyle(.white)
               .background(Color.red, in: Capsule())
+              .contentShape(Capsule())
           }
           .buttonStyle(.plain)
 
@@ -62,6 +63,7 @@ struct SettingsLeaveSessionView: View {
                 Capsule()
                   .stroke(Color.red, lineWidth: 1.5),
               )
+              .contentShape(Capsule())
           }
           .buttonStyle(.plain)
         }
