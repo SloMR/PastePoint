@@ -35,8 +35,8 @@ enum AppColors {
   }
 
   enum Primary {
-    static let p100 = Color("primary/primary100")
-    static let p300 = Color("primary/primary300")
+    static let p100 = Color("primary100")
+    static let p300 = Color("primary300")
   }
 
   enum Gray {
