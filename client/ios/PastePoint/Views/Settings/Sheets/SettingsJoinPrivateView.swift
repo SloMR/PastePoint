@@ -26,12 +26,12 @@ struct SettingsJoinPrivateView: View {
 
         // Input
         VStack(alignment: .leading, spacing: 6) {
-          Text("Enter the Session Code")
+          Text(.enterSessionCode)
             .font(.subheadline)
             .foregroundStyle(.textPrimary)
 
           HStack(spacing: 0) {
-            TextField("Session code", text: $sessionCode)
+            TextField(String(localized: .sessionCodePlaceholder), text: $sessionCode)
               .textFieldStyle(.plain)
               .font(.body)
               .foregroundStyle(.textPrimary)
@@ -48,6 +48,7 @@ struct SettingsJoinPrivateView: View {
                   .frame(width: 36, height: 44)
               }
               .buttonStyle(.plain)
+              .accessibilityLabel(Text(.clear))
             }
 
             Button {
@@ -59,11 +60,12 @@ struct SettingsJoinPrivateView: View {
                 .frame(width: 44, height: 44)
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(Text(.scanQrCode))
             .padding(.trailing, 4)
           }
           .background(AppColors.Background.input, in: RoundedRectangle(cornerRadius: 8))
 
-          Text("Enter the code to join a private chat.")
+          Text(.sessionCodeDescription)
             .font(.caption)
             .foregroundStyle(.textSecondary)
         }
@@ -80,7 +82,7 @@ struct SettingsJoinPrivateView: View {
                   .tint(.white)
                   .scaleEffect(0.85)
               }
-              Text(isJoining ? "Joining…" : "Done")
+              Text(isJoining ? .joining : .done)
                 .fontWeight(.semibold)
             }
             .frame(maxWidth: .infinity)
@@ -96,7 +98,7 @@ struct SettingsJoinPrivateView: View {
             logger.info("Dismiss join private session")
             dismiss()
           } label: {
-            Text("Cancel")
+            Text(.cancel)
               .fontWeight(.semibold)
               .frame(maxWidth: .infinity)
               .padding(.vertical, 14)
@@ -117,7 +119,7 @@ struct SettingsJoinPrivateView: View {
         guard height > 0 else { return }
         sheetHeight = height + 56
       }
-      .navigationTitle("Join a Private Session")
+      .navigationTitle(Text(.joinAPrivateSession))
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .topBarTrailing) {
@@ -160,7 +162,7 @@ struct SettingsJoinPrivateView: View {
     guard !trimmed.isEmpty else { return }
     guard SessionService.isValidSessionCode(trimmed) else {
       logger.warning("Invalid session code entered: \(trimmed)")
-      toasts.append(.error("Invalid session code"))
+      toasts.append(.error(.invalidSessionCode))
       return
     }
     logger.info("Joining private session with code: \(trimmed)")
@@ -168,7 +170,7 @@ struct SettingsJoinPrivateView: View {
     await services.wsService.setupPrivateSession(trimmed)
     guard await services.connectIfPermitted() else {
       isJoining = false
-      toasts.append(.error("Local network is off — enable it in Settings to join"))
+      toasts.append(.error(.localNetworkOffJoin))
       return
     }
     isJoining = false

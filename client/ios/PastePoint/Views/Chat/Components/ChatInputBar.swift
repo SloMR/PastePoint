@@ -7,6 +7,8 @@ import Logging
 import SwiftUI
 
 struct ChatInputBar: View {
+  @Environment(\.layoutDirection) private var layoutDirection
+
   private let logger = Logger(label: "ChatInputBar")
   let onSend: (String) -> Bool
   let onSendFiles: ([StagedFile]) -> Bool
@@ -55,8 +57,9 @@ struct ChatInputBar: View {
         .foregroundStyle(.textSecondary)
         .disabled(!hasConnectedPeers)
         .opacity(hasConnectedPeers ? 1 : 0.3)
+        .accessibilityLabel(Text(.attachFiles))
 
-        TextField("Type your message", text: $message, axis: .vertical)
+        TextField(String(localized: .typeYourMessage), text: $message, axis: .vertical)
           .lineLimit(1...5)
           .textFieldStyle(.plain)
           .textInputAutocapitalization(.never)
@@ -79,6 +82,7 @@ struct ChatInputBar: View {
             .resizable()
             .scaledToFit()
             .frame(width: 18, height: 18)
+            .scaleEffect(x: layoutDirection == .rightToLeft ? -1 : 1, y: 1)
             .foregroundStyle(.white)
             .frame(width: 32, height: 32)
             .background(
@@ -90,6 +94,7 @@ struct ChatInputBar: View {
         .buttonStyle(.plain)
         .disabled(isSendDisabled)
         .opacity(isSendDisabled ? 0.6 : 1)
+        .accessibilityLabel(Text(.send))
       }
     }
     .padding(.horizontal, 4)

@@ -18,13 +18,13 @@ struct SettingsMembersSection: View {
           .frame(width: 16, height: 16)
           .padding(.trailing, 5)
 
-        Text("Members")
+        Text(.members)
           .font(.subheadline)
           .foregroundColor(.textPrimary)
 
         Spacer()
 
-        Text("\(services.roomService.members.filter { $0 != services.userService.user }.count) Online Now")
+        Text(.onlineMembersCount(services.roomService.members.filter { $0 != services.userService.user }.count))
           .font(.caption2)
           .foregroundColor(.textPrimary)
       }
@@ -33,27 +33,36 @@ struct SettingsMembersSection: View {
       Group {
         let others = services.roomService.members.filter { $0 != services.userService.user }
         if others.isEmpty {
-          Text("No one is online right now")
+          Text(.noMembersOnline)
             .font(.subheadline)
             .foregroundColor(.textPrimary)
             .fontWeight(.bold)
         } else {
           ForEach(others, id: \.self) { member in
             let isConnected = services.signalingService.connectedPeers.contains(member)
+            let isConnecting = services.signalingService.connectingPeers.contains(member)
+
             let uploads = services.fileTransferService.activeUploads.filter { $0.targetUser == member }
             let downloads = services.fileTransferService.activeDownloads.filter { $0.fromUser == member }
+
             let dotColor: Color = {
-              if services.signalingService.connectedPeers.contains(member) { return .green }
-              if services.signalingService.connectingPeers.contains(member) { return .yellow }
+              if isConnected { return .green }
+              if isConnecting { return .yellow }
               return .red
             }()
 
             VStack(alignment: .leading, spacing: 6) {
               HStack(alignment: .center, spacing: 0) {
-                Circle()
-                  .fill(dotColor)
-                  .frame(width: 14, height: 14)
-                  .padding(.trailing, 6)
+                Group {
+                  if isConnecting {
+                    PulsingDot(color: dotColor, size: 14)
+                  } else {
+                    Circle()
+                      .fill(dotColor)
+                      .frame(width: 14, height: 14)
+                  }
+                }
+                .padding(.trailing, 6)
 
                 Text(member)
                   .font(.subheadline)
@@ -74,6 +83,7 @@ struct SettingsMembersSection: View {
                 }
                 .disabled(!isConnected)
                 .opacity(isConnected ? 1 : 0.3)
+                .accessibilityLabel(Text(.sendFileToUser))
               }
               .animation(.easeInOut(duration: 0.2), value: dotColor)
 
@@ -148,6 +158,7 @@ struct SettingsMembersSection: View {
             .foregroundStyle(.textSecondary)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(Text(.cancel))
       }
       ProgressView(value: max(0, min(1, progress)))
         .progressViewStyle(.linear)
@@ -157,7 +168,7 @@ struct SettingsMembersSection: View {
   }
 
   private func progressLabel(progress: Double, phase: FileUpload.Phase?) -> String {
-    if phase == .finalizing { return "Finalizing..." }
-    return "\(Int((progress * 100).rounded()))%"
+    if phase == .finalizing { return String(localized: .finalizingTransfer) }
+    return progress.formatted(.percent.precision(.fractionLength(0)))
   }
 }

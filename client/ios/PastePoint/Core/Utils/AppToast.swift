@@ -36,13 +36,13 @@ enum ToastStyle {
 
 struct ToastItem: Identifiable, Equatable {
   let id = UUID()
-  let message: String
+  let message: LocalizedStringResource
   let style: ToastStyle
 
-  static func success(_ message: String) -> Self { .init(message: message, style: .success) }
-  static func error(_ message: String) -> Self { .init(message: message, style: .error) }
-  static func warning(_ message: String) -> Self { .init(message: message, style: .warning) }
-  static func info(_ message: String) -> Self { .init(message: message, style: .info) }
+  static func success(_ message: LocalizedStringResource) -> Self { .init(message: message, style: .success) }
+  static func error(_ message: LocalizedStringResource) -> Self { .init(message: message, style: .error) }
+  static func warning(_ message: LocalizedStringResource) -> Self { .init(message: message, style: .warning) }
+  static func info(_ message: LocalizedStringResource) -> Self { .init(message: message, style: .info) }
 }
 
 // MARK: - Individual Toast Row
@@ -133,6 +133,8 @@ extension View {
   }
 }
 
+#if DEBUG
+
 // MARK: - Preview
 
 private struct ToastPreview: View {
@@ -142,19 +144,19 @@ private struct ToastPreview: View {
     VStack(spacing: 16) {
       Spacer()
 
-      Button("Success") { toasts.append(.success("Code copied to clipboard")) }
+      Button { toasts.append(.success(.codeCopied)) } label: { Text(verbatim: "Success") }
         .buttonStyle(.borderedProminent)
         .tint(AppColors.Status.success)
 
-      Button("Error") { toasts.append(.error("Failed to start private session")) }
+      Button { toasts.append(.error(.startPrivateFailed)) } label: { Text(verbatim: "Error") }
         .buttonStyle(.borderedProminent)
         .tint(AppColors.Status.danger)
 
-      Button("Warning") { toasts.append(.warning("Connection lost")) }
+      Button { toasts.append(.warning(.connectionLost)) } label: { Text(verbatim: "Warning") }
         .buttonStyle(.borderedProminent)
         .tint(AppColors.Status.warning)
 
-      Button("Info") { toasts.append(.info("Joined General")) }
+      Button { toasts.append(.info(.roomJoined("General"))) } label: { Text(verbatim: "Info") }
         .buttonStyle(.borderedProminent)
         .tint(AppColors.Status.info)
 
@@ -166,9 +168,6 @@ private struct ToastPreview: View {
   }
 }
 
-// MARK: - Preview
-
-#if DEBUG
 #Preview {
   ToastPreview()
 }

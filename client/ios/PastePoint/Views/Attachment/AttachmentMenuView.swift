@@ -33,13 +33,13 @@ struct AttachmentMenu<Content: View>: View {
       Button {
         showFileImporter = true
       } label: {
-        Label("Choose Files", systemImage: "folder")
+        Label(.chooseFiles, systemImage: "folder")
       }
       // TODO: "Take Photo or Video" — camera capture (UIImagePickerController + NSCameraUsageDescription).
       Button {
         showPhotoPicker = true
       } label: {
-        Label("Photo Library", systemImage: "photo.on.rectangle")
+        Label(.photoLibrary, systemImage: "photo.on.rectangle")
       }
     } label: {
       content

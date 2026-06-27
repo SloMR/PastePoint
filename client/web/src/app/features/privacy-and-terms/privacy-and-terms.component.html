@@ -112,22 +112,24 @@
         <p class="mt-8 text-sm italic font-expoArabicLight">{{ 'LEGAL_NOTICE' | translate }}</p>
       </div>
 
-      <!-- MARK: - Go Back Button -->
-      <div class="mt-8 flex items-center justify-center">
-        <button
-          class="flex items-center justify-center gap-2 rounded-md px-4 py-2 text-white font-expoArabicMedium bg-brand hover:bg-brand/80 dark:bg-brandDark dark:hover:bg-brandDark/80"
-          routerLink="/"
-          title="Go Back"
-        >
-          <img
-            src="/icons/back-arrow.svg"
-            alt="arrow-right"
+      <!-- MARK: - Go Back Button (hidden when embedded in the native app) -->
+      @if (!isEmbedded) {
+        <div class="mt-8 flex items-center justify-center">
+          <button
+            class="flex items-center justify-center gap-2 rounded-md px-4 py-2 text-white font-expoArabicMedium bg-brand hover:bg-brand/80 dark:bg-brandDark dark:hover:bg-brandDark/80"
+            routerLink="/"
             title="Go Back"
-            [ngClass]="isRTL ? 'rotate-0' : 'rotate-180'"
-          />
-          {{ 'GO_BACK_HOME' | translate }}
-        </button>
-      </div>
+          >
+            <img
+              src="/icons/back-arrow.svg"
+              alt="arrow-right"
+              title="Go Back"
+              [ngClass]="isRTL ? 'rotate-0' : 'rotate-180'"
+            />
+            {{ 'GO_BACK_HOME' | translate }}
+          </button>
+        </div>
+      }
     </div>
   </main>
 

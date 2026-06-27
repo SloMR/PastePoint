@@ -53,24 +53,8 @@ private struct QRCodeScannerRepresentable: UIViewControllerRepresentable {
 
     // Parses PastePoint private-session URLs and returns the embedded code.
     static func extractSessionCode(from payload: String) -> String? {
-      let trimmedPayload = payload.trimmingCharacters(in: .whitespacesAndNewlines)
-
       guard
-        let url = URL(string: trimmedPayload),
-        let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
-        components.scheme == "https",
-        components.host == AppEnvironment.webUrl
-      else { return nil }
-
-      let pathComponents = components.path
-        .split(separator: "/")
-        .map(String.init)
-
-      guard pathComponents.count == 2 else { return nil }
-
-      guard
-        pathComponents[0] == "private",
-        let sessionCode = pathComponents[1] as String?,
+        let sessionCode = AppEnvironment.privateSessionCode(from: payload),
         SessionService.isValidSessionCode(sessionCode)
       else {
         return nil
@@ -216,9 +200,9 @@ struct SettingsScanQRCodeView: View {
     } else {
       ZStack(alignment: .topTrailing) {
         ContentUnavailableView(
-          "Scanner Unavailable",
+          String(localized: .scannerUnavailable),
           systemImage: "camera.slash",
-          description: Text("QR scanning is not supported on this device."),
+          description: Text(.qrScanningNotSupported),
         )
         Button { dismiss() } label: {
           ZStack {
@@ -232,6 +216,7 @@ struct SettingsScanQRCodeView: View {
           .contentShape(Circle())
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(Text(.close))
         .padding(.horizontal)
         .padding(.top, 56)
       }
@@ -249,7 +234,7 @@ struct SettingsScanQRCodeView: View {
       } onInvalidCodeScanned: {
         UINotificationFeedbackGenerator().notificationOccurred(.error)
         logger.warning("Invalid QR code scanned")
-        toasts.append(.error("Invalid PastePoint QR code"))
+        toasts.append(.error(.invalidQrCode))
       }
       .ignoresSafeArea()
 
@@ -284,6 +269,7 @@ struct SettingsScanQRCodeView: View {
             .contentShape(Circle())
           }
           .buttonStyle(.plain)
+          .accessibilityLabel(Text(.close))
         }
         .padding(.horizontal, 24)
         .padding(.top, 56)
@@ -296,7 +282,7 @@ struct SettingsScanQRCodeView: View {
           Image(systemName: "qrcode.viewfinder")
             .font(.system(size: 22, weight: .medium))
             .foregroundStyle(AppColors.Brand.brand)
-          Text("Point your camera at a PastePoint QR code")
+          Text(.pointCameraAtQr)
             .font(.subheadline)
             .foregroundStyle(.white)
             .fixedSize(horizontal: false, vertical: true)

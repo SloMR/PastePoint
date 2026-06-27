@@ -17,7 +17,7 @@ struct ChatRoomHeader: View {
         .scaledToFit()
         .frame(width: 22, height: 22)
 
-      Text(isPrivate ? "Private Room" : "Public Room")
+      Text(isPrivate ? .privateRoom : .publicRoom)
         .font(.title2)
         .foregroundStyle(.textPrimary)
         .fontWeight(.semibold)

@@ -50,7 +50,7 @@ struct SettingsQRCodeView: View {
     NavigationStack {
       VStack(spacing: 16) {
         QRCodeView(
-          text: "https://\(AppEnvironment.webUrl)/private/\(services.wsService.currentSessionCode ?? "")",
+          text: AppEnvironment.privateSessionUrl(sessionCode: services.wsService.currentSessionCode ?? ""),
           size: 220,
         )
         .padding(20)
@@ -61,7 +61,7 @@ struct SettingsQRCodeView: View {
         )
         .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
 
-        Text("Scan the QR code on another device to join the session")
+        Text(.scanQrCodeToJoinTheSession)
           .font(.subheadline)
           .foregroundStyle(.secondary)
           .multilineTextAlignment(.center)
@@ -77,7 +77,7 @@ struct SettingsQRCodeView: View {
         guard height > 0 else { return }
         sheetHeight = height + 56
       }
-      .navigationTitle("QR Code")
+      .navigationTitle(Text(.qrCode))
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .topBarTrailing) {

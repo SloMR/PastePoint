@@ -11,9 +11,9 @@ struct NetworkPermissionBanner: View {
   var body: some View {
     StatusBanner(
       tint: AppColors.Status.danger,
-      title: "Local network access is off",
-      message: "PastePoint needs it to find people nearby.",
-      actionTitle: "Open Settings",
+      title: .localNetworkOffTitle,
+      message: .localNetworkOffDesc,
+      actionTitle: .openSettings,
       onAction: openSettings,
       onDismiss: onDismiss,
     ) {

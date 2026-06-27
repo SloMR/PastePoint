@@ -20,7 +20,7 @@ final class SessionService: ObservableObject {
     if AppBuildInfo.isXcodePreview { return "PREVIEW1AB" }
 #endif
 
-    guard let url = URL(string: "https://\(AppEnvironment.apiUrl)/create-session") else {
+    guard let url = URL(string: AppEnvironment.createSessionUrl) else {
       throw SessionError.invalidURL
     }
 

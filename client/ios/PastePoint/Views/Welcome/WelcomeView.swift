@@ -12,13 +12,13 @@ struct WelcomeView: View {
     services.wsService.currentSessionCode != nil
   }
 
-  private let features: [(String, String)] = [
-    ("lock", "End-to-end encrypted"),
-    ("icloud.slash", "No cloud storage"),
-    ("doc", "Any file type & size"),
-    ("person.slash", "No account needed"),
-    ("arrow.up.arrow.down", "Local network speed"),
-    ("chevron.left.slash.chevron.right", "Free & open source"),
+  private let features: [(String, LocalizedStringResource)] = [
+    ("lock", .featureEncrypted),
+    ("icloud.slash", .featureNoCloud),
+    ("doc", .featureAnyFile),
+    ("person.slash", .featureNoAccount),
+    ("arrow.up.arrow.down", .featureLocalSpeed),
+    ("chevron.left.slash.chevron.right", .featureFree),
   ]
 
   var body: some View {
@@ -44,40 +44,37 @@ struct WelcomeView: View {
 
         // Title + subtitle
         VStack(spacing: 6) {
-          Text(isPrivate ? "Private Room" : "Public Room")
+          Text(isPrivate ? .privateRoom : .publicRoom)
             .font(.title2)
             .fontWeight(.bold)
             .foregroundStyle(.textPrimary)
 
-          Text(
-            isPrivate
-              ? "Private session is ready. Share your session code with others to invite them."
-              : "You're in a public room – anyone on the same network can join automatically.",
-          )
-          .font(.subheadline)
-          .foregroundStyle(.textSecondary)
-          .multilineTextAlignment(.center)
-          .padding(.horizontal, 16)
+          Text(isPrivate ? .privateSessionInfo : .publicSessionInfo)
+            .font(.subheadline)
+            .foregroundStyle(.textSecondary)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal, 16)
         }
 
         // Steps
         VStack(spacing: 12) {
-          Text("WHAT TO DO NEXT")
+          Text(.whatToDoNext)
             .font(.caption)
             .fontWeight(.semibold)
             .foregroundStyle(.textSecondary)
+            .textCase(.uppercase)
             .tracking(0.5)
 
           if isPrivate {
             WelcomeStepList(steps: [
-              "Share your session code with people you want to invite",
-              "Wait for members to join the session",
-              "Start chatting and sharing files!",
+              .shareSessionCode,
+              .waitForMembers,
+              .startChatting,
             ])
           } else {
             WelcomeStepList(steps: [
-              "Invite others on the same network to join this room",
-              "Start the conversation by sending a message",
+              .inviteOthersPublic,
+              .startConversation,
             ])
           }
         }
@@ -85,7 +82,7 @@ struct WelcomeView: View {
 
         // Features grid
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
-          ForEach(features, id: \.1) { icon, label in
+          ForEach(features, id: \.0) { icon, label in
             featureCell(icon: icon, label: label)
           }
         }
@@ -104,7 +101,7 @@ struct WelcomeView: View {
     }
   }
 
-  private func featureCell(icon: String, label: String) -> some View {
+  private func featureCell(icon: String, label: LocalizedStringResource) -> some View {
     HStack(spacing: 8) {
       Image(systemName: icon)
         .font(.system(size: 13))

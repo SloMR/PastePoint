@@ -14,10 +14,10 @@ struct ChatServerReconnectBanner: View {
       let remaining = max(0, Int(nextAttemptDate.timeIntervalSince(context.date).rounded(.up)))
       StatusBanner(
         tint: AppColors.Status.info,
-        title: "Can't reach the server",
+        title: .serverReconnectTitle,
         message: remaining > 0
-          ? "Reconnecting in \(remaining)s · attempt \(attempt)"
-          : "Reconnecting… · attempt \(attempt)",
+          ? .serverReconnectCountdown(remaining, attempt)
+          : .serverReconnectNow(attempt),
       ) {
         PulsingDot(color: AppColors.Status.info)
       }

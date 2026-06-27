@@ -9,10 +9,12 @@ struct WelcomeStepBadge: View {
   let number: Int
 
   var body: some View {
-    Text("\(number)")
+    Text(number, format: .number)
       .font(.caption)
       .fontWeight(.semibold)
       .foregroundStyle(.white)
+      .lineLimit(1)
+      .minimumScaleFactor(0.5)
       .frame(width: 26, height: 26)
       .background(.brand)
       .clipShape(Circle())

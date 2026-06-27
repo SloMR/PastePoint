@@ -6,7 +6,7 @@
 import SwiftUI
 
 struct WelcomeStepList: View {
-  let steps: [String]
+  let steps: [LocalizedStringResource]
 
   var body: some View {
     VStack(spacing: 8) {
@@ -36,8 +36,8 @@ struct WelcomeStepList: View {
 #Preview {
   PreviewStage {
     WelcomeStepList(steps: [
-      "Invite others on the same network to join this room",
-      "Start the conversation by sending a message",
+      .inviteOthersPublic,
+      .startConversation,
     ])
     .padding()
   }
