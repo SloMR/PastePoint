@@ -40,12 +40,10 @@ export class ChatInputComponent implements OnDestroy {
   @Output() enterKey = new EventEmitter<EnterKeyEvent>();
   @Output() autoResize = new EventEmitter<void>();
   @Output() filesAttached = new EventEmitter<Event>();
-  @Output() filesDropped = new EventEmitter<File[]>();
 
   @ViewChild('messageTextarea', { static: false }) messageTextarea!: ElementRef;
   @ViewChild('fileInput', { static: false }) fileInput!: ElementRef<HTMLInputElement>;
 
-  protected isDragging = false;
   protected isEmojiPickerVisible = false;
   protected isHoveringOverPicker = false;
 
@@ -58,38 +56,6 @@ export class ChatInputComponent implements OnDestroy {
       clearTimeout(this.emojiPickerHideTimeout);
       this.emojiPickerHideTimeout = null;
     }
-  }
-
-  protected handleDragEnter(): void {
-    if (!this.isDragging) {
-      this.isDragging = true;
-    }
-  }
-
-  protected handleDragLeave(event: DragEvent): void {
-    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
-    const x = event.clientX;
-    const y = event.clientY;
-
-    if (x <= rect.left || x >= rect.right || y <= rect.top || y >= rect.bottom) {
-      this.isDragging = false;
-    }
-  }
-
-  protected handleDragOver(event: DragEvent): void {
-    event.preventDefault();
-    if (event.dataTransfer) {
-      event.dataTransfer.dropEffect = 'copy';
-    }
-  }
-
-  protected handleDrop(event: DragEvent): void {
-    event.preventDefault();
-    this.isDragging = false;
-    if (!event.dataTransfer?.files) return;
-    const files = Array.from(event.dataTransfer.files);
-    if (files.length === 0) return;
-    this.filesDropped.emit(files);
   }
 
   protected openEmojiPicker(): void {

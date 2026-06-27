@@ -512,7 +512,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
 
     const textarea = this.messageTextarea.nativeElement;
     const maxHeight = 120;
-    const minHeight = 40;
+    const minHeight = 24;
 
     textarea.style.height = 'auto';
     const newHeight = Math.min(Math.max(textarea.scrollHeight, minHeight), maxHeight);
@@ -1860,6 +1860,49 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   get isRTL(): boolean {
     if (!isPlatformBrowser(this.platformId)) return false;
     return document.dir === 'rtl' || getLanguage(this.currentLanguage)?.direction === 'rtl';
+  }
+
+  /**
+   * ==========================================================
+   * DRAG & DROP (whole chat view)
+   * Files dropped anywhere over the conversation area are sent.
+   * The overlay only shows when files (not text) are dragged.
+   * ==========================================================
+   */
+  protected isDraggingFiles = false;
+
+  protected onChatDragOver(event: DragEvent): void {
+    event.preventDefault();
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'copy';
+    }
+  }
+
+  protected onChatDragEnter(event: DragEvent): void {
+    if (event.dataTransfer && Array.from(event.dataTransfer.types).includes('Files')) {
+      this.isDraggingFiles = true;
+    }
+  }
+
+  protected onChatDragLeave(event: DragEvent): void {
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    if (
+      event.clientX <= rect.left ||
+      event.clientX >= rect.right ||
+      event.clientY <= rect.top ||
+      event.clientY >= rect.bottom
+    ) {
+      this.isDraggingFiles = false;
+    }
+  }
+
+  protected onChatDrop(event: DragEvent): void {
+    event.preventDefault();
+    this.isDraggingFiles = false;
+    if (!event.dataTransfer?.files) return;
+    const files = Array.from(event.dataTransfer.files);
+    if (files.length === 0) return;
+    void this.handleFilesDropped(files);
   }
 
   /**
