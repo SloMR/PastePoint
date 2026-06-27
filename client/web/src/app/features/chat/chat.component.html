@@ -117,6 +117,17 @@
     <div
       class="absolute inset-x-0 top-0 z-40 flex items-center h-14 px-4 md:px-8 bg-contentArea/10 backdrop-blur-md dark:bg-baseDark/10"
     >
+      <!-- logo (large only) -->
+      <img
+        [src]="isDarkMode ? '/icons/pastepoint-dark.svg' : '/icons/pastepoint-light.svg'"
+        alt="PastePoint Logo"
+        title="PastePoint Logo"
+        class="hidden h-7 w-auto md:block"
+        loading="lazy"
+        width="79"
+        height="28"
+      />
+
       <!-- room title -->
       <div
         class="pointer-events-none absolute inset-x-0 flex items-center justify-center gap-2 px-16"
