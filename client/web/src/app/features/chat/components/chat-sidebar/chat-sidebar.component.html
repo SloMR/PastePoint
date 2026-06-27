@@ -13,13 +13,9 @@
     <div class="relative flex w-full items-center px-3 py-2">
       <app-language-switcher
         [current]="currentLanguage"
-        [triggerClass]="
-          'flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-content transition-colors hover:bg-inputBackground dark:text-white dark:hover:bg-borderDark'
-        "
+        [triggerClass]="'flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-content transition-colors hover:bg-inputBackground dark:text-white dark:hover:bg-borderDark'"
         [iconClass]="'h-5 w-5'"
-        [menuClass]="
-          'absolute start-0 top-full mt-2 z-50 min-w-[11rem] max-w-[calc(100vw-1rem)] overflow-hidden rounded-lg border border-borderLight bg-pageBackground py-1 shadow-lg dark:border-borderDark dark:bg-surfaceDark'
-        "
+        [menuClass]="'absolute start-0 top-full mt-2 z-50 min-w-[11rem] max-w-[calc(100vw-1rem)] overflow-hidden rounded-lg border border-borderLight bg-pageBackground py-1 shadow-lg dark:border-borderDark dark:bg-surfaceDark'"
         (languageChange)="switchLanguage.emit($event)"
       />
       <span
@@ -33,7 +29,13 @@
         aria-label="Close"
         title="Close"
       >
-        <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+        <svg
+          class="h-5 w-5"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          viewBox="0 0 24 24"
+        >
           <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
         </svg>
       </button>
@@ -85,7 +87,9 @@
 
       <!-- MARK: - Rooms Section -->
       <div class="mt-8 flex w-full flex-col items-center justify-center">
-        <div class="flex w-full items-center justify-between px-4 py-1 text-content dark:text-white">
+        <div
+          class="flex w-full items-center justify-between px-4 py-1 text-content dark:text-white"
+        >
           <div class="flex items-center justify-center gap-2">
             <img
               [src]="isDarkMode ? '/icons/home-white.svg' : '/icons/home.svg'"
@@ -240,7 +244,9 @@
 
       <!-- MARK: - Members Section -->
       <div class="mt-8 flex w-full flex-col items-center justify-center">
-        <div class="flex w-full items-center justify-between px-4 py-1 text-content dark:text-white">
+        <div
+          class="flex w-full items-center justify-between px-4 py-1 text-content dark:text-white"
+        >
           <div class="flex items-center justify-center gap-2">
             <img
               [src]="isDarkMode ? '/icons/users-white.svg' : '/icons/users.svg'"
@@ -251,7 +257,9 @@
               width="16"
               height="16"
             />
-            <h2 class="text-sm font-expoArabicMedium dark:text-white">{{ 'MEMBERS' | translate }}</h2>
+            <h2 class="text-sm font-expoArabicMedium dark:text-white">
+              {{ 'MEMBERS' | translate }}
+            </h2>
           </div>
           <p class="text-[11px] font-expoArabicLight text-textMuted">
             {{ members.length }} {{ 'ONLINE_MEMBERS_COUNT' | translate }}
@@ -376,7 +384,9 @@
                     </div>
                   </div>
                   <div class="flex items-center justify-end gap-1">
-                    <span class="text-xs font-expoArabicLight text-textMuted dark:text-textVeryMuted">
+                    <span
+                      class="text-xs font-expoArabicLight text-textMuted dark:text-textVeryMuted"
+                    >
                       @if (upload.phase === 'finalizing') {
                         {{ 'FINALIZING_TRANSFER' | translate }}
                       } @else {
@@ -453,7 +463,9 @@
                     </div>
                   </div>
                   <div class="flex items-center justify-end gap-1">
-                    <span class="text-xs font-expoArabicLight text-textMuted dark:text-textVeryMuted">
+                    <span
+                      class="text-xs font-expoArabicLight text-textMuted dark:text-textVeryMuted"
+                    >
                       {{ progressLabel(download.progress) }}%
                     </span>
                     <button
@@ -520,25 +532,24 @@
 
     <!-- MARK: - Footer -->
     <div
-      class="flex w-full flex-col items-center gap-2 border-t px-4 py-4 dark:bg-baseDark dark:border-surfaceDark"
+      class="flex w-full flex-col items-center gap-3 border-t px-4 py-3 dark:bg-baseDark dark:border-surfaceDark"
     >
-      <!-- Social links -->
-      <div class="flex items-center gap-4">
+      <!-- Social links (desaturated, light up on hover) -->
+      <div class="flex items-center gap-5">
         <a
           href="https://www.linkedin.com/in/sulaiman-alromaih-845700202/"
           title="LinkedIn"
           target="_blank"
           rel="noopener noreferrer nofollow"
-          class="inline-flex items-center gap-2 hover:opacity-75"
+          class="opacity-60 grayscale transition hover:opacity-100 hover:grayscale-0"
         >
           <img
             src="/icons/linkedin.svg"
             alt="LinkedIn"
-            title="LinkedIn"
-            class="h-4 w-4"
+            class="h-[18px] w-[18px]"
             loading="lazy"
-            width="16"
-            height="16"
+            width="18"
+            height="18"
           />
         </a>
         <a
@@ -546,16 +557,15 @@
           title="GitHub"
           target="_blank"
           rel="noopener noreferrer nofollow"
-          class="inline-flex items-center gap-2 hover:opacity-75"
+          class="opacity-60 grayscale transition hover:opacity-100 hover:grayscale-0"
         >
           <img
             src="/icons/github.svg"
             alt="GitHub"
-            title="GitHub"
-            class="h-4 w-4"
+            class="h-[18px] w-[18px]"
             loading="lazy"
-            width="16"
-            height="16"
+            width="18"
+            height="18"
           />
         </a>
         <a
@@ -563,16 +573,15 @@
           title="X (Twitter)"
           target="_blank"
           rel="noopener noreferrer nofollow"
-          class="inline-flex items-center gap-2 hover:opacity-75"
+          class="opacity-60 grayscale transition hover:opacity-100 hover:grayscale-0"
         >
           <img
             src="/icons/x-icon.svg"
             alt="X (Twitter)"
-            title="X (Twitter)"
-            class="h-4 w-4"
+            class="h-[18px] w-[18px]"
             loading="lazy"
-            width="16"
-            height="16"
+            width="18"
+            height="18"
           />
         </a>
         <a
@@ -580,48 +589,36 @@
           title="Instagram"
           target="_blank"
           rel="noopener noreferrer nofollow"
-          class="inline-flex items-center gap-2 hover:opacity-75"
+          class="opacity-60 grayscale transition hover:opacity-100 hover:grayscale-0"
         >
           <img
             src="/icons/instagram-icon.svg"
             alt="Instagram"
-            title="Instagram"
-            class="h-4 w-4"
+            class="h-[18px] w-[18px]"
             loading="lazy"
-            width="16"
-            height="16"
+            width="18"
+            height="18"
           />
         </a>
       </div>
 
-      <!-- Privacy -->
-      <a
-        routerLink="/privacy"
-        title="Privacy and Terms"
-        rel="noopener noreferrer nofollow"
-        class="inline-flex items-center gap-2 text-brand dark:text-brandDark"
+      <!-- privacy · version · copyright -->
+      <div
+        class="flex flex-wrap items-center justify-center gap-x-1.5 gap-y-0.5 text-center text-[11px] font-expoArabicLight text-textMuted dark:text-textVeryMuted"
       >
-        <p class="text-xs font-expoArabicLight text-brand">
-          {{ 'PRIVACY_AND_TERMS' | translate }}
-        </p>
-        <img
-          src="/icons/privacy-and-terms.svg"
-          alt="Privacy and Terms"
+        <a
+          routerLink="/privacy"
           title="Privacy and Terms"
-          class="h-4 w-4"
-          loading="lazy"
-          width="16"
-          height="16"
-        />
-      </a>
-
-      <!-- Version + copyright -->
-      <p class="text-xs font-expoArabicLight text-content dark:text-textVeryMuted">
-        {{ 'VERSION' | translate }} {{ appVersion }}
-      </p>
-      <p class="text-center text-xs font-expoArabicLight text-content dark:text-textVeryMuted">
-        {{ 'COPYRIGHT_NOTICE' | translate }}
-      </p>
+          rel="noopener noreferrer nofollow"
+          class="text-brand transition-colors hover:underline dark:text-brandDark"
+        >
+          {{ 'PRIVACY_AND_TERMS' | translate }}
+        </a>
+        <span aria-hidden="true" class="opacity-50">·</span>
+        <span>{{ 'VERSION' | translate }} {{ appVersion }}</span>
+        <span aria-hidden="true" class="opacity-50">·</span>
+        <span>{{ 'COPYRIGHT_NOTICE' | translate }}</span>
+      </div>
     </div>
   </div>
 </aside>
