@@ -265,14 +265,14 @@
             {{ members.length }} {{ 'ONLINE_MEMBERS_COUNT' | translate }}
           </p>
         </div>
-        <div class="mt-2 w-full overflow-auto max-h-[200px] scrollbar">
+        <div class="mt-2 w-full">
           @for (member of members; track member) {
-            <div>
+            <div class="px-4 py-2">
               <div
-                class="flex w-full items-center justify-start gap-2 px-4 py-2 text-content dark:text-white"
+                class="flex w-full items-center justify-start gap-2 text-content dark:text-white"
               >
                 <div
-                  class="h-2.5 w-2.5 rounded-full transition-colors duration-300"
+                  class="h-2.5 w-2.5 shrink-0 rounded-full transition-colors duration-300"
                   [ngClass]="memberDotClass(member)"
                   [attr.title]="memberDotTitle(member)"
                 ></div>
@@ -304,205 +304,151 @@
                   </button>
                 </div>
               </div>
+
+              <!-- Per-member transfers -->
+              @if (uploadsForMember(member).length > 0 || downloadsForMember(member).length > 0) {
+                <div class="mt-2 flex flex-col gap-2 pl-[18px]">
+                  @for (upload of uploadsForMember(member); track upload) {
+                    <div>
+                      <div class="flex items-center gap-2">
+                        <svg
+                          class="h-3.5 w-3.5 shrink-0 text-textMuted dark:text-textVeryMuted"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M12 19V5M5 12l7-7 7 7"
+                          />
+                        </svg>
+                        <span
+                          class="flex-1 truncate text-xs font-expoArabicLight text-content dark:text-white"
+                          dir="auto"
+                          >{{ truncateFilename(upload.file.name) }}</span
+                        >
+                        <span
+                          class="shrink-0 text-[11px] font-expoArabicLight text-textMuted dark:text-textVeryMuted"
+                        >
+                          @if (upload.phase === 'finalizing') {
+                            {{ 'FINALIZING_TRANSFER' | translate }}
+                          } @else {
+                            {{ progressLabel(upload.progress) }}%
+                          }
+                        </span>
+                        <button
+                          (click)="
+                            $event.stopPropagation();
+                            $event.preventDefault();
+                            cancelUploadRequested.emit(upload)
+                          "
+                          class="shrink-0 rounded-md text-textMuted hover:text-danger dark:text-textVeryMuted dark:hover:text-danger"
+                          aria-label="Cancel upload"
+                          title="Cancel upload"
+                        >
+                          <svg
+                            class="h-3.5 w-3.5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M6 18L18 6M6 6l12 12"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                      <div
+                        class="mt-1 w-full rounded-full bg-textMuted/20 h-1 dark:bg-borderDark overflow-hidden"
+                      >
+                        <div
+                          class="h-full rounded-full bg-brand dark:bg-brandDark transition-[width] duration-75 ease-linear"
+                          [style.width]="getProgressBarWidth(upload.progress)"
+                          [style.max-width]="'100%'"
+                        ></div>
+                      </div>
+                    </div>
+                  }
+                  @for (download of downloadsForMember(member); track download) {
+                    <div>
+                      <div class="flex items-center gap-2">
+                        <svg
+                          class="h-3.5 w-3.5 shrink-0 text-textMuted dark:text-textVeryMuted"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M12 5v14M19 12l-7 7-7-7"
+                          />
+                        </svg>
+                        <span
+                          class="flex-1 truncate text-xs font-expoArabicLight text-content dark:text-white"
+                          dir="auto"
+                          >{{ truncateFilename(download.fileName) }}</span
+                        >
+                        <span
+                          class="shrink-0 text-[11px] font-expoArabicLight text-textMuted dark:text-textVeryMuted"
+                        >
+                          {{ progressLabel(download.progress) }}%
+                        </span>
+                        <button
+                          (click)="
+                            $event.stopPropagation();
+                            $event.preventDefault();
+                            cancelDownloadRequested.emit(download)
+                          "
+                          class="shrink-0 rounded-md text-textMuted hover:text-danger dark:text-textVeryMuted dark:hover:text-danger"
+                          aria-label="Cancel download"
+                          title="Cancel download"
+                        >
+                          <svg
+                            class="h-3.5 w-3.5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M6 18L18 6M6 6l12 12"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                      <div
+                        class="mt-1 w-full rounded-full bg-textMuted/20 h-1 dark:bg-borderDark overflow-hidden"
+                      >
+                        <div
+                          class="h-full rounded-full bg-brand dark:bg-brandDark transition-[width] duration-75 ease-linear"
+                          [style.width]="getProgressBarWidth(download.progress)"
+                          [style.max-width]="'100%'"
+                        ></div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
             </div>
           }
           @if (members.length === 0) {
-            <div>
-              <div
-                class="flex w-full items-center justify-start gap-2 px-4 py-2 text-content dark:text-white"
-              >
-                <p class="truncate text-sm font-expoArabicLight">
-                  {{ 'NO_MEMBERS_ONLINE' | translate }}
-                </p>
-              </div>
+            <div class="px-4 py-2 text-content dark:text-white">
+              <p class="truncate text-sm font-expoArabicLight">
+                {{ 'NO_MEMBERS_ONLINE' | translate }}
+              </p>
             </div>
           }
         </div>
       </div>
-
-      <!-- MARK: - File Transfer Section -->
-      @if (activeUploads.length > 0 || activeDownloads.length > 0) {
-        <div class="mt-8 flex w-full flex-col items-center justify-center px-4">
-          <!-- Header -->
-          <div class="flex w-full items-center justify-between py-1 text-content dark:text-white">
-            <div class="flex items-center justify-center gap-2">
-              <img
-                [src]="isDarkMode ? '/icons/arrows-up-down-light.svg' : '/icons/arrows-up-down.svg'"
-                alt="Active Transfers"
-                title="Active Transfers"
-                class="opacity-80"
-                loading="lazy"
-                width="16"
-                height="16"
-              />
-              <h2 class="text-sm font-expoArabicMedium">
-                {{ 'FILE_TRANSFER' | translate }}
-              </h2>
-            </div>
-            <p class="text-[11px] font-expoArabicLight text-textMuted">
-              {{ activeUploads.length + activeDownloads.length }}
-              {{ 'ACTIVE_TRANSFERS_COUNT' | translate }}
-            </p>
-          </div>
-          <!-- Scrollable Transfers -->
-          <div class="mt-3 w-full overflow-auto max-h-[200px] scrollbar space-y-3">
-            <!-- Uploads -->
-            @for (upload of activeUploads; track upload) {
-              <div class="text-sm">
-                <div class="mb-1 flex items-center justify-between">
-                  <div class="flex items-start justify-start gap-2 min-w-0">
-                    <img
-                      [src]="isDarkMode ? '/icons/upload-light.svg' : '/icons/upload.svg'"
-                      alt="Uploading"
-                      title="Uploading"
-                      class="h-4 w-4"
-                      loading="lazy"
-                      width="16"
-                      height="16"
-                    />
-                    <div class="flex flex-col min-w-0">
-                      <span
-                        class="text-xs font-expoArabicLight text-content dark:text-white break-words"
-                        dir="auto"
-                      >
-                        {{ truncateFilename(upload.file.name) }}
-                      </span>
-                      <div
-                        class="mt-0.5 flex items-center gap-1 text-[11px] text-textMuted dark:text-textVeryMuted"
-                      >
-                        <img
-                          [src]="isDarkMode ? '/icons/users-white.svg' : '/icons/users.svg'"
-                          alt="User"
-                          title="User"
-                          class="h-3.5 w-3.5 opacity-80"
-                          loading="lazy"
-                          width="14"
-                          height="14"
-                        />
-                        <span class="break-words" dir="auto">{{ upload.targetUser }}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="flex items-center justify-end gap-1">
-                    <span
-                      class="text-xs font-expoArabicLight text-textMuted dark:text-textVeryMuted"
-                    >
-                      @if (upload.phase === 'finalizing') {
-                        {{ 'FINALIZING_TRANSFER' | translate }}
-                      } @else {
-                        {{ progressLabel(upload.progress) }}%
-                      }
-                    </span>
-                    <button
-                      (click)="
-                        $event.stopPropagation();
-                        $event.preventDefault();
-                        cancelUploadRequested.emit(upload)
-                      "
-                      class="rounded-md text-textMuted hover:text-danger dark:text-textVeryMuted dark:hover:text-danger"
-                      aria-label="Cancel upload"
-                      title="Cancel upload"
-                    >
-                      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M6 18L18 6M6 6l12 12"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-                <div
-                  class="w-full rounded-full bg-textMuted/20 h-1.5 dark:bg-borderDark overflow-hidden"
-                >
-                  <div
-                    class="h-full rounded-full bg-brand dark:bg-brandDark transition-[width] duration-75 ease-linear"
-                    [style.width]="getProgressBarWidth(upload.progress)"
-                    [style.max-width]="'100%'"
-                  ></div>
-                </div>
-              </div>
-            }
-            <!-- Downloads -->
-            @for (download of activeDownloads; track download) {
-              <div class="text-sm">
-                <div class="mb-1 flex items-center justify-between">
-                  <div class="flex items-start justify-start gap-2 min-w-0">
-                    <img
-                      [src]="isDarkMode ? '/icons/download-light.svg' : '/icons/download.svg'"
-                      alt="Downloading"
-                      title="Downloading"
-                      class="h-4 w-4"
-                      loading="lazy"
-                      width="16"
-                      height="16"
-                    />
-                    <div class="flex flex-col min-w-0">
-                      <span
-                        class="text-xs font-expoArabicLight text-content dark:text-white break-words"
-                        dir="auto"
-                      >
-                        {{ truncateFilename(download.fileName) }}
-                      </span>
-                      <div
-                        class="mt-0.5 flex items-center gap-1 text-[11px] text-textMuted dark:text-textVeryMuted"
-                      >
-                        <img
-                          [src]="isDarkMode ? '/icons/users-white.svg' : '/icons/users.svg'"
-                          alt="User"
-                          title="User"
-                          class="h-3.5 w-3.5 opacity-80"
-                          loading="lazy"
-                          width="14"
-                          height="14"
-                        />
-                        <span class="break-words" dir="auto">{{ download.fromUser }}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="flex items-center justify-end gap-1">
-                    <span
-                      class="text-xs font-expoArabicLight text-textMuted dark:text-textVeryMuted"
-                    >
-                      {{ progressLabel(download.progress) }}%
-                    </span>
-                    <button
-                      (click)="
-                        $event.stopPropagation();
-                        $event.preventDefault();
-                        cancelDownloadRequested.emit(download)
-                      "
-                      class="rounded-md text-textMuted hover:text-danger dark:text-textVeryMuted dark:hover:text-danger"
-                      aria-label="Cancel download"
-                      title="Cancel download"
-                    >
-                      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M6 18L18 6M6 6l12 12"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-                <div
-                  class="w-full rounded-full bg-textMuted/20 h-1.5 dark:bg-borderDark overflow-hidden"
-                >
-                  <div
-                    class="h-full rounded-full bg-brand dark:bg-brandDark transition-[width] duration-75 ease-linear"
-                    [style.width]="getProgressBarWidth(download.progress)"
-                    [style.max-width]="'100%'"
-                  ></div>
-                </div>
-              </div>
-            }
-          </div>
-        </div>
-      }
     </div>
 
     <!-- MARK: - Exit Button -->

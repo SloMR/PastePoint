@@ -48,6 +48,14 @@ export class ChatSidebarComponent {
     return this.memberConnectionStatus.get(member) ?? false;
   }
 
+  protected uploadsForMember(member: string): FileUpload[] {
+    return this.activeUploads.filter((upload) => upload.targetUser === member);
+  }
+
+  protected downloadsForMember(member: string): FileDownload[] {
+    return this.activeDownloads.filter((download) => download.fromUser === member);
+  }
+
   protected memberDotClass(member: string): Record<string, boolean> {
     const state = this.memberConnectionState.get(member) ?? 'disconnected';
     return {
