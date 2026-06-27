@@ -8,73 +8,51 @@ import SwiftUI
 struct SettingsFooterView: View {
   @Binding var privacyURLToShow: IdentifiableURL?
 
+  private func socialIcon(_ name: String) -> some View {
+    Image(name)
+      .renderingMode(.template)
+      .resizable()
+      .scaledToFit()
+      .frame(width: 16, height: 16)
+      .foregroundStyle(.textSecondary)
+  }
+
   var body: some View {
-    VStack(spacing: 0) {
-      HStack(alignment: .center, spacing: 6) {
-        Image("linkedin")
-          .renderingMode(.template)
-          .resizable()
-          .scaledToFit()
-          .frame(width: 16, height: 16)
-          .padding(.trailing, 5)
-          .foregroundStyle(.brand)
-
-        Image("github")
-          .renderingMode(.template)
-          .resizable()
-          .scaledToFit()
-          .frame(width: 16, height: 16)
-          .padding(.trailing, 5)
-          .foregroundStyle(.brand)
-
-        Image("x")
-          .renderingMode(.template)
-          .resizable()
-          .scaledToFit()
-          .frame(width: 16, height: 16)
-          .padding(.trailing, 5)
-          .foregroundStyle(.brand)
-
-        Image("instagram")
-          .renderingMode(.template)
-          .resizable()
-          .scaledToFit()
-          .frame(width: 16, height: 16)
-          .padding(.trailing, 5)
-          .foregroundStyle(.brand)
+    VStack(spacing: 10) {
+      // Social links
+      HStack(alignment: .center, spacing: 20) {
+        socialIcon("linkedin")
+        socialIcon("github")
+        socialIcon("x")
+        socialIcon("instagram")
       }
 
-      Button {
-        if let url = URL(string: AppEnvironment.legalUrl) {
-          privacyURLToShow = IdentifiableURL(url: url)
-        }
-      } label: {
-        HStack(spacing: 2) {
+      // privacy · version
+      HStack(spacing: 6) {
+        Button {
+          if let url = URL(string: AppEnvironment.legalUrl) {
+            privacyURLToShow = IdentifiableURL(url: url)
+          }
+        } label: {
           Text(.privacyAndTerms)
             .font(.caption2)
             .foregroundColor(.brand)
-
-          Image("privacy.and.terms")
-            .renderingMode(.template)
-            .resizable()
-            .scaledToFit()
-            .frame(width: 12, height: 12)
-            .foregroundStyle(.brand)
         }
-        .fontWeight(.bold)
-      }
-      .buttonStyle(.plain)
-      .padding(.vertical, 6)
+        .buttonStyle(.plain)
 
-      Text(.appVersion(Bundle.main.appVersion))
-        .font(.caption2)
-        .foregroundColor(.textPrimary)
-        .padding(.vertical, 4)
+        Text(verbatim: "·")
+          .font(.caption2)
+          .foregroundColor(.textSecondary)
+
+        Text(.appVersion(Bundle.main.appVersion))
+          .font(.caption2)
+          .foregroundColor(.textSecondary)
+      }
 
       Text(.copyrightNotice)
         .font(.caption2)
-        .foregroundColor(.textPrimary)
-        .padding(.vertical, 4)
+        .foregroundColor(.textSecondary)
+        .multilineTextAlignment(.center)
     }
     .sheet(item: $privacyURLToShow) { identifiableURL in
       SafariView(url: identifiableURL.url)
