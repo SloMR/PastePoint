@@ -41,7 +41,7 @@ import {
   THEME_PREFERENCE_KEY,
   PREVIEW_MIME_TYPE,
 } from '../../utils/constants';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { SessionService } from '../../core/services/session/session.service';
 import packageJson from '../../../../package.json';
 import { NGXLogger } from 'ngx-logger';
@@ -53,6 +53,7 @@ import { Router } from '@angular/router';
 import { HotToastService } from '@ngxpert/hot-toast';
 import { PreviewService } from '../../core/services/ui/preview.service';
 import { FileSizePipe } from '../../utils/file-size.pipe';
+import { truncateFilename as truncateFilenameUtil } from '../../utils/filename.util';
 import { JoinSessionPopupComponent } from './components/popups/join-session-popup/join-session-popup.component';
 import { CreateRoomPopupComponent } from './components/popups/create-room-popup/create-room-popup.component';
 import { EndSessionPopupComponent } from './components/popups/end-session-popup/end-session-popup.component';
@@ -74,6 +75,7 @@ import { ChatSidebarComponent } from './components/chat-sidebar/chat-sidebar.com
   imports: [
     FormsModule,
     TranslateModule,
+    RouterLink,
     JoinSessionPopupComponent,
     CreateRoomPopupComponent,
     EndSessionPopupComponent,
@@ -1069,25 +1071,8 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
    * Truncates a filename while preserving the file extension
    * ==========================================================
    */
-  protected truncateFilename(filename: string, maxLength: number = 30): string {
-    if (filename.length <= maxLength) {
-      return filename;
-    }
-
-    const lastDotIndex = filename.lastIndexOf('.');
-    if (lastDotIndex === -1) {
-      return filename.slice(0, maxLength) + '...';
-    }
-
-    const extension = filename.slice(lastDotIndex);
-    const baseName = filename.slice(0, lastDotIndex);
-    const availableLength = maxLength - extension.length - 3;
-
-    if (availableLength <= 0) {
-      return filename.slice(0, maxLength) + '...';
-    }
-
-    return baseName.slice(0, availableLength) + '...' + extension;
+  protected truncateFilename(filename: string, maxLength = 30): string {
+    return truncateFilenameUtil(filename, maxLength);
   }
 
   /**

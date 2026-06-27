@@ -15,6 +15,7 @@ import Autolinker from 'autolinker';
 
 import { ChatMessage, ChatMessageType, FileTransferStatus } from '../../../../utils/constants';
 import { FileSizePipe } from '../../../../utils/file-size.pipe';
+import { truncateFilename as truncateFilenameUtil } from '../../../../utils/filename.util';
 
 @Component({
   selector: 'app-chat-messages',
@@ -29,6 +30,7 @@ export class ChatMessagesComponent {
   @Input() isRTL = false;
   @Input() isDarkMode = false;
   @Input() currentUser: string | null = null;
+  @Input() clearTopInset = true;
 
   @Output() acceptFile = new EventEmitter<ChatMessage>();
   @Output() declineFile = new EventEmitter<ChatMessage>();
@@ -94,24 +96,7 @@ export class ChatMessagesComponent {
     return sanitizedHtml || '';
   }
 
-  protected truncateFilename(filename: string, maxLength: number = 30): string {
-    if (filename.length <= maxLength) {
-      return filename;
-    }
-
-    const lastDotIndex = filename.lastIndexOf('.');
-    if (lastDotIndex === -1) {
-      return filename.slice(0, maxLength) + '...';
-    }
-
-    const extension = filename.slice(lastDotIndex);
-    const baseName = filename.slice(0, lastDotIndex);
-    const availableLength = maxLength - extension.length - 3;
-
-    if (availableLength <= 0) {
-      return filename.slice(0, maxLength) + '...';
-    }
-
-    return baseName.slice(0, availableLength) + '...' + extension;
+  protected truncateFilename(filename: string, maxLength = 30): string {
+    return truncateFilenameUtil(filename, maxLength);
   }
 }

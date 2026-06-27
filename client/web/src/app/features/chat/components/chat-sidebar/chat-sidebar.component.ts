@@ -5,6 +5,7 @@ import { TranslateModule } from '@ngx-translate/core';
 
 import { FileDownload, FileUpload, MemberConnectionState } from '../../../../utils/constants';
 import { LanguageCode } from '../../../../core/i18n/languages';
+import { truncateFilename as truncateFilenameUtil } from '../../../../utils/filename.util';
 import { LanguageSwitcherComponent } from '../../../../core/components/language-switcher/language-switcher.component';
 
 @Component({
@@ -92,24 +93,7 @@ export class ChatSidebarComponent {
     return `${safeProgress}%`;
   }
 
-  protected truncateFilename(filename: string, maxLength: number = 30): string {
-    if (filename.length <= maxLength) {
-      return filename;
-    }
-
-    const lastDotIndex = filename.lastIndexOf('.');
-    if (lastDotIndex === -1) {
-      return filename.slice(0, maxLength) + '...';
-    }
-
-    const extension = filename.slice(lastDotIndex);
-    const baseName = filename.slice(0, lastDotIndex);
-    const availableLength = maxLength - extension.length - 3;
-
-    if (availableLength <= 0) {
-      return filename.slice(0, maxLength) + '...';
-    }
-
-    return baseName.slice(0, availableLength) + '...' + extension;
+  protected truncateFilename(filename: string, maxLength = 30): string {
+    return truncateFilenameUtil(filename, maxLength);
   }
 }

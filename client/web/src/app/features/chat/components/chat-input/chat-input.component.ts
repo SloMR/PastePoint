@@ -15,6 +15,7 @@ import { FormsModule, NgForm } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import type { EmojiClickEvent } from 'emoji-picker-element/shared';
 import { FileSizePipe } from '../../../../utils/file-size.pipe';
+import { middleTruncateFilename } from '../../../../utils/filename.util';
 
 export interface EnterKeyEvent {
   event: KeyboardEvent;
@@ -67,15 +68,7 @@ export class ChatInputComponent implements OnDestroy {
   }
 
   protected stagedDisplayName(name: string, maxLength = 22): string {
-    if (name.length <= maxLength) return name;
-
-    const dot = name.lastIndexOf('.');
-    const ext = dot > 0 ? name.slice(dot) : '';
-    const base = dot > 0 ? name.slice(0, dot) : name;
-    const keep = Math.max(maxLength - ext.length - 1, 4);
-    const head = Math.ceil(keep / 2);
-    const tail = Math.floor(keep / 2);
-    return `${base.slice(0, head)}…${base.slice(base.length - tail)}${ext}`;
+    return middleTruncateFilename(name, maxLength);
   }
 
   protected openEmojiPicker(): void {

@@ -38,7 +38,7 @@
   }
 
   <!-- MARK: - Main Content Area -->
-  <div class="relative flex-1 flex flex-col min-w-0 dark:bg-baseDark">
+  <div class="relative flex-1 flex flex-col min-w-0 dark:bg-baseDark" style="--chat-bar-h: 3.5rem">
     <!-- MARK: - Chat Region (messages scroll behind the frosted bar) -->
     <div
       class="relative flex flex-1 flex-col overflow-hidden px-4 pb-6 bg-contentArea dark:bg-baseDark md:px-8"
@@ -71,7 +71,22 @@
         </div>
       }
 
+      <!-- MARK: - Banners (in-flow, below the bar; push messages instead of covering them) -->
+      @if (isReconnectingToServer || showConnectionWarning) {
+        <div class="flex flex-col gap-2 pt-[calc(var(--chat-bar-h)+0.5rem)]">
+          <app-server-reconnect />
+          @if (!isReconnectingToServer) {
+            <app-connection-warning
+              [show]="showConnectionWarning"
+              (refreshed)="refreshPage()"
+              (dismissed)="dismissConnectionWarning()"
+            />
+          }
+        </div>
+      }
+
       <app-chat-messages
+        [clearTopInset]="!(isReconnectingToServer || showConnectionWarning)"
         [messages]="messages"
         [sessionCode]="SessionCode"
         [isRTL]="isRTL"
@@ -97,38 +112,22 @@
       />
     </div>
 
-    <!-- MARK: - Banners (overlay just below the frosted bar) -->
-    <div
-      class="pointer-events-none absolute inset-x-0 top-14 z-30 flex flex-col gap-2 px-4 md:px-8"
-    >
-      <div class="pointer-events-auto">
-        <app-server-reconnect />
-      </div>
-      @if (!isReconnectingToServer) {
-        <div class="pointer-events-auto">
-          <app-connection-warning
-            [show]="showConnectionWarning"
-            (refreshed)="refreshPage()"
-            (dismissed)="dismissConnectionWarning()"
-          />
-        </div>
-      }
-    </div>
-
     <!-- MARK: - Frosted Top Bar -->
     <div
-      class="absolute inset-x-0 top-0 z-40 flex items-center h-14 px-4 md:px-8 bg-contentArea/10 backdrop-blur-md dark:bg-baseDark/10"
+      class="absolute inset-x-0 top-0 z-40 flex items-center h-[var(--chat-bar-h)] px-4 md:px-8 bg-contentArea/10 backdrop-blur-md dark:bg-baseDark/10"
     >
       <!-- logo (large only) -->
-      <img
-        [src]="isDarkMode ? '/icons/pastepoint-dark.svg' : '/icons/pastepoint-light.svg'"
-        alt="PastePoint Logo"
-        title="PastePoint Logo"
-        class="hidden h-7 w-auto md:block"
-        loading="lazy"
-        width="79"
-        height="28"
-      />
+      <a routerLink="/" [replaceUrl]="true" title="Home" class="hidden md:block">
+        <img
+          [src]="isDarkMode ? '/icons/pastepoint-dark.svg' : '/icons/pastepoint-light.svg'"
+          alt="PastePoint Logo"
+          title="PastePoint Logo"
+          class="h-7 w-auto cursor-pointer"
+          loading="lazy"
+          width="79"
+          height="28"
+        />
+      </a>
 
       <!-- room title -->
       <div
