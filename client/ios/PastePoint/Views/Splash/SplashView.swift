@@ -103,27 +103,33 @@ struct SplashView: View {
 
   private func runAnimation() async {
     if reduceMotion {
-      try? await Task.sleep(for: .milliseconds(650))
+      guard await pause(650) else { return }
       onFinished()
       return
     }
 
-    try? await Task.sleep(for: .milliseconds(220))
+    guard await pause(220) else { return }
 
     withAnimation(.easeOut(duration: 0.18)) { nodesIn = true }
-    try? await Task.sleep(for: .milliseconds(150))
+    guard await pause(150) else { return }
     withAnimation(.easeInOut(duration: 0.4)) { edgeProgress = 1 }
 
-    try? await Task.sleep(for: .milliseconds(220))
+    guard await pause(220) else { return }
     packetVisible = true
     for hop in 1...nodeCount {
       withAnimation(.easeInOut(duration: 0.15)) { packetIndex = hop % nodeCount }
-      try? await Task.sleep(for: .milliseconds(150))
+      guard await pause(150) else { return }
     }
 
     withAnimation(.easeIn(duration: 0.38)) { logoScale = 1.12 }
-    try? await Task.sleep(for: .milliseconds(120))
+    guard await pause(120) else { return }
     onFinished()
+  }
+
+  /// Sleeps for `ms` milliseconds, returning `false` if the task was cancelled
+  /// (e.g. the view went away) so the caller bails instead of finishing.
+  private func pause(_ ms: Int) async -> Bool {
+    (try? await Task.sleep(for: .milliseconds(ms))) != nil
   }
 }
 
