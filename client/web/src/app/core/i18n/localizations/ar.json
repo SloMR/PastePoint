@@ -14,6 +14,7 @@
   "DECLINE": "رفض",
   "CANCEL": "إلغاء",
   "ATTACH_FILES": "إرفاق ملفات",
+  "REMOVE_FILE": "إزالة الملف",
   "NO_PEERS_CONNECTED": "لا يوجد مستخدمون متصلون",
   "SEND_FILE_TO_USER": "إرسال ملف للمستخدم",
   "NOT_CONNECTED_TO_USER": "غير متصل بهذا المستخدم",
@@ -183,6 +184,7 @@
   "CONNECTION_TIMEOUT_WITH_USER": "انتهت مهلة الاتصال مع المستخدم {{userName}}. يرجى التحقق من اتصالك بالإنترنت.",
   "FAILED_TO_SEND_MESSAGE": "فشل إرسال الرسالة إلى {{member}}.",
   "FAILED_TO_SEND_FILE_MESSAGE": "فشل إرسال الملف إلى {{member}}.",
+  "FAILED_TO_SEND_FILES": "تعذّر إرسال الملفات.",
   "CHUNK_INTEGRITY_ERROR": "فشل نقل الملف: تم اكتشاف تلف في البيانات.",
   "FILE_INCOMPLETE_ERROR": "نقل الملف غير مكتمل: {{count}} جزء مفقود."
 }

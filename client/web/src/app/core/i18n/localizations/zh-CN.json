@@ -14,6 +14,7 @@
   "DECLINE": "拒绝",
   "CANCEL": "取消",
   "ATTACH_FILES": "附加文件",
+  "REMOVE_FILE": "移除文件",
   "NO_PEERS_CONNECTED": "没有已连接的用户",
   "SEND_FILE_TO_USER": "发送文件给用户",
   "NOT_CONNECTED_TO_USER": "未连接到此用户",
@@ -183,6 +184,7 @@
   "CONNECTION_TIMEOUT_WITH_USER": "与 {{userName}} 的连接不稳定,请检查您的网络连接。",
   "FAILED_TO_SEND_MESSAGE": "无法向 {{member}} 发送消息。",
   "FAILED_TO_SEND_FILE_MESSAGE": "无法向 {{member}} 发送文件。",
+  "FAILED_TO_SEND_FILES": "发送文件失败。",
   "CHUNK_INTEGRITY_ERROR": "文件传输失败:检测到数据损坏。",
   "FILE_INCOMPLETE_ERROR": "文件传输不完整:缺少 {{count}} 个数据块。"
 }

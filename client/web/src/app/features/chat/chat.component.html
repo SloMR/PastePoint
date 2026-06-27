@@ -88,10 +88,12 @@
         [isDarkMode]="isDarkMode"
         [hasNoConnectedPeers]="hasNoConnectedPeers"
         [isSendDisabled]="isSendDisabled"
+        [stagedFiles]="stagedFiles"
         (messageSubmit)="sendMessage($event)"
         (enterKey)="onEnterKey($event.event, $event.form)"
         (autoResize)="autoResizeTextarea()"
-        (filesAttached)="sendAttachments($event)"
+        (filesAttached)="onFilesSelected($event)"
+        (removeStagedFile)="removeStagedFile($event)"
       />
     </div>
 

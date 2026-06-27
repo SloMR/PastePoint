@@ -2,6 +2,28 @@
   display: contents;
 }
 
+/* Staged-attachment chip row — scrolls horizontally with no visible scrollbar (mirrors iOS). */
+.staged-scroll {
+  scrollbar-width: none; /* Firefox */
+}
+.staged-scroll::-webkit-scrollbar {
+  display: none; /* Chrome / Safari */
+}
+
+/* Staged-attachment chip icon — recolored to the brand tint (mirrors iOS). */
+.staged-file-icon {
+  display: inline-block;
+  width: 0.875rem;
+  height: 0.875rem;
+  background-color: #3c54f0; /* brand */
+  -webkit-mask: url('/icons/file.svg') no-repeat center / contain;
+  mask: url('/icons/file.svg') no-repeat center / contain;
+}
+
+:host-context(.dark) .staged-file-icon {
+  background-color: #6366f1; /* brandDark */
+}
+
 /* emoji-picker-element — sized and themed to match the app */
 emoji-picker {
   width: 100%;

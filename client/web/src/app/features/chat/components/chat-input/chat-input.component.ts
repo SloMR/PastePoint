@@ -14,15 +14,21 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import type { EmojiClickEvent } from 'emoji-picker-element/shared';
+import { FileSizePipe } from '../../../../utils/file-size.pipe';
 
 export interface EnterKeyEvent {
   event: KeyboardEvent;
   form: NgForm;
 }
 
+export interface StagedAttachment {
+  id: string;
+  file: File;
+}
+
 @Component({
   selector: 'app-chat-input',
-  imports: [CommonModule, FormsModule, TranslateModule],
+  imports: [CommonModule, FormsModule, TranslateModule, FileSizePipe],
   templateUrl: './chat-input.component.html',
   styleUrl: './chat-input.component.css',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -33,6 +39,7 @@ export class ChatInputComponent implements OnDestroy {
   @Input() isDarkMode = false;
   @Input() hasNoConnectedPeers = false;
   @Input() isSendDisabled = false;
+  @Input() stagedFiles: StagedAttachment[] = [];
 
   @Output() messageChange = new EventEmitter<string>();
 
@@ -40,6 +47,7 @@ export class ChatInputComponent implements OnDestroy {
   @Output() enterKey = new EventEmitter<EnterKeyEvent>();
   @Output() autoResize = new EventEmitter<void>();
   @Output() filesAttached = new EventEmitter<Event>();
+  @Output() removeStagedFile = new EventEmitter<string>();
 
   @ViewChild('messageTextarea', { static: false }) messageTextarea!: ElementRef;
   @ViewChild('fileInput', { static: false }) fileInput!: ElementRef<HTMLInputElement>;
@@ -56,6 +64,18 @@ export class ChatInputComponent implements OnDestroy {
       clearTimeout(this.emojiPickerHideTimeout);
       this.emojiPickerHideTimeout = null;
     }
+  }
+
+  protected stagedDisplayName(name: string, maxLength = 22): string {
+    if (name.length <= maxLength) return name;
+
+    const dot = name.lastIndexOf('.');
+    const ext = dot > 0 ? name.slice(dot) : '';
+    const base = dot > 0 ? name.slice(0, dot) : name;
+    const keep = Math.max(maxLength - ext.length - 1, 4);
+    const head = Math.ceil(keep / 2);
+    const tail = Math.floor(keep / 2);
+    return `${base.slice(0, head)}…${base.slice(base.length - tail)}${ext}`;
   }
 
   protected openEmojiPicker(): void {
