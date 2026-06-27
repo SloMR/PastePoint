@@ -1,13 +1,15 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { FileDownload, FileUpload, MemberConnectionState } from '../../../../utils/constants';
+import { LanguageCode } from '../../../../core/i18n/languages';
+import { LanguageSwitcherComponent } from '../../../../core/components/language-switcher/language-switcher.component';
 
 @Component({
   selector: 'app-chat-sidebar',
-  imports: [CommonModule, NgOptimizedImage, RouterLink, TranslateModule],
+  imports: [CommonModule, RouterLink, TranslateModule, LanguageSwitcherComponent],
   templateUrl: './chat-sidebar.component.html',
   styleUrl: './chat-sidebar.component.css',
 })
@@ -26,8 +28,10 @@ export class ChatSidebarComponent {
   @Input() skipDrawerAnim = false;
   @Input() currentUser: string | null = null;
   @Input() appVersion = '';
+  @Input() currentLanguage: LanguageCode = 'en';
 
   @Output() isMenuOpenChange = new EventEmitter<boolean>();
+  @Output() switchLanguage = new EventEmitter<LanguageCode>();
 
   @Output() joinRoomRequested = new EventEmitter<string>();
   @Output() createRoomRequested = new EventEmitter<void>();

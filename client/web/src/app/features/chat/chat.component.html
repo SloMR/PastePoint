@@ -15,6 +15,8 @@
     [skipDrawerAnim]="skipDrawerAnim"
     [currentUser]="userService.user"
     [appVersion]="appVersion"
+    [currentLanguage]="currentLanguage"
+    (switchLanguage)="switchLanguage($event)"
     (joinRoomRequested)="joinRoom($event)"
     (createRoomRequested)="openCreateRoomPopup()"
     (copySessionCodeRequested)="copySessionCode()"
@@ -27,120 +29,19 @@
     (cancelDownloadRequested)="cancelDownload($event)"
   />
 
-  <!-- MARK: - Mobile Menu Overlay -->
+  <!-- MARK: - Settings Panel Backdrop (small screens only) -->
   @if (isMenuOpen) {
     <div
-      class="fixed inset-0 bg-black/30 z-[9999] dark:bg-white/30 md:hidden"
+      class="fixed inset-0 bg-black/40 z-[9999] backdrop-blur-[1px] md:hidden"
       (click)="isMenuOpen = false"
     ></div>
   }
 
   <!-- MARK: - Main Content Area -->
-  <div class="flex-1 flex flex-col w-full md:max-w-[calc(100%-286px)] dark:bg-baseDark">
-    <!-- MARK: - Header -->
+  <div class="relative flex-1 flex flex-col min-w-0 dark:bg-baseDark">
+    <!-- MARK: - Chat Region (messages scroll behind the frosted bar) -->
     <div
-      class="flex w-full items-center justify-between border-b px-4 h-[88px] border-borderLight dark:border-b-surfaceDark md:px-8 sticky top-0 z-50 bg-contentArea dark:bg-baseDark"
-    >
-      <div class="flex w-full items-center justify-start py-8 md:hidden">
-        <a routerLink="/" title="Home">
-          <img
-            [ngSrc]="isDarkMode ? '/icons/pastepoint-dark.svg' : '/icons/pastepoint-light.svg'"
-            alt="PastePoint Logo"
-            title="PastePoint Logo"
-            class="h-8 w-auto cursor-pointer"
-            width="91"
-            height="32"
-            priority
-          />
-        </a>
-      </div>
-      <div class="flex items-center gap-2">
-        <div class="flex flex-row-reverse items-center gap-2 md:flex-row">
-          <!-- theme toggler -->
-          <div
-            (click)="toggleTheme()"
-            class="flex cursor-pointer items-center justify-center gap-4 rounded-lg border text-black w-[44px] h-[44px] border-borderButton dark:bg-surfaceDark dark:border-borderDark md:w-[56px] md:h-[56px]"
-          >
-            <button
-              [attr.aria-label]="isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'"
-              [attr.title]="isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'"
-            >
-              <img
-                [src]="isDarkMode ? '/icons/brightness.svg' : '/icons/moon.svg'"
-                alt="Theme"
-                title="Theme"
-                class="h-5 w-5"
-                loading="lazy"
-                width="20"
-                height="20"
-              />
-            </button>
-          </div>
-
-          <!-- language switcher -->
-          <app-language-switcher
-            [current]="currentLanguage"
-            (languageChange)="switchLanguage($event)"
-          />
-        </div>
-        <!-- Burger Menu Button -->
-        <div
-          (click)="isMenuOpen = !isMenuOpen"
-          class="flex cursor-pointer items-center justify-center gap-4 rounded-lg border text-black w-[44px] h-[44px] border-borderButton dark:bg-surfaceDark dark:border-borderDark dark:text-white md:w-[56px] md:h-[56px] md:hidden"
-        >
-          <button
-            [attr.aria-label]="isMenuOpen ? 'Close menu' : 'Open menu'"
-            [attr.aria-expanded]="isMenuOpen"
-            [attr.title]="isMenuOpen ? 'Close menu' : 'Open menu'"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="21"
-              height="20"
-              viewBox="0 0 21 20"
-              fill="none"
-              class="h-5 w-5 text-black dark:text-white"
-            >
-              <g clip-path="url(#clip0_124_6043)">
-                <path d="M20.3848 8.75H0.384766V11.25H20.3848V8.75Z" fill="currentColor" />
-                <path d="M20.3848 2.91699H0.384766V5.41699H20.3848V2.91699Z" fill="currentColor" />
-                <path d="M20.3848 14.583H0.384766V17.083H20.3848V14.583Z" fill="currentColor" />
-              </g>
-              <defs>
-                <clipPath id="clip0_124_6043">
-                  <rect width="20" height="20" fill="white" transform="translate(0.384766)" />
-                </clipPath>
-              </defs>
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      <!-- user info -->
-      <div class="hidden items-center gap-2 md:flex">
-        <p
-          class="text-base font-expoArabicMedium"
-          [class.text-content]="userService.user"
-          [class.dark:text-white]="userService.user"
-          [class.text-gray-400]="!userService.user"
-        >
-          {{ userService.user || 'Connecting…' }}
-        </p>
-        <img
-          src="/icons/Group.svg"
-          alt="User"
-          title="User"
-          class="h-10 w-10"
-          loading="lazy"
-          width="40"
-          height="40"
-        />
-      </div>
-    </div>
-
-    <!-- MARK: - Main Content -->
-    <div
-      class="relative flex-1 overflow-hidden px-4 py-6 bg-contentArea dark:bg-baseDark md:p-8"
+      class="relative flex flex-1 flex-col overflow-hidden px-4 pb-6 bg-contentArea dark:bg-baseDark md:px-8"
       (dragover)="onChatDragOver($event)"
       (dragenter)="onChatDragEnter($event)"
       (dragleave)="onChatDragLeave($event)"
@@ -169,181 +70,152 @@
           </div>
         </div>
       }
-      <div class="flex h-full w-full flex-col items-start justify-between">
-        <!-- MARK: - Room Name -->
-        @if (messages.length > 0) {
-          <div class="flex items-center justify-start gap-2 pb-4">
-            @if (SessionCode.length > 0) {
-              <img
-                [src]="isDarkMode ? '/icons/lock-white.svg' : '/icons/lock.svg'"
-                alt="Lock"
-                title="Lock"
-                class="h-5 w-5"
-              />
-            }
-            <h1
-              class="pt-1 text-2xl font-normal font-expoArabicMedium text-content dark:text-white"
-            >
-              {{
-                currentRoom == 'main'
-                  ? SessionCode.length > 0
-                    ? ('PRIVATE_ROOM' | translate)
-                    : ('PUBLIC_ROOM' | translate)
-                  : currentRoom
-              }}
-            </h1>
-          </div>
-        }
 
-        <!-- MARK: - Server Reconnect Banner -->
+      <app-chat-messages
+        [messages]="messages"
+        [sessionCode]="SessionCode"
+        [isRTL]="isRTL"
+        [isDarkMode]="isDarkMode"
+        [currentUser]="userService.user"
+        (acceptFile)="acceptIncomingFile($event)"
+        (declineFile)="declineIncomingFile($event)"
+      />
+
+      <!-- MARK: - Message Input -->
+      <app-chat-input
+        [(message)]="message"
+        [isRTL]="isRTL"
+        [isDarkMode]="isDarkMode"
+        [hasNoConnectedPeers]="hasNoConnectedPeers"
+        [isSendDisabled]="isSendDisabled"
+        (messageSubmit)="sendMessage($event)"
+        (enterKey)="onEnterKey($event.event, $event.form)"
+        (autoResize)="autoResizeTextarea()"
+        (filesAttached)="sendAttachments($event)"
+      />
+    </div>
+
+    <!-- MARK: - Banners (overlay just below the frosted bar) -->
+    <div
+      class="pointer-events-none absolute inset-x-0 top-14 z-30 flex flex-col gap-2 px-4 md:px-8"
+    >
+      <div class="pointer-events-auto">
         <app-server-reconnect />
-
-        <!-- MARK: - Connection Warning Banner -->
-        @if (!isReconnectingToServer) {
+      </div>
+      @if (!isReconnectingToServer) {
+        <div class="pointer-events-auto">
           <app-connection-warning
             [show]="showConnectionWarning"
             (refreshed)="refreshPage()"
             (dismissed)="dismissConnectionWarning()"
           />
-        }
-
-        <app-chat-messages
-          [messages]="messages"
-          [sessionCode]="SessionCode"
-          [isRTL]="isRTL"
-          [isDarkMode]="isDarkMode"
-          [currentUser]="userService.user"
-          (acceptFile)="acceptIncomingFile($event)"
-          (declineFile)="declineIncomingFile($event)"
-        />
-
-        <!-- MARK: - Message Input -->
-        <app-chat-input
-          [(message)]="message"
-          [isRTL]="isRTL"
-          [isDarkMode]="isDarkMode"
-          [hasNoConnectedPeers]="hasNoConnectedPeers"
-          [isSendDisabled]="isSendDisabled"
-          (messageSubmit)="sendMessage($event)"
-          (enterKey)="onEnterKey($event.event, $event.form)"
-          (autoResize)="autoResizeTextarea()"
-          (filesAttached)="sendAttachments($event)"
-        />
-      </div>
+        </div>
+      }
     </div>
 
-    <!-- MARK: - Footer -->
+    <!-- MARK: - Frosted Top Bar -->
     <div
-      class="hidden w-full items-center justify-between border-t bg-contentArea px-8 text-center h-[58px] border-borderLight dark:bg-baseDark dark:border-surfaceDark md:flex"
+      class="absolute inset-x-0 top-0 z-40 flex items-center h-14 px-4 md:px-8 bg-contentArea/10 backdrop-blur-md dark:bg-baseDark/10"
     >
-      <p class="text-xs font-expoArabicMedium text-content dark:text-textVeryMuted">
-        {{ 'COPYRIGHT_NOTICE' | translate }}
-      </p>
-      <div class="flex items-center gap-3">
-        <div class="flex items-center">
-          <!-- LinkedIn Icon & Link -->
-          <a
-            href="https://www.linkedin.com/in/sulaiman-alromaih-845700202/"
-            title="LinkedIn"
-            target="_blank"
-            rel="noopener noreferrer nofollow"
-            class="inline-flex items-center gap-2 hover:opacity-75"
-          >
-            <img
-              src="/icons/linkedin.svg"
-              alt="LinkedIn"
-              title="LinkedIn"
-              class="h-6 w-6"
-              loading="lazy"
-              width="24"
-              height="24"
-            />
-          </a>
-        </div>
-        <div class="flex items-center">
-          <!-- GitHub Icon & Link -->
-          <a
-            href="https://github.com/SloMR/pastepoint"
-            title="GitHub"
-            target="_blank"
-            rel="noopener noreferrer nofollow"
-            class="inline-flex items-center gap-2 hover:opacity-75"
-          >
-            <img
-              src="/icons/github.svg"
-              alt="GitHub"
-              title="GitHub"
-              class="h-6 w-6"
-              loading="lazy"
-              width="24"
-              height="24"
-            />
-          </a>
-        </div>
-        <div class="flex items-center">
-          <!-- X Icon & Link -->
-          <a
-            href="https://x.com/PastePoint"
-            title="X (Twitter)"
-            target="_blank"
-            rel="noopener noreferrer nofollow"
-            class="inline-flex items-center gap-2 hover:opacity-75"
-          >
-            <img
-              src="/icons/x-icon.svg"
-              alt="X (Twitter)"
-              title="X (Twitter)"
-              class="h-6 w-6"
-              loading="lazy"
-              width="24"
-              height="24"
-            />
-          </a>
-        </div>
-        <div class="flex items-center">
-          <!-- Instagram Icon & Link -->
-          <a
-            href="https://www.instagram.com/paste_point/"
-            title="Instagram"
-            target="_blank"
-            rel="noopener noreferrer nofollow"
-            class="inline-flex items-center gap-2 hover:opacity-75"
-          >
-            <img
-              src="/icons/instagram-icon.svg"
-              alt="Instagram"
-              title="Instagram"
-              class="h-6 w-6"
-              loading="lazy"
-              width="24"
-              height="24"
-            />
-          </a>
-        </div>
-      </div>
-      <div class="flex items-center gap-4">
-        <a
-          routerLink="/privacy"
-          title="Privacy and Terms"
-          rel="noopener noreferrer nofollow"
-          class="inline-flex items-center gap-2 text-brand dark:text-brandDark"
-        >
-          <p class="text-xs font-expoArabicMedium text-brand">
-            {{ 'PRIVACY_AND_TERMS' | translate }}
-          </p>
+      <!-- room title -->
+      <div
+        class="pointer-events-none absolute inset-x-0 flex items-center justify-center gap-2 px-16"
+      >
+        @if (SessionCode.length > 0) {
           <img
-            src="/icons/privacy-and-terms.svg"
-            alt="Privacy and Terms"
-            title="Privacy and Terms"
-            class="h-6 w-6"
-            loading="lazy"
-            width="24"
-            height="24"
+            [src]="isDarkMode ? '/icons/lock-white.svg' : '/icons/lock.svg'"
+            alt="Lock"
+            title="Lock"
+            class="h-4 w-4"
           />
-        </a>
-        <p class="text-xs font-expoArabicMedium text-content dark:text-textVeryMuted">
-          {{ 'VERSION' | translate }} {{ appVersion }}
-        </p>
+        } @else {
+          <img
+            [src]="isDarkMode ? '/icons/users-white.svg' : '/icons/users.svg'"
+            alt="Room"
+            title="Room"
+            class="h-4 w-4 opacity-80"
+          />
+        }
+        <span class="truncate text-sm font-expoArabicMedium text-content dark:text-white">
+          {{
+            currentRoom == 'main'
+              ? SessionCode.length > 0
+                ? ('PRIVATE_ROOM' | translate)
+                : ('PUBLIC_ROOM' | translate)
+              : currentRoom
+          }}
+        </span>
+      </div>
+
+      <!-- toolbar -->
+      <div class="ml-auto flex items-center gap-1">
+        <!-- theme toggle -->
+        <button
+          type="button"
+          (click)="toggleTheme()"
+          class="flex h-10 w-10 items-center justify-center rounded-full text-content transition-colors hover:bg-inputBackground dark:text-white dark:hover:bg-surfaceDark"
+          [attr.aria-label]="isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'"
+          [attr.title]="isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'"
+        >
+          @if (isDarkMode) {
+            <svg
+              class="h-5 w-5"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"
+              />
+            </svg>
+          } @else {
+            <svg
+              class="h-5 w-5"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z"
+              />
+            </svg>
+          }
+        </button>
+
+        <!-- settings (small screens only; panel is docked on large) -->
+        <button
+          type="button"
+          (click)="isMenuOpen = !isMenuOpen"
+          class="flex h-10 w-10 items-center justify-center rounded-full text-content transition-colors hover:bg-inputBackground dark:text-white dark:hover:bg-surfaceDark md:hidden"
+          aria-label="Settings"
+          title="Settings"
+          [attr.aria-expanded]="isMenuOpen"
+        >
+          <svg
+            class="h-5 w-5"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"
+            />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+            />
+          </svg>
+        </button>
       </div>
     </div>
 

@@ -14,7 +14,7 @@ import {
 } from '@angular/core';
 import { combineLatest, Subscription } from 'rxjs';
 import { distinctUntilChanged, filter, map } from 'rxjs/operators';
-import { isPlatformBrowser, NgOptimizedImage } from '@angular/common';
+import { isPlatformBrowser } from '@angular/common';
 
 import { ThemeService } from '../../core/services/ui/theme.service';
 import { ChatService } from '../../core/services/communication/chat.service';
@@ -41,7 +41,7 @@ import {
   THEME_PREFERENCE_KEY,
   PREVIEW_MIME_TYPE,
 } from '../../utils/constants';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { SessionService } from '../../core/services/session/session.service';
 import packageJson from '../../../../package.json';
 import { NGXLogger } from 'ngx-logger';
@@ -62,7 +62,6 @@ import { ServerReconnectComponent } from './components/server-reconnect/server-r
 import { ChatInputComponent } from './components/chat-input/chat-input.component';
 import { ChatMessagesComponent } from './components/chat-messages/chat-messages.component';
 import { ChatSidebarComponent } from './components/chat-sidebar/chat-sidebar.component';
-import { LanguageSwitcherComponent } from '../../core/components/language-switcher/language-switcher.component';
 
 /**
  * ==========================================================
@@ -75,8 +74,6 @@ import { LanguageSwitcherComponent } from '../../core/components/language-switch
   imports: [
     FormsModule,
     TranslateModule,
-    NgOptimizedImage,
-    RouterLink,
     JoinSessionPopupComponent,
     CreateRoomPopupComponent,
     EndSessionPopupComponent,
@@ -86,7 +83,6 @@ import { LanguageSwitcherComponent } from '../../core/components/language-switch
     ChatInputComponent,
     ChatMessagesComponent,
     ChatSidebarComponent,
-    LanguageSwitcherComponent,
   ],
   providers: [FileSizePipe],
   templateUrl: './chat.component.html',
@@ -1032,6 +1028,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
         this.scrollToBottom();
         requestAnimationFrame(() => {
           this.autoResizeTextarea();
+          this.messageTextarea?.nativeElement.focus();
         });
       });
     } else {

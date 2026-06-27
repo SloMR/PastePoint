@@ -1,480 +1,6 @@
-<!-- MARK: - Desktop Sidebar -->
-<div
-  class="relative hidden h-screen flex-col items-start justify-start overflow-auto bg-surface w-[286px] min-w-[286px] no-scrollbar dark:bg-surfaceDark md:flex"
->
-  <!-- MARK: - Sidebar Content -->
-  <div class="h-[calc(100vh-80px)] overflow-auto flex flex-col justify-start items-start w-full">
-    <!-- MARK: - Logo Section -->
-    <div class="flex w-full items-center justify-center py-8">
-      <a routerLink="/" title="Home">
-        <img
-          [ngSrc]="isDarkMode ? '/icons/pastepoint-dark.svg' : '/icons/pastepoint-light.svg'"
-          alt="PastePoint Logo"
-          title="PastePoint Logo"
-          class="h-12 w-auto cursor-pointer"
-          width="136"
-          height="48"
-          priority
-        />
-      </a>
-    </div>
-
-    <!-- MARK: - Create New Room Button -->
-    <div class="mt-6 flex w-full flex-col items-start justify-start px-4">
-      <button
-        (click)="createRoomRequested.emit(); isMenuOpenChange.emit(false)"
-        class="flex w-full items-center justify-center gap-2 rounded-lg p-2 text-white bg-brand hover:bg-brand/80 dark:bg-brandDark dark:hover:bg-brandDark/80"
-      >
-        <img
-          src="/icons/white-plus.svg"
-          alt="Create New Room"
-          title="Create New Room"
-          class="h-6 w-6"
-          loading="lazy"
-          width="24"
-          height="24"
-        />
-        <span class="text-base font-expoArabicMedium">{{ 'CREATE_NEW_ROOM' | translate }}</span>
-      </button>
-    </div>
-
-    <!-- MARK: - Rooms Section -->
-    <div class="mt-8 flex w-full flex-col items-center justify-center">
-      <div class="flex w-full items-center justify-between px-4 py-2 text-content">
-        <div class="flex items-center justify-center gap-2">
-          <img
-            [src]="isDarkMode ? '/icons/home-white.svg' : '/icons/home.svg'"
-            alt="Rooms"
-            title="Rooms"
-            class=""
-            loading="lazy"
-            width="16"
-            height="16"
-          />
-          <h2 class="pt-2 text-base font-expoArabicMedium dark:text-white">
-            {{ 'ROOMS' | translate }}
-          </h2>
-        </div>
-        <p class="pt-2 text-[10px] font-expoArabicMedium text-textMuted">
-          {{ rooms.length }} {{ 'ROOMS_COUNT' | translate }}
-        </p>
-      </div>
-      <div class="w-full overflow-auto max-h-[200px] scrollbar">
-        @for (room of rooms; track room) {
-          <div
-            class="mt-2 flex w-full items-center justify-end py-1"
-            (click)="joinRoomRequested.emit(room)"
-          >
-            <div
-              class="flex w-full cursor-pointer items-center justify-start gap-2"
-              [class]="
-                room === currentRoom
-                  ? 'text-brand dark:text-brandDark'
-                  : 'text-content/80 hover:text-content/60 dark:text-contentMuted dark:hover:text-contentMuted/80'
-              "
-              [ngClass]="isRTL ? 'pr-10' : 'pl-10'"
-              [attr.aria-label]="'Join room ' + room"
-              [attr.title]="'Join room ' + room"
-            >
-              <img
-                [src]="
-                  room === currentRoom ? '/icons/active-comment.svg' : '/icons/inactive-comment.svg'
-                "
-                alt="Join Room"
-                title="Join Room"
-                class=""
-                loading="lazy"
-                width="20"
-                height="20"
-              />
-              <p class="truncate pt-2 text-base font-expoArabicMedium">{{ room }}</p>
-              <p></p>
-            </div>
-          </div>
-        }
-      </div>
-    </div>
-
-    <!-- MARK: - Session Code Section -->
-    @if (sessionCode.length > 0) {
-      <div class="flex w-full items-center gap-3 px-4 py-3">
-        <img
-          [src]="isDarkMode ? '/icons/code-white.svg' : '/icons/code.svg'"
-          alt="Session Code"
-          title="Session Code"
-          class="h-4 w-4"
-          loading="lazy"
-          width="16"
-          height="16"
-        />
-        <p class="truncate pt-1 text-base font-expoArabicMedium dark:text-white">
-          {{ 'CODE' | translate }}
-        </p>
-      </div>
-    }
-
-    @if (sessionCode.length > 0) {
-      <div class="flex w-full items-center gap-3 px-4">
-        <div
-          class="flex items-center justify-start rounded-lg p-2 px-3 w-[150px] h-[44px] bg-inputBackground dark:bg-borderDark"
-        >
-          <p class="truncate text-base font-light font-expoArabic dark:text-contentMuted">
-            {{ sessionCode }}
-          </p>
-        </div>
-        <div
-          class="flex cursor-pointer items-center justify-center gap-2 rounded-lg px-2 text-white w-[90px] h-[44px] bg-brand hover:bg-brand/80 dark:bg-brandDark dark:hover:bg-brandDark/80"
-          (click)="copySessionCodeRequested.emit()"
-        >
-          <img
-            src="/icons/copy.svg"
-            alt="Copy"
-            title="Copy"
-            class="h-4 w-4"
-            loading="lazy"
-            width="16"
-            height="16"
-          />
-        </div>
-        <div
-          class="flex cursor-pointer items-center justify-center gap-2 rounded-lg px-2 text-white w-[90px] h-[44px] bg-brand hover:bg-brand/80 dark:bg-brandDark dark:hover:bg-brandDark/80"
-          (click)="qrCodeRequested.emit()"
-        >
-          <img
-            src="/icons/qrcode.svg"
-            alt="QR Code"
-            title="QR Code"
-            class="h-4 w-4"
-            loading="lazy"
-            width="16"
-            height="16"
-          />
-        </div>
-      </div>
-    }
-
-    <!-- MARK: - Private Session Controls -->
-    @if (sessionCode.length === 0) {
-      <div class="flex w-full flex-col items-center justify-center">
-        <!-- create private session -->
-        <div class="mt-8 flex w-full flex-col items-start justify-start px-4">
-          <button
-            (click)="createPrivateSessionRequested.emit()"
-            class="flex w-full items-center justify-center gap-2 rounded-lg border p-2 border-brand text-brand hover:bg-brand/10 dark:border-brandDark dark:text-brandDark dark:hover:bg-brandDark/10"
-          >
-            <img
-              src="/icons/blue-plus.svg"
-              alt="Create Private Session"
-              title="Create Private Session"
-              class="h-6 w-6"
-              loading="lazy"
-              width="24"
-              height="24"
-            />
-            <span class="text-base font-expoArabicMedium">
-              {{ 'CREATE_PRIVATE_SESSION' | translate }}
-            </span>
-          </button>
-        </div>
-        <!-- join private session -->
-        <div class="mt-3 flex w-full flex-col items-start justify-start px-4">
-          <button
-            (click)="joinPrivateSessionRequested.emit()"
-            class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border p-2 border-brand text-brand hover:bg-brand/10 dark:border-brandDark dark:text-brandDark dark:hover:bg-brandDark/10"
-          >
-            <span class="text-base font-expoArabicMedium">{{
-              'JOIN_PRIVATE_SESSION' | translate
-            }}</span>
-          </button>
-        </div>
-      </div>
-    }
-
-    <!-- MARK: - Members Section -->
-    <div class="mt-8 flex w-full flex-col items-center justify-center">
-      <div class="flex w-full items-center justify-between px-4 py-2 text-content dark:text-white">
-        <div class="flex items-center justify-center gap-2">
-          <img
-            [src]="isDarkMode ? '/icons/users-white.svg' : '/icons/users.svg'"
-            alt="Members"
-            title="Members"
-            class=""
-            loading="lazy"
-            width="16"
-            height="16"
-          />
-          <h2 class="pt-2 text-base font-expoArabicMedium">{{ 'MEMBERS' | translate }}</h2>
-        </div>
-        <p class="pt-2 text-[10px] font-expoArabicMedium text-textMuted">
-          {{ members.length }} {{ 'ONLINE_MEMBERS_COUNT' | translate }}
-        </p>
-      </div>
-      <div class="mt-4 w-full overflow-auto max-h-[200px] scrollbar">
-        @for (member of members; track member) {
-          <div>
-            <div
-              class="flex w-full items-center justify-start gap-2 px-4 py-2 text-content dark:text-white"
-            >
-              <div
-                class="h-4 w-4 rounded-full transition-colors duration-300"
-                [ngClass]="memberDotClass(member)"
-                [attr.title]="memberDotTitle(member)"
-              ></div>
-              <p class="truncate text-base font-expoArabicMedium">{{ member }}</p>
-              <div class="ml-auto">
-                <button
-                  type="button"
-                  [disabled]="!isConnectedToMember(member)"
-                  class="rounded-md p-1 text-textMuted hover:text-brand dark:text-textVeryMuted dark:hover:text-brandDark disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed disabled:hover:text-textMuted dark:disabled:hover:text-textVeryMuted"
-                  [attr.aria-label]="
-                    (!isConnectedToMember(member) ? 'NOT_CONNECTED_TO_USER' : 'SEND_FILE_TO_USER')
-                      | translate
-                  "
-                  [title]="
-                    (!isConnectedToMember(member) ? 'NOT_CONNECTED_TO_USER' : 'SEND_FILE_TO_USER')
-                      | translate
-                  "
-                  (click)="filePickerRequested.emit(member)"
-                >
-                  <img
-                    [src]="'/icons/link.svg'"
-                    alt="Send file"
-                    title="Send file"
-                    class="h-4 w-4"
-                    loading="lazy"
-                    width="16"
-                    height="16"
-                  />
-                </button>
-              </div>
-            </div>
-          </div>
-        }
-        @if (members.length === 0) {
-          <div>
-            <div
-              class="flex w-full items-center justify-start gap-2 px-4 py-2 text-content dark:text-white"
-            >
-              <p class="truncate text-base font-expoArabicMedium">
-                {{ 'NO_MEMBERS_ONLINE' | translate }}
-              </p>
-            </div>
-          </div>
-        }
-      </div>
-    </div>
-
-    <!-- MARK: - File Transfer Section -->
-    @if (activeUploads.length > 0 || activeDownloads.length > 0) {
-      <div class="mt-8 flex w-full flex-col items-center justify-center px-4">
-        <!-- Header -->
-        <div class="flex w-full items-center justify-between py-2 text-content dark:text-white">
-          <div class="flex items-center justify-center gap-2">
-            <img
-              [src]="isDarkMode ? '/icons/arrows-up-down-light.svg' : '/icons/arrows-up-down.svg'"
-              alt="Active Transfers"
-              title="Active Transfers"
-              loading="lazy"
-              width="16"
-              height="16"
-            />
-            <h2 class="pt-2 text-base font-expoArabicMedium">
-              {{ 'FILE_TRANSFER' | translate }}
-            </h2>
-          </div>
-          <p class="pt-2 text-[10px] font-expoArabicMedium text-textMuted">
-            {{ activeUploads.length + activeDownloads.length }}
-            {{ 'ACTIVE_TRANSFERS_COUNT' | translate }}
-          </p>
-        </div>
-        <!-- Scrollable Transfers -->
-        <div class="mt-4 w-full overflow-auto max-h-[200px] scrollbar space-y-3">
-          <!-- Uploads -->
-          @for (upload of activeUploads; track upload) {
-            <div class="text-sm">
-              <div class="mb-1 flex items-center justify-between">
-                <div class="flex items-start justify-start gap-2 min-w-0">
-                  <img
-                    [src]="isDarkMode ? '/icons/upload-light.svg' : '/icons/upload.svg'"
-                    alt="Uploading"
-                    title="Uploading"
-                    class="h-4 w-4"
-                    loading="lazy"
-                    width="16"
-                    height="16"
-                  />
-                  <div class="flex flex-col min-w-0">
-                    <span
-                      class="text-xs font-expoArabicMedium text-content dark:text-white break-words"
-                      dir="auto"
-                    >
-                      {{ truncateFilename(upload.file.name) }}
-                    </span>
-                    <div
-                      class="mt-0.5 flex items-center gap-1 text-[11px] text-textMuted dark:text-textVeryMuted"
-                    >
-                      <img
-                        [src]="isDarkMode ? '/icons/users-white.svg' : '/icons/users.svg'"
-                        alt="User"
-                        title="User"
-                        class="h-3.5 w-3.5 opacity-80"
-                        loading="lazy"
-                        width="14"
-                        height="14"
-                      />
-                      <span class="break-words" dir="auto">{{ upload.targetUser }}</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="flex items-center justify-end gap-1">
-                  <span
-                    class="text-xs font-expoArabicMedium text-textMuted dark:text-textVeryMuted"
-                  >
-                    @if (upload.phase === 'finalizing') {
-                      {{ 'FINALIZING_TRANSFER' | translate }}
-                    } @else {
-                      {{ progressLabel(upload.progress) }}%
-                    }
-                  </span>
-                  <button
-                    (click)="
-                      $event.stopPropagation();
-                      $event.preventDefault();
-                      cancelUploadRequested.emit(upload)
-                    "
-                    class="rounded-md text-textMuted hover:text-danger dark:text-textVeryMuted dark:hover:text-danger"
-                    aria-label="Cancel upload"
-                    title="Cancel upload"
-                  >
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-              <div
-                class="w-full rounded-full bg-textMuted/20 h-1.5 dark:bg-borderDark overflow-hidden"
-              >
-                <div
-                  class="h-full rounded-full bg-brand dark:bg-brandDark transition-[width] duration-75 ease-linear"
-                  [style.width]="getProgressBarWidth(upload.progress)"
-                  [style.max-width]="'100%'"
-                ></div>
-              </div>
-            </div>
-          }
-          <!-- Downloads -->
-          @for (download of activeDownloads; track download) {
-            <div class="text-sm">
-              <div class="mb-1 flex items-center justify-between">
-                <div class="flex items-start justify-start gap-2 min-w-0">
-                  <img
-                    [src]="isDarkMode ? '/icons/download-light.svg' : '/icons/download.svg'"
-                    alt="Downloading"
-                    title="Downloading"
-                    class="h-4 w-4"
-                    loading="lazy"
-                    width="16"
-                    height="16"
-                  />
-                  <div class="flex flex-col min-w-0">
-                    <span
-                      class="text-xs font-expoArabicMedium text-content dark:text-white break-words"
-                      dir="auto"
-                    >
-                      {{ truncateFilename(download.fileName) }}
-                    </span>
-                    <div
-                      class="mt-0.5 flex items-center gap-1 text-[11px] text-textMuted dark:text-textVeryMuted"
-                    >
-                      <img
-                        [src]="isDarkMode ? '/icons/users-white.svg' : '/icons/users.svg'"
-                        alt="User"
-                        title="User"
-                        class="h-3.5 w-3.5 opacity-80"
-                        loading="lazy"
-                        width="14"
-                        height="14"
-                      />
-                      <span class="break-words" dir="auto">{{ download.fromUser }}</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="flex items-center justify-end gap-1">
-                  <span
-                    class="text-xs font-expoArabicMedium text-textMuted dark:text-textVeryMuted"
-                  >
-                    {{ progressLabel(download.progress) }}%
-                  </span>
-                  <button
-                    (click)="
-                      $event.stopPropagation();
-                      $event.preventDefault();
-                      cancelDownloadRequested.emit(download)
-                    "
-                    class="rounded-md text-textMuted hover:text-danger dark:text-textVeryMuted dark:hover:text-danger"
-                    aria-label="Cancel download"
-                    title="Cancel download"
-                  >
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-              <div
-                class="w-full rounded-full bg-textMuted/20 h-1.5 dark:bg-borderDark overflow-hidden"
-              >
-                <div
-                  class="h-full rounded-full bg-brand dark:bg-brandDark transition-[width] duration-75 ease-linear"
-                  [style.width]="getProgressBarWidth(download.progress)"
-                  [style.max-width]="'100%'"
-                ></div>
-              </div>
-            </div>
-          }
-        </div>
-      </div>
-    }
-  </div>
-
-  <!-- MARK: - Exit Button -->
-  @if (sessionCode.length > 0) {
-    <div
-      class="absolute bottom-4 flex w-full items-center justify-center"
-      (click)="endSessionRequested.emit()"
-    >
-      <div class="flex w-full cursor-pointer items-center justify-center gap-2 px-3 py-3">
-        <img
-          class=""
-          alt="End Session"
-          title="End Session"
-          src="/icons/cross-small.svg"
-          loading="lazy"
-          width="16"
-          height="16"
-        />
-        <h6 class="text-base font-medium text-danger font-expoArabicMedium">
-          {{ 'END_SESSION' | translate }}
-        </h6>
-      </div>
-    </div>
-  }
-</div>
-
-<!-- MARK: - Mobile Sidebar -->
+<!-- MARK: - Settings Panel (slide-over on small, docked on large) -->
 <aside
-  class="fixed top-0 h-full transition-transform ease-in-out w-[360px] min-w-[360px] bg-surface z-[10000] dark:bg-surfaceDark md:hidden"
+  class="fixed top-0 h-full w-[360px] max-w-[85vw] bg-surface z-[10000] transition-transform ease-in-out border-borderLight dark:bg-surfaceDark dark:border-surfaceDark md:static md:z-auto md:h-screen md:w-[300px] md:max-w-none md:shrink-0 md:translate-x-0 md:border-r"
   [style.left]="isRTL ? 'auto' : 0"
   [style.right]="isRTL ? 0 : 'auto'"
   [ngClass]="[
@@ -483,85 +9,98 @@
   ]"
 >
   <div class="relative flex h-full w-full flex-col items-start justify-start">
-    <!-- MARK: - Mobile Sidebar Content -->
-    <div
-      class="flex w-full flex-1 flex-col items-start justify-start overflow-y-auto overflow-x-hidden pb-20"
-    >
-      <!-- MARK: - Mobile User Info -->
-      <div class="flex w-full items-center justify-between gap-2 px-4 py-8">
-        <!-- avatar + name -->
-        <div class="flex items-center gap-2 overflow-hidden">
-          <img
-            src="/icons/Group.svg"
-            alt="User"
-            title="User"
-            class="h-10 w-10"
-            loading="lazy"
-            width="40"
-            height="40"
-          />
-          <p
-            class="truncate text-base font-expoArabicMedium"
-            [class.text-content]="currentUser"
-            [class.dark:text-white]="currentUser"
-            [class.text-gray-400]="!currentUser"
-          >
-            {{ currentUser || 'Connecting…' }}
-          </p>
-        </div>
+    <!-- MARK: - Panel Nav Row (globe / Settings / close) -->
+    <div class="relative flex w-full items-center px-3 py-2">
+      <app-language-switcher
+        [current]="currentLanguage"
+        [triggerClass]="
+          'flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-content transition-colors hover:bg-inputBackground dark:text-white dark:hover:bg-borderDark'
+        "
+        [iconClass]="'h-5 w-5'"
+        [menuClass]="
+          'absolute start-0 top-full mt-2 z-50 min-w-[11rem] max-w-[calc(100vw-1rem)] overflow-hidden rounded-lg border border-borderLight bg-pageBackground py-1 shadow-lg dark:border-borderDark dark:bg-surfaceDark'
+        "
+        (languageChange)="switchLanguage.emit($event)"
+      />
+      <span
+        class="absolute left-1/2 -translate-x-1/2 text-sm font-expoArabicLight text-content dark:text-white"
+        >Settings</span
+      >
+      <button
+        type="button"
+        (click)="isMenuOpenChange.emit(false)"
+        class="ml-auto flex h-9 w-9 items-center justify-center rounded-lg text-content transition-colors hover:bg-inputBackground dark:text-white dark:hover:bg-borderDark md:hidden"
+        aria-label="Close"
+        title="Close"
+      >
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
 
-        <!-- close icon -->
+    <!-- MARK: - Panel Content -->
+    <div
+      class="flex w-full flex-1 flex-col items-start justify-start overflow-y-auto overflow-x-hidden pb-6"
+    >
+      <!-- MARK: - User Info -->
+      <div class="flex w-full items-center gap-2 overflow-hidden px-4 pb-4 pt-1">
         <img
-          [src]="isDarkMode ? '/icons/cross-close-white.svg' : '/icons/cross-close.svg'"
-          alt="Close"
-          title="Close"
-          class="h-4 w-4 shrink-0 cursor-pointer"
-          (click)="isMenuOpenChange.emit(false)"
+          src="/icons/Group.svg"
+          alt="User"
+          title="User"
+          class="h-9 w-9"
           loading="lazy"
-          width="16"
-          height="16"
+          width="36"
+          height="36"
         />
+        <p
+          class="truncate text-base font-expoArabicLight"
+          [class.text-content]="currentUser"
+          [class.dark:text-white]="currentUser"
+          [class.text-gray-400]="!currentUser"
+        >
+          {{ currentUser || 'Connecting…' }}
+        </p>
       </div>
 
-      <!-- MARK: - Mobile Create Room Button -->
-      <div class="mt-6 flex w-full flex-col items-start justify-start px-4">
+      <!-- MARK: - Create Room Button -->
+      <div class="flex w-full flex-col items-start justify-start px-4">
         <button
-          (click)="createRoomRequested.emit()"
+          (click)="createRoomRequested.emit(); isMenuOpenChange.emit(false)"
           class="flex w-full items-center justify-center gap-2 rounded-lg p-2 text-white bg-brand hover:bg-brand/80 dark:bg-brandDark dark:hover:bg-brandDark/80"
         >
           <img
             src="/icons/white-plus.svg"
             alt="Create New Room"
             title="Create New Room"
-            class="h-6 w-6"
+            class="h-5 w-5"
             loading="lazy"
-            width="24"
-            height="24"
+            width="20"
+            height="20"
           />
-          <span class="text-base font-expoArabicMedium">{{ 'CREATE_NEW_ROOM' | translate }}</span>
+          <span class="text-sm font-expoArabicMedium">{{ 'CREATE_NEW_ROOM' | translate }}</span>
         </button>
       </div>
 
-      <!-- MARK: - Mobile Rooms Section -->
+      <!-- MARK: - Rooms Section -->
       <div class="mt-8 flex w-full flex-col items-center justify-center">
-        <div
-          class="flex w-full items-center justify-between px-4 py-2 text-content dark:text-white"
-        >
+        <div class="flex w-full items-center justify-between px-4 py-1 text-content dark:text-white">
           <div class="flex items-center justify-center gap-2">
             <img
               [src]="isDarkMode ? '/icons/home-white.svg' : '/icons/home.svg'"
               alt="Rooms"
               title="Rooms"
-              class=""
+              class="opacity-80"
               loading="lazy"
               width="16"
               height="16"
             />
-            <h2 class="pt-2 text-base font-expoArabicMedium dark:text-white">
+            <h2 class="text-sm font-expoArabicMedium dark:text-white">
               {{ 'ROOMS' | translate }}
             </h2>
           </div>
-          <p class="pt-2 text-[10px] font-expoArabicMedium text-textMuted">
+          <p class="text-[11px] font-expoArabicLight text-textMuted">
             {{ rooms.length }} {{ 'ROOMS_COUNT' | translate }}
           </p>
         </div>
@@ -590,12 +129,12 @@
                   "
                   alt="Home"
                   title="Join Room"
-                  class=""
+                  class="h-[18px] w-[18px]"
                   loading="lazy"
-                  width="20"
-                  height="20"
+                  width="18"
+                  height="18"
                 />
-                <p class="truncate pt-2 text-base font-expoArabicMedium">{{ room }}</p>
+                <p class="truncate text-sm font-expoArabicLight">{{ room }}</p>
                 <p></p>
               </div>
             </div>
@@ -603,84 +142,84 @@
         </div>
       </div>
 
-      <!-- MARK: - Mobile Session Code Section -->
+      <!-- MARK: - Session Code Section -->
       @if (sessionCode.length > 0) {
-        <div class="flex w-full items-center gap-3 px-4 py-3">
+        <div class="flex w-full items-center gap-2 px-4 py-2">
           <img
             [src]="isDarkMode ? '/icons/code-white.svg' : '/icons/code.svg'"
             alt="Session Code"
             title="Session Code"
-            class="h-4 w-4"
+            class="h-4 w-4 opacity-80"
             loading="lazy"
             width="16"
             height="16"
           />
-          <p class="truncate pt-1 text-base font-expoArabicMedium dark:text-white">
+          <p class="truncate text-sm font-expoArabicMedium dark:text-white">
             {{ 'CODE' | translate }}
           </p>
         </div>
         <!-- Session Code Display -->
         <div class="flex w-full justify-center px-5">
           <div class="w-full rounded-lg p-2 px-3 text-center bg-inputBackground dark:bg-borderDark">
-            <p class="truncate text-base font-light font-expoArabic dark:text-contentMuted">
+            <p class="truncate text-sm font-light font-expoArabic dark:text-contentMuted">
               {{ sessionCode }}
             </p>
           </div>
         </div>
         <!-- Buttons Row -->
-        <div class="mt-4 flex w-full justify-center px-4">
+        <div class="mt-3 flex w-full justify-center px-4">
           <div class="flex gap-3">
             <div
-              class="flex cursor-pointer items-center justify-center gap-2 rounded-lg px-3 text-white w-[48px] h-[48px] bg-brand hover:bg-brand/80 dark:bg-brandDark dark:hover:bg-brandDark/80"
+              class="flex cursor-pointer items-center justify-center gap-2 rounded-lg px-3 text-white w-[44px] h-[44px] bg-brand hover:bg-brand/80 dark:bg-brandDark dark:hover:bg-brandDark/80"
               (click)="copySessionCodeRequested.emit()"
             >
               <img
                 src="/icons/copy.svg"
                 alt="Copy"
                 title="Copy"
-                class="h-6 w-6"
+                class="h-5 w-5"
                 loading="lazy"
-                width="24"
-                height="24"
+                width="20"
+                height="20"
               />
             </div>
             <div
-              class="flex cursor-pointer items-center justify-center gap-2 rounded-lg px-3 text-white w-[48px] h-[48px] bg-brand hover:bg-brand/80 dark:bg-brandDark dark:hover:bg-brandDark/80"
-              (click)="qrCodeRequested.emit()"
+              class="flex cursor-pointer items-center justify-center gap-2 rounded-lg px-3 text-white w-[44px] h-[44px] bg-brand hover:bg-brand/80 dark:bg-brandDark dark:hover:bg-brandDark/80"
+              (click)="qrCodeRequested.emit(); isMenuOpenChange.emit(false)"
             >
               <img
                 src="/icons/qrcode.svg"
                 alt="QR Code"
                 title="QR Code"
-                class="h-6 w-6"
+                class="h-5 w-5"
                 loading="lazy"
-                width="24"
-                height="24"
+                width="20"
+                height="20"
               />
             </div>
           </div>
         </div>
       }
 
-      <!-- MARK: - Mobile Private Session Controls -->
+      <!-- MARK: - Private Session Controls -->
       @if (sessionCode.length === 0) {
         <div class="flex w-full flex-col items-center justify-center">
           <!-- create private session -->
           <div class="mt-8 flex w-full flex-col items-start justify-start px-4">
             <button
-              (click)="createPrivateSessionRequested.emit()"
+              (click)="createPrivateSessionRequested.emit(); isMenuOpenChange.emit(false)"
               class="flex w-full items-center justify-center gap-2 rounded-lg border p-2 border-brand text-brand hover:bg-brand/10 dark:border-brandDark dark:text-brandDark dark:hover:bg-brandDark/10"
             >
               <img
                 src="/icons/blue-plus.svg"
                 alt="Create Private Session"
                 title="Create Private Session"
-                class="h-6 w-6"
+                class="h-5 w-5"
                 loading="lazy"
-                width="24"
-                height="24"
+                width="20"
+                height="20"
               />
-              <span class="text-base font-expoArabicMedium">
+              <span class="text-sm font-expoArabicMedium">
                 {{ 'CREATE_PRIVATE_SESSION' | translate }}
               </span>
             </button>
@@ -688,10 +227,10 @@
           <!-- join private session -->
           <div class="mt-3 flex w-full flex-col items-start justify-start px-4">
             <button
-              (click)="joinPrivateSessionRequested.emit()"
+              (click)="joinPrivateSessionRequested.emit(); isMenuOpenChange.emit(false)"
               class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border p-2 border-brand text-brand hover:bg-brand/10 dark:border-brandDark dark:text-brandDark dark:hover:bg-brandDark/10"
             >
-              <span class="text-base font-expoArabicMedium">{{
+              <span class="text-sm font-expoArabicMedium">{{
                 'JOIN_PRIVATE_SESSION' | translate
               }}</span>
             </button>
@@ -699,41 +238,37 @@
         </div>
       }
 
-      <!-- MARK: - Mobile Members Section -->
+      <!-- MARK: - Members Section -->
       <div class="mt-8 flex w-full flex-col items-center justify-center">
-        <div
-          class="flex w-full items-center justify-between px-4 py-2 text-content dark:text-white"
-        >
+        <div class="flex w-full items-center justify-between px-4 py-1 text-content dark:text-white">
           <div class="flex items-center justify-center gap-2">
             <img
               [src]="isDarkMode ? '/icons/users-white.svg' : '/icons/users.svg'"
               alt="Members"
               title="Members"
-              class=""
+              class="opacity-80"
               loading="lazy"
               width="16"
               height="16"
             />
-            <h2 class="pt-2 text-base font-expoArabicMedium dark:text-white">
-              {{ 'MEMBERS' | translate }}
-            </h2>
+            <h2 class="text-sm font-expoArabicMedium dark:text-white">{{ 'MEMBERS' | translate }}</h2>
           </div>
-          <p class="pt-2 text-[10px] font-expoArabicMedium text-textMuted">
+          <p class="text-[11px] font-expoArabicLight text-textMuted">
             {{ members.length }} {{ 'ONLINE_MEMBERS_COUNT' | translate }}
           </p>
         </div>
-        <div class="mt-4 w-full overflow-auto max-h-[200px] scrollbar">
+        <div class="mt-2 w-full overflow-auto max-h-[200px] scrollbar">
           @for (member of members; track member) {
             <div>
               <div
                 class="flex w-full items-center justify-start gap-2 px-4 py-2 text-content dark:text-white"
               >
                 <div
-                  class="h-4 w-4 rounded-full transition-colors duration-300"
+                  class="h-2.5 w-2.5 rounded-full transition-colors duration-300"
                   [ngClass]="memberDotClass(member)"
                   [attr.title]="memberDotTitle(member)"
                 ></div>
-                <p class="truncate text-base font-expoArabicMedium">{{ member }}</p>
+                <p class="truncate text-sm font-expoArabicLight">{{ member }}</p>
                 <div class="ml-auto">
                   <button
                     type="button"
@@ -768,7 +303,7 @@
               <div
                 class="flex w-full items-center justify-start gap-2 px-4 py-2 text-content dark:text-white"
               >
-                <p class="truncate text-base font-expoArabicMedium">
+                <p class="truncate text-sm font-expoArabicLight">
                   {{ 'NO_MEMBERS_ONLINE' | translate }}
                 </p>
               </div>
@@ -777,31 +312,32 @@
         </div>
       </div>
 
-      <!-- MARK: - Mobile File Transfer Section -->
+      <!-- MARK: - File Transfer Section -->
       @if (activeUploads.length > 0 || activeDownloads.length > 0) {
         <div class="mt-8 flex w-full flex-col items-center justify-center px-4">
           <!-- Header -->
-          <div class="flex w-full items-center justify-between py-2 text-content dark:text-white">
+          <div class="flex w-full items-center justify-between py-1 text-content dark:text-white">
             <div class="flex items-center justify-center gap-2">
               <img
                 [src]="isDarkMode ? '/icons/arrows-up-down-light.svg' : '/icons/arrows-up-down.svg'"
                 alt="Active Transfers"
                 title="Active Transfers"
+                class="opacity-80"
                 loading="lazy"
                 width="16"
                 height="16"
               />
-              <h2 class="pt-2 text-base font-expoArabicMedium">
+              <h2 class="text-sm font-expoArabicMedium">
                 {{ 'FILE_TRANSFER' | translate }}
               </h2>
             </div>
-            <p class="pt-2 text-[10px] font-expoArabicMedium text-textMuted">
+            <p class="text-[11px] font-expoArabicLight text-textMuted">
               {{ activeUploads.length + activeDownloads.length }}
               {{ 'ACTIVE_TRANSFERS_COUNT' | translate }}
             </p>
           </div>
           <!-- Scrollable Transfers -->
-          <div class="mt-4 w-full overflow-auto max-h-[200px] scrollbar space-y-3">
+          <div class="mt-3 w-full overflow-auto max-h-[200px] scrollbar space-y-3">
             <!-- Uploads -->
             @for (upload of activeUploads; track upload) {
               <div class="text-sm">
@@ -818,7 +354,7 @@
                     />
                     <div class="flex flex-col min-w-0">
                       <span
-                        class="text-xs font-expoArabicMedium text-content dark:text-white break-words"
+                        class="text-xs font-expoArabicLight text-content dark:text-white break-words"
                         dir="auto"
                       >
                         {{ truncateFilename(upload.file.name) }}
@@ -840,9 +376,7 @@
                     </div>
                   </div>
                   <div class="flex items-center justify-end gap-1">
-                    <span
-                      class="text-xs font-expoArabicMedium text-textMuted dark:text-textVeryMuted"
-                    >
+                    <span class="text-xs font-expoArabicLight text-textMuted dark:text-textVeryMuted">
                       @if (upload.phase === 'finalizing') {
                         {{ 'FINALIZING_TRANSFER' | translate }}
                       } @else {
@@ -897,7 +431,7 @@
                     />
                     <div class="flex flex-col min-w-0">
                       <span
-                        class="text-xs font-expoArabicMedium text-content dark:text-white break-words"
+                        class="text-xs font-expoArabicLight text-content dark:text-white break-words"
                         dir="auto"
                       >
                         {{ truncateFilename(download.fileName) }}
@@ -919,9 +453,7 @@
                     </div>
                   </div>
                   <div class="flex items-center justify-end gap-1">
-                    <span
-                      class="text-xs font-expoArabicMedium text-textMuted dark:text-textVeryMuted"
-                    >
+                    <span class="text-xs font-expoArabicLight text-textMuted dark:text-textVeryMuted">
                       {{ progressLabel(download.progress) }}%
                     </span>
                     <button
@@ -961,12 +493,12 @@
       }
     </div>
 
-    <!-- MARK: - Mobile Exit Button -->
+    <!-- MARK: - Exit Button -->
     @if (sessionCode.length > 0) {
       <div class="w-full flex-shrink-0 border-t border-borderLight dark:border-surfaceDark">
         <div
-          class="flex w-full items-center justify-center py-4"
-          (click)="endSessionRequested.emit()"
+          class="flex w-full items-center justify-center py-2"
+          (click)="endSessionRequested.emit(); isMenuOpenChange.emit(false)"
         >
           <div class="flex w-full cursor-pointer items-center justify-center gap-2 px-3 py-3">
             <img
@@ -978,7 +510,7 @@
               width="16"
               height="16"
             />
-            <h6 class="text-base font-medium text-danger font-expoArabicMedium">
+            <h6 class="text-sm font-expoArabicMedium text-danger">
               {{ 'END_SESSION' | translate }}
             </h6>
           </div>
@@ -986,13 +518,12 @@
       </div>
     }
 
-    <!-- MARK: - Footer Mobile -->
+    <!-- MARK: - Footer -->
     <div
-      class="flex w-full flex-col items-center gap-2 border-t px-4 py-4 dark:bg-baseDark dark:border-surfaceDark md:h-[58px] md:flex-row md:items-center md:justify-between md:px-8 md:py-0"
+      class="flex w-full flex-col items-center gap-2 border-t px-4 py-4 dark:bg-baseDark dark:border-surfaceDark"
     >
-      <!-- Social links Mobile -->
-      <div class="order-1 flex items-center gap-4">
-        <!-- LinkedIn Mobile -->
+      <!-- Social links -->
+      <div class="flex items-center gap-4">
         <a
           href="https://www.linkedin.com/in/sulaiman-alromaih-845700202/"
           title="LinkedIn"
@@ -1010,8 +541,6 @@
             height="16"
           />
         </a>
-
-        <!-- GitHub Mobile -->
         <a
           href="https://github.com/SloMR/pastepoint"
           title="GitHub"
@@ -1029,7 +558,6 @@
             height="16"
           />
         </a>
-        <!-- X Icon & Link -->
         <a
           href="https://x.com/PastePoint"
           title="X (Twitter)"
@@ -1047,7 +575,6 @@
             height="16"
           />
         </a>
-        <!-- Instagram Icon & Link -->
         <a
           href="https://www.instagram.com/paste_point/"
           title="Instagram"
@@ -1067,35 +594,32 @@
         </a>
       </div>
 
-      <!-- Version & Privacy Mobile -->
-      <div class="order-2 flex items-center gap-2">
-        <a
-          routerLink="/privacy"
+      <!-- Privacy -->
+      <a
+        routerLink="/privacy"
+        title="Privacy and Terms"
+        rel="noopener noreferrer nofollow"
+        class="inline-flex items-center gap-2 text-brand dark:text-brandDark"
+      >
+        <p class="text-xs font-expoArabicLight text-brand">
+          {{ 'PRIVACY_AND_TERMS' | translate }}
+        </p>
+        <img
+          src="/icons/privacy-and-terms.svg"
+          alt="Privacy and Terms"
           title="Privacy and Terms"
-          rel="noopener noreferrer nofollow"
-          class="inline-flex items-center gap-2 text-brand dark:text-brandDark"
-        >
-          <p class="text-xs font-expoArabicMedium text-brand">
-            {{ 'PRIVACY_AND_TERMS' | translate }}
-          </p>
-          <img
-            src="/icons/privacy-and-terms.svg"
-            alt="Privacy and Terms"
-            title="Privacy and Terms"
-            class="h-4 w-4"
-            loading="lazy"
-            width="16"
-            height="16"
-          />
-        </a>
-      </div>
+          class="h-4 w-4"
+          loading="lazy"
+          width="16"
+          height="16"
+        />
+      </a>
 
-      <p class="order-3 text-xs font-expoArabicMedium text-content dark:text-textVeryMuted">
+      <!-- Version + copyright -->
+      <p class="text-xs font-expoArabicLight text-content dark:text-textVeryMuted">
         {{ 'VERSION' | translate }} {{ appVersion }}
       </p>
-
-      <!-- ©2026 Mobile -->
-      <p class="order-4 text-xs font-expoArabicMedium text-content dark:text-textVeryMuted">
+      <p class="text-center text-xs font-expoArabicLight text-content dark:text-textVeryMuted">
         {{ 'COPYRIGHT_NOTICE' | translate }}
       </p>
     </div>

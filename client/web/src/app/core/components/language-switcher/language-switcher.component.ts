@@ -22,6 +22,11 @@ import { LANGUAGES, LanguageCode } from '../../i18n/languages';
 })
 export class LanguageSwitcherComponent {
   @Input() current: LanguageCode = 'en';
+  @Input() triggerClass =
+    'flex cursor-pointer items-center justify-center rounded-lg border w-[44px] h-[44px] border-borderButton bg-pageBackground hover:bg-borderLight dark:bg-surfaceDark dark:border-borderDark dark:hover:bg-baseDark md:w-[56px] md:h-[56px] transition-colors';
+  @Input() iconClass = 'h-5 w-5 text-brand dark:text-brandDark';
+  @Input() menuClass =
+    'absolute end-0 md:start-0 md:end-auto top-full mt-2 z-50 min-w-[11rem] max-w-[calc(100vw-1rem)] overflow-hidden rounded-lg border border-borderLight bg-pageBackground py-1 shadow-lg dark:border-borderDark dark:bg-surfaceDark';
   @Output() languageChange = new EventEmitter<LanguageCode>();
 
   protected readonly languages = LANGUAGES;
