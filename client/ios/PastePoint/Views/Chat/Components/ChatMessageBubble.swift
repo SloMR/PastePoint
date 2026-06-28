@@ -102,8 +102,8 @@ struct ChatMessageBubble: View {
       if let previewImage {
         Image(uiImage: previewImage)
           .resizable()
-          .scaledToFill()
-          .frame(maxWidth: .infinity, minHeight: 150, maxHeight: 150)
+          .scaledToFit()
+          .frame(maxWidth: 236, maxHeight: 220)
           .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
           .allowsHitTesting(false)
       }
