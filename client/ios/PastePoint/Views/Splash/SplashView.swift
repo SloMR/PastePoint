@@ -39,7 +39,7 @@ struct SplashView: View {
       logo
       mesh
         .frame(width: canvas, height: canvas)
-        .offset(y: 122)
+        .offset(y: 150)
         .opacity(nodesIn ? 1 : 0)
         .accessibilityHidden(true)
     }

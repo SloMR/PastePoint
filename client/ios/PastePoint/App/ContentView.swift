@@ -64,6 +64,13 @@ struct ContentView: View {
         onAcceptFile: handleAcceptFile,
         onDeclineFile: handleDeclineFile,
       )
+      .simultaneousGesture(
+        TapGesture().onEnded {
+          UIApplication.shared.sendAction(
+            #selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil,
+          )
+        },
+      )
       .safeAreaInset(edge: .top, spacing: 0) {
         connectionBanner
       }
