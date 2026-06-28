@@ -71,22 +71,7 @@
         </div>
       }
 
-      <!-- MARK: - Banners (in-flow, below the bar; push messages instead of covering them) -->
-      @if (isReconnectingToServer || showConnectionWarning) {
-        <div class="flex flex-col gap-2 pt-[calc(var(--chat-bar-h)+0.5rem)]">
-          <app-server-reconnect />
-          @if (!isReconnectingToServer) {
-            <app-connection-warning
-              [show]="showConnectionWarning"
-              (refreshed)="refreshPage()"
-              (dismissed)="dismissConnectionWarning()"
-            />
-          }
-        </div>
-      }
-
       <app-chat-messages
-        [clearTopInset]="!(isReconnectingToServer || showConnectionWarning)"
         [messages]="messages"
         [sessionCode]="SessionCode"
         [isRTL]="isRTL"
@@ -111,6 +96,24 @@
         (removeStagedFile)="removeStagedFile($event)"
       />
     </div>
+
+    <!-- MARK: - Banners (pinned below the bar; messages scroll behind). -->
+    @if (isReconnectingToServer || showConnectionWarning) {
+      <div
+        class="pointer-events-none absolute inset-x-0 top-[var(--chat-bar-h)] z-30 px-4 pt-2 md:px-8"
+      >
+        <div class="pointer-events-auto flex w-full flex-col gap-2">
+          <app-server-reconnect />
+          @if (!isReconnectingToServer) {
+            <app-connection-warning
+              [show]="showConnectionWarning"
+              (refreshed)="refreshPage()"
+              (dismissed)="dismissConnectionWarning()"
+            />
+          }
+        </div>
+      </div>
+    }
 
     <!-- MARK: - Frosted Top Bar -->
     <div

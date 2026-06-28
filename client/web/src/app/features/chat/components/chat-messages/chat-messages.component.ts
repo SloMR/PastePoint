@@ -30,7 +30,6 @@ export class ChatMessagesComponent {
   @Input() isRTL = false;
   @Input() isDarkMode = false;
   @Input() currentUser: string | null = null;
-  @Input() clearTopInset = true;
 
   @Output() acceptFile = new EventEmitter<ChatMessage>();
   @Output() declineFile = new EventEmitter<ChatMessage>();
