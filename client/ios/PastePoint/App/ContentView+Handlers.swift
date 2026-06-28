@@ -25,14 +25,14 @@ extension ContentView {
     }()
 
     guard !from.isEmpty else {
-      toasts.append(.warning(.connecting))
+      toast.show(.warning(.connecting))
       return false
     }
 
     let message = ChatMessage(from: from, text: trimmed, isMine: true)
     let reached = services.signalingService.broadcastChat(message)
     guard !reached.isEmpty else {
-      toasts.append(peerWarning())
+      toast.show(peerWarning())
       return false
     }
 
@@ -44,13 +44,13 @@ extension ContentView {
     let peers = Array(services.signalingService.connectedPeers)
 
     guard !peers.isEmpty else {
-      toasts.append(peerWarning())
+      toast.show(peerWarning())
       return false
     }
 
     for file in files {
       guard file.size > 0 else {
-        toasts.append(.error(.fileEmptyError(file.name)))
+        toast.show(.error(.fileEmptyError(file.name)))
         continue
       }
 
@@ -68,7 +68,7 @@ extension ContentView {
       if result {
         updateFileStatus(fileId: fileId, status: .accepted)
       } else {
-        toasts.append(.warning(.cantAcceptFile))
+        toast.show(.warning(.cantAcceptFile))
       }
     }
   }
@@ -80,7 +80,7 @@ extension ContentView {
       if result {
         updateFileStatus(fileId: fileId, status: .declined)
       } else {
-        toasts.append(.warning(.cantDeclineFile))
+        toast.show(.warning(.cantDeclineFile))
       }
     }
   }

@@ -98,38 +98,34 @@ private struct ToastRowView: View {
   }
 }
 
-// MARK: - Toast View Modifier
+// MARK: - Toast Overlay
 
-private struct AppToastModifier: ViewModifier {
-  @Binding var items: [ToastItem]
+/// Renders the active toasts at the top edge of its container. Hosted in the
+/// global overlay window (see `ToastWindow`) bound to the shared `ToastCenter`,
+/// so toasts float above every view — including sheets.
+struct ToastOverlayView: View {
+  @ObservedObject var center: ToastCenter
 
-  func body(content: Content) -> some View {
-    content.overlay(alignment: .top) {
-      VStack(spacing: 8) {
-        ForEach(items) { item in
-          ToastRowView(toast: item) {
-            withAnimation(.spring(response: 0.4)) {
-              items.removeAll { $0.id == item.id }
-            }
+  var body: some View {
+    VStack(spacing: 8) {
+      ForEach(center.items) { item in
+        ToastRowView(toast: item) {
+          withAnimation(.spring(response: 0.4)) {
+            center.dismiss(item.id)
           }
-          .transition(.asymmetric(
-            insertion: .move(edge: .top).combined(with: .opacity),
-            removal: .move(edge: .top).combined(with: .opacity),
-          ))
         }
+        .transition(.asymmetric(
+          insertion: .move(edge: .top).combined(with: .opacity),
+          removal: .move(edge: .top).combined(with: .opacity),
+        ))
       }
-      .padding(.horizontal, 20)
-      .padding(.top, 8)
-      .animation(.spring(response: 0.4), value: items)
+
+      Spacer(minLength: 0)
     }
-  }
-}
-
-// MARK: - View Extension
-
-extension View {
-  func appToast(items: Binding<[ToastItem]>) -> some View {
-    modifier(AppToastModifier(items: items))
+    .padding(.horizontal, 20)
+    .padding(.top, 8)
+    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+    .animation(.spring(response: 0.4), value: center.items)
   }
 }
 
@@ -138,25 +134,25 @@ extension View {
 // MARK: - Preview
 
 private struct ToastPreview: View {
-  @State private var toasts: [ToastItem] = []
+  @StateObject private var center = ToastCenter()
 
   var body: some View {
     VStack(spacing: 16) {
       Spacer()
 
-      Button { toasts.append(.success(.codeCopied)) } label: { Text(verbatim: "Success") }
+      Button { center.show(.success(.codeCopied)) } label: { Text(verbatim: "Success") }
         .buttonStyle(.borderedProminent)
         .tint(AppColors.Status.success)
 
-      Button { toasts.append(.error(.startPrivateFailed)) } label: { Text(verbatim: "Error") }
+      Button { center.show(.error(.startPrivateFailed)) } label: { Text(verbatim: "Error") }
         .buttonStyle(.borderedProminent)
         .tint(AppColors.Status.danger)
 
-      Button { toasts.append(.warning(.connectionLost)) } label: { Text(verbatim: "Warning") }
+      Button { center.show(.warning(.connectionLost)) } label: { Text(verbatim: "Warning") }
         .buttonStyle(.borderedProminent)
         .tint(AppColors.Status.warning)
 
-      Button { toasts.append(.info(.roomJoined("General"))) } label: { Text(verbatim: "Info") }
+      Button { center.show(.info(.roomJoined("General"))) } label: { Text(verbatim: "Info") }
         .buttonStyle(.borderedProminent)
         .tint(AppColors.Status.info)
 
@@ -164,7 +160,7 @@ private struct ToastPreview: View {
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
     .background(AppColors.Background.background)
-    .appToast(items: $toasts)
+    .overlay { ToastOverlayView(center: center) }
   }
 }
 

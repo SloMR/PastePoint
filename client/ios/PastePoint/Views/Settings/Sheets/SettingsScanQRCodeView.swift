@@ -177,12 +177,12 @@ private struct ViewfinderBracketsShape: Shape {
 
 struct SettingsScanQRCodeView: View {
   @Environment(\.dismiss) private var dismiss
+  @EnvironmentObject private var toast: ToastCenter
   private let logger = Logger(label: "SettingsScanQRCodeView")
 
   private let cutoutSize: CGFloat = 240
   @State private var bracketScale: CGFloat = 1.0
   @State private var cameraPermission: AVAuthorizationStatus = CameraPermission.status
-  @State private var toasts: [ToastItem] = []
 
   var onCodeScanned: (String) -> Void
 
@@ -234,7 +234,7 @@ struct SettingsScanQRCodeView: View {
       } onInvalidCodeScanned: {
         UINotificationFeedbackGenerator().notificationOccurred(.error)
         logger.warning("Invalid QR code scanned")
-        toasts.append(.error(.invalidQrCode))
+        toast.show(.error(.invalidQrCode))
       }
       .ignoresSafeArea()
 
@@ -302,7 +302,6 @@ struct SettingsScanQRCodeView: View {
       }
     }
     .ignoresSafeArea()
-    .appToast(items: $toasts)
   }
 }
 
@@ -313,5 +312,6 @@ struct SettingsScanQRCodeView: View {
   SettingsScanQRCodeView { code in
     print("Scanned: \(code)")
   }
+  .environmentObject(ToastCenter())
 }
 #endif

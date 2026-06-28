@@ -9,6 +9,7 @@ import SwiftUI
 struct SettingsJoinPrivateView: View {
   @Environment(\.dismiss) private var dismiss
   @EnvironmentObject private var services: AppServices
+  @EnvironmentObject private var toast: ToastCenter
 
   private let logger = Logger(label: "SettingsJoinPrivateView")
 
@@ -18,7 +19,6 @@ struct SettingsJoinPrivateView: View {
   @State private var sheetHeight: CGFloat = 320
   @State private var isScannerPresented: Bool = false
   @State private var isJoining: Bool = false
-  @State private var toasts: [ToastItem] = []
 
   var body: some View {
     NavigationStack {
@@ -150,7 +150,6 @@ struct SettingsJoinPrivateView: View {
     .presentationDetents([.height(sheetHeight)])
     .presentationDragIndicator(.visible)
     .presentationBackground(AppColors.Background.background)
-    .appToast(items: $toasts)
     .fullScreenCover(isPresented: $isScannerPresented) {
       SettingsScanQRCodeView { scannedCode in
         sessionCode = scannedCode
@@ -164,7 +163,7 @@ struct SettingsJoinPrivateView: View {
     guard !trimmed.isEmpty else { return }
     guard SessionService.isValidSessionCode(trimmed) else {
       logger.warning("Invalid session code entered: \(trimmed)")
-      toasts.append(.error(.invalidSessionCode))
+      toast.show(.error(.invalidSessionCode))
       return
     }
     logger.info("Joining private session with code: \(trimmed)")
@@ -172,7 +171,7 @@ struct SettingsJoinPrivateView: View {
     await services.wsService.setupPrivateSession(trimmed)
     guard await services.connectIfPermitted() else {
       isJoining = false
-      toasts.append(.error(.localNetworkOffJoin))
+      toast.show(.error(.localNetworkOffJoin))
       return
     }
     isJoining = false
@@ -191,5 +190,6 @@ struct SettingsJoinPrivateView: View {
 #Preview {
   SettingsJoinPrivateView()
     .environmentObject(AppServices.preview)
+    .environmentObject(ToastCenter())
 }
 #endif

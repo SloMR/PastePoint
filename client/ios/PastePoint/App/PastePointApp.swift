@@ -4,21 +4,36 @@
 //
 
 import SwiftUI
+import UIKit
 
 @main
 struct PastePointApp: App {
   @Environment(\.scenePhase) private var phase
+  @AppStorage(AppColors.Scheme.storageKey) private var colorSchemeRaw: String = AppColors.Scheme.default
 
   @StateObject private var services = AppServices.shared
+  @StateObject private var toast = ToastCenter()
 
   init() {
     AppLogging.bootstrap()
+  }
+
+  /// Resolved light/dark for the toast overlay window, which lives outside the
+  /// SwiftUI tree and so doesn't inherit `.preferredColorScheme`.
+  private var toastStyle: UIUserInterfaceStyle {
+    switch AppColors.Scheme.colorScheme(from: colorSchemeRaw) {
+    case .dark: .dark
+    case .light: .light
+    default: .unspecified
+    }
   }
 
   var body: some Scene {
     WindowGroup {
       ContentView()
         .environmentObject(services)
+        .environmentObject(toast)
+        .toastWindow(center: toast, style: toastStyle)
     }
     .onChange(of: phase) { _, newPhase in
       switch newPhase {

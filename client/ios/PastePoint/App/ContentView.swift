@@ -29,11 +29,12 @@ struct ContentView: View {
     }
   }
 
+  @EnvironmentObject var toast: ToastCenter
+
   @State var messages: [ChatMessage] = []
   @State private var showSplash = true
   @State var hasConnectedBefore = false
   @State var showSettings = false
-  @State var toasts: [ToastItem] = []
   @State var pendingPrivateJoin = false
   @State var suppressNextConnectToast = false
 
@@ -142,5 +143,6 @@ struct ContentView: View {
 #Preview {
   ContentView()
     .environmentObject(AppServices.preview)
+    .environmentObject(ToastCenter())
 }
 #endif

@@ -8,7 +8,7 @@ import SwiftUI
 
 struct SettingsPrivateSessionSection: View {
   @EnvironmentObject private var services: AppServices
-  @Binding var toasts: [ToastItem]
+  @EnvironmentObject private var toast: ToastCenter
 
   @State private var isQRCodeSheetPresented: Bool = false
   @State private var isJoinPrivateSessionPresented: Bool = false
@@ -65,7 +65,7 @@ struct SettingsPrivateSessionSection: View {
         // Copy Button
         Button {
           UIPasteboard.general.string = code
-          toasts.append(.success(.codeCopied))
+          toast.show(.success(.codeCopied))
         } label: {
           Image("copy")
             .font(.system(size: 18, weight: .medium))
@@ -116,16 +116,16 @@ struct SettingsPrivateSessionSection: View {
             await services.wsService.setupPrivateSession(code)
             isStarting = false
             guard await services.connectIfPermitted() else {
-              toasts.append(.error(.localNetworkOffStart))
+              toast.show(.error(.localNetworkOffStart))
               return
             }
-            toasts.append(.success(.privateSessionStarted))
+            toast.show(.success(.privateSessionStarted))
             await services.roomService.listRooms()
             await services.userService.getUsername()
           } catch {
             isStarting = false
             logger.error("Cannot get the session code \(error)")
-            toasts.append(.error(.startPrivateFailed))
+            toast.show(.error(.startPrivateFailed))
           }
         }
       } label: {
