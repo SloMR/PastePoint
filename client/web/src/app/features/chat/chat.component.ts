@@ -164,6 +164,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   private statusCheckIntervalId: ReturnType<typeof setInterval> | null = null;
   private connectionWarningDismissed = false;
   private connectionWarningTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
+  private themeTransitionTimeout: ReturnType<typeof setTimeout> | null = null;
 
   appVersion: string = packageJson.version;
 
@@ -851,10 +852,33 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   toggleTheme(): void {
     this.ngZone.run(() => {
       this.isDarkMode = !this.isDarkMode;
+      this.enableThemeTransition();
       this.themeService.setThemePreference(this.isDarkMode);
       this.applyTheme(this.isDarkMode);
       this.cdr.detectChanges();
     });
+  }
+
+  /**
+   * Adds `theme-transition` on <html> so the whole UI animates the theme change
+   * together (see styles.css), then removes it once the 300ms transition ends.
+   * Only on user toggle — not on initial load.
+   */
+  private enableThemeTransition(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    const root = document.documentElement;
+    root.classList.add('theme-transition');
+
+    if (this.themeTransitionTimeout) {
+      clearTimeout(this.themeTransitionTimeout);
+    }
+    this.themeTransitionTimeout = setTimeout(() => {
+      root.classList.remove('theme-transition');
+      this.themeTransitionTimeout = null;
+    }, 350);
   }
 
   /**
