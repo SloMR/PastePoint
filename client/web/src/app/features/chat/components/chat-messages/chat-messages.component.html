@@ -375,9 +375,7 @@
                                 />
                               </div>
                             }
-                            <p
-                              class="flex items-start gap-2 whitespace-pre-line break-all text-xs text-white font-expoArabic max-w-[280px] mx-auto"
-                            >
+                            <div class="flex items-start gap-2">
                               <img
                                 src="/icons/file-white.svg"
                                 alt="File"
@@ -387,8 +385,12 @@
                                 width="16"
                                 height="16"
                               />
-                              {{ message.text }}
-                            </p>
+                              <p
+                                class="flex-1 min-w-0 whitespace-pre-line break-words text-xs leading-5 text-white font-expoArabic"
+                              >
+                                {{ message.text }}
+                              </p>
+                            </div>
                           </div>
                         }
                       </div>
