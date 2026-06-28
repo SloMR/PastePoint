@@ -325,10 +325,15 @@
                           />
                         </svg>
                         <span
-                          class="flex-1 truncate text-xs font-expoArabicLight text-content dark:text-white"
-                          dir="auto"
-                          >{{ truncateFilename(upload.file.name) }}</span
+                          class="flex min-w-0 flex-1 text-xs font-expoArabicLight text-content dark:text-white"
+                          dir="ltr"
+                          [title]="upload.file.name"
                         >
+                          <span class="min-w-0 flex-1 truncate">{{
+                            filenameBaseName(upload.file.name)
+                          }}</span>
+                          <span class="shrink-0">{{ filenameExtension(upload.file.name) }}</span>
+                        </span>
                         <span
                           class="shrink-0 text-[11px] font-expoArabicLight text-textMuted dark:text-textVeryMuted"
                         >
@@ -391,10 +396,15 @@
                           />
                         </svg>
                         <span
-                          class="flex-1 truncate text-xs font-expoArabicLight text-content dark:text-white"
-                          dir="auto"
-                          >{{ truncateFilename(download.fileName) }}</span
+                          class="flex min-w-0 flex-1 text-xs font-expoArabicLight text-content dark:text-white"
+                          dir="ltr"
+                          [title]="download.fileName"
                         >
+                          <span class="min-w-0 flex-1 truncate">{{
+                            filenameBaseName(download.fileName)
+                          }}</span>
+                          <span class="shrink-0">{{ filenameExtension(download.fileName) }}</span>
+                        </span>
                         <span
                           class="shrink-0 text-[11px] font-expoArabicLight text-textMuted dark:text-textVeryMuted"
                         >

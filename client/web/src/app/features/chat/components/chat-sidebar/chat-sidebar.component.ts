@@ -5,7 +5,10 @@ import { TranslateModule } from '@ngx-translate/core';
 
 import { FileDownload, FileUpload, MemberConnectionState } from '../../../../utils/constants';
 import { LanguageCode } from '../../../../core/i18n/languages';
-import { truncateFilename as truncateFilenameUtil } from '../../../../utils/filename.util';
+import {
+  splitFilenameExtension,
+  truncateFilename as truncateFilenameUtil,
+} from '../../../../utils/filename.util';
 import { LanguageSwitcherComponent } from '../../../../core/components/language-switcher/language-switcher.component';
 
 @Component({
@@ -95,5 +98,13 @@ export class ChatSidebarComponent {
 
   protected truncateFilename(filename: string, maxLength = 30): string {
     return truncateFilenameUtil(filename, maxLength);
+  }
+
+  protected filenameBaseName(filename: string): string {
+    return splitFilenameExtension(filename).baseName;
+  }
+
+  protected filenameExtension(filename: string): string {
+    return splitFilenameExtension(filename).extension;
   }
 }

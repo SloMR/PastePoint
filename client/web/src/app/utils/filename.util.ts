@@ -3,19 +3,36 @@
  * bubbles, sidebar transfer rows) so the elision logic lives in one place.
  */
 
+export interface FilenameParts {
+  baseName: string;
+  extension: string;
+}
+
+/** Split the final extension from a filename so the UI can keep it visible. */
+export function splitFilenameExtension(filename: string): FilenameParts {
+  const lastDotIndex = filename.lastIndexOf('.');
+
+  if (lastDotIndex <= 0 || lastDotIndex === filename.length - 1) {
+    return { baseName: filename, extension: '' };
+  }
+
+  return {
+    baseName: filename.slice(0, lastDotIndex),
+    extension: filename.slice(lastDotIndex),
+  };
+}
+
 /** Truncate to `maxLength`, keeping the extension and eliding the tail of the base name. */
 export function truncateFilename(filename: string, maxLength = 30): string {
   if (filename.length <= maxLength) {
     return filename;
   }
 
-  const lastDotIndex = filename.lastIndexOf('.');
-  if (lastDotIndex === -1) {
+  const { baseName, extension } = splitFilenameExtension(filename);
+  if (!extension) {
     return filename.slice(0, maxLength) + '...';
   }
 
-  const extension = filename.slice(lastDotIndex);
-  const baseName = filename.slice(0, lastDotIndex);
   const availableLength = maxLength - extension.length - 3;
 
   if (availableLength <= 0) {
