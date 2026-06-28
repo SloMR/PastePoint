@@ -2,19 +2,21 @@ import { Component, OnInit, PLATFORM_ID, ChangeDetectionStrategy, inject } from 
 import { RouterOutlet } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
 import { MetaInitService } from './core/services/ui/meta-init.service';
+import { SplashComponent } from './core/components/splash/splash.component';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, SplashComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent implements OnInit {
   private platformId = inject(PLATFORM_ID);
   private metaInitService = inject(MetaInitService);
 
-  title = 'PastePoint';
+  protected title = 'PastePoint';
+  protected showSplash = true;
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {

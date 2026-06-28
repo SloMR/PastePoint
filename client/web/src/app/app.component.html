@@ -1,3 +1,7 @@
 <ng-container>
   <router-outlet />
 </ng-container>
+
+@if (showSplash) {
+  <app-splash (finished)="showSplash = false" />
+}
