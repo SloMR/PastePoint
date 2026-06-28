@@ -112,6 +112,9 @@ struct ContentView: View {
             colorSchemeRaw = AppColors.Scheme.next(after: colorSchemeRaw)
           } label: {
             Image(systemName: colorScheme == .dark ? "sun.max.fill" : "moon")
+              .resizable()
+              .scaledToFit()
+              .frame(width: 20, height: 20)
           }
           .accessibilityLabel(Text(.switchAppearance))
 
@@ -119,6 +122,9 @@ struct ContentView: View {
             showSettings = true
           } label: {
             Image(systemName: "gearshape")
+              .resizable()
+              .scaledToFit()
+              .frame(width: 20, height: 20)
           }
           .accessibilityLabel(Text(.settings))
         }
