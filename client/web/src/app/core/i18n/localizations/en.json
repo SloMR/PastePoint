@@ -14,6 +14,7 @@
   "DECLINE": "Decline",
   "CANCEL": "Cancel",
   "ATTACH_FILES": "Attach files",
+  "REMOVE_FILE": "Remove file",
   "NO_PEERS_CONNECTED": "No connected users",
   "SEND_FILE_TO_USER": "Send file to user",
   "NOT_CONNECTED_TO_USER": "Not connected to this user",
@@ -183,6 +184,7 @@
   "CONNECTION_TIMEOUT_WITH_USER": "Connection with {{userName}} is unstable. Please check your internet connection.",
   "FAILED_TO_SEND_MESSAGE": "Failed to send message to {{member}}.",
   "FAILED_TO_SEND_FILE_MESSAGE": "Failed to send file to {{member}}.",
+  "FAILED_TO_SEND_FILES": "Failed to send files.",
   "CHUNK_INTEGRITY_ERROR": "File transfer failed: data corruption detected.",
   "FILE_INCOMPLETE_ERROR": "File transfer incomplete: {{count}} chunk(s) missing."
 }

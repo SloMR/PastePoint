@@ -19,7 +19,6 @@ private struct ChatEventHandlers: ViewModifier {
 
   func body(content: Content) -> some View {
     connectionHandlers(fileTransferHandlers(messageHandlers(content)))
-      .appToast(items: owner.$toasts)
   }
 
   // MARK: - Incoming messages
@@ -63,7 +62,7 @@ private struct ChatEventHandlers: ViewModifier {
       .onReceive(owner.services.fileTransferService.fileTransferFailed) { fileId, reason in
         owner.updateFileStatus(fileId: fileId, status: .failed)
         owner.haptic(.error)
-        owner.toasts.append(.error(failureMessage(for: reason)))
+        owner.toast.show(.error(failureMessage(for: reason)))
       }
   }
 
@@ -86,7 +85,7 @@ private struct ChatEventHandlers: ViewModifier {
       .onReceive(owner.services.wsService.sessionRejected) {
         owner.pendingPrivateJoin = false
         owner.suppressNextConnectToast = true
-        owner.toasts.append(.warning(.sessionJoinFailed))
+        owner.toast.show(.warning(.sessionJoinFailed))
       }
       .onReceive(owner.services.wsService.didConnect) {
         handleDidConnect()
@@ -101,7 +100,7 @@ private struct ChatEventHandlers: ViewModifier {
         // Only surface unexpected drops while active; ignore background/manual teardown.
         guard wasConnected, !connected else { return }
         guard !owner.services.wsService.isLeavingSession, owner.scenePhase == .active else { return }
-        owner.toasts.append(.warning(.connectionLost))
+        owner.toast.show(.warning(.connectionLost))
       }
   }
 
@@ -118,9 +117,9 @@ private struct ChatEventHandlers: ViewModifier {
     guard !owner.showSettings else { return }
 
     if wasPrivateJoin {
-      owner.toasts.append(.success(.privateSessionJoined))
+      owner.toast.show(.success(.privateSessionJoined))
     } else {
-      owner.toasts.append(wasReconnect ? .success(.reconnected) : .success(.connected))
+      owner.toast.show(wasReconnect ? .success(.reconnected) : .success(.connected))
     }
   }
 }

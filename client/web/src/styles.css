@@ -20,15 +20,20 @@
   src: url('/fonts/expo-arabic-light.ttf');
 }
 
-html {
-  transition:
-    background-color 300ms,
-    color 300ms;
+* {
+  backface-visibility: hidden;
 }
 
-* {
-  transition: all 0.5s ease-in-out;
-  backface-visibility: hidden;
+html.theme-transition,
+html.theme-transition *,
+html.theme-transition *::before,
+html.theme-transition *::after {
+  transition:
+    background-color 300ms ease-in-out,
+    color 300ms ease-in-out,
+    border-color 300ms ease-in-out,
+    fill 300ms ease-in-out,
+    stroke 300ms ease-in-out !important;
 }
 
 .scrollbar::-webkit-scrollbar {
@@ -95,4 +100,16 @@ html {
 
 .animate-slide-up {
   animation: slideUp 0.2s ease-out;
+}
+
+/* HotToast theme match  */
+html.dark {
+  --hot-toast-bg: #1f2937; /* surfaceDark */
+  --hot-toast-color: #f3f4f6;
+  --hot-toast-shadow: 0 10px 30px rgb(0 0 0 / 0.45), 0 2px 6px rgb(0 0 0 / 0.3);
+}
+
+/* The close "✕" is a black SVG; invert it so it shows on the dark surface. */
+html.dark .hot-toast-close-btn {
+  filter: invert(1) grayscale(100%) brightness(200%);
 }

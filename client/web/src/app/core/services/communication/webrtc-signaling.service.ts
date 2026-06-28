@@ -1375,8 +1375,8 @@ export class WebRTCSignalingService {
    * Glare resolution: the lexicographically smaller username is the caller.
    *
    * Plain `<` is UTF-16 code-unit comparison — locale-independent, so the web
-   * and iOS clients agree on roles regardless of either device's system locale.
-   * Do not switch to localeCompare here without coordinating the iOS side.
+   * and other clients agree on roles regardless of either device's system locale.
+   * Do not switch to localeCompare here without coordinating the other client side.
    *
    * @param targetUser The user to compare with.
    * @returns true if the current user should initiate, false if the target user should.

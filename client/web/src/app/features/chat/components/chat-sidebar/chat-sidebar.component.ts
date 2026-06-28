@@ -1,13 +1,19 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { FileDownload, FileUpload, MemberConnectionState } from '../../../../utils/constants';
+import { LanguageCode } from '../../../../core/i18n/languages';
+import {
+  splitFilenameExtension,
+  truncateFilename as truncateFilenameUtil,
+} from '../../../../utils/filename.util';
+import { LanguageSwitcherComponent } from '../../../../core/components/language-switcher/language-switcher.component';
 
 @Component({
   selector: 'app-chat-sidebar',
-  imports: [CommonModule, NgOptimizedImage, RouterLink, TranslateModule],
+  imports: [CommonModule, RouterLink, TranslateModule, LanguageSwitcherComponent],
   templateUrl: './chat-sidebar.component.html',
   styleUrl: './chat-sidebar.component.css',
 })
@@ -26,8 +32,10 @@ export class ChatSidebarComponent {
   @Input() skipDrawerAnim = false;
   @Input() currentUser: string | null = null;
   @Input() appVersion = '';
+  @Input() currentLanguage: LanguageCode = 'en';
 
   @Output() isMenuOpenChange = new EventEmitter<boolean>();
+  @Output() switchLanguage = new EventEmitter<LanguageCode>();
 
   @Output() joinRoomRequested = new EventEmitter<string>();
   @Output() createRoomRequested = new EventEmitter<void>();
@@ -42,6 +50,14 @@ export class ChatSidebarComponent {
 
   protected isConnectedToMember(member: string): boolean {
     return this.memberConnectionStatus.get(member) ?? false;
+  }
+
+  protected uploadsForMember(member: string): FileUpload[] {
+    return this.activeUploads.filter((upload) => upload.targetUser === member);
+  }
+
+  protected downloadsForMember(member: string): FileDownload[] {
+    return this.activeDownloads.filter((download) => download.fromUser === member);
   }
 
   protected memberDotClass(member: string): Record<string, boolean> {
@@ -80,24 +96,15 @@ export class ChatSidebarComponent {
     return `${safeProgress}%`;
   }
 
-  protected truncateFilename(filename: string, maxLength: number = 30): string {
-    if (filename.length <= maxLength) {
-      return filename;
-    }
+  protected truncateFilename(filename: string, maxLength = 30): string {
+    return truncateFilenameUtil(filename, maxLength);
+  }
 
-    const lastDotIndex = filename.lastIndexOf('.');
-    if (lastDotIndex === -1) {
-      return filename.slice(0, maxLength) + '...';
-    }
+  protected filenameBaseName(filename: string): string {
+    return splitFilenameExtension(filename).baseName;
+  }
 
-    const extension = filename.slice(lastDotIndex);
-    const baseName = filename.slice(0, lastDotIndex);
-    const availableLength = maxLength - extension.length - 3;
-
-    if (availableLength <= 0) {
-      return filename.slice(0, maxLength) + '...';
-    }
-
-    return baseName.slice(0, availableLength) + '...' + extension;
+  protected filenameExtension(filename: string): string {
+    return splitFilenameExtension(filename).extension;
   }
 }

@@ -2,7 +2,7 @@
   padding: 1rem;
 }
 
-/* Pulsing corner brackets — mirrors iOS scaleEffect 1.0 → 1.04, 1.8s, repeatForever. */
+/* Pulsing corner brackets. */
 @keyframes scanner-bracket-pulse {
   0%,
   100% {

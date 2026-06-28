@@ -14,6 +14,7 @@
   "DECLINE": "Отклонить",
   "CANCEL": "Отмена",
   "ATTACH_FILES": "Прикрепить файлы",
+  "REMOVE_FILE": "Удалить файл",
   "NO_PEERS_CONNECTED": "Нет подключённых пользователей",
   "SEND_FILE_TO_USER": "Отправить файл пользователю",
   "NOT_CONNECTED_TO_USER": "Нет соединения с этим пользователем",
@@ -183,6 +184,7 @@
   "CONNECTION_TIMEOUT_WITH_USER": "Соединение с {{userName}} нестабильно. Проверьте интернет-соединение.",
   "FAILED_TO_SEND_MESSAGE": "Не удалось отправить сообщение пользователю {{member}}.",
   "FAILED_TO_SEND_FILE_MESSAGE": "Не удалось отправить файл пользователю {{member}}.",
+  "FAILED_TO_SEND_FILES": "Не удалось отправить файлы.",
   "CHUNK_INTEGRITY_ERROR": "Ошибка передачи файла: обнаружено повреждение данных.",
   "FILE_INCOMPLETE_ERROR": "Передача файла не завершена: отсутствует фрагментов — {{count}}."
 }

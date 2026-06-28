@@ -38,6 +38,7 @@ struct CameraPermissionDeniedView: View {
             .padding(.vertical, 14)
             .foregroundStyle(.white)
             .background(AppColors.Brand.brand, in: Capsule())
+            .contentShape(Capsule())
         }
         .buttonStyle(.plain)
       }

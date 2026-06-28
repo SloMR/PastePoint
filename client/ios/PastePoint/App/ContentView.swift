@@ -29,13 +29,18 @@ struct ContentView: View {
     }
   }
 
+  @EnvironmentObject var toast: ToastCenter
+
   @State var messages: [ChatMessage] = []
   @State private var showSplash = true
   @State var hasConnectedBefore = false
   @State var showSettings = false
-  @State var toasts: [ToastItem] = []
   @State var pendingPrivateJoin = false
   @State var suppressNextConnectToast = false
+
+  private var isPrivateRoom: Bool {
+    services.wsService.currentSessionCode != nil
+  }
 
   var body: some View {
     ZStack {
@@ -60,6 +65,13 @@ struct ContentView: View {
         onAcceptFile: handleAcceptFile,
         onDeclineFile: handleDeclineFile,
       )
+      .simultaneousGesture(
+        TapGesture().onEnded {
+          UIApplication.shared.sendAction(
+            #selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil,
+          )
+        },
+      )
       .safeAreaInset(edge: .top, spacing: 0) {
         connectionBanner
       }
@@ -80,11 +92,29 @@ struct ContentView: View {
       }
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
+        ToolbarItem(placement: .principal) {
+          HStack(spacing: 6) {
+            Image(isPrivateRoom ? (colorScheme == .dark ? "lock.light" : "lock.dark") : "users")
+              .renderingMode(.template)
+              .resizable()
+              .scaledToFit()
+              .frame(width: 16, height: 16)
+              .foregroundStyle(.textPrimary)
+
+            Text(isPrivateRoom ? .privateRoom : .publicRoom)
+              .font(.headline)
+              .foregroundStyle(.textPrimary)
+          }
+        }
+
         ToolbarItemGroup(placement: .topBarTrailing) {
           Button {
             colorSchemeRaw = AppColors.Scheme.next(after: colorSchemeRaw)
           } label: {
             Image(systemName: colorScheme == .dark ? "sun.max.fill" : "moon")
+              .resizable()
+              .scaledToFit()
+              .frame(width: 20, height: 20)
           }
           .accessibilityLabel(Text(.switchAppearance))
 
@@ -92,6 +122,9 @@ struct ContentView: View {
             showSettings = true
           } label: {
             Image(systemName: "gearshape")
+              .resizable()
+              .scaledToFit()
+              .frame(width: 20, height: 20)
           }
           .accessibilityLabel(Text(.settings))
         }
@@ -116,5 +149,6 @@ struct ContentView: View {
 #Preview {
   ContentView()
     .environmentObject(AppServices.preview)
+    .environmentObject(ToastCenter())
 }
 #endif

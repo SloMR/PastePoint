@@ -1,0 +1,117 @@
+:host {
+  display: contents;
+}
+
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Fixed dark-navy, independent of theme (mirrors the iOS splash background). */
+  background: #151b2c;
+  opacity: 1;
+  transition: opacity 0.4s ease;
+}
+
+.splash--leaving {
+  opacity: 0;
+}
+
+.splash__stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.splash__logo {
+  width: 200px;
+  height: auto;
+  transform: scale(1);
+  animation: splash-logo 0.6s ease-in 1.25s forwards;
+}
+
+.splash__mesh {
+  margin-top: 10px;
+}
+
+.splash__edges {
+  stroke: #7dd3fc;
+  stroke-opacity: 0.45;
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: splash-edge 0.4s ease-in-out 0.45s forwards;
+}
+
+.splash__node {
+  opacity: 0;
+  transform: scale(0.1);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: splash-node 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.splash__packet {
+  opacity: 0;
+  animation: splash-packet 0.9s ease 0.7s forwards;
+}
+
+@keyframes splash-edge {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes splash-node {
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes splash-logo {
+  to {
+    transform: scale(1.08);
+  }
+}
+
+@keyframes splash-packet {
+  0% {
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Reduce-motion: show the formed mesh statically, no packet, no pulse. */
+@media (prefers-reduced-motion: reduce) {
+  .splash {
+    transition: none;
+  }
+  .splash__edges {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+  .splash__node {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .splash__packet {
+    display: none;
+  }
+  .splash__logo {
+    animation: none;
+  }
+}

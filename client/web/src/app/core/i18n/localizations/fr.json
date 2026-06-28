@@ -14,6 +14,7 @@
   "DECLINE": "Refuser",
   "CANCEL": "Annuler",
   "ATTACH_FILES": "Joindre des fichiers",
+  "REMOVE_FILE": "Retirer le fichier",
   "NO_PEERS_CONNECTED": "Aucun utilisateur connecté",
   "SEND_FILE_TO_USER": "Envoyer un fichier à l'utilisateur",
   "NOT_CONNECTED_TO_USER": "Non connecté à cet utilisateur",
@@ -183,6 +184,7 @@
   "CONNECTION_TIMEOUT_WITH_USER": "La connexion avec {{userName}} est instable. Vérifiez votre connexion Internet.",
   "FAILED_TO_SEND_MESSAGE": "Impossible d'envoyer le message à {{member}}.",
   "FAILED_TO_SEND_FILE_MESSAGE": "Impossible d'envoyer le fichier à {{member}}.",
+  "FAILED_TO_SEND_FILES": "Échec de l'envoi des fichiers.",
   "CHUNK_INTEGRITY_ERROR": "Échec du transfert : corruption de données détectée.",
   "FILE_INCOMPLETE_ERROR": "Transfert incomplet : {{count}} fragment(s) manquant(s)."
 }

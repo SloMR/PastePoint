@@ -1,5 +1,8 @@
 <!-- MARK: - Messages Container -->
-<div class="w-full flex-1 overflow-auto pt-5 min-h-0 no-scrollbar" #messageContainer>
+<div
+  class="w-full flex-1 overflow-auto min-h-0 no-scrollbar pt-[calc(var(--chat-bar-h)+1rem)]"
+  #messageContainer
+>
   <div class="flex w-full flex-col items-start justify-start gap-4">
     <!-- MARK: - Welcome State (Empty Messages) -->
     @if (messages.length === 0) {
@@ -307,7 +310,7 @@
                                   [src]="message.previewUrl"
                                   [alt]="message.fileTransfer?.fileName || 'Attachment'"
                                   [title]="message.fileTransfer?.fileName || 'Attachment'"
-                                  class="w-[280px] h-auto max-h-[180px] rounded-lg mb-3 mx-auto border border-borderLight dark:border-borderDark object-contain"
+                                  class="max-w-full h-auto max-h-[220px] rounded-lg mb-3 mx-auto object-contain"
                                   loading="lazy"
                                   width="320"
                                   height="192"
@@ -349,7 +352,7 @@
                                   [src]="message.previewUrl"
                                   [alt]="message.fileTransfer?.fileName || 'Attachment'"
                                   [title]="message.fileTransfer?.fileName || 'Attachment'"
-                                  class="w-[280px] h-auto max-h-[180px] rounded-lg mb-2 mx-auto border border-borderLight dark:border-borderDark object-contain"
+                                  class="max-w-full h-auto max-h-[220px] rounded-lg mb-2 mx-auto object-contain"
                                   loading="lazy"
                                   width="320"
                                   height="192"
@@ -372,9 +375,7 @@
                                 />
                               </div>
                             }
-                            <p
-                              class="flex items-start gap-2 whitespace-pre-line break-all text-xs text-white font-expoArabic max-w-[280px] mx-auto"
-                            >
+                            <div class="flex items-start gap-2">
                               <img
                                 src="/icons/file-white.svg"
                                 alt="File"
@@ -384,8 +385,12 @@
                                 width="16"
                                 height="16"
                               />
-                              {{ message.text }}
-                            </p>
+                              <p
+                                class="flex-1 min-w-0 whitespace-pre-line break-words text-xs leading-5 text-white font-expoArabic"
+                              >
+                                {{ message.text }}
+                              </p>
+                            </div>
                           </div>
                         }
                       </div>
@@ -528,7 +533,7 @@
                                   [src]="message.previewUrl"
                                   [alt]="message.fileTransfer?.fileName || 'Attachment'"
                                   [title]="message.fileTransfer?.fileName || 'Attachment'"
-                                  class="w-[280px] h-auto max-h-[180px] rounded-lg mb-2 mx-auto border border-borderLight dark:border-borderDark object-contain"
+                                  class="max-w-full h-auto max-h-[220px] rounded-lg mb-2 mx-auto object-contain"
                                   loading="lazy"
                                   width="320"
                                   height="192"

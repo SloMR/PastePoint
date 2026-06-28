@@ -14,7 +14,7 @@ import {
 } from '@angular/core';
 import { combineLatest, Subscription } from 'rxjs';
 import { distinctUntilChanged, filter, map } from 'rxjs/operators';
-import { isPlatformBrowser, NgOptimizedImage } from '@angular/common';
+import { isPlatformBrowser } from '@angular/common';
 
 import { ThemeService } from '../../core/services/ui/theme.service';
 import { ChatService } from '../../core/services/communication/chat.service';
@@ -53,16 +53,16 @@ import { Router } from '@angular/router';
 import { HotToastService } from '@ngxpert/hot-toast';
 import { PreviewService } from '../../core/services/ui/preview.service';
 import { FileSizePipe } from '../../utils/file-size.pipe';
+import { truncateFilename as truncateFilenameUtil } from '../../utils/filename.util';
 import { JoinSessionPopupComponent } from './components/popups/join-session-popup/join-session-popup.component';
 import { CreateRoomPopupComponent } from './components/popups/create-room-popup/create-room-popup.component';
 import { EndSessionPopupComponent } from './components/popups/end-session-popup/end-session-popup.component';
 import { QrCodePopupComponent } from './components/popups/qr-code-popup/qr-code-popup.component';
 import { ConnectionWarningComponent } from './components/connection-warning/connection-warning.component';
 import { ServerReconnectComponent } from './components/server-reconnect/server-reconnect.component';
-import { ChatInputComponent } from './components/chat-input/chat-input.component';
+import { ChatInputComponent, StagedAttachment } from './components/chat-input/chat-input.component';
 import { ChatMessagesComponent } from './components/chat-messages/chat-messages.component';
 import { ChatSidebarComponent } from './components/chat-sidebar/chat-sidebar.component';
-import { LanguageSwitcherComponent } from '../../core/components/language-switcher/language-switcher.component';
 
 /**
  * ==========================================================
@@ -75,7 +75,6 @@ import { LanguageSwitcherComponent } from '../../core/components/language-switch
   imports: [
     FormsModule,
     TranslateModule,
-    NgOptimizedImage,
     RouterLink,
     JoinSessionPopupComponent,
     CreateRoomPopupComponent,
@@ -86,7 +85,6 @@ import { LanguageSwitcherComponent } from '../../core/components/language-switch
     ChatInputComponent,
     ChatMessagesComponent,
     ChatSidebarComponent,
-    LanguageSwitcherComponent,
   ],
   providers: [FileSizePipe],
   templateUrl: './chat.component.html',
@@ -127,6 +125,8 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
    */
   protected readonly MB: number = MB;
   protected readonly ChatMessageType = ChatMessageType;
+  protected stagedFiles: StagedAttachment[] = [];
+
   message = '';
   newRoomName = '';
   SessionCode = '';
@@ -155,6 +155,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   activeDownloads: FileDownload[] = [];
 
   private isNavigatingIntentionally = false;
+  private isSending = false;
   private isInitialBootstrap = true;
   private currentTransitionId = 0;
   private lastMessagesLength: number = 0;
@@ -163,6 +164,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   private statusCheckIntervalId: ReturnType<typeof setInterval> | null = null;
   private connectionWarningDismissed = false;
   private connectionWarningTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
+  private themeTransitionTimeout: ReturnType<typeof setTimeout> | null = null;
 
   appVersion: string = packageJson.version;
 
@@ -512,7 +514,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
 
     const textarea = this.messageTextarea.nativeElement;
     const maxHeight = 120;
-    const minHeight = 40;
+    const minHeight = 24;
 
     textarea.style.height = 'auto';
     const newHeight = Math.min(Math.max(textarea.scrollHeight, minHeight), maxHeight);
@@ -850,10 +852,33 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   toggleTheme(): void {
     this.ngZone.run(() => {
       this.isDarkMode = !this.isDarkMode;
+      this.enableThemeTransition();
       this.themeService.setThemePreference(this.isDarkMode);
       this.applyTheme(this.isDarkMode);
       this.cdr.detectChanges();
     });
+  }
+
+  /**
+   * Adds `theme-transition` on <html> so the whole UI animates the theme change
+   * together (see styles.css), then removes it once the 300ms transition ends.
+   * Only on user toggle — not on initial load.
+   */
+  private enableThemeTransition(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    const root = document.documentElement;
+    root.classList.add('theme-transition');
+
+    if (this.themeTransitionTimeout) {
+      clearTimeout(this.themeTransitionTimeout);
+    }
+    this.themeTransitionTimeout = setTimeout(() => {
+      root.classList.remove('theme-transition');
+      this.themeTransitionTimeout = null;
+    }, 350);
   }
 
   /**
@@ -995,36 +1020,57 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
    * ==========================================================
    */
   async sendMessage(messageForm: NgForm): Promise<void> {
-    if (this.message.trim()) {
-      const otherMembers = this.members.filter((m) => m !== this.userService.user);
-      if (otherMembers.length === 0) {
-        this.toaster.warning(this.translate.instant('NO_MEMBERS_TO_SEND_MESSAGE'));
-        return;
+    if (this.isSending) return;
+
+    const hasText = !!this.message.trim();
+    const hasFiles = this.stagedFiles.length > 0;
+
+    if (!hasText && !hasFiles) {
+      this.toaster.warning(this.translate.instant('MESSAGE_REQUIRED'));
+      return;
+    }
+
+    const otherMembers = this.members.filter((m) => m !== this.userService.user);
+    if (otherMembers.length === 0) {
+      this.toaster.warning(this.translate.instant('NO_MEMBERS_TO_SEND_MESSAGE'));
+      return;
+    }
+
+    this.isSending = true;
+    try {
+      // 1) Staged attachments first — cleared only after a successful send so a
+      //    failure keeps the chips (and the text) for the user to retry.
+      if (hasFiles) {
+        const filesToSend = this.stagedFiles.map((s) => s.file);
+        await this.sendFilesToRecipients(filesToSend, otherMembers);
+        this.stagedFiles = [];
       }
 
-      const messageText = this.message;
-      let hasSuccessfulSend = false;
+      // 2) Send the text message, if any.
+      if (hasText) {
+        const messageText = this.message;
+        let hasSuccessfulSend = false;
 
-      // Wait for all send operations to complete
-      const sendPromises = otherMembers.map(async (member) => {
-        try {
-          await this.chatService.sendMessage(messageText, member, ChatMessageType.TEXT);
-          hasSuccessfulSend = true;
-          return { member, success: true };
-        } catch (error) {
-          this.logger.error('sendMessage', `Failed to send message to ${member}: ${error}`);
-          this.toaster.error(this.translate.instant('FAILED_TO_SEND_MESSAGE', { member }));
-          return { member, success: false };
+        // Wait for all send operations to complete
+        const sendPromises = otherMembers.map(async (member) => {
+          try {
+            await this.chatService.sendMessage(messageText, member, ChatMessageType.TEXT);
+            hasSuccessfulSend = true;
+          } catch (error) {
+            this.logger.error('sendMessage', `Failed to send message to ${member}: ${error}`);
+            this.toaster.error(this.translate.instant('FAILED_TO_SEND_MESSAGE', { member }));
+          }
+        });
+
+        await Promise.all(sendPromises);
+
+        // Only add to local chat if at least one send was successful
+        if (hasSuccessfulSend) {
+          this.chatService.addMessageToLocal(messageText, ChatMessageType.TEXT);
         }
-      });
-
-      await Promise.all(sendPromises);
-
-      // Only add to local chat if at least one send was successful
-      if (hasSuccessfulSend) {
-        this.chatService.addMessageToLocal(messageText, ChatMessageType.TEXT);
       }
 
+      // 3) Reset the input.
       this.ngZone.run(() => {
         this.message = '';
         messageForm.resetForm({ message: '' });
@@ -1032,10 +1078,14 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
         this.scrollToBottom();
         requestAnimationFrame(() => {
           this.autoResizeTextarea();
+          this.messageTextarea?.nativeElement.focus();
         });
       });
-    } else {
-      this.toaster.warning(this.translate.instant('MESSAGE_REQUIRED'));
+    } catch (error) {
+      this.logger.error('sendMessage', `Failed to send attachments: ${error}`);
+      this.toaster.error(this.translate.instant('FAILED_TO_SEND_FILES'));
+    } finally {
+      this.isSending = false;
     }
   }
 
@@ -1045,25 +1095,8 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
    * Truncates a filename while preserving the file extension
    * ==========================================================
    */
-  protected truncateFilename(filename: string, maxLength: number = 30): string {
-    if (filename.length <= maxLength) {
-      return filename;
-    }
-
-    const lastDotIndex = filename.lastIndexOf('.');
-    if (lastDotIndex === -1) {
-      return filename.slice(0, maxLength) + '...';
-    }
-
-    const extension = filename.slice(lastDotIndex);
-    const baseName = filename.slice(0, lastDotIndex);
-    const availableLength = maxLength - extension.length - 3;
-
-    if (availableLength <= 0) {
-      return filename.slice(0, maxLength) + '...';
-    }
-
-    return baseName.slice(0, availableLength) + '...' + extension;
+  protected truncateFilename(filename: string, maxLength = 30): string {
+    return truncateFilenameUtil(filename, maxLength);
   }
 
   /**
@@ -1127,70 +1160,101 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
 
   /**
    * ==========================================================
-   * SEND ATTACHMENTS
-   * Triggers file sending to other users via FileTransferService.
-   * Attempts to establish WebRTC connections if not already open.
+   * FILES SELECTED (main attach button + per-member picker)
+   * Per-member picks (overrideRecipients set) send immediately to that
+   * member. Picks from the main attach button are staged as chips above
+   * the input and sent on the next message submit.
    * ==========================================================
    */
-  async sendAttachments(event: Event): Promise<void> {
+  onFilesSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      const filesToSend = Array.from(input.files);
+    const files = input.files ? Array.from(input.files) : [];
+    input.value = '';
 
-      const defaultRecipients = this.members.filter((m) => m !== this.userService.user);
-      const recipients =
-        this.overrideRecipients && this.overrideRecipients.length > 0
-          ? this.overrideRecipients
-          : defaultRecipients;
-
-      if (recipients.length === 0) {
-        this.toaster.warning(this.translate.instant('NO_USERS_FOR_UPLOAD'));
-        this.overrideRecipients = null;
-        return;
-      }
-
-      // One group id per file links its echo bubble to its per-peer uploads.
-      const groupIds = new Map<File, string>();
-      for (const file of filesToSend) {
-        const groupId = crypto.randomUUID();
-        groupIds.set(file, groupId);
-        this.fileTransferService.beginUploadGroup(groupId, recipients.length);
-      }
-
-      // Create local chat messages for each file being sent
-      await this.createLocalFileMessages(filesToSend, groupIds, recipients.length);
-
-      // First prepare all files for all recipients
-      for (const fileToSend of filesToSend) {
-        for (const member of recipients) {
-          await this.fileTransferService.prepareFileForSending(
-            fileToSend,
-            member,
-            groupIds.get(fileToSend)!
-          );
-          if (!this.webrtcService.isConnectedOrConnecting(member)) {
-            this.logger.info(
-              'sendAttachments',
-              `Initiating connection to ${member} for file transfer`
-            );
-            this.webrtcService.initiateConnection(member);
-          }
-        }
-      }
-
-      // Then send all file offers once per recipient
-      for (const member of recipients) {
-        const connectionReady = await this.waitForFileTransferConnection(member);
-        if (connectionReady) {
-          await this.fileTransferService.sendAllFileOffers(member);
-          this.logger.debug('sendAttachments', `Sent ${filesToSend.length} files to ${member}`);
-        }
-      }
-
-      input.value = '';
-      this.overrideRecipients = null;
-    } else {
+    if (files.length === 0) {
       this.toaster.warning(this.translate.instant('NO_FILES_SELECTED'));
+      return;
+    }
+
+    if (this.overrideRecipients && this.overrideRecipients.length > 0) {
+      const recipients = this.overrideRecipients;
+      this.overrideRecipients = null;
+      this.sendFilesToRecipients(files, recipients).catch((error) => {
+        this.logger.error('onFilesSelected', `Failed to send files: ${error}`);
+        this.toaster.error(this.translate.instant('FAILED_TO_SEND_FILES'));
+      });
+      return;
+    }
+
+    this.stageFiles(files);
+  }
+
+  /**
+   * ==========================================================
+   * STAGE / UNSTAGE FILES
+   * Hold picked files as removable chips until the user hits send.
+   * ==========================================================
+   */
+  protected stageFiles(files: File[]): void {
+    const staged = files.map((file) => ({ id: crypto.randomUUID(), file }));
+    this.stagedFiles = [...this.stagedFiles, ...staged];
+    this.cdr.detectChanges();
+  }
+
+  protected removeStagedFile(id: string): void {
+    this.stagedFiles = this.stagedFiles.filter((s) => s.id !== id);
+    this.cdr.detectChanges();
+  }
+
+  /**
+   * ==========================================================
+   * SEND FILES TO RECIPIENTS
+   * Shared upload path: one group id per file (links the echo bubble to
+   * its per-peer uploads), prepare + connect, then send offers per peer.
+   * ==========================================================
+   */
+  private async sendFilesToRecipients(filesToSend: File[], recipients: string[]): Promise<void> {
+    if (filesToSend.length === 0 || recipients.length === 0) {
+      this.toaster.warning(this.translate.instant('NO_USERS_FOR_UPLOAD'));
+      return;
+    }
+
+    // One group id per file links its echo bubble to its per-peer uploads.
+    const groupIds = new Map<File, string>();
+    for (const file of filesToSend) {
+      const groupId = crypto.randomUUID();
+      groupIds.set(file, groupId);
+      this.fileTransferService.beginUploadGroup(groupId, recipients.length);
+    }
+
+    // Create local chat messages for each file being sent
+    await this.createLocalFileMessages(filesToSend, groupIds, recipients.length);
+
+    // First prepare all files for all recipients
+    for (const fileToSend of filesToSend) {
+      for (const member of recipients) {
+        await this.fileTransferService.prepareFileForSending(
+          fileToSend,
+          member,
+          groupIds.get(fileToSend)!
+        );
+        if (!this.webrtcService.isConnectedOrConnecting(member)) {
+          this.logger.info(
+            'sendFilesToRecipients',
+            `Initiating connection to ${member} for file transfer`
+          );
+          this.webrtcService.initiateConnection(member);
+        }
+      }
+    }
+
+    // Then send all file offers once per recipient
+    for (const member of recipients) {
+      const connectionReady = await this.waitForFileTransferConnection(member);
+      if (connectionReady) {
+        await this.fileTransferService.sendAllFileOffers(member);
+        this.logger.debug('sendFilesToRecipients', `Sent ${filesToSend.length} files to ${member}`);
+      }
     }
   }
 
@@ -1786,7 +1850,11 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   protected get isSendDisabled(): boolean {
-    return !this.message.trim() || this.hasNoConnectedPeers;
+    return (
+      this.isSending ||
+      (!this.message.trim() && this.stagedFiles.length === 0) ||
+      this.hasNoConnectedPeers
+    );
   }
 
   protected dismissConnectionWarning(): void {
@@ -1864,57 +1932,65 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
 
   /**
    * ==========================================================
-   * HANDLE FILES DROPPED
-   * Processes files dropped into the chat input area
+   * DRAG & DROP (whole chat view)
+   * Files dropped anywhere over the conversation area are sent.
+   * The overlay only shows when files (not text) are dragged.
    * ==========================================================
    */
-  protected async handleFilesDropped(files: File[]): Promise<void> {
-    const otherMembers = this.members.filter((m) => m !== this.userService.user);
+  protected isDraggingFiles = false;
 
+  protected onChatDragOver(event: DragEvent): void {
+    event.preventDefault();
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'copy';
+    }
+  }
+
+  protected onChatDragEnter(event: DragEvent): void {
+    if (event.dataTransfer && Array.from(event.dataTransfer.types).includes('Files')) {
+      this.isDraggingFiles = true;
+    }
+  }
+
+  protected onChatDragLeave(event: DragEvent): void {
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    if (
+      event.clientX <= rect.left ||
+      event.clientX >= rect.right ||
+      event.clientY <= rect.top ||
+      event.clientY >= rect.bottom
+    ) {
+      this.isDraggingFiles = false;
+    }
+  }
+
+  protected onChatDrop(event: DragEvent): void {
+    event.preventDefault();
+    this.isDraggingFiles = false;
+    if (!event.dataTransfer?.files) return;
+    const files = Array.from(event.dataTransfer.files);
+    if (files.length === 0) return;
+    this.handleFilesDropped(files);
+  }
+
+  /**
+   * ==========================================================
+   * HANDLE FILES DROPPED
+   * Dropped files are staged as chips above the input (same as the
+   * attach button) and sent on the next message submit.
+   * ==========================================================
+   */
+  protected handleFilesDropped(files: File[]): void {
+    if (files.length === 0) return;
+
+    // Discard drops into an empty room — keep the original feedback rather than
+    // holding files that have nowhere to go.
+    const otherMembers = this.members.filter((m) => m !== this.userService.user);
     if (otherMembers.length === 0) {
       this.toaster.info(this.translate.instant('NO_USERS_FOR_UPLOAD'));
       return;
     }
 
-    if (files.length === 0) return;
-
-    // One group id per file links its echo bubble to its per-peer uploads.
-    const groupIds = new Map<File, string>();
-    for (const file of files) {
-      const groupId = crypto.randomUUID();
-      groupIds.set(file, groupId);
-      this.fileTransferService.beginUploadGroup(groupId, otherMembers.length);
-    }
-
-    // Create local chat messages for each file being sent
-    await this.createLocalFileMessages(files, groupIds, otherMembers.length);
-
-    // First prepare all files for all members
-    for (const fileToSend of files) {
-      for (const member of otherMembers) {
-        await this.fileTransferService.prepareFileForSending(
-          fileToSend,
-          member,
-          groupIds.get(fileToSend)!
-        );
-        if (!this.webrtcService.isConnectedOrConnecting(member)) {
-          this.logger.info(
-            'handleFilesDropped',
-            `Initiating connection to ${member} for file transfer`
-          );
-          this.webrtcService.initiateConnection(member);
-        }
-      }
-    }
-
-    // Then send all file offers once per member
-    for (const member of otherMembers) {
-      const connectionReady = await this.waitForFileTransferConnection(member);
-
-      if (connectionReady) {
-        await this.fileTransferService.sendAllFileOffers(member);
-        this.logger.debug('handleFilesDropped', `Sent ${files.length} files to ${member}`);
-      }
-    }
+    this.stageFiles(files);
   }
 }

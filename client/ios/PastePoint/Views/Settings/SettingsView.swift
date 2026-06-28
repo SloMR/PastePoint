@@ -9,6 +9,7 @@ import SwiftUI
 struct SettingsView: View {
   @Environment(\.dismiss) private var dismiss
   @EnvironmentObject private var services: AppServices
+  @EnvironmentObject private var toast: ToastCenter
 
   private let logger = Logger(label: "SettingsView")
   var onSessionJoin: (() -> Void)?
@@ -16,7 +17,6 @@ struct SettingsView: View {
   @State private var isLeaveSessionSheetPresented: Bool = false
   @State private var isJoinRoomSheetPresented: Bool = false
   @State private var privacyURLToShow: IdentifiableURL?
-  @State private var toasts: [ToastItem] = []
 
   private var avatar: some View {
     Image("group")
@@ -71,6 +71,7 @@ struct SettingsView: View {
               RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .fill(.brand),
             )
+            .contentShape(Rectangle())
           }
           .buttonStyle(.plain)
           .padding(.horizontal)
@@ -79,11 +80,11 @@ struct SettingsView: View {
 
           // MARK: - Chat Rooms
 
-          SettingsRoomsSection(toasts: $toasts)
+          SettingsRoomsSection()
 
           // MARK: - Private Session
 
-          SettingsPrivateSessionSection(toasts: $toasts, onSessionJoin: onSessionJoin)
+          SettingsPrivateSessionSection(onSessionJoin: onSessionJoin)
 
           // MARK: - Members
 
@@ -111,6 +112,7 @@ struct SettingsView: View {
           .padding(.horizontal, 14)
           .padding(.vertical, 8)
           .frame(maxWidth: .infinity)
+          .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
       }
@@ -154,16 +156,15 @@ struct SettingsView: View {
     .sheet(isPresented: $isLeaveSessionSheetPresented) {
       SettingsLeaveSessionView {
         logger.info("User left a private session")
-        toasts.append(.info(.leftPrivateSession))
+        toast.show(.info(.leftPrivateSession))
       }
     }
     .sheet(isPresented: $isJoinRoomSheetPresented) {
       SettingsCreateRoomView {
         logger.info("User created a room")
-        toasts.append(.success(.roomCreated))
+        toast.show(.success(.roomCreated))
       }
     }
-    .appToast(items: $toasts)
   }
 }
 
@@ -173,5 +174,6 @@ struct SettingsView: View {
 #Preview {
   SettingsView()
     .environmentObject(AppServices.preview)
+    .environmentObject(ToastCenter())
 }
 #endif

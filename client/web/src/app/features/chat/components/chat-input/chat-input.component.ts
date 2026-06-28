@@ -14,15 +14,22 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import type { EmojiClickEvent } from 'emoji-picker-element/shared';
+import { FileSizePipe } from '../../../../utils/file-size.pipe';
+import { middleTruncateFilename } from '../../../../utils/filename.util';
 
 export interface EnterKeyEvent {
   event: KeyboardEvent;
   form: NgForm;
 }
 
+export interface StagedAttachment {
+  id: string;
+  file: File;
+}
+
 @Component({
   selector: 'app-chat-input',
-  imports: [CommonModule, FormsModule, TranslateModule],
+  imports: [CommonModule, FormsModule, TranslateModule, FileSizePipe],
   templateUrl: './chat-input.component.html',
   styleUrl: './chat-input.component.css',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -33,6 +40,7 @@ export class ChatInputComponent implements OnDestroy {
   @Input() isDarkMode = false;
   @Input() hasNoConnectedPeers = false;
   @Input() isSendDisabled = false;
+  @Input() stagedFiles: StagedAttachment[] = [];
 
   @Output() messageChange = new EventEmitter<string>();
 
@@ -40,12 +48,11 @@ export class ChatInputComponent implements OnDestroy {
   @Output() enterKey = new EventEmitter<EnterKeyEvent>();
   @Output() autoResize = new EventEmitter<void>();
   @Output() filesAttached = new EventEmitter<Event>();
-  @Output() filesDropped = new EventEmitter<File[]>();
+  @Output() removeStagedFile = new EventEmitter<string>();
 
   @ViewChild('messageTextarea', { static: false }) messageTextarea!: ElementRef;
   @ViewChild('fileInput', { static: false }) fileInput!: ElementRef<HTMLInputElement>;
 
-  protected isDragging = false;
   protected isEmojiPickerVisible = false;
   protected isHoveringOverPicker = false;
 
@@ -60,36 +67,8 @@ export class ChatInputComponent implements OnDestroy {
     }
   }
 
-  protected handleDragEnter(): void {
-    if (!this.isDragging) {
-      this.isDragging = true;
-    }
-  }
-
-  protected handleDragLeave(event: DragEvent): void {
-    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
-    const x = event.clientX;
-    const y = event.clientY;
-
-    if (x <= rect.left || x >= rect.right || y <= rect.top || y >= rect.bottom) {
-      this.isDragging = false;
-    }
-  }
-
-  protected handleDragOver(event: DragEvent): void {
-    event.preventDefault();
-    if (event.dataTransfer) {
-      event.dataTransfer.dropEffect = 'copy';
-    }
-  }
-
-  protected handleDrop(event: DragEvent): void {
-    event.preventDefault();
-    this.isDragging = false;
-    if (!event.dataTransfer?.files) return;
-    const files = Array.from(event.dataTransfer.files);
-    if (files.length === 0) return;
-    this.filesDropped.emit(files);
+  protected stagedDisplayName(name: string, maxLength = 22): string {
+    return middleTruncateFilename(name, maxLength);
   }
 
   protected openEmojiPicker(): void {

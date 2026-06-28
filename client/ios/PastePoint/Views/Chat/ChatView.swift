@@ -6,16 +6,11 @@
 import SwiftUI
 
 struct ChatView: View {
-  @EnvironmentObject private var services: AppServices
   @State private var scrolledID: ChatMessage.ID?
 
   let messages: [ChatMessage]
   let onAcceptFile: (_ fromUser: String, _ fileId: String) -> Void
   let onDeclineFile: (_ fromUser: String, _ fileId: String) -> Void
-
-  private var isPrivate: Bool {
-    services.wsService.currentSessionCode != nil
-  }
 
   var body: some View {
     GeometryReader { geometry in
@@ -23,8 +18,6 @@ struct ChatView: View {
         ScrollView {
           // TODO: Change VStack to be LazyVStack
           VStack(alignment: .leading, spacing: 16) {
-            ChatRoomHeader(isPrivate: isPrivate)
-
             Spacer(minLength: 0)
 
             ForEach(messages) { message in
