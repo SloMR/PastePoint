@@ -81,6 +81,7 @@ struct ChatMessageBubble: View {
 
   private var textBody: some View {
     Text(text)
+      .textSelection(.enabled)
       .font(.callout)
       .foregroundStyle(alignment == .trailing ? .textPrimary : .white)
       .padding(.horizontal, 12)
