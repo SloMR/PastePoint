@@ -1,5 +1,5 @@
 <!-- MARK: - Main Container -->
-<div class="flex h-screen" [attr.dir]="isRTL ? 'rtl' : 'ltr'">
+<div class="flex h-screen supports-[height:100dvh]:h-dvh" [attr.dir]="isRTL ? 'rtl' : 'ltr'">
   <app-chat-sidebar
     [rooms]="rooms"
     [members]="members"
