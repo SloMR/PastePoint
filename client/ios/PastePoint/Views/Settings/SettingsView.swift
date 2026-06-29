@@ -19,10 +19,11 @@ struct SettingsView: View {
   @State private var privacyURLToShow: IdentifiableURL?
 
   private var avatar: some View {
-    Image("group")
+    Image(ChatAvatar.selfImageName)
       .resizable()
       .scaledToFit()
       .frame(width: 40, height: 40)
+      .clipShape(Circle())
       .padding(.trailing, 12)
   }
 

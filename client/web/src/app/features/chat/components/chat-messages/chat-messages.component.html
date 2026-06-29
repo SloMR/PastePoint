@@ -247,25 +247,30 @@
             class="flex justify-start"
             [ngClass]="isRTL ? 'animate-slide-in-right' : 'animate-slide-in-left'"
           >
-            <div class="flex items-start justify-start gap-3 min-w-[350px] max-w-[60%]">
+            <div class="flex items-start justify-start gap-3 max-w-[85%] md:max-w-[65%]">
               <img
-                src="/icons/Group.svg"
-                alt="User"
-                title="User"
-                class="h-8 w-8"
+                [src]="avatarFor(message)"
+                [alt]="message.from"
+                [title]="message.from"
+                class="h-8 w-8 shrink-0 select-none rounded-full"
                 loading="lazy"
                 width="32"
                 height="32"
               />
-              <div class="flex w-full flex-col gap-1">
-                <span class="px-2 text-xs text-gray-700 font-expoArabic dark:text-gray-300">
-                  {{ message.from }}
-                </span>
+              <div class="flex min-w-0 flex-col gap-1">
+                <div class="flex items-center gap-2 px-2">
+                  <span class="text-xs text-gray-700 font-expoArabic dark:text-gray-300">
+                    {{ message.from }}
+                  </span>
+                  <span class="text-xs text-gray-400 font-expoArabic dark:text-gray-500">
+                    {{ message.timestamp | date: 'shortTime' }}
+                  </span>
+                </div>
                 <div
-                  class="flex w-full flex-col rounded-xl p-3 bg-brand min-h-[65px] dark:bg-brandDark"
+                  class="flex min-h-[60px] w-[250px] flex-col justify-center rounded-xl p-3 bg-brand md:w-[280px] dark:bg-brandDark"
                   [ngClass]="isRTL ? 'rounded-tr-none' : 'rounded-tl-none'"
                 >
-                  <div class="mb-2 flex-1">
+                  <div>
                     @if (message.type === ChatMessageType.TEXT) {
                       <p
                         class="whitespace-pre-wrap break-all text-white text-[18px] font-expoArabic"
@@ -396,67 +401,62 @@
                       </div>
                     }
                   </div>
-                  <div
-                    class="flex items-center gap-2 justify-between"
-                    [ngClass]="isRTL ? 'flex-row-reverse' : 'flex-row'"
-                  >
-                    <span class="text-xs leading-6 text-white font-expoArabic">
-                      {{ message.timestamp | date: 'shortTime' }}
-                    </span>
-                    <div class="flex items-center gap-2">
-                      @if (
-                        message.type === ChatMessageType.ATTACHMENT &&
-                        message.fileTransfer?.status === FileTransferStatus.PENDING
-                      ) {
-                        <!-- Accept -->
-                        <button
-                          type="button"
-                          (click)="acceptFile.emit(message)"
-                          class="file-offer-action file-offer-action--accept"
-                          [attr.aria-label]="'ACCEPT' | translate"
-                          [title]="'ACCEPT' | translate"
+                  @if (
+                    message.type === ChatMessageType.ATTACHMENT &&
+                    message.fileTransfer?.status === FileTransferStatus.PENDING
+                  ) {
+                    <div
+                      class="mt-2 flex items-center gap-2"
+                      [ngClass]="isRTL ? 'flex-row-reverse' : 'flex-row'"
+                    >
+                      <!-- Accept -->
+                      <button
+                        type="button"
+                        (click)="acceptFile.emit(message)"
+                        class="file-offer-action file-offer-action--accept"
+                        [attr.aria-label]="'ACCEPT' | translate"
+                        [title]="'ACCEPT' | translate"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2.3"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
                         >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="18"
-                            height="18"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2.3"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          >
-                            <path d="M5 12l5 5l10 -10" />
-                          </svg>
-                          <span>{{ 'ACCEPT' | translate }}</span>
-                        </button>
-                        <!-- Decline -->
-                        <button
-                          type="button"
-                          (click)="declineFile.emit(message)"
-                          class="file-offer-action file-offer-action--decline"
-                          [attr.aria-label]="'DECLINE' | translate"
-                          [title]="'DECLINE' | translate"
+                          <path d="M5 12l5 5l10 -10" />
+                        </svg>
+                        <span>{{ 'ACCEPT' | translate }}</span>
+                      </button>
+                      <!-- Decline -->
+                      <button
+                        type="button"
+                        (click)="declineFile.emit(message)"
+                        class="file-offer-action file-offer-action--decline"
+                        [attr.aria-label]="'DECLINE' | translate"
+                        [title]="'DECLINE' | translate"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2.3"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
                         >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="18"
-                            height="18"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2.3"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          >
-                            <path d="M18 6L6 18M6 6l12 12" />
-                          </svg>
-                          <span>{{ 'DECLINE' | translate }}</span>
-                        </button>
-                      }
+                          <path d="M18 6L6 18M6 6l12 12" />
+                        </svg>
+                        <span>{{ 'DECLINE' | translate }}</span>
+                      </button>
                     </div>
-                  </div>
+                  }
                 </div>
               </div>
             </div>
@@ -466,18 +466,21 @@
             class="flex justify-end"
             [ngClass]="isRTL ? 'animate-slide-in-left' : 'animate-slide-in-right'"
           >
-            <div class="flex items-start justify-end gap-3 min-w-[350px] max-w-[60%]">
-              <div class="flex w-full flex-col items-end gap-1">
-                <span
-                  class="px-2 text-end text-xs text-blue-500 font-expoArabic dark:text-blue-400"
-                >
-                  {{ 'YOU' | translate }}
-                </span>
+            <div class="flex items-start justify-end gap-3 max-w-[85%] md:max-w-[65%]">
+              <div class="flex min-w-0 flex-col items-end gap-1">
+                <div class="flex items-center gap-2 px-2">
+                  <span class="text-xs text-gray-400 font-expoArabic dark:text-gray-500">
+                    {{ message.timestamp | date: 'shortTime' }}
+                  </span>
+                  <span class="text-xs text-blue-500 font-expoArabic dark:text-blue-400">
+                    {{ 'YOU' | translate }}
+                  </span>
+                </div>
                 <div
-                  class="my-2 flex w-full flex-col rounded-xl p-3 bg-messageBackground min-h-[65px] dark:bg-surfaceDark"
+                  class="flex min-h-[60px] w-[250px] flex-col justify-center rounded-xl p-3 bg-messageBackground md:w-[280px] dark:bg-surfaceDark"
                   [ngClass]="isRTL ? 'rounded-tl-none' : 'rounded-tr-none'"
                 >
-                  <div class="mb-2 flex-1">
+                  <div>
                     @if (message.type === ChatMessageType.TEXT) {
                       <p
                         class="whitespace-pre-wrap break-all text-[18px] font-expoArabic text-content dark:text-contentMuted"
@@ -607,23 +610,13 @@
                       </div>
                     }
                   </div>
-                  <div
-                    class="flex items-center gap-2"
-                    [ngClass]="!isRTL ? 'justify-end' : 'justify-start'"
-                  >
-                    <span
-                      class="text-xs leading-6 font-expoArabic text-content dark:text-contentMuted"
-                    >
-                      {{ message.timestamp | date: 'shortTime' }}
-                    </span>
-                  </div>
                 </div>
               </div>
               <img
-                src="/icons/Group.svg"
-                alt="User"
-                title="User"
-                class="h-8 w-8"
+                [src]="avatarFor(message)"
+                alt="You"
+                title="You"
+                class="h-8 w-8 shrink-0 select-none rounded-full"
                 loading="lazy"
                 width="32"
                 height="32"

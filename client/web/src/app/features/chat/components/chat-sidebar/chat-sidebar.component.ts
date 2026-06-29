@@ -10,6 +10,7 @@ import {
   truncateFilename as truncateFilenameUtil,
 } from '../../../../utils/filename.util';
 import { LanguageSwitcherComponent } from '../../../../core/components/language-switcher/language-switcher.component';
+import { SELF_AVATAR } from '../../../../utils/avatar.util';
 
 @Component({
   selector: 'app-chat-sidebar',
@@ -33,6 +34,8 @@ export class ChatSidebarComponent {
   @Input() currentUser: string | null = null;
   @Input() appVersion = '';
   @Input() currentLanguage: LanguageCode = 'en';
+
+  protected readonly selfAvatar = SELF_AVATAR;
 
   @Output() isMenuOpenChange = new EventEmitter<boolean>();
   @Output() switchLanguage = new EventEmitter<LanguageCode>();

@@ -48,10 +48,10 @@
       <!-- MARK: - User Info -->
       <div class="flex w-full items-center gap-2 overflow-hidden px-4 pb-4 pt-1">
         <img
-          src="/icons/Group.svg"
-          alt="User"
-          title="User"
-          class="h-9 w-9"
+          [src]="selfAvatar"
+          alt="You"
+          title="You"
+          class="h-9 w-9 shrink-0 select-none rounded-full"
           loading="lazy"
           width="36"
           height="36"
@@ -329,7 +329,7 @@
                           dir="ltr"
                           [title]="upload.file.name"
                         >
-                          <span class="min-w-0 flex-1 truncate">{{
+                          <span class="min-w-0 truncate">{{
                             filenameBaseName(upload.file.name)
                           }}</span>
                           <span class="shrink-0">{{ filenameExtension(upload.file.name) }}</span>
@@ -400,7 +400,7 @@
                           dir="ltr"
                           [title]="download.fileName"
                         >
-                          <span class="min-w-0 flex-1 truncate">{{
+                          <span class="min-w-0 truncate">{{
                             filenameBaseName(download.fileName)
                           }}</span>
                           <span class="shrink-0">{{ filenameExtension(download.fileName) }}</span>
