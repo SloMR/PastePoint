@@ -249,10 +249,10 @@
           >
             <div class="flex items-start justify-start gap-3 min-w-[350px] max-w-[60%]">
               <img
-                src="/icons/Group.svg"
-                alt="User"
-                title="User"
-                class="h-8 w-8"
+                [src]="avatarFor(message)"
+                [alt]="message.from"
+                [title]="message.from"
+                class="h-8 w-8 shrink-0 select-none rounded-full"
                 loading="lazy"
                 width="32"
                 height="32"
@@ -620,10 +620,10 @@
                 </div>
               </div>
               <img
-                src="/icons/Group.svg"
-                alt="User"
-                title="User"
-                class="h-8 w-8"
+                [src]="avatarFor(message)"
+                alt="You"
+                title="You"
+                class="h-8 w-8 shrink-0 select-none rounded-full"
                 loading="lazy"
                 width="32"
                 height="32"

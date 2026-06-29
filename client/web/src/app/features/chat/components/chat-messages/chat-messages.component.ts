@@ -16,6 +16,7 @@ import Autolinker from 'autolinker';
 import { ChatMessage, ChatMessageType, FileTransferStatus } from '../../../../utils/constants';
 import { FileSizePipe } from '../../../../utils/file-size.pipe';
 import { truncateFilename as truncateFilenameUtil } from '../../../../utils/filename.util';
+import { avatarFor } from '../../../../utils/avatar.util';
 
 @Component({
   selector: 'app-chat-messages',
@@ -53,6 +54,10 @@ export class ChatMessagesComponent {
 
   isMyMessage(msg: ChatMessage): boolean {
     return msg.isMine === true;
+  }
+
+  protected avatarFor(msg: ChatMessage): string {
+    return avatarFor(msg.from, this.isMyMessage(msg));
   }
 
   protected convertUrlsToLinks(
