@@ -24,6 +24,7 @@ struct ChatView: View {
               ChatMessageBubble(
                 alignment: alignment(for: message),
                 name: message.isMine ? String(localized: .you) : message.from,
+                avatarName: ChatAvatar.imageName(for: message.from, isMine: message.isMine),
                 time: timeString(message.timestamp),
                 text: message.text,
                 fileTransfer: message.fileTransfer,

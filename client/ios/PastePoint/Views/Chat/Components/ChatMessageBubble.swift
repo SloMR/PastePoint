@@ -15,6 +15,7 @@ struct ChatMessageBubble: View {
 
   let alignment: MessageAlignment
   let name: String
+  let avatarName: String
   let time: String
   let text: String
   let fileTransfer: FileTransferData?
@@ -71,10 +72,11 @@ struct ChatMessageBubble: View {
   }
 
   private var avatar: some View {
-    Image("group")
+    Image(avatarName)
       .resizable()
       .scaledToFit()
       .frame(width: 32, height: 32)
+      .clipShape(Circle())
   }
 
   private var textBody: some View {
@@ -223,6 +225,7 @@ struct ChatMessageBubble: View {
       ChatMessageBubble(
         alignment: .leading,
         name: "Garry Schulist",
+        avatarName: ChatAvatar.imageName(for: "Garry Schulist", isMine: false),
         time: "9:04 PM",
         text: "Hello",
         fileTransfer: FileTransferData(
@@ -240,6 +243,7 @@ struct ChatMessageBubble: View {
       ChatMessageBubble(
         alignment: .trailing,
         name: "Gwen Kuphal",
+        avatarName: ChatAvatar.imageName(for: "Gwen Kuphal", isMine: true),
         time: "9:05 PM",
         text: "Hi",
         fileTransfer: nil,
