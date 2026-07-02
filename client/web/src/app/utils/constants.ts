@@ -22,7 +22,11 @@ export const SESSION_CODE_KEY = 'session_code';
 export const LANGUAGE_PREFERENCE_KEY = 'language_preference';
 export const APP_VERSION_KEY = 'app_version';
 export const THEME_PREFERENCE_KEY = 'theme_preference';
+export const UPDATE_LAST_PROMPT_KEY = 'update_last_prompt_at';
 export const NAVIGATION_DELAY_MS = 100;
+
+// Client update check
+export const UPDATE_OPTIONAL_THROTTLE_MS = 12 * 60 * 60 * 1000; // 12h
 
 // Inactivity timeout constants
 export const IDLE_TIMEOUT = 12 * 60 * 60 * 1000; // 12 hours
