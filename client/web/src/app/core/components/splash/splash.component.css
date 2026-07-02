@@ -57,7 +57,32 @@
 
 .splash__packet {
   opacity: 0;
-  animation: splash-packet 0.9s ease 0.7s forwards;
+  transform-box: view-box;
+  animation:
+    splash-packet 0.9s ease 0.7s forwards,
+    splash-packet-move 0.75s linear 0.7s forwards;
+}
+
+/* Ring waypoints (5-node pentagon, center 85, radius 62 — mirrors buildNodes()). */
+@keyframes splash-packet-move {
+  0% {
+    transform: translate(85px, 23px);
+  }
+  20% {
+    transform: translate(143.96px, 65.84px);
+  }
+  40% {
+    transform: translate(121.45px, 135.16px);
+  }
+  60% {
+    transform: translate(48.55px, 135.16px);
+  }
+  80% {
+    transform: translate(26.04px, 65.84px);
+  }
+  100% {
+    transform: translate(85px, 23px);
+  }
 }
 
 @keyframes splash-edge {
