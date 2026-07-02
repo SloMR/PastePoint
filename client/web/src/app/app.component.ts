@@ -3,17 +3,20 @@ import { RouterOutlet } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
 import { MetaInitService } from './core/services/ui/meta-init.service';
 import { SplashComponent } from './core/components/splash/splash.component';
+import { UpdateGateComponent } from './core/components/update-gate/update-gate.component';
+import { AppUpdateService } from './core/services/update/app-update.service';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
-  imports: [RouterOutlet, SplashComponent],
+  imports: [RouterOutlet, SplashComponent, UpdateGateComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent implements OnInit {
   private platformId = inject(PLATFORM_ID);
   private metaInitService = inject(MetaInitService);
+  private updateService = inject(AppUpdateService);
 
   protected title = 'PastePoint';
   protected showSplash = true;
@@ -25,6 +28,9 @@ export class AppComponent implements OnInit {
 
       // Display console message
       this.displayConsoleMessage();
+
+      // Fire-and-forget client version check (gate/nudge if out of date)
+      this.updateService.startMonitoring();
     }
   }
 

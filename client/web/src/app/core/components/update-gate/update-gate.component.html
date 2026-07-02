@@ -1,0 +1,111 @@
+<!-- MARK: - Client Update UI -->
+@if (recommendation(); as rec) {
+  @if (rec.kind === 'required') {
+    <!-- Blocking, non-dismissible gate -->
+    <div
+      class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm"
+      role="alertdialog"
+      aria-modal="true"
+    >
+      <div
+        class="w-full max-w-sm rounded-2xl border border-borderLight bg-surface p-6 text-center shadow-2xl dark:border-borderDark dark:bg-surfaceDark"
+      >
+        <div
+          class="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-brand/10 dark:bg-brandDark/10"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.8"
+            stroke="currentColor"
+            class="h-10 w-10 text-brand dark:text-brandDark"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M12 4.5v10.5m0 0 4-4m-4 4-4-4M4.5 19.5h15"
+            />
+          </svg>
+        </div>
+
+        <h2 class="text-xl font-expoArabicMedium text-content dark:text-white">
+          {{ 'UPDATE_REQUIRED_TITLE' | translate }}
+        </h2>
+        <p class="mt-2 text-sm text-textMuted dark:text-contentMuted">
+          {{ 'UPDATE_REQUIRED_MESSAGE' | translate }}
+        </p>
+
+        <button
+          type="button"
+          (click)="update(rec.url)"
+          class="mt-6 w-full rounded-xl bg-brand px-4 py-2.5 text-sm font-expoArabicMedium text-white transition hover:bg-brand/90 dark:bg-brandDark dark:hover:bg-brandDark/90"
+        >
+          {{ 'UPDATE_ACTION' | translate }}
+        </button>
+      </div>
+    </div>
+  } @else if (rec.kind === 'optional') {
+    <!-- Dismissible nudge -->
+    <div class="fixed inset-x-0 top-0 z-[90] flex justify-center p-4">
+      <div
+        class="relative w-full max-w-sm overflow-hidden rounded-2xl border border-borderLight bg-surface/95 shadow-xl backdrop-blur-xl dark:border-borderDark dark:bg-surfaceDark/95"
+      >
+        <button
+          type="button"
+          (click)="dismiss()"
+          [attr.aria-label]="'CANCEL' | translate"
+          class="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full text-textMuted transition hover:bg-black/5 dark:text-contentMuted dark:hover:bg-white/10"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="2"
+            stroke="currentColor"
+            class="h-4 w-4"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        <div class="flex gap-3 p-4 pr-9">
+          <div
+            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand/10 dark:bg-brandDark/10"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.8"
+              stroke="currentColor"
+              class="h-5 w-5 text-brand dark:text-brandDark"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M12 4.5v10.5m0 0 4-4m-4 4-4-4M4.5 19.5h15"
+              />
+            </svg>
+          </div>
+
+          <div class="min-w-0 flex-1">
+            <p class="text-sm font-expoArabicMedium text-content dark:text-white">
+              {{ 'UPDATE_AVAILABLE_TITLE' | translate }}
+            </p>
+            <p class="mt-0.5 text-xs text-textMuted dark:text-contentMuted">
+              {{ 'UPDATE_AVAILABLE_MESSAGE' | translate: { version: rec.latest } }}
+            </p>
+            <button
+              type="button"
+              (click)="update(rec.url)"
+              class="mt-3 w-full rounded-lg bg-brand px-3 py-2 text-sm font-expoArabicMedium text-white transition hover:bg-brand/90 dark:bg-brandDark dark:hover:bg-brandDark/90"
+            >
+              {{ 'UPDATE_ACTION' | translate }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+}
