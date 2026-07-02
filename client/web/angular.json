@@ -59,9 +59,7 @@
               ],
               "optimization": {
                 "scripts": true,
-                "styles": {
-                  "inlineCritical": false
-                },
+                "styles": true,
                 "fonts": true
               },
               "outputHashing": "media",
@@ -96,9 +94,7 @@
               ],
               "optimization": {
                 "scripts": true,
-                "styles": {
-                  "inlineCritical": false
-                },
+                "styles": true,
                 "fonts": true
               },
               "outputHashing": "media",
