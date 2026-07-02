@@ -18,5 +18,5 @@ pub use consts::{
     WS_PREFIX_SYSTEM_ROOMS, WS_PREFIX_USER_COMMAND, WS_PREFIX_USER_DISCONNECTED,
 };
 pub use error::ServerError;
-pub use routes::{chat_ws, create_session, health, index, private_chat_ws};
+pub use routes::{chat_ws, create_session, health, index, private_chat_ws, version};
 pub use session_store::SessionStore;
