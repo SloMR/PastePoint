@@ -99,8 +99,22 @@
     <link rel="preconnect" href="/" />
     <link rel="preload" href="/icons/pastepoint-light.svg" as="image" />
     <link rel="preload" href="/icons/pastepoint-dark.svg" as="image" />
+
+    <!-- Static launch cover: solid splash background painted on the first byte so
+         there's no flash of SSR content before the animated splash boots. The
+         animated <app-splash> renders on top (browser-only); this is removed in
+         main.ts once the app has bootstrapped. -->
+    <style>
+      #splash-cover {
+        position: fixed;
+        inset: 0;
+        z-index: 99999;
+        background: #151b2c;
+      }
+    </style>
   </head>
   <body class="geopattern">
+    <div id="splash-cover" aria-hidden="true"></div>
     <app-root ngSkipHydration></app-root>
   </body>
 </html>
