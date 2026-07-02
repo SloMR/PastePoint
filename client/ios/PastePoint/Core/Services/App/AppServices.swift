@@ -22,6 +22,7 @@ final class AppServices: ObservableObject {
   let peerDirectory: PeerDirectory
   let fileTransferService: FileTransferService
   let connectionWarningMonitor: ConnectionWarningMonitor
+  let updateService: AppUpdateService
 
   static let shared = AppServices()
 
@@ -49,6 +50,7 @@ final class AppServices: ObservableObject {
       peerDirectory: peerDirectory,
       signalingService: signalingService,
     )
+    updateService = AppUpdateService()
 
 #if DEBUG
     guard !AppBuildInfo.isXcodePreview else {
@@ -80,6 +82,7 @@ final class AppServices: ObservableObject {
       peerDirectory: peerDirectory,
       signalingService: signalingService,
     )
+    updateService = AppUpdateService()
 
     forwardServiceChanges()
   }
@@ -199,6 +202,9 @@ final class AppServices: ObservableObject {
       .sink { [weak self] _ in self?.objectWillChange.send() }
       .store(in: &cancellables)
     connectionWarningMonitor.objectWillChange
+      .sink { [weak self] _ in self?.objectWillChange.send() }
+      .store(in: &cancellables)
+    updateService.objectWillChange
       .sink { [weak self] _ in self?.objectWillChange.send() }
       .store(in: &cancellables)
   }

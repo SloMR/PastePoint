@@ -40,6 +40,7 @@ struct PastePointApp: App {
 
       case .active:
         Task { await services.handleForeground() }
+        Task { await services.updateService.check() }
 
       case .background:
         services.handleBackground()
