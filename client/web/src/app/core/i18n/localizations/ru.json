@@ -1,4 +1,11 @@
 {
+  "_UPDATE_SECTION": "==== UPDATE ====",
+  "UPDATE_REQUIRED_TITLE": "Требуется обновление",
+  "UPDATE_REQUIRED_MESSAGE": "Для продолжения требуется более новая версия PastePoint. Обновите приложение, чтобы продолжить обмен.",
+  "UPDATE_AVAILABLE_TITLE": "Доступно обновление",
+  "UPDATE_AVAILABLE_MESSAGE": "Доступна версия {{version}}. Обновите для получения новых функций и исправлений.",
+  "UPDATE_ACTION": "Обновить",
+
   "_COMMON_SECTION": "==== COMMON ====",
   "COPYRIGHT_NOTICE": "© 2026 PastePoint. Все права защищены.",
   "VERSION": "Версия",

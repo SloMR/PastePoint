@@ -1,4 +1,11 @@
 {
+  "_UPDATE_SECTION": "==== UPDATE ====",
+  "UPDATE_REQUIRED_TITLE": "Actualización requerida",
+  "UPDATE_REQUIRED_MESSAGE": "Se requiere una versión más reciente de PastePoint para continuar. Actualiza para seguir compartiendo.",
+  "UPDATE_AVAILABLE_TITLE": "Actualización disponible",
+  "UPDATE_AVAILABLE_MESSAGE": "La versión {{version}} está disponible. Actualiza para obtener las últimas funciones y correcciones.",
+  "UPDATE_ACTION": "Actualizar",
+
   "_COMMON_SECTION": "==== COMMON ====",
   "COPYRIGHT_NOTICE": "© 2026 PastePoint. Todos los derechos reservados.",
   "VERSION": "Versión",

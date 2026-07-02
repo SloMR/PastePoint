@@ -1,4 +1,11 @@
 {
+  "_UPDATE_SECTION": "==== UPDATE ====",
+  "UPDATE_REQUIRED_TITLE": "التحديث مطلوب",
+  "UPDATE_REQUIRED_MESSAGE": "يلزم إصدار أحدث من PastePoint للمتابعة. يرجى التحديث لمواصلة المشاركة.",
+  "UPDATE_AVAILABLE_TITLE": "يتوفّر تحديث",
+  "UPDATE_AVAILABLE_MESSAGE": "الإصدار {{version}} متاح. حدّث للحصول على أحدث الميزات والإصلاحات.",
+  "UPDATE_ACTION": "تحديث",
+
   "_COMMON_SECTION": "==== COMMON ====",
   "COPYRIGHT_NOTICE": "© 2026 PastePoint. جميع الحقوق محفوظة.",
   "VERSION": "الإصدار",

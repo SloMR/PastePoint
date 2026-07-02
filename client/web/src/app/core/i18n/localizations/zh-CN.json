@@ -1,4 +1,11 @@
 {
+  "_UPDATE_SECTION": "==== UPDATE ====",
+  "UPDATE_REQUIRED_TITLE": "需要更新",
+  "UPDATE_REQUIRED_MESSAGE": "需要更新版本的 PastePoint 才能继续。请更新以继续共享。",
+  "UPDATE_AVAILABLE_TITLE": "有可用更新",
+  "UPDATE_AVAILABLE_MESSAGE": "版本 {{version}} 现已推出。更新以获取最新功能和修复。",
+  "UPDATE_ACTION": "更新",
+
   "_COMMON_SECTION": "==== COMMON ====",
   "COPYRIGHT_NOTICE": "© 2026 PastePoint。保留所有权利。",
   "VERSION": "版本",
