@@ -37,32 +37,16 @@ struct SettingsLeaveSessionView: View {
           }
         } label: {
           Text(.endTheSession)
-            .fontWeight(.semibold)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 14)
-            .foregroundStyle(.white)
-            .background(Color.red, in: Capsule())
-            .contentShape(Capsule())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pill(tint: .red))
 
         Button {
           logger.info("Dismiss Leave Session view")
           dismiss()
         } label: {
           Text(.cancel)
-            .fontWeight(.semibold)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 14)
-            .foregroundStyle(.red)
-            .background(Color.clear, in: Capsule())
-            .overlay(
-              Capsule()
-                .stroke(Color.red, lineWidth: 1.5),
-            )
-            .contentShape(Capsule())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pill(.outlined, tint: .red))
       }
     }
     .padding(24)

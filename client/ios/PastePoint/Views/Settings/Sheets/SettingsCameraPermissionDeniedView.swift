@@ -33,14 +33,9 @@ struct CameraPermissionDeniedView: View {
 
         Button { CameraPermission.openSettings() } label: {
           Text(.openSettings)
-            .fontWeight(.semibold)
             .padding(.horizontal, 32)
-            .padding(.vertical, 14)
-            .foregroundStyle(.white)
-            .background(AppColors.Brand.brand, in: Capsule())
-            .contentShape(Capsule())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pill(tint: AppColors.Brand.brand, fullWidth: false))
       }
       .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

@@ -72,14 +72,8 @@ struct SettingsCreateRoomView: View {
           }
         } label: {
           Text(.done)
-            .fontWeight(.semibold)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 14)
-            .foregroundStyle(.white)
-            .background(AppColors.Brand.brand, in: Capsule())
-            .contentShape(Capsule())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pill(tint: AppColors.Brand.brand))
         .disabled(sanitizedRoomName.isEmpty)
         .opacity(sanitizedRoomName.isEmpty ? 0.6 : 1)
 
@@ -88,15 +82,8 @@ struct SettingsCreateRoomView: View {
           dismiss()
         } label: {
           Text(.cancel)
-            .fontWeight(.semibold)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 14)
-            .foregroundStyle(AppColors.Brand.brand)
-            .background(Color.clear, in: Capsule())
-            .overlay(Capsule().stroke(AppColors.Brand.brand, lineWidth: 1.5))
-            .contentShape(Capsule())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pill(.outlined, tint: AppColors.Brand.brand))
       }
     }
     .padding(24)
