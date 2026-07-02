@@ -44,67 +44,28 @@ struct SettingsQRCodeView: View {
 
   private let logger = Logger(label: "SettingsQRCodeView")
 
-  @State private var sheetHeight: CGFloat = 420
-
   var body: some View {
-    NavigationStack {
-      VStack(spacing: 16) {
-        QRCodeView(
-          text: AppEnvironment.privateSessionUrl(sessionCode: services.wsService.currentSessionCode ?? ""),
-          size: 220,
-        )
-        .padding(20)
-        .background(Color(.white), in: RoundedRectangle(cornerRadius: 16))
-        .overlay(
-          RoundedRectangle(cornerRadius: 16)
-            .stroke(Color(.separator), lineWidth: 1),
-        )
-        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
+    VStack(spacing: 16) {
+      QRCodeView(
+        text: AppEnvironment.privateSessionUrl(sessionCode: services.wsService.currentSessionCode ?? ""),
+        size: 220,
+      )
+      .padding(20)
+      .background(Color(.white), in: RoundedRectangle(cornerRadius: 16))
+      .overlay(
+        RoundedRectangle(cornerRadius: 16)
+          .stroke(Color(.separator), lineWidth: 1),
+      )
+      .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
 
-        Text(.scanQrCodeToJoinTheSession)
-          .font(.subheadline)
-          .foregroundStyle(.secondary)
-          .multilineTextAlignment(.center)
-          .padding(.horizontal)
-      }
-      .padding()
-      .frame(maxWidth: .infinity)
-      .fixedSize(horizontal: false, vertical: true)
-      .onAppear { logger.info("QR code sheet presented for session: \(services.wsService.currentSessionCode ?? "none")") }
-      .onGeometryChange(for: CGFloat.self) { proxy in
-        proxy.size.height
-      } action: { height in
-        guard height > 0 else { return }
-        sheetHeight = height + 56
-      }
-      .navigationTitle(Text(.qrCode))
-      .navigationBarTitleDisplayMode(.inline)
-      .toolbar {
-        ToolbarItem(placement: .topBarTrailing) {
-          if #available(iOS 26, *) {
-            Button(role: .close) {
-              dismiss()
-            }
-          } else {
-            Button { dismiss() } label: {
-              ZStack {
-                Circle()
-                  .fill(Color(UIColor.tertiarySystemFill))
-                  .frame(width: 36, height: 36)
-
-                Image(systemName: "xmark")
-                  .font(.system(size: 13, weight: .bold, design: .rounded))
-                  .foregroundStyle(Color(UIColor.secondaryLabel))
-              }
-              .contentShape(Circle())
-            }
-            .buttonStyle(.plain)
-          }
-        }
-      }
+      Text(.scanQrCodeToJoinTheSession)
+        .font(.subheadline)
+        .foregroundStyle(.secondary)
+        .multilineTextAlignment(.center)
+        .padding(.horizontal)
     }
-    .presentationDetents([.height(sheetHeight)])
-    .presentationDragIndicator(.visible)
-    .presentationBackground(AppColors.Background.background)
+    .padding()
+    .onAppear { logger.info("QR code sheet presented for session: \(services.wsService.currentSessionCode ?? "none")") }
+    .sheetContainer(title: .qrCode, initialHeight: 420)
   }
 }

@@ -15,8 +15,6 @@ struct UpdateView: View {
   var latest: String?
 
   @Environment(\.openURL) private var openURL
-  @Environment(\.dismiss) private var dismiss
-  @State private var sheetHeight: CGFloat = 400
 
   private var isRequired: Bool { kind == .required }
 
@@ -27,24 +25,8 @@ struct UpdateView: View {
         .background(AppColors.Background.background.ignoresSafeArea())
         .interactiveDismissDisabled(true)
     } else {
-      NavigationStack {
-        content
-          .frame(maxWidth: .infinity)
-          .fixedSize(horizontal: false, vertical: true)
-          .onGeometryChange(for: CGFloat.self) { proxy in
-            proxy.size.height
-          } action: { height in
-            guard height > 0 else { return }
-            sheetHeight = height + 56
-          }
-          .navigationBarTitleDisplayMode(.inline)
-          .toolbar {
-            ToolbarItem(placement: .topBarTrailing) { closeButton }
-          }
-      }
-      .presentationDetents([.height(sheetHeight)])
-      .presentationDragIndicator(.visible)
-      .presentationBackground(AppColors.Background.background)
+      content
+        .sheetContainer(initialHeight: 400)
     }
   }
 
@@ -88,26 +70,6 @@ struct UpdateView: View {
       .padding(.top, 4)
     }
     .padding(24)
-  }
-
-  @ViewBuilder
-  private var closeButton: some View {
-    if #available(iOS 26, *) {
-      Button(role: .close) { dismiss() }
-    } else {
-      Button { dismiss() } label: {
-        ZStack {
-          Circle()
-            .fill(Color(UIColor.tertiarySystemFill))
-            .frame(width: 36, height: 36)
-          Image(systemName: "xmark")
-            .font(.system(size: 13, weight: .bold, design: .rounded))
-            .foregroundStyle(Color(UIColor.secondaryLabel))
-        }
-        .contentShape(Circle())
-      }
-      .buttonStyle(.plain)
-    }
   }
 }
 
