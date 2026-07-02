@@ -2,7 +2,7 @@
   <router-outlet />
 </ng-container>
 
-@if (isBrowser && showSplash) {
+@if (showSplash) {
   <app-splash (finished)="showSplash = false" />
 }
 

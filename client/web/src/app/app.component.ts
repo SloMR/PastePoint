@@ -18,10 +18,6 @@ export class AppComponent implements OnInit {
   private metaInitService = inject(MetaInitService);
   private updateService = inject(AppUpdateService);
 
-  // Browser-only so the splash is never server-rendered — otherwise the
-  // `ngSkipHydration` client rebuild destroys and restarts its animation.
-  protected readonly isBrowser = isPlatformBrowser(this.platformId);
-
   protected title = 'PastePoint';
   protected showSplash = true;
 

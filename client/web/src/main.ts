@@ -120,7 +120,4 @@ bootstrapApplication(AppComponent, appConfig).then((appRef) => {
   const translate = appRef.injector.get(TranslateService);
   translate.setDefaultLang(storedLang);
   translate.use(storedLang);
-
-  // Animated <app-splash> is now painted over it — drop the static launch cover.
-  document.getElementById('splash-cover')?.remove();
 });
