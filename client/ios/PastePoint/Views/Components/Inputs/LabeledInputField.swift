@@ -13,6 +13,20 @@ struct LabeledInputField<Trailing: View>: View {
   let placeholder: LocalizedStringResource
   let description: LocalizedStringResource
 
+  init(
+    label: LocalizedStringResource,
+    placeholder: LocalizedStringResource,
+    text: Binding<String>,
+    description: LocalizedStringResource,
+    @ViewBuilder trailing: @escaping () -> Trailing,
+  ) {
+    self.label = label
+    self.placeholder = placeholder
+    _text = text
+    self.description = description
+    self.trailing = trailing
+  }
+
   var body: some View {
     VStack(alignment: .leading, spacing: 6) {
       Text(label)
