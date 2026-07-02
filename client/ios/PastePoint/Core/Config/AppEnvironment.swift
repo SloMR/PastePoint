@@ -29,6 +29,9 @@ enum AppEnvironment {
   /// Used for requesting a new private session code.
   static var createSessionUrl: String { "https://\(apiUrl)/create-session" }
 
+  /// Used for the launch-time client version/update-policy check.
+  static var versionUrl: String { "https://\(apiUrl)/version" }
+
   /// Used for connecting to the signaling WebSocket.
   static func webSocketUrl(sessionCode: String?) -> String {
     "wss://\(apiUrl)/ws\(sessionCode.map { "/\($0)" } ?? "")"
