@@ -22,50 +22,23 @@ struct SettingsJoinPrivateView: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
 
-      // Input
-      VStack(alignment: .leading, spacing: 6) {
-        Text(.enterSessionCode)
-          .font(.subheadline)
-          .foregroundStyle(.textPrimary)
-
-        HStack(spacing: 0) {
-          TextField(String(localized: .sessionCodePlaceholder), text: $sessionCode)
-            .textFieldStyle(.plain)
-            .font(.body)
-            .foregroundStyle(.textPrimary)
-            .autocorrectionDisabled()
-            .textInputAutocapitalization(.never)
-            .padding(.leading, 14)
-            .padding(.vertical, 12)
-
-          if !sessionCode.isEmpty {
-            Button { sessionCode = "" } label: {
-              Image(systemName: "xmark.circle.fill")
-                .font(.system(size: 16))
-                .foregroundStyle(.textSecondary)
-                .frame(width: 36, height: 44)
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(Text(.clear))
-          }
-
-          Button {
-            isScannerPresented = true
-          } label: {
-            Image(systemName: "camera.viewfinder")
-              .font(.system(size: 18, weight: .medium))
-              .foregroundStyle(AppColors.Brand.brand)
-              .frame(width: 44, height: 44)
-          }
-          .buttonStyle(.plain)
-          .accessibilityLabel(Text(.scanQrCode))
-          .padding(.trailing, 4)
+      LabeledInputField(
+        label: .enterSessionCode,
+        placeholder: .sessionCodePlaceholder,
+        text: $sessionCode,
+        description: .sessionCodeDescription,
+      ) {
+        Button {
+          isScannerPresented = true
+        } label: {
+          Image(systemName: "camera.viewfinder")
+            .font(.system(size: 18, weight: .medium))
+            .foregroundStyle(AppColors.Brand.brand)
+            .frame(width: 44, height: 44)
         }
-        .background(AppColors.Background.input, in: RoundedRectangle(cornerRadius: 8))
-
-        Text(.sessionCodeDescription)
-          .font(.caption)
-          .foregroundStyle(.textSecondary)
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text(.scanQrCode))
+        .padding(.trailing, 4)
       }
 
       // Buttons

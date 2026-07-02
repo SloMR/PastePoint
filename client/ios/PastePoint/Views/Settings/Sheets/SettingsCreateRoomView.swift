@@ -25,40 +25,12 @@ struct SettingsCreateRoomView: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
 
-      // Input
-      VStack(alignment: .leading, spacing: 6) {
-        Text(.enterRoomName)
-          .font(.subheadline)
-          .foregroundStyle(.textPrimary)
-
-        HStack(spacing: 0) {
-          TextField(String(localized: .roomNamePlaceholder), text: $roomName)
-            .textFieldStyle(.plain)
-            .font(.body)
-            .foregroundStyle(.textPrimary)
-            .autocorrectionDisabled()
-            .textInputAutocapitalization(.never)
-            .padding(.leading, 14)
-            .padding(.vertical, 12)
-
-          if !roomName.isEmpty {
-            Button { roomName = "" } label: {
-              Image(systemName: "xmark.circle.fill")
-                .font(.system(size: 16))
-                .foregroundStyle(.textSecondary)
-                .frame(width: 36, height: 44)
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(Text(.clear))
-            .padding(.trailing, 8)
-          }
-        }
-        .background(AppColors.Background.input, in: RoundedRectangle(cornerRadius: 8))
-
-        Text(.roomNameDescription)
-          .font(.caption)
-          .foregroundStyle(.textSecondary)
-      }
+      LabeledInputField(
+        label: .enterRoomName,
+        placeholder: .roomNamePlaceholder,
+        text: $roomName,
+        description: .roomNameDescription,
+      )
 
       // Buttons
       HStack(spacing: 12) {
