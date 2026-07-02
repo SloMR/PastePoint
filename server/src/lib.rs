@@ -9,7 +9,7 @@ mod session;
 mod session_store;
 
 pub use chat_server::{ChatServerHandle, WsChatServer};
-pub use config::{SentryConfig, ServerConfig};
+pub use config::{ClientVersionConfig, SentryConfig, ServerConfig};
 pub use consts::{
     CLEANUP_INTERVAL, CONTENT_TYPE_TEXT_PLAIN, CORS_MAX_AGE, HEARTBEAT_INTERVAL, HEARTBEAT_TIMEOUT,
     KEEP_ALIVE_INTERVAL, MAX_FRAME_SIZE, MAX_SIGNAL_SIZE, MIN_USER_AGENT_LENGTH, SAFE_CHARSET,

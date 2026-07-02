@@ -1,6 +1,6 @@
 use actix_http::header::HeaderValue;
 use config::{Config, ConfigError, File};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::env;
 use url::Url;
 
@@ -54,6 +54,38 @@ impl SentryConfig {
             cfg.enabled = matches!(v.to_ascii_lowercase().as_str(), "true" | "1" | "yes");
         }
         cfg
+    }
+}
+
+/// Per-platform version policy. Empty `minimum`/`latest` = no policy (fail open).
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+pub struct PlatformVersion {
+    #[serde(default)]
+    pub minimum: String,
+    #[serde(default)]
+    pub latest: String,
+    #[serde(default)]
+    pub url: String,
+}
+
+/// Client update policy served by `GET /version`; each client reads its own key.
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+pub struct ClientVersionConfig {
+    #[serde(default)]
+    pub ios: PlatformVersion,
+    #[serde(default)]
+    pub web: PlatformVersion,
+}
+
+impl ClientVersionConfig {
+    pub fn load() -> Self {
+        let environment = env::var("RUN_ENV").unwrap_or_else(|_| "development".to_string());
+
+        Config::builder()
+            .add_source(File::with_name(&format!("config/{environment}")).required(false))
+            .build()
+            .and_then(|s| s.get::<Self>("client_version"))
+            .unwrap_or_default()
     }
 }
 
