@@ -114,7 +114,19 @@ private extension AppUpdateService {
 
   func isLower(_ first: String, than second: String) -> Bool {
     guard !second.isEmpty else { return false }
-    return first.compare(second, options: .numeric) == .orderedAscending
+    return compareVersions(first, second) < 0
+  }
+
+  /// Numeric segment-wise compare, padding the shorter side with zeros so
+  /// "0.9" == "0.9.0".
+  func compareVersions(_ first: String, _ second: String) -> Int {
+    let lhs = first.split(separator: ".").map { Int($0) ?? 0 }
+    let rhs = second.split(separator: ".").map { Int($0) ?? 0 }
+    for index in 0..<max(lhs.count, rhs.count) {
+      let diff = (index < lhs.count ? lhs[index] : 0) - (index < rhs.count ? rhs[index] : 0)
+      if diff != 0 { return diff < 0 ? -1 : 1 }
+    }
+    return 0
   }
 
   func shouldShowOptional() -> Bool {
