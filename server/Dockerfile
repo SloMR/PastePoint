@@ -12,36 +12,25 @@ RUN apk add --no-cache openssl-dev openssl-libs-static musl-dev pkgconf
 # Statically link OpenSSL so runtime image doesn't need libssl
 ENV OPENSSL_STATIC=1 OPENSSL_NO_VENDOR=1
 
-# Copy the Cargo.toml and Cargo.lock files
+# Copy manifests and sources
 COPY server/Cargo.toml server/Cargo.lock ./
 COPY rust-toolchain rust-toolchain
-
-# Create an empty main.rs to allow cargo to build dependencies
-RUN mkdir -p src && echo "fn main() {}" > src/main.rs
-
-# Build dependencies
-RUN --mount=type=cache,target=/usr/local/cargo/registry \
-  --mount=type=cache,target=/usr/local/cargo/git/db \
-  if [ "$RUST_BUILD_MODE" = "release" ]; then \
-  cargo build --release; \
-  else \
-  cargo build; \
-  fi
-
-# Now copy the source files and overwrite the dummy files
 COPY server/src ./src
 COPY server/config ./config
 
-# Final build with actual source code
+# Build. The target/ cache mount keeps compiled dependencies across builds, so a
+# source-only change recompiles just the server crate instead of the whole tree.
+# target/ is not visible to later stages, so the binary is copied out within this
+# same RUN. Stripping is handled by `strip = true` in Cargo.toml's release profile.
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
   --mount=type=cache,target=/usr/local/cargo/git/db \
+  --mount=type=cache,target=/usr/src/app/target,sharing=locked \
+  set -eux; \
   if [ "$RUST_BUILD_MODE" = "release" ]; then \
-  cargo build --release && \
-  strip target/release/server_bin && \
+  cargo build --release; \
   cp target/release/server_bin /usr/src/app/server_bin; \
   else \
-  cargo build && \
-  strip target/debug/server_bin && \
+  cargo build; \
   cp target/debug/server_bin /usr/src/app/server_bin; \
   fi
 

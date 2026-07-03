@@ -37,3 +37,7 @@ sentry-actix = "0.48"
 [dev-dependencies]
 actix-test = "0.1.5"
 awc = "3.8.2"
+
+[profile.release]
+opt-level = 2   # 3 -> 2 trims LLVM codegen time; negligible runtime cost for a signaling server
+strip = true    # strip symbols at link time
