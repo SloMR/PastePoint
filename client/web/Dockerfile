@@ -14,8 +14,11 @@ RUN --mount=type=cache,target=/root/.npm \
 # Copy application code
 COPY client/web/ ./
 
-# Build the application
-RUN npm run build -- --configuration=$NPM_BUILD_CONFIG
+# Build the application. The .angular/cache mount persists Angular's build cache
+# across builds so unchanged code isn't recompiled.
+RUN --mount=type=cache,target=/root/.npm \
+    --mount=type=cache,target=/usr/src/app/.angular/cache \
+    npm run build -- --configuration=$NPM_BUILD_CONFIG
 
 # ---------- Stage 2: SSR Server ----------
 FROM node:24.16.0-alpine AS ssr

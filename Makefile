@@ -16,7 +16,7 @@ ENV_FILE ?= $(firstword $(wildcard .env.development .env.production))
 prod:
 	@echo "Starting production environment..."
 	@test -f .env.production || (echo "Error: .env.production not found. Copy .env.production.example to .env.production on this host and fill in real values." && exit 1)
-	docker compose --env-file .env.production build --parallel
+	docker compose --env-file .env.production build
 	docker compose --env-file .env.production up --force-recreate -d
 	@echo "Production services are starting. View logs with: make logs"
 
@@ -24,7 +24,7 @@ prod:
 dev:
 	@echo "Starting development environment..."
 	@test -f .env.development || (echo "Error: .env.development not found. Copy .env.development.example to .env.development and configure it." && exit 1)
-	docker compose --env-file .env.development build --parallel
+	docker compose --env-file .env.development build
 	docker compose --env-file .env.development up --force-recreate -d
 	@echo "Development services are starting. View logs with: make logs"
 
