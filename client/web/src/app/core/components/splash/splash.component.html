@@ -32,16 +32,10 @@
         />
       }
 
-      <!-- Packet runs the ring -->
-      <circle class="splash__packet" cx="0" cy="0" r="3.5" fill="#ffffff">
-        <animateMotion
-          [attr.path]="packetPath"
-          dur="0.75s"
-          begin="0.7s"
-          fill="freeze"
-          calcMode="linear"
-        />
-      </circle>
+      <!-- Packet runs the ring. CSS transform (not SMIL animateMotion): SMIL
+           `begin` is relative to page load, so when the splash mounts after
+           bootstrap the packet's start time is already past and it never moves. -->
+      <circle class="splash__packet" cx="0" cy="0" r="3.5" fill="#ffffff" />
     </svg>
   </div>
 </div>

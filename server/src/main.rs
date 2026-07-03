@@ -8,8 +8,9 @@ use actix_web::{
 };
 use openssl::ssl::{SslAcceptor, SslFiletype, SslMethod};
 use server::{
-    CORS_MAX_AGE, KEEP_ALIVE_INTERVAL, SentryConfig, ServerConfig, SessionStore, chat_ws,
-    create_session, health, index, private_chat_ws,
+    CORS_MAX_AGE, ClientVersionConfig, KEEP_ALIVE_INTERVAL, SentryConfig, ServerConfig,
+    SessionStore, chat_ws, create_session, health, index, private_chat_ws,
+    version as version_route,
 };
 use std::borrow::Cow;
 use std::io::Result;
@@ -144,11 +145,13 @@ async fn main() -> Result<()> {
     session_manager.spawn_cleanup_task();
 
     let server_config = Data::new(config.clone());
+    let client_version = Data::new(ClientVersionConfig::load());
     let sentry_enabled = _sentry_guard.is_some();
 
     HttpServer::new(move || {
         let server_config = server_config.clone();
         let server_config_for_app = server_config.clone();
+        let client_version = client_version.clone();
         let cors = Cors::default()
             .allowed_origin_fn(move |origin, _req_head| server_config.check_origin(origin))
             .allowed_methods(vec!["GET", "OPTIONS"])
@@ -165,8 +168,10 @@ async fn main() -> Result<()> {
             ))
             .app_data(session_manager.clone())
             .app_data(server_config_for_app)
+            .app_data(client_version)
             .service(index)
             .service(health)
+            .service(version_route)
             .service(create_session)
             .service(chat_ws)
             .service(private_chat_ws)

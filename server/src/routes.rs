@@ -1,8 +1,8 @@
 #![allow(unreachable_pub)]
 
 use crate::{
-    CONTENT_TYPE_TEXT_PLAIN, MIN_USER_AGENT_LENGTH, SESSION_CODE_LENGTH, ServerConfig, ServerError,
-    SessionStore, consts::MAX_SESSIONS, session_store::SessionData,
+    CONTENT_TYPE_TEXT_PLAIN, ClientVersionConfig, MIN_USER_AGENT_LENGTH, SESSION_CODE_LENGTH,
+    ServerConfig, ServerError, SessionStore, consts::MAX_SESSIONS, session_store::SessionData,
 };
 use actix_web::{Error, HttpRequest, HttpResponse, Responder, get, http::header, web};
 use serde_json::json;
@@ -26,6 +26,16 @@ pub async fn health() -> impl Responder {
     HttpResponse::Ok()
         .content_type(CONTENT_TYPE_TEXT_PLAIN)
         .body("PastePoint Server is running!")
+}
+
+// -----------------------------------------------------
+// Client version policy route
+// -----------------------------------------------------
+#[get("/version")]
+pub async fn version(config: web::Data<ClientVersionConfig>) -> impl Responder {
+    HttpResponse::Ok()
+        .insert_header((header::CACHE_CONTROL, "public, max-age=300"))
+        .json(config.get_ref())
 }
 
 // -----------------------------------------------------

@@ -56,7 +56,46 @@ struct ContentView: View {
         .zIndex(1)
       }
     }
+    .fullScreenCover(isPresented: forcedUpdatePresented) {
+      if case let .required(url) = services.updateService.recommendation {
+        UpdateView(kind: .required, storeURL: url)
+      }
+    }
+    .sheet(isPresented: optionalUpdatePresented) {
+      if case let .optional(latest, url) = services.updateService.recommendation {
+        UpdateView(kind: .optional, storeURL: url, latest: latest)
+      }
+    }
   }
+
+  // MARK: - Update presentation
+
+  private var forcedUpdatePresented: Binding<Bool> {
+    Binding(
+      get: {
+        guard !showSplash else { return false }
+        if case .required = services.updateService.recommendation { return true }
+        return false
+      },
+      set: { _ in },
+    )
+  }
+
+  private var optionalUpdate: (latest: String, url: URL)? {
+    if case let .optional(latest, url) = services.updateService.recommendation {
+      return (latest, url)
+    }
+    return nil
+  }
+
+  private var optionalUpdatePresented: Binding<Bool> {
+    Binding(
+      get: { !showSplash && optionalUpdate != nil },
+      set: { presented in if !presented { services.updateService.dismissOptional() } },
+    )
+  }
+
+  // MARK: - Chat Screen
 
   private var chatScreen: some View {
     NavigationStack {

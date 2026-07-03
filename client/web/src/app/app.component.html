@@ -5,3 +5,7 @@
 @if (showSplash) {
   <app-splash (finished)="showSplash = false" />
 }
+
+@if (!showSplash) {
+  <app-update-gate />
+}

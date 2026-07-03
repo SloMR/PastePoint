@@ -103,6 +103,10 @@ echo "Updated AppEnvironment.swift"
 update_file "$PROJECT_ROOT/server/config/development.toml" "cors_allowed_origins = \"https://127.0.0.1\"" "cors_allowed_origins = \"https://$local_ip\""
 update_file "$PROJECT_ROOT/server/config/docker-dev.toml" "cors_allowed_origins = \"https://127.0.0.1\"" "cors_allowed_origins = \"https://$local_ip\""
 
+# Keep the web client's update-policy URL in sync with the host
+update_file "$PROJECT_ROOT/server/config/development.toml" "url = \"https://127.0.0.1\"" "url = \"https://$local_ip\""
+update_file "$PROJECT_ROOT/server/config/docker-dev.toml" "url = \"https://127.0.0.1\"" "url = \"https://$local_ip\""
+
 echo "Network configuration completed successfully!"
 echo "Your local IP address ($local_ip) has been set in all configuration files."
 echo "You can now run 'docker compose up --build' to start the application."

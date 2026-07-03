@@ -14,98 +14,43 @@ struct SettingsLeaveSessionView: View {
 
   var onSessionLeft: (() -> Void)?
 
-  @State private var sheetHeight: CGFloat = 320
-
   var body: some View {
-    NavigationStack {
-      VStack(spacing: 20) {
-        Text(.endSessionHeader)
-          .font(.headline)
-          .multilineTextAlignment(.center)
-          .foregroundStyle(.primary)
-          .padding(.horizontal)
+    VStack(spacing: 20) {
+      Text(.endSessionHeader)
+        .font(.headline)
+        .multilineTextAlignment(.center)
+        .foregroundStyle(.primary)
+        .padding(.horizontal)
 
-        HStack(spacing: 12) {
-          Button {
-            logger.info("User confirmed leaving private session")
-            services.wsService.disconnect(manual: true)
-            Task {
-              if await services.connectIfPermitted(sessionCode: nil) {
-                await services.roomService.listRooms()
-                await services.userService.getUsername()
-              }
-              logger.info("Left private session")
-              dismiss()
-              onSessionLeft?()
+      HStack(spacing: 12) {
+        Button {
+          logger.info("User confirmed leaving private session")
+          services.wsService.disconnect(manual: true)
+          Task {
+            if await services.connectIfPermitted(sessionCode: nil) {
+              await services.roomService.listRooms()
+              await services.userService.getUsername()
             }
-          } label: {
-            Text(.endTheSession)
-              .fontWeight(.semibold)
-              .frame(maxWidth: .infinity)
-              .padding(.vertical, 14)
-              .foregroundStyle(.white)
-              .background(Color.red, in: Capsule())
-              .contentShape(Capsule())
-          }
-          .buttonStyle(.plain)
-
-          Button {
-            logger.info("Dismiss Leave Session view")
+            logger.info("Left private session")
             dismiss()
-          } label: {
-            Text(.cancel)
-              .fontWeight(.semibold)
-              .frame(maxWidth: .infinity)
-              .padding(.vertical, 14)
-              .foregroundStyle(.red)
-              .background(Color.clear, in: Capsule())
-              .overlay(
-                Capsule()
-                  .stroke(Color.red, lineWidth: 1.5),
-              )
-              .contentShape(Capsule())
+            onSessionLeft?()
           }
-          .buttonStyle(.plain)
+        } label: {
+          Text(.endTheSession)
         }
-      }
-      .padding(24)
-      .frame(maxWidth: .infinity)
-      .fixedSize(horizontal: false, vertical: true)
-      .onGeometryChange(for: CGFloat.self) { proxy in
-        proxy.size.height
-      } action: { height in
-        guard height > 0 else { return }
-        sheetHeight = height + 56
-      }
-      .navigationTitle(Text(.endSession))
-      .navigationBarTitleDisplayMode(.inline)
-      .toolbar {
-        ToolbarItem(placement: .topBarTrailing) {
-          if #available(iOS 26, *) {
-            Button(role: .close) {
-              dismiss()
-            }
-          } else {
-            Button { dismiss() } label: {
-              ZStack {
-                Circle()
-                  .fill(Color(UIColor.tertiarySystemFill))
-                  .frame(width: 36, height: 36)
+        .buttonStyle(.pill(tint: .red))
 
-                Image(systemName: "xmark")
-                  .font(.system(size: 13, weight: .bold, design: .rounded))
-                  .foregroundStyle(Color(UIColor.secondaryLabel))
-              }
-              .contentShape(Circle())
-            }
-            .buttonStyle(.plain)
-          }
+        Button {
+          logger.info("Dismiss Leave Session view")
+          dismiss()
+        } label: {
+          Text(.cancel)
         }
+        .buttonStyle(.pill(.outlined, tint: .red))
       }
     }
-    .presentationDetents([.height(sheetHeight)])
-    .presentationDragIndicator(.visible)
-    .presentationBackground(AppColors.Background.background)
+    .padding(24)
+    .sheetContainer(title: .endSession)
   }
 }
 

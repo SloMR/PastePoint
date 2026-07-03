@@ -37,7 +37,6 @@ export class SplashComponent implements OnInit, OnDestroy {
   // 5-node ring (pentagon) in a 170×170 canvas, radius 62.
   protected readonly nodes: MeshNode[] = this.buildNodes();
   protected readonly edgePath: string = this.buildEdgePath();
-  protected readonly packetPath: string = this.buildPacketPath();
 
   ngOnInit(): void {
     if (!isPlatformBrowser(this.platformId)) {
@@ -87,11 +86,6 @@ export class SplashComponent implements OnInit, OnDestroy {
       }
     }
     return parts.join('');
-  }
-
-  /** Closed ring path the packet travels (node 0 → 1 → … → 0). */
-  private buildPacketPath(): string {
-    return `M${this.nodes.map((n) => this.fmt(n)).join('L')}Z`;
   }
 
   private fmt(node: MeshNode): string {
