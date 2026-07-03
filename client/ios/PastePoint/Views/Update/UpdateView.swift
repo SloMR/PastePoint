@@ -75,13 +75,11 @@ struct UpdateView: View {
 
 #if DEBUG
 #Preview("Required") {
-  // swiftlint:disable:next force_unwrapping
   UpdateView(kind: .required, storeURL: URL(string: "https://apps.apple.com")!)
 }
 
 #Preview("Optional") {
   Color.clear.sheet(isPresented: .constant(true)) {
-    // swiftlint:disable:next force_unwrapping
     UpdateView(kind: .optional, storeURL: URL(string: "https://apps.apple.com")!, latest: "0.8.3")
   }
 }
