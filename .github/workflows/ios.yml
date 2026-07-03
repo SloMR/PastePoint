@@ -23,6 +23,8 @@ permissions:
 env:
   DESTINATION: 'platform=iOS Simulator,name=iPhone 17 Pro,arch=arm64'
   DERIVED_DATA: ${{ github.workspace }}/client/ios/build
+  SWIFTLINT_VERSION: '0.65.0'
+  SWIFTFORMAT_VERSION: '0.61.1'
 
 jobs:
   lint:
@@ -37,7 +39,22 @@ jobs:
           persist-credentials: false
 
       - name: Install SwiftLint & SwiftFormat
-        run: brew install swiftlint swiftformat
+        run: |
+          mkdir -p "$RUNNER_TEMP/bin"
+
+          curl -sfL "https://github.com/realm/SwiftLint/releases/download/${SWIFTLINT_VERSION}/portable_swiftlint.zip" -o swiftlint.zip
+          unzip -oj swiftlint.zip swiftlint -d "$RUNNER_TEMP/bin"
+
+          curl -sfL "https://github.com/nicklockwood/SwiftFormat/releases/download/${SWIFTFORMAT_VERSION}/swiftformat.zip" -o swiftformat.zip
+          unzip -oj swiftformat.zip swiftformat -d "$RUNNER_TEMP/bin"
+
+          chmod +x "$RUNNER_TEMP/bin/swiftlint" "$RUNNER_TEMP/bin/swiftformat"
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+
+      - name: Verify pinned versions
+        run: |
+          test "$(swiftlint version)" = "${SWIFTLINT_VERSION}"
+          test "$(swiftformat --version)" = "${SWIFTFORMAT_VERSION}"
 
       - name: SwiftLint
         working-directory: client/ios
