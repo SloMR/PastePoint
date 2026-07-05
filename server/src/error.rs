@@ -12,16 +12,6 @@ pub enum ServerError {
     BadRequest(String),
     #[display("Forbidden")]
     Forbidden,
-    #[display("Index out of bounds")]
-    IndexOutOfBounds,
-    #[display("Chunk Missing")]
-    ChunkMissing,
-    #[display("File Reassembly Error")]
-    FileReassemblyError,
-    #[display("Metadata Parsing Error")]
-    MetadataParsingError,
-    #[display("Invalid File")]
-    InvalidFile,
 }
 
 impl ResponseError for ServerError {
@@ -39,21 +29,6 @@ impl ResponseError for ServerError {
             ServerError::Forbidden => HttpResponse::Forbidden()
                 .content_type(CONTENT_TYPE_TEXT_PLAIN)
                 .body("Forbidden"),
-            ServerError::IndexOutOfBounds => HttpResponse::BadRequest()
-                .content_type(CONTENT_TYPE_TEXT_PLAIN)
-                .body("Index out of bounds"),
-            ServerError::ChunkMissing => HttpResponse::BadRequest()
-                .content_type(CONTENT_TYPE_TEXT_PLAIN)
-                .body("Chunk Missing"),
-            ServerError::FileReassemblyError => HttpResponse::BadRequest()
-                .content_type(CONTENT_TYPE_TEXT_PLAIN)
-                .body("File Reassembly Error"),
-            ServerError::MetadataParsingError => HttpResponse::BadRequest()
-                .content_type(CONTENT_TYPE_TEXT_PLAIN)
-                .body("Metadata Parsing Error"),
-            ServerError::InvalidFile => HttpResponse::BadRequest()
-                .content_type(CONTENT_TYPE_TEXT_PLAIN)
-                .body("Invalid File"),
         }
     }
 }
