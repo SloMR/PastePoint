@@ -182,10 +182,10 @@ struct ContentView: View {
     .preferredColorScheme(AppColors.Scheme.colorScheme(from: colorSchemeRaw))
     .sheet(isPresented: settingsSheetPresented) {
       NavigationStack {
-        SettingsView(onSessionJoin: {
+        SettingsView {
           showSettings = false
           pendingPrivateJoin = true
-        })
+        }
       }
     }
   }
