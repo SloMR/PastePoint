@@ -22,82 +22,90 @@ struct WelcomeView: View {
   ]
 
   var body: some View {
-    ScrollView {
-      VStack(alignment: .center, spacing: 20) {
-
-        // Room icon
-        Group {
-          if isPrivate {
-            Image("lock.light")
-              .resizable()
-              .scaledToFit()
-              .frame(width: 28, height: 28)
-          } else {
-            Image("users")
-              .resizable()
-              .scaledToFit()
-              .frame(width: 28, height: 28)
-          }
-        }
-        .padding(18)
-        .background(Circle().fill(.brand))
-
-        // Title + subtitle
-        VStack(spacing: 6) {
-          Text(isPrivate ? .privateRoom : .publicRoom)
-            .font(.title2)
-            .fontWeight(.bold)
-            .foregroundStyle(.textPrimary)
-
-          Text(isPrivate ? .privateSessionInfo : .publicSessionInfo)
-            .font(.subheadline)
-            .foregroundStyle(.textSecondary)
-            .multilineTextAlignment(.center)
-            .padding(.horizontal, 16)
-        }
-
-        // Steps
-        VStack(spacing: 12) {
-          Text(.whatToDoNext)
-            .font(.caption)
-            .fontWeight(.semibold)
-            .foregroundStyle(.textSecondary)
-            .textCase(.uppercase)
-            .tracking(0.5)
-
-          if isPrivate {
-            WelcomeStepList(steps: [
-              .shareSessionCode,
-              .waitForMembers,
-              .startChatting,
-            ])
-          } else {
-            WelcomeStepList(steps: [
-              .inviteOthersPublic,
-              .startConversation,
-            ])
-          }
-        }
-        .padding(.horizontal, 16)
-
-        // Features grid
-        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
-          ForEach(features, id: \.0) { icon, label in
-            featureCell(icon: icon, label: label)
-          }
-        }
-        .padding(.horizontal, 16)
-
-        // Dots
-        HStack(spacing: 8) {
-          Circle().fill(.brand.opacity(0.47)).frame(width: 8, height: 8)
-          Circle().fill(.brand.opacity(0.47)).frame(width: 8, height: 8)
-          Circle().fill(.brand.opacity(0.47)).frame(width: 8, height: 8)
-        }
-        .padding(.bottom, 8)
+    // Centers the content vertically when it fits, scrolls when it doesn't.
+    GeometryReader { geometry in
+      ScrollView {
+        welcomeContent
+          .padding(.vertical, 32)
+          .frame(maxWidth: 480)
+          .frame(maxWidth: .infinity, minHeight: geometry.size.height)
       }
-      .frame(maxWidth: .infinity)
-      .padding(.top, 32)
+    }
+  }
+
+  private var welcomeContent: some View {
+    VStack(alignment: .center, spacing: 20) {
+
+      // Room icon
+      Group {
+        if isPrivate {
+          Image("lock.light")
+            .resizable()
+            .scaledToFit()
+            .frame(width: 28, height: 28)
+        } else {
+          Image("users")
+            .resizable()
+            .scaledToFit()
+            .frame(width: 28, height: 28)
+        }
+      }
+      .padding(18)
+      .background(Circle().fill(.brand))
+
+      // Title + subtitle
+      VStack(spacing: 6) {
+        Text(isPrivate ? .privateRoom : .publicRoom)
+          .font(.title2)
+          .fontWeight(.bold)
+          .foregroundStyle(.textPrimary)
+
+        Text(isPrivate ? .privateSessionInfo : .publicSessionInfo)
+          .font(.subheadline)
+          .foregroundStyle(.textSecondary)
+          .multilineTextAlignment(.center)
+          .padding(.horizontal, 16)
+      }
+
+      // Steps
+      VStack(spacing: 12) {
+        Text(.whatToDoNext)
+          .font(.caption)
+          .fontWeight(.semibold)
+          .foregroundStyle(.textSecondary)
+          .textCase(.uppercase)
+          .tracking(0.5)
+
+        if isPrivate {
+          WelcomeStepList(steps: [
+            .shareSessionCode,
+            .waitForMembers,
+            .startChatting,
+          ])
+        } else {
+          WelcomeStepList(steps: [
+            .inviteOthersPublic,
+            .startConversation,
+          ])
+        }
+      }
+      .padding(.horizontal, 16)
+
+      // Features grid
+      LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
+        ForEach(features, id: \.0) { icon, label in
+          featureCell(icon: icon, label: label)
+        }
+      }
+      .padding(.horizontal, 16)
+
+      // Dots
+      HStack(spacing: 8) {
+        Circle().fill(.brand.opacity(0.47)).frame(width: 8, height: 8)
+        Circle().fill(.brand.opacity(0.47)).frame(width: 8, height: 8)
+        Circle().fill(.brand.opacity(0.47)).frame(width: 8, height: 8)
+      }
+      .padding(.bottom, 8)
     }
   }
 
