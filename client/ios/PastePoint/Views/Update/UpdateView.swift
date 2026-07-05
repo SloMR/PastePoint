@@ -21,6 +21,7 @@ struct UpdateView: View {
   var body: some View {
     if isRequired {
       content
+        .frame(maxWidth: 440)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(AppColors.Background.background.ignoresSafeArea())
         .interactiveDismissDisabled(true)

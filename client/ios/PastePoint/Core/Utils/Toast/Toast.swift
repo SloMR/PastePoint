@@ -90,6 +90,7 @@ private struct ToastRowView: View {
         .shadow(color: .black.opacity(0.14), radius: 22, x: 0, y: 10)
         .shadow(color: .black.opacity(0.06), radius: 4, x: 0, y: 2)
     }
+    .frame(maxWidth: 400)
     .onTapGesture { onDismiss() }
     .task {
       try? await Task.sleep(for: .seconds(2))

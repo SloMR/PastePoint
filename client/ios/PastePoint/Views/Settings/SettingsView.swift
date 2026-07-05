@@ -12,6 +12,7 @@ struct SettingsView: View {
   @EnvironmentObject private var toast: ToastCenter
 
   private let logger = Logger(label: "SettingsView")
+  var onClose: (() -> Void)?
   var onSessionJoin: (() -> Void)?
 
   @State private var isLeaveSessionSheetPresented: Bool = false
@@ -143,10 +144,10 @@ struct SettingsView: View {
       ToolbarItem(placement: .topBarTrailing) {
         if #available(iOS 26, *) {
           Button(role: .close) {
-            dismiss()
+            close()
           }
         } else {
-          Button(action: { dismiss() }, label: {
+          Button(action: { close() }, label: {
             Image(systemName: "xmark")
               .font(.body.bold())
               .foregroundStyle(.secondary)
@@ -165,6 +166,15 @@ struct SettingsView: View {
         logger.info("User created a room")
         toast.show(.success(.roomCreated))
       }
+    }
+  }
+
+  /// The docked iPad panel closes via the owner's callback; sheets fall back to dismiss.
+  private func close() {
+    if let onClose {
+      onClose()
+    } else {
+      dismiss()
     }
   }
 }

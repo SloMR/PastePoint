@@ -46,23 +46,39 @@ private struct SheetContainer: ViewModifier {
   }
 
   func body(content: Content) -> some View {
-    NavigationStack {
-      content
-        .frame(maxWidth: .infinity)
-        .fixedSize(horizontal: false, vertical: true)
-        .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { measured in
-          guard measured > 0 else { return }
-          height = measured + extraHeight
-        }
-        .navigationTitle(title.map { Text($0) } ?? Text(verbatim: ""))
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-          ToolbarItem(placement: .topBarTrailing) { CloseButton() }
-        }
+    formFitted(
+      NavigationStack {
+        content
+          .frame(maxWidth: .infinity)
+          .fixedSize(horizontal: false, vertical: true)
+          .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { measured in
+            guard measured > 0 else { return }
+            height = measured + extraHeight
+          }
+          .navigationTitle(title.map { Text($0) } ?? Text(verbatim: ""))
+          .navigationBarTitleDisplayMode(.inline)
+          .toolbar {
+            ToolbarItem(placement: .topBarTrailing) { CloseButton() }
+          }
+      }
+      .presentationDetents([.height(height)])
+      .presentationDragIndicator(.visible)
+      .presentationBackground(AppColors.Background.background),
+    )
+  }
+
+  /// iPad: form-sheet width with content-fitted height (height detents only apply in compact).
+  /// `idealHeight` feeds the fitted sizing the measured height, which already
+  /// includes the nav-bar allowance the stack's own ideal size leaves out.
+  @ViewBuilder
+  private func formFitted(_ sheet: some View) -> some View {
+    if #available(iOS 18, *) {
+      sheet
+        .frame(idealHeight: height)
+        .presentationSizing(.form.fitted(horizontal: false, vertical: true))
+    } else {
+      sheet
     }
-    .presentationDetents([.height(height)])
-    .presentationDragIndicator(.visible)
-    .presentationBackground(AppColors.Background.background)
   }
 }
 

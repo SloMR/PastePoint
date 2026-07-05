@@ -13,6 +13,7 @@ struct ContentView: View {
   @EnvironmentObject var services: AppServices
   @Environment(\.scenePhase) var scenePhase
   @Environment(\.colorScheme) private var colorScheme
+  @Environment(\.isIPad) private var isIPad
 
   let logger = Logger(label: "ContentView")
 
@@ -98,86 +99,129 @@ struct ContentView: View {
   // MARK: - Chat Screen
 
   private var chatScreen: some View {
-    NavigationStack {
-      ChatContainerView(
-        messages: messages,
-        onAcceptFile: handleAcceptFile,
-        onDeclineFile: handleDeclineFile,
-      )
-      .simultaneousGesture(
-        TapGesture().onEnded {
-          UIApplication.shared.sendAction(
-            #selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil,
-          )
-        },
-      )
-      .safeAreaInset(edge: .top, spacing: 0) {
-        connectionBanner
+    HStack(spacing: 0) {
+      // Leading docked panel on iPad
+      if isIPad, showSettings {
+        settingsPanel
+          .transition(.move(edge: .leading))
       }
-      .safeAreaInset(edge: .bottom, spacing: 0) {
-        ChatInputBar(
-          onSend: handleSend,
-          onSendFiles: handleSendFiles,
-          hasConnectedPeers: !services.signalingService.connectedPeers.isEmpty,
+
+      NavigationStack {
+        ChatContainerView(
+          messages: messages,
+          onAcceptFile: handleAcceptFile,
+          onDeclineFile: handleDeclineFile,
         )
-        .padding(.horizontal, 8)
-        .padding(.top, 4)
-        .padding(.bottom, 0)
-        .frame(maxWidth: .infinity)
-        .background {
-          AppColors.Background.background
-            .ignoresSafeArea(edges: .bottom)
+        .simultaneousGesture(
+          TapGesture().onEnded {
+            UIApplication.shared.sendAction(
+              #selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil,
+            )
+          },
+        )
+        .safeAreaInset(edge: .top, spacing: 0) {
+          connectionBanner
         }
-      }
-      .navigationBarTitleDisplayMode(.inline)
-      .toolbar {
-        ToolbarItem(placement: .principal) {
-          HStack(spacing: 6) {
-            Image(isPrivateRoom ? (colorScheme == .dark ? "lock.light" : "lock.dark") : "users")
-              .renderingMode(.template)
-              .resizable()
-              .scaledToFit()
-              .frame(width: 16, height: 16)
-              .foregroundStyle(.textPrimary)
-
-            Text(isPrivateRoom ? .privateRoom : .publicRoom)
-              .font(.headline)
-              .foregroundStyle(.textPrimary)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+          ChatInputBar(
+            onSend: handleSend,
+            onSendFiles: handleSendFiles,
+            hasConnectedPeers: !services.signalingService.connectedPeers.isEmpty,
+          )
+          .padding(.horizontal, 8)
+          .padding(.top, 4)
+          .padding(.bottom, 0)
+          .frame(maxWidth: .infinity)
+          .background {
+            AppColors.Background.background
+              .ignoresSafeArea(edges: .bottom)
           }
         }
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+          ToolbarItem(placement: .principal) {
+            HStack(spacing: 6) {
+              Image(isPrivateRoom ? (colorScheme == .dark ? "lock.light" : "lock.dark") : "users")
+                .renderingMode(.template)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 16, height: 16)
+                .foregroundStyle(.textPrimary)
 
-        ToolbarItemGroup(placement: .topBarTrailing) {
-          Button {
-            colorSchemeRaw = AppColors.Scheme.next(after: colorSchemeRaw)
-          } label: {
-            Image(systemName: colorScheme == .dark ? "sun.max.fill" : "moon")
-              .resizable()
-              .scaledToFit()
-              .frame(width: 20, height: 20)
+              Text(isPrivateRoom ? .privateRoom : .publicRoom)
+                .font(.headline)
+                .foregroundStyle(.textPrimary)
+            }
           }
-          .accessibilityLabel(Text(.switchAppearance))
 
-          Button {
-            showSettings = true
-          } label: {
-            Image(systemName: "gearshape")
-              .resizable()
-              .scaledToFit()
-              .frame(width: 20, height: 20)
+          ToolbarItemGroup(placement: .topBarTrailing) {
+            Button {
+              colorSchemeRaw = AppColors.Scheme.next(after: colorSchemeRaw)
+            } label: {
+              Image(systemName: colorScheme == .dark ? "sun.max.fill" : "moon")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 20, height: 20)
+            }
+            .accessibilityLabel(Text(.switchAppearance))
+
+            Button {
+              setSettingsVisible(!showSettings)
+            } label: {
+              Image(systemName: "gearshape")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 20, height: 20)
+            }
+            .accessibilityLabel(Text(.settings))
           }
-          .accessibilityLabel(Text(.settings))
         }
       }
     }
     .background(AppColors.Background.background)
     .preferredColorScheme(AppColors.Scheme.colorScheme(from: colorSchemeRaw))
-    .sheet(isPresented: $showSettings) {
+    .sheet(isPresented: settingsSheetPresented) {
       NavigationStack {
         SettingsView {
           showSettings = false
           pendingPrivateJoin = true
         }
       }
+    }
+  }
+
+  // MARK: - Settings presentation
+
+  /// Shows/hides settings inside one animation transaction (gear toggle + panel close).
+  private func setSettingsVisible(_ visible: Bool) {
+    withAnimation(.easeInOut(duration: 0.25)) {
+      showSettings = visible
+    }
+  }
+
+  /// Compact widths present settings as a sheet instead of the docked panel.
+  private var settingsSheetPresented: Binding<Bool> {
+    Binding(
+      get: { showSettings && !isIPad },
+      set: { showSettings = $0 },
+    )
+  }
+
+  private var settingsPanel: some View {
+    HStack(spacing: 0) {
+      NavigationStack {
+        SettingsView(
+          onClose: { setSettingsVisible(false) },
+          onSessionJoin: {
+            setSettingsVisible(false)
+            pendingPrivateJoin = true
+          },
+        )
+      }
+      .frame(width: 320)
+
+      Divider()
+        .ignoresSafeArea()
     }
   }
 }

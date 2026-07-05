@@ -11,6 +11,7 @@ enum MessageAlignment {
 }
 
 struct ChatMessageBubble: View {
+  @Environment(\.isIPad) private var isIPad
   @State private var previewImage: UIImage?
 
   let alignment: MessageAlignment
@@ -21,6 +22,10 @@ struct ChatMessageBubble: View {
   let fileTransfer: FileTransferData?
   let onAccept: (() -> Void)?
   let onDecline: (() -> Void)?
+
+  private var bubbleMaxWidth: CGFloat {
+    isIPad ? 280 : 260
+  }
 
   var body: some View {
     HStack(alignment: .top, spacing: 10) {
@@ -86,7 +91,7 @@ struct ChatMessageBubble: View {
       .foregroundStyle(alignment == .trailing ? .textPrimary : .white)
       .padding(.horizontal, 12)
       .padding(.vertical, 10)
-      .frame(maxWidth: 260, minHeight: 60, alignment: .leading)
+      .frame(maxWidth: bubbleMaxWidth, minHeight: 60, alignment: .leading)
       .shadow(color: Color.black.opacity(0.06), radius: 1, x: 0, y: 1)
       .background(
         UnevenRoundedRectangle(
@@ -106,7 +111,7 @@ struct ChatMessageBubble: View {
         Image(uiImage: previewImage)
           .resizable()
           .scaledToFit()
-          .frame(maxWidth: 236, maxHeight: 220)
+          .frame(maxWidth: bubbleMaxWidth - 24, maxHeight: 220)
           .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
           .allowsHitTesting(false)
       }
@@ -164,7 +169,7 @@ struct ChatMessageBubble: View {
     .foregroundStyle(alignment == .trailing ? .textPrimary : .white)
     .padding(.horizontal, 12)
     .padding(.vertical, 10)
-    .frame(maxWidth: 260, alignment: .leading)
+    .frame(maxWidth: bubbleMaxWidth, alignment: .leading)
     .background(
       UnevenRoundedRectangle(
         topLeadingRadius: alignment == .trailing ? 16 : 4,
