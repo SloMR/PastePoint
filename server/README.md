@@ -65,9 +65,9 @@ server/
    cargo run
    ```
 
-4. **Run with specific configuration**:
+4. **Run with a specific configuration**:
    ```bash
-   RUST_BUILD_MODE=debug cargo run
+   RUN_ENV=docker-dev cargo run
    ```
 
 ## Configuration
