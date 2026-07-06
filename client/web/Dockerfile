@@ -93,7 +93,7 @@ USER nginx
 
 # Add health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD wget --spider -q http://localhost || exit 1
+    CMD wget --spider -q http://127.0.0.1/health || exit 1
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["nginx", "-g", "daemon off;"]
