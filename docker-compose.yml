@@ -63,7 +63,7 @@ services:
       - '4000'
     depends_on:
       server:
-        condition: service_started
+        condition: service_healthy
     restart: always
     deploy:
       resources:
