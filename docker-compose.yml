@@ -1,7 +1,7 @@
 services:
   # ---------- Certificate checker ----------
   cert-checker:
-    image: alpine
+    image: alpine:3.21
     user: ${CONTAINER_USER:?CONTAINER_USER is required (set it in your .env file)}
     container_name: pastepoint-cert-checker
     entrypoint: |
@@ -63,7 +63,7 @@ services:
       - '4000'
     depends_on:
       server:
-        condition: service_started
+        condition: service_healthy
     restart: always
     deploy:
       resources:

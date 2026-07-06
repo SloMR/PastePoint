@@ -83,4 +83,4 @@ jobs:
 
       - name: Production Build
         working-directory: client/web
-        run: npm run build --configuration=production
+        run: npm run build -- --configuration=production

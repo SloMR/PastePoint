@@ -49,7 +49,7 @@ LICENSE
 
 # Ignore test/coverage files
 client/web/coverage
-client/web/karma.conf.js
+client/web/karma.conf.cjs
 
 # Ignore OS-specific files
 .hg

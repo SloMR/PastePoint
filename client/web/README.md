@@ -14,14 +14,14 @@ The PastePoint client is a modern Angular application with Server-Side Rendering
 - **WebRTC**: Native WebRTC API for peer-to-peer file transfers
 - **File Integrity**: `hash-wasm` for fast client-side file hashing
 - **QR Sharing**: `qrcode` for generation, `jsqr` for camera-based scanning
-- **I18n**: `@ngx-translate/core` (English, Arabic with RTL support)
+- **I18n**: `@ngx-translate/core` (English, Arabic (RTL), Spanish, French, Russian, Simplified Chinese)
 - **Styling**: Tailwind CSS with class-based dark mode + Flowbite components
 - **Notifications**: Hot-toast (`@ngxpert/hot-toast`) for real-time user feedback
 - **Error Tracking**: `@sentry/angular` with privacy-tight redaction (off by default in dev)
 
 ### Development Tools
 
-- **Build Tool**: Angular CLI with custom webpack configuration
+- **Build Tool**: Angular CLI (`@angular-devkit/build-angular:application`, esbuild-based)
 - **Testing**: Jasmine and Karma for unit tests
 - **Linting**: ESLint with Angular-specific rules
 - **Formatting**: Prettier with custom configuration
@@ -128,6 +128,7 @@ npm run format         # Prettier
 ### Environment Files
 
 - `src/environments/environment.ts`: Development configuration
+- `src/environments/environment.docker-dev.ts`: Docker development configuration
 - `src/environments/environment.prod.ts`: Production configuration
 
 Example environment configuration:
@@ -216,15 +217,22 @@ Flowbite components are integrated for:
 ### Supported Languages
 
 - English (default)
-- Arabic
-- ... (Add more as needed)
+- Arabic (RTL)
+- Spanish
+- French
+- Russian
+- Simplified Chinese
 
 ### Translation Files
 
 ```
 src/app/core/i18n/localizations/
 ├── en.json
-└── ar.json
+├── ar.json
+├── es.json
+├── fr.json
+├── ru.json
+└── zh-CN.json
 ```
 
 ### Usage

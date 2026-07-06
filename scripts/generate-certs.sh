@@ -1,7 +1,10 @@
 #!/bin/sh
 set -e
 
-CERT_DIR="../certs"
+# Resolve certs/ relative to the repo root so the script works from any CWD
+# (the Makefile runs it from the repo root, the docs from scripts/).
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+CERT_DIR="$SCRIPT_DIR/../certs"
 LOCAL_IP="${1:-127.0.0.1}"
 mkdir -p "$CERT_DIR"
 
