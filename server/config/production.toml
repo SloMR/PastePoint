@@ -13,7 +13,7 @@ cors_allowed_origins = "https://pastepoint.com"
 [client_version.ios]
 minimum = "0.10.0"
 latest = "0.10.0"
-url = "https://apps.apple.com/app/id000000000"
+url = "https://apps.apple.com/app/id6788860511"
 
 [client_version.web]
 minimum = "0.21.0"
