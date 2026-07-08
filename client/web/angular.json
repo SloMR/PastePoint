@@ -32,6 +32,11 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "**/*",
+                "input": "public/.well-known",
+                "output": "/.well-known"
               }
             ],
             "styles": ["src/styles.css", "node_modules/@ngxpert/hot-toast/src/styles/styles.css"],
