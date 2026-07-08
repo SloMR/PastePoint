@@ -193,7 +193,7 @@ struct ContentView: View {
   // MARK: - Settings presentation
 
   /// Shows/hides settings inside one animation transaction (gear toggle + panel close).
-  private func setSettingsVisible(_ visible: Bool) {
+  func setSettingsVisible(_ visible: Bool) {
     withAnimation(.easeInOut(duration: 0.25)) {
       showSettings = visible
     }

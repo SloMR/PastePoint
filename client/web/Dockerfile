@@ -64,6 +64,7 @@ RUN apk add --no-cache gettext=0.24.1-r1
 # Copy only the specific static files needed
 COPY --from=builder /usr/src/app/dist/web/browser/robots.txt /usr/share/nginx/html/browser/robots.txt
 COPY --from=builder /usr/src/app/dist/web/browser/sitemap.xml /usr/share/nginx/html/browser/sitemap.xml
+COPY --from=builder /usr/src/app/dist/web/browser/.well-known/apple-app-site-association /usr/share/nginx/html/browser/.well-known/apple-app-site-association
 
 # Copy nginx config files
 COPY nginx/nginx.conf /etc/nginx/conf.d/default.conf.template

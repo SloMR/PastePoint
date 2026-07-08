@@ -1,0 +1,15 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["KH5NHCFH44.com.pastepoint.ios"],
+        "components": [
+          {
+            "/": "/private/*",
+            "comment": "Private session invite links open the iOS app when installed"
+          }
+        ]
+      }
+    ]
+  }
+}

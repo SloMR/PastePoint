@@ -31,7 +31,7 @@ final class AppServices: ObservableObject {
   private var isInBackground = false
   private var isForegroundHandling = false
   private let networkMonitor = NWPathMonitor()
-  private var lastPathStatus: NWPath.Status?
+  private var lastPathStatus: NWPath.Status = .satisfied
   private var cancellables = Set<AnyCancellable>()
 
   private init() {

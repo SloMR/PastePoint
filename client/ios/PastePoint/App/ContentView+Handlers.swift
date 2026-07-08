@@ -3,6 +3,7 @@
 //  SPDX-License-Identifier: GPL-3.0-only
 //
 
+import Logging
 import SwiftUI
 
 // MARK: - Handlers
@@ -59,6 +60,35 @@ extension ContentView {
       }
     }
     return true
+  }
+
+  /// Universal-link entry: validates an invite URL and joins its private session,
+  /// mirroring the manual join flow in `SettingsJoinPrivateView`.
+  func handleIncomingURL(_ url: URL) {
+    guard
+      let code = AppEnvironment.privateSessionCode(from: url.absoluteString),
+      SessionService.isValidSessionCode(code)
+    else {
+      logger.warning("Ignoring invalid incoming URL")
+      toast.show(.error(.invalidSessionCode))
+      return
+    }
+
+    // Already in this session
+    guard services.wsService.currentSessionCode != code else { return }
+
+    logger.info("Joining private session from universal link")
+    Task {
+      await services.wsService.setupPrivateSession(code)
+      guard await services.connectIfPermitted() else {
+        toast.show(.error(.localNetworkOffJoin))
+        return
+      }
+      setSettingsVisible(false)
+      pendingPrivateJoin = true
+      await services.roomService.listRooms()
+      await services.userService.getUsername()
+    }
   }
 
   func handleAcceptFile(fromUser: String, fileId: String) {
