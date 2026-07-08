@@ -18,7 +18,17 @@ private struct ChatEventHandlers: ViewModifier {
   let owner: ContentView
 
   func body(content: Content) -> some View {
-    connectionHandlers(fileTransferHandlers(messageHandlers(content)))
+    deepLinkHandlers(connectionHandlers(fileTransferHandlers(messageHandlers(content))))
+  }
+
+  // MARK: - Deep links
+
+  /// Universal links (`https://pastepoint.com/private/<code>`) join the invited session.
+  private func deepLinkHandlers(_ content: some View) -> some View {
+    content
+      .onOpenURL { url in
+        owner.handleIncomingURL(url)
+      }
   }
 
   // MARK: - Incoming messages
