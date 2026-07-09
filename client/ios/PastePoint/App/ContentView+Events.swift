@@ -26,6 +26,13 @@ private struct ChatEventHandlers: ViewModifier {
   /// Universal links (`https://pastepoint.com/private/<code>`) join the invited session.
   private func deepLinkHandlers(_ content: some View) -> some View {
     content
+      .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { activity in
+        guard let url = activity.webpageURL else {
+          owner.logger.error("Ignoring universal-link activity without URL")
+          return
+        }
+        owner.handleIncomingURL(url)
+      }
       .onOpenURL { url in
         owner.handleIncomingURL(url)
       }
