@@ -25,7 +25,7 @@
       <button
         type="button"
         (click)="isMenuOpenChange.emit(false)"
-        class="ml-auto flex h-9 w-9 items-center justify-center rounded-lg text-content transition-colors hover:bg-inputBackground dark:text-white dark:hover:bg-borderDark md:hidden"
+        class="ms-auto flex h-9 w-9 items-center justify-center rounded-lg text-content transition-colors hover:bg-inputBackground dark:text-white dark:hover:bg-borderDark md:hidden"
         aria-label="Close"
         title="Close"
       >
@@ -277,7 +277,7 @@
                   [attr.title]="memberDotTitle(member)"
                 ></div>
                 <p class="truncate text-sm font-expoArabicLight">{{ member }}</p>
-                <div class="ml-auto">
+                <div class="ms-auto">
                   <button
                     type="button"
                     [disabled]="!isConnectedToMember(member)"
@@ -307,7 +307,7 @@
 
               <!-- Per-member transfers -->
               @if (uploadsForMember(member).length > 0 || downloadsForMember(member).length > 0) {
-                <div class="mt-2 flex flex-col gap-2 pl-[18px]">
+                <div class="mt-2 flex flex-col gap-2 ps-[18px]">
                   @for (upload of uploadsForMember(member); track upload) {
                     <div>
                       <div class="flex items-center gap-2">

@@ -24,6 +24,10 @@
   background-color: #6366f1; /* brandDark */
 }
 
+.chat-send-icon {
+  transform-origin: center;
+}
+
 /* emoji-picker-element — sized and themed to match the app */
 emoji-picker {
   width: 100%;
