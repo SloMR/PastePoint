@@ -17,7 +17,7 @@ struct SettingsView: View {
 
   @State private var isLeaveSessionSheetPresented: Bool = false
   @State private var isJoinRoomSheetPresented: Bool = false
-  @State private var privacyURLToShow: IdentifiableURL?
+  @State private var safariURL: IdentifiableURL?
 
   private var avatar: some View {
     Image(ChatAvatar.selfImageName)
@@ -124,7 +124,7 @@ struct SettingsView: View {
       Divider()
         .padding()
 
-      SettingsFooterView(privacyURLToShow: $privacyURLToShow)
+      SettingsFooterView(safariURL: $safariURL)
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
     .background(AppColors.Background.surface)
