@@ -10,12 +10,28 @@ import SwiftUI
 
 struct ContentView: View {
   @AppStorage(AppColors.Scheme.storageKey) private var colorSchemeRaw: String = AppColors.Scheme.default
-  @EnvironmentObject var services: AppServices
+
   @Environment(\.scenePhase) var scenePhase
   @Environment(\.colorScheme) private var colorScheme
   @Environment(\.isIPad) private var isIPad
 
+  @EnvironmentObject var toast: ToastCenter
+  @EnvironmentObject var services: AppServices
+
   let logger = Logger(label: "ContentView")
+
+  @State private var showSplash = true
+  @State private var splashStart = Date()
+  @State private var splashDismissing = false
+
+  @State var messages: [ChatMessage] = []
+  @State var hasConnectedBefore = false
+  @State var showSettings = false
+  @State var pendingPrivateJoin = false
+  @State var suppressNextConnectToast = false
+
+  private let splashCeiling: Double = 5.0
+  private let splashFloor: Double = 1.4
 
   @ViewBuilder
   private var connectionBanner: some View {
@@ -30,15 +46,6 @@ struct ContentView: View {
     }
   }
 
-  @EnvironmentObject var toast: ToastCenter
-
-  @State var messages: [ChatMessage] = []
-  @State private var showSplash = true
-  @State var hasConnectedBefore = false
-  @State var showSettings = false
-  @State var pendingPrivateJoin = false
-  @State var suppressNextConnectToast = false
-
   private var isPrivateRoom: Bool {
     services.wsService.currentSessionCode != nil
   }
@@ -48,13 +55,17 @@ struct ContentView: View {
       chatScreen.chatEventHandlers(self)
 
       if showSplash {
-        SplashView {
-          withAnimation(.easeOut(duration: 0.4)) {
-            showSplash = false
+        SplashView()
+          .transition(.opacity)
+          .zIndex(1)
+          .onReceive(services.wsService.didConnect) { dismissSplash() }
+          .task {
+            if services.wsService.isConnected { dismissSplash() }
           }
-        }
-        .transition(.opacity)
-        .zIndex(1)
+          .task {
+            try? await Task.sleep(for: .seconds(splashCeiling))
+            dismissSplash()
+          }
       }
     }
     .fullScreenCover(isPresented: forcedUpdatePresented) {
@@ -66,6 +77,22 @@ struct ContentView: View {
       if case let .optional(latest, url) = services.updateService.recommendation {
         UpdateView(kind: .optional, storeURL: url, latest: latest)
       }
+    }
+  }
+
+  // MARK: - Splash dismissal
+
+  private func dismissSplash() {
+    guard showSplash, !splashDismissing else { return }
+    splashDismissing = true
+
+    let remaining = splashFloor - Date().timeIntervalSince(splashStart)
+    guard remaining > 0 else {
+      withAnimation(.easeOut(duration: 0.4)) { showSplash = false }
+      return
+    }
+    DispatchQueue.main.asyncAfter(deadline: .now() + remaining) {
+      withAnimation(.easeOut(duration: 0.4)) { showSplash = false }
     }
   }
 
