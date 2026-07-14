@@ -1,4 +1,4 @@
-<!-- MARK: - Launch Splash (mesh-forming animation) -->
+<!-- MARK: - Launch Splash -->
 <div class="splash" [class.splash--leaving]="leaving" aria-hidden="true">
   <div class="splash__stage">
     <img
@@ -9,33 +9,26 @@
       height="68"
     />
 
-    <svg
-      class="splash__mesh"
-      viewBox="0 0 170 170"
-      width="170"
-      height="170"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <!-- Full-mesh edges (drawn via stroke-dashoffset; pathLength normalizes the multi-subpath) -->
-      <path class="splash__edges" [attr.d]="edgePath" pathLength="1" />
+    <div class="splash__link">
+      <svg class="splash__device" width="30" height="50" viewBox="0 0 30 50" fill="none">
+        <rect x="1" y="1" width="28" height="48" rx="7" stroke="currentColor" stroke-width="2" />
+        <rect x="11" y="42" width="8" height="2.5" rx="1.25" fill="currentColor" />
+      </svg>
 
-      <!-- Peer nodes pop in around the ring -->
-      @for (node of nodes; track node.i) {
-        <circle
-          class="splash__node"
-          [attr.cx]="node.x"
-          [attr.cy]="node.y"
-          r="5"
-          [attr.fill]="nodeColor(node.i)"
-          [style.animation-delay.ms]="nodeDelay(node.i)"
-        />
-      }
+      <span class="splash__wire">
+        <span class="splash__edge"></span>
+        <span class="splash__packet"></span>
+      </span>
 
-      <!-- Packet runs the ring. CSS transform (not SMIL animateMotion): SMIL
-           `begin` is relative to page load, so when the splash mounts after
-           bootstrap the packet's start time is already past and it never moves. -->
-      <circle class="splash__packet" cx="0" cy="0" r="3.5" fill="#ffffff" />
-    </svg>
+      <svg
+        class="splash__device splash__device--peer"
+        width="52"
+        height="38"
+        viewBox="0 0 52 38"
+        fill="none"
+      >
+        <rect x="1" y="1" width="50" height="36" rx="6" stroke="currentColor" stroke-width="2" />
+      </svg>
+    </div>
   </div>
 </div>

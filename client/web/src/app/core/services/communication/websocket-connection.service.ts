@@ -58,6 +58,10 @@ export class WebSocketConnectionService implements OnDestroy {
    *  to this to refresh stale state (e.g. username) without polling. */
   public reconnected$ = new Subject<void>();
 
+  /** Fires on every successful socket open (initial connect and reconnects).
+   *  The launch splash waits on this to dismiss once we're online. */
+  public connected$ = new Subject<void>();
+
   /** Live reconnect status (attempt # and when the next try fires), or `null`
    *  when connected / not retrying. Drives the server-reconnect banner. */
   public reconnectState$ = new BehaviorSubject<{ attempt: number; nextAttemptAt: number } | null>(
@@ -217,6 +221,7 @@ export class WebSocketConnectionService implements OnDestroy {
       socket.onopen = () => {
         if (socket !== this.socket) return;
         this.logger.info('connect', 'WebSocket connected');
+        this.connected$.next();
         if (this.reconnectAttempts > 0) {
           this.reconnected$.next();
         }
