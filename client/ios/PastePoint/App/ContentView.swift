@@ -31,7 +31,7 @@ struct ContentView: View {
   @State var suppressNextConnectToast = false
 
   private let splashCeiling: Double = 5.0
-  private let splashFloor: Double = 0.6
+  private let splashFloor: Double = 1.4
 
   @ViewBuilder
   private var connectionBanner: some View {
