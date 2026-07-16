@@ -80,6 +80,7 @@
         [currentUser]="userService.user"
         (acceptFile)="acceptIncomingFile($event)"
         (declineFile)="declineIncomingFile($event)"
+        (blockRequested)="blockUser($event)"
       />
 
       <!-- MARK: - Message Input -->
