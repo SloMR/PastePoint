@@ -1025,6 +1025,21 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
 
   /**
    * ==========================================================
+   * BLOCK USER
+   * Blocks the peer and clears their messages. Dropping them from `members`
+   * takes the connection down through the departed-member path above.
+   * ==========================================================
+   */
+  blockUser(peer: string): void {
+    if (!peer) return;
+
+    this.blockService.block(peer);
+    this.chatService.removeMessagesFrom(peer);
+    this.toaster.success(this.translate.instant('BLOCKED_USER_TOAST', { user: peer }));
+  }
+
+  /**
+   * ==========================================================
    * SEND MESSAGE
    * Sends the chat message to other members via WebRTC, then clears
    * the input field and scrolls chat down.

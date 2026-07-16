@@ -71,6 +71,8 @@
   "MEMBERS": "成员",
   "ONLINE_MEMBERS_COUNT": "当前在线",
   "NO_MEMBERS_ONLINE": "目前没有人在线",
+  "BLOCK_USER": "屏蔽",
+  "BLOCKED_USER_TOAST": "已屏蔽 {{user}}。其消息已被移除。",
 
   "_END_SESSION_SECTION": "==== END SESSION ====",
   "END_SESSION": "退出会话",

@@ -71,6 +71,8 @@
   "MEMBERS": "Участники",
   "ONLINE_MEMBERS_COUNT": "Сейчас в сети",
   "NO_MEMBERS_ONLINE": "Сейчас никого нет в сети",
+  "BLOCK_USER": "Заблокировать",
+  "BLOCKED_USER_TOAST": "Пользователь {{user}} заблокирован. Его сообщения удалены.",
 
   "_END_SESSION_SECTION": "==== END SESSION ====",
   "END_SESSION": "Покинуть сессию",
