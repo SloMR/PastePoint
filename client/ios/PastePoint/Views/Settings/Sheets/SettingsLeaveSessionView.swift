@@ -14,6 +14,8 @@ struct SettingsLeaveSessionView: View {
 
   var onSessionLeft: (() -> Void)?
 
+  @State private var isLeaving = false
+
   var body: some View {
     VStack(spacing: 20) {
       Text(.endSessionHeader)
@@ -24,21 +26,20 @@ struct SettingsLeaveSessionView: View {
 
       HStack(spacing: 12) {
         Button {
-          logger.info("User confirmed leaving private session")
-          services.wsService.disconnect(manual: true)
-          Task {
-            if await services.connectIfPermitted(sessionCode: nil) {
-              await services.roomService.listRooms()
-              await services.userService.getUsername()
-            }
-            logger.info("Left private session")
-            dismiss()
-            onSessionLeft?()
-          }
+          Task { await leaveSession() }
         } label: {
-          Text(.endTheSession)
+          HStack(spacing: 8) {
+            if isLeaving {
+              ProgressView()
+                .progressViewStyle(.circular)
+                .tint(.white)
+                .scaleEffect(0.85)
+            }
+            Text(isLeaving ? .leaving : .endTheSession)
+          }
         }
         .buttonStyle(.pill(tint: .red))
+        .disabled(isLeaving)
 
         Button {
           logger.info("Dismiss Leave Session view")
@@ -47,10 +48,25 @@ struct SettingsLeaveSessionView: View {
           Text(.cancel)
         }
         .buttonStyle(.pill(.outlined, tint: .red))
+        .disabled(isLeaving)
       }
     }
     .padding(24)
     .sheetContainer(title: .endSession)
+  }
+
+  private func leaveSession() async {
+    logger.info("User confirmed leaving private session")
+    isLeaving = true
+    services.wsService.disconnect(manual: true)
+    if await services.connectIfPermitted(sessionCode: nil) {
+      await services.roomService.listRooms()
+      await services.userService.getUsername()
+    }
+    isLeaving = false
+    logger.info("Left private session")
+    dismiss()
+    onSessionLeft?()
   }
 }
 
