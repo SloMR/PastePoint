@@ -2,7 +2,9 @@
 
 ## Introduction
 
-This document outlines the legal disclaimer for the use of **PastePoint**, a peer-to-peer file sharing and messaging platform focused on privacy, speed, and local connectivity. By using PastePoint, you agree to the terms outlined below. If you do not agree with these terms, please discontinue use.
+This document explains, for reference, how **PastePoint** works and the limits of what it promises. PastePoint is a peer-to-peer file sharing and messaging platform focused on privacy and speed.
+
+This document is explanatory and is not itself an agreement. Your use of the hosted service is governed by the [Terms of Service](https://pastepoint.com/privacy), which you accept in the app. Where this document and the Terms of Service differ, the Terms of Service govern.
 
 ## 1. No Warranty
 
@@ -12,12 +14,14 @@ The developers make no guarantees about the reliability, availability, or securi
 
 ## 2. Limitation of Liability
 
-Under no circumstances shall the creators, maintainers, or contributors of PastePoint be held liable for any damages or claims resulting from the use or misuse of this software, including but not limited to:
+To the maximum extent permitted by applicable law, the creators, maintainers, and contributors of PastePoint shall not be liable for any damages or claims resulting from the use or misuse of this software, including but not limited to:
 
 - Loss of data
 - Data breaches
 - Transmission of malware or illegal content
 - Service disruptions or data corruption
+
+Nothing in this document excludes or limits liability that cannot be excluded or limited under applicable law, such as liability for death or personal injury caused by negligence, or for fraud.
 
 Users accept full responsibility for their actions and content shared via PastePoint.
 
@@ -25,11 +29,10 @@ Users accept full responsibility for their actions and content shared via PasteP
 
 PastePoint is designed for:
 
-- Secure, **local network** usage
-- **Peer-to-peer** file transfers and messaging
+- **Peer-to-peer** file transfers and messaging, over a local network or the internet
 - Usage in compliance with all applicable laws
 
-It is **not recommended** for use over public or untrusted networks unless you fully understand and accept the associated risks.
+Transfers are encrypted end-to-end between the participating devices. As with any tool, you are responsible for what you choose to send and to whom.
 
 ## 4. User Responsibility
 
@@ -47,17 +50,20 @@ PastePoint does **not** store:
 
 - Files
 - Messages
-- Metadata
-- IP logs or session history
+- Session history or room contents
 
-All file transfers occur directly and are ephemeral. However, your device, browser, or network may log information independently. The application may send anonymized error reports to a third-party error-tracking service to help maintainers diagnose crashes; see §11 below.
+All file transfers occur directly and are ephemeral.
+
+Our web server keeps standard access logs for security, rate limiting, and abuse handling. Client addresses are truncated before they are written (IPv4 to the /24, IPv6 to the /32), so the logs do not identify individual users, and they are rotated and deleted on a limited schedule. Your own device, browser, or network may log information independently.
+
+The application may send anonymized error reports to a third-party error-tracking service to help maintainers diagnose crashes; see §11 below.
 
 ## 6. Encryption & Security
 
 PastePoint uses:
 
 - **WebRTC** for end-to-end encrypted P2P transfers
-- **WebSocket** signaling with optional TLS via Nginx
+- **WebSocket** signaling served over TLS via Nginx on the hosted service
 - **SSL/TLS**
 
 Security is a shared responsibility between the app and the user. For sensitive usage, use trusted certificates and ensure your host system is secure.
@@ -78,7 +84,7 @@ By contributing, you agree to:
 
 ## 9. Production Use Notice
 
-PastePoint is under active development and is primarily intended for local or experimental use. Production deployments should:
+PastePoint is under active development. If you self-host PastePoint, your deployment should:
 
 - Replace self-signed certs with valid CA certificates
 - Harden the Nginx config and rate limits
@@ -90,7 +96,7 @@ PastePoint is under active development and is primarily intended for local or ex
 For security concerns, legal questions, or bug reports:
 
 - GitHub Issues: [https://github.com/SloMR/pastepoint/issues](https://github.com/SloMR/pastepoint/issues)
-- Email: [sulaimanromaih@gmail.com](mailto:sulaimanromaih@gmail.com)
+- Email: [support@pastepoint.com](mailto:support@pastepoint.com)
 
 ## 11. Error Diagnostics & Third-Party Processors
 
