@@ -1,50 +1,68 @@
 <!-- MARK: - Header Section -->
 <header
-  class="border-b bg-pageBackground border-borderLight dark:border-surfaceDark dark:bg-baseDark"
+  class="flex h-14 items-center px-4 bg-contentArea/10 backdrop-blur-md dark:bg-baseDark/10 md:px-8"
 >
-  <div class="mx-auto max-w-7xl pr-4 pl-16 sm:px-6 lg:px-8">
-    <div class="flex h-20 items-center justify-between">
-      <!-- MARK: - Logo & Title -->
-      <div class="flex items-center">
-        <a routerLink="/" [replaceUrl]="true" [class]="isRTL ? 'ml-4' : 'mr-4'" title="Home">
-          <img
-            [ngSrc]="isDarkMode ? '/icons/pastepoint-dark.svg' : '/icons/pastepoint-light.svg'"
-            alt="PastePoint Logo"
-            title="PastePoint Logo"
-            class="h-12 w-auto cursor-pointer"
-            width="136"
-            height="48"
-            loading="lazy"
-          />
-        </a>
-      </div>
+  <!-- MARK: - Logo -->
+  <a routerLink="/" [replaceUrl]="true" title="Home">
+    <img
+      [ngSrc]="isDarkMode ? '/icons/pastepoint-dark.svg' : '/icons/pastepoint-light.svg'"
+      alt="PastePoint Logo"
+      title="PastePoint Logo"
+      class="h-7 w-auto cursor-pointer"
+      width="79"
+      height="28"
+      loading="lazy"
+    />
+  </a>
 
-      <!-- MARK: - Theme Toggler & Language Switcher -->
-      <div class="flex flex-row-reverse items-center gap-2 md:flex-row">
-        <!-- theme toggler -->
-        <div
-          (click)="toggleTheme.emit()"
-          class="flex cursor-pointer items-center justify-center gap-4 rounded-lg border text-black w-[44px] h-[44px] border-borderButton dark:bg-surfaceDark dark:border-borderDark md:w-[56px] md:h-[56px]"
+  <!-- MARK: - Theme Toggler & Language Switcher -->
+  <div class="ms-auto flex items-center gap-1">
+    <!-- theme toggle -->
+    <button
+      type="button"
+      (click)="toggleTheme.emit()"
+      class="flex h-10 w-10 items-center justify-center rounded-full text-content transition-colors hover:bg-inputBackground dark:text-white dark:hover:bg-surfaceDark"
+      [attr.aria-label]="isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'"
+      [attr.title]="isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'"
+    >
+      @if (isDarkMode) {
+        <svg
+          class="h-5 w-5"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          viewBox="0 0 24 24"
         >
-          <button
-            [attr.aria-label]="isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'"
-            [attr.title]="isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'"
-          >
-            <img
-              [src]="isDarkMode ? '/icons/brightness.svg' : '/icons/moon.svg'"
-              alt="Theme"
-              title="Theme"
-              class="h-5 w-5"
-            />
-          </button>
-        </div>
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"
+          />
+        </svg>
+      } @else {
+        <svg
+          class="h-5 w-5"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z"
+          />
+        </svg>
+      }
+    </button>
 
-        <!-- language switcher -->
-        <app-language-switcher
-          [current]="currentLanguage"
-          (languageChange)="switchLanguage.emit($event)"
-        />
-      </div>
-    </div>
+    <!-- language switcher -->
+    <app-language-switcher
+      [current]="currentLanguage"
+      [triggerClass]="'flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-content transition-colors hover:bg-inputBackground dark:text-white dark:hover:bg-surfaceDark'"
+      [iconClass]="'h-5 w-5'"
+      [menuClass]="'absolute end-0 top-full mt-2 z-50 min-w-[11rem] max-w-[calc(100vw-1rem)] overflow-hidden rounded-lg border border-borderLight bg-pageBackground py-1 shadow-lg dark:border-borderDark dark:bg-surfaceDark'"
+      (languageChange)="switchLanguage.emit($event)"
+    />
   </div>
 </header>

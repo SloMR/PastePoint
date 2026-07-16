@@ -105,7 +105,7 @@
 
   "_PRIVACY_AND_TERMS_SECTION": "==== PRIVACY AND TERMS ====",
   "PRIVACY_AND_TERMS": "隐私与条款",
-  "LAST_UPDATED": "最后更新:2026 年 5 月 8 日",
+  "LAST_UPDATED": "最后更新:2026 年 7 月 16 日",
   "DISCLAIMER_TITLE": "免责声明",
   "DISCLAIMER_INTRO": "PastePoint 软件(下称「服务」)按「现状」和「可用」基础提供,不附带任何明示或暗示的保证。",
   "DISCLAIMER_NO_GUARANTEES": "我们不保证服务不会中断,也不保证其安全或不会出错。",
@@ -134,6 +134,7 @@
   "TERMS_LICENSE_LINK_TEXT": "LICENSE",
   "TERMS_LICENSE_LINK": "文件。",
   "TERMS_PROHIBITED": "您不得使用本服务传输任何违法、有害、侵权、诽谤或其他令人反感的内容,也不得侵犯他人权利或违反适用法律。",
+  "TERMS_ZERO_TOLERANCE": "我们对令人反感的内容和滥用行为的用户采取零容忍政策。由于内容在设备之间直接传输，绝不会存储在我们的服务器上，因此屏蔽某位用户会立即从您的设备中移除其内容并断开连接。您可以通过 support@pastepoint.com 与我们联系举报滥用行为，我们会审核每一条举报。",
   "TERMS_TERMINATION": "如果我们有合理理由认为您违反了本条款,我们可以随时(无论是否事先通知)暂停或终止您对本服务的访问。",
   "TERMS_GOVERNING_LAW": "本条款应根据服务运营方所在司法管辖区的法律解释和适用,不考虑其法律冲突规定。",
   "LEGAL_NOTICE": "本文件仅供参考,不构成法律建议。请就您的具体情况咨询合格的律师。",

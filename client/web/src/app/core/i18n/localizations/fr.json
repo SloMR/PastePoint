@@ -105,7 +105,7 @@
 
   "_PRIVACY_AND_TERMS_SECTION": "==== PRIVACY AND TERMS ====",
   "PRIVACY_AND_TERMS": "Confidentialité et conditions",
-  "LAST_UPDATED": "Dernière mise à jour : 8 mai 2026",
+  "LAST_UPDATED": "Dernière mise à jour : 16 juillet 2026",
   "DISCLAIMER_TITLE": "Avertissement",
   "DISCLAIMER_INTRO": "Le logiciel PastePoint (« le Service ») est fourni « TEL QUEL » et « SELON DISPONIBILITÉ », sans aucune garantie, expresse ou implicite.",
   "DISCLAIMER_NO_GUARANTEES": "Nous ne garantissons pas que le Service sera ininterrompu, sécurisé ou exempt d'erreurs.",
@@ -134,6 +134,7 @@
   "TERMS_LICENSE_LINK_TEXT": "LICENSE",
   "TERMS_LICENSE_LINK": "pour plus de détails.",
   "TERMS_PROHIBITED": "Vous ne pouvez pas utiliser le Service pour transmettre tout contenu illégal, nuisible, contrefaisant, diffamatoire ou autrement répréhensible, ni pour violer les droits d'autrui ou les lois applicables.",
+  "TERMS_ZERO_TOLERANCE": "Nous n'avons aucune tolérance envers les contenus répréhensibles ou les utilisateurs abusifs. Comme les contenus sont transférés directement entre les appareils et ne sont jamais stockés sur nos serveurs, bloquer un utilisateur supprime immédiatement ses contenus de votre appareil et met fin à la connexion. Vous pouvez nous contacter à support@pastepoint.com au sujet d'un abus, et nous examinons chaque signalement.",
   "TERMS_TERMINATION": "Nous pouvons suspendre ou résilier votre accès au Service à tout moment, avec ou sans préavis, si nous estimons raisonnablement que vous avez enfreint ces Conditions.",
   "TERMS_GOVERNING_LAW": "Ces Conditions sont régies et interprétées conformément aux lois de la juridiction où l'opérateur du Service est établi, sans tenir compte de ses dispositions sur les conflits de lois.",
   "LEGAL_NOTICE": "Ce document est fourni à titre informatif uniquement et ne constitue pas un avis juridique. Consultez un avocat qualifié pour un conseil adapté à votre situation.",

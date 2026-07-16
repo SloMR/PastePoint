@@ -1,12 +1,12 @@
 <!-- MARK: - Main Container -->
 <div
   [attr.dir]="isRTL ? 'rtl' : 'ltr'"
-  class="flex h-screen flex-col bg-pageBackground dark:bg-baseDark"
+  class="flex min-h-screen flex-col bg-pageBackground dark:bg-baseDark"
 >
-  <!-- MARK: - Header Section -->
+  <!-- MARK: - Frosted Top Bar -->
   <app-page-header
+    class="sticky top-0 z-40"
     [isDarkMode]="isDarkMode"
-    [isRTL]="isRTL"
     [currentLanguage]="currentLanguage"
     (toggleTheme)="toggleTheme()"
     (switchLanguage)="switchLanguage($event)"

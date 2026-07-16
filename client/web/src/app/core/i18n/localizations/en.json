@@ -105,7 +105,7 @@
 
   "_PRIVACY_AND_TERMS_SECTION": "==== PRIVACY AND TERMS ====",
   "PRIVACY_AND_TERMS": "Privacy & Terms",
-  "LAST_UPDATED": "Last updated: May 8, 2026",
+  "LAST_UPDATED": "Last updated: July 16, 2026",
   "DISCLAIMER_TITLE": "Disclaimer",
   "DISCLAIMER_INTRO": "The PastePoint software (\"Service\") is provided on an \"AS IS\" and \"AS AVAILABLE\" basis without warranties of any kind, express or implied.",
   "DISCLAIMER_NO_GUARANTEES": "We do not guarantee that the Service will be uninterrupted, secure, or free of errors.",
@@ -134,6 +134,7 @@
   "TERMS_LICENSE_LINK_TEXT": "LICENSE",
   "TERMS_LICENSE_LINK": "file for details.",
   "TERMS_PROHIBITED": "You may not use the Service to transmit any content that is unlawful, harmful, infringing, defamatory, or otherwise objectionable, nor to violate the rights of others or applicable laws.",
+  "TERMS_ZERO_TOLERANCE": "We have zero tolerance for objectionable content or abusive users. Because content is transferred directly between devices and is never stored on our servers, blocking a user immediately removes their content from your device and ends the connection. You can contact us at support@pastepoint.com about abuse, and we review every report.",
   "TERMS_TERMINATION": "We may suspend or terminate your access to the Service at any time, with or without notice, if we reasonably believe you have violated these Terms.",
   "TERMS_GOVERNING_LAW": "These Terms shall be governed by and construed in accordance with the laws of the jurisdiction where the Service operator is established, without regard to its conflict of law provisions.",
   "LEGAL_NOTICE": "This document is provided for informational purposes only and does not constitute legal advice. Consult a qualified attorney for advice specific to your situation.",

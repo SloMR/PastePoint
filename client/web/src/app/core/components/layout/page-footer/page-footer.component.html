@@ -1,62 +1,29 @@
 <!-- MARK: - Footer -->
 <div
-  class="flex w-full flex-col items-center gap-2 border-t px-4 py-4 dark:bg-baseDark dark:border-surfaceDark md:h-[58px] md:flex-row md:items-center md:justify-between md:px-8 md:py-0"
+  class="flex w-full flex-col items-center gap-3 border-t px-4 py-3 bg-surface dark:bg-baseDark dark:border-surfaceDark"
 >
   <!-- Social links -->
-  <div class="order-1 flex items-center gap-4 md:order-2">
+  <div class="flex items-center gap-5">
     <app-social-links />
   </div>
 
-  @if (showPrivacyLink) {
-    <!-- Version & Privacy -->
-    <div class="order-2 flex items-center gap-4 md:order-3">
+  <!-- privacy · version · copyright -->
+  <div
+    class="flex flex-wrap items-center justify-center gap-x-1.5 gap-y-0.5 text-center text-[11px] font-expoArabicLight text-textMuted dark:text-textVeryMuted"
+  >
+    @if (showPrivacyLink) {
       <a
         routerLink="/privacy"
         title="Privacy and Terms"
-        class="inline-flex items-center gap-2 text-brand dark:text-brandDark"
+        rel="noopener noreferrer nofollow"
+        class="text-brand transition-colors hover:underline dark:text-brandDark"
       >
-        <p class="text-xs font-expoArabicMedium text-brand">
-          {{ 'PRIVACY_AND_TERMS' | translate }}
-        </p>
-        <img
-          src="/icons/privacy-and-terms.svg"
-          alt="Privacy and Terms"
-          title="Privacy and Terms"
-          class="h-6 w-6"
-          loading="lazy"
-          width="24"
-          height="24"
-        />
+        {{ 'PRIVACY_AND_TERMS' | translate }}
       </a>
-      <p class="hidden text-xs font-expoArabicMedium text-content dark:text-textVeryMuted md:block">
-        {{ 'VERSION' | translate }} {{ appVersion }}
-      </p>
-    </div>
-
-    <!-- Version (Mobile Only) -->
-    <p class="order-3 text-xs font-expoArabicMedium text-content dark:text-textVeryMuted md:hidden">
-      {{ 'VERSION' | translate }} {{ appVersion }}
-    </p>
-
-    <!-- ©2026 -->
-    <p
-      class="order-4 text-xs font-expoArabicMedium text-content dark:text-textVeryMuted md:order-1"
-    >
-      {{ 'COPYRIGHT_NOTICE' | translate }}
-    </p>
-  } @else {
-    <!-- Version -->
-    <p
-      class="order-2 text-xs font-expoArabicMedium text-content dark:text-textVeryMuted md:order-3"
-    >
-      {{ 'VERSION' | translate }} {{ appVersion }}
-    </p>
-
-    <!-- ©2026 -->
-    <p
-      class="order-3 text-xs font-expoArabicMedium text-content dark:text-textVeryMuted md:order-1"
-    >
-      {{ 'COPYRIGHT_NOTICE' | translate }}
-    </p>
-  }
+      <span aria-hidden="true" class="opacity-50">·</span>
+    }
+    <span>{{ 'VERSION' | translate }} {{ appVersion }}</span>
+    <span aria-hidden="true" class="opacity-50">·</span>
+    <span>{{ 'COPYRIGHT_NOTICE' | translate }}</span>
+  </div>
 </div>

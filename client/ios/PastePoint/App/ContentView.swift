@@ -10,6 +10,7 @@ import SwiftUI
 
 struct ContentView: View {
   @AppStorage(AppColors.Scheme.storageKey) private var colorSchemeRaw: String = AppColors.Scheme.default
+  @AppStorage(LegalConsent.storageKey) private var acceptedLegalVersion = 0
 
   @Environment(\.scenePhase) var scenePhase
   @Environment(\.colorScheme) private var colorScheme
@@ -25,6 +26,7 @@ struct ContentView: View {
   @State private var splashDismissing = false
 
   @State var messages: [ChatMessage] = []
+  @State var pendingLegalDeepLink: URL?
   @State var hasConnectedBefore = false
   @State var showSettings = false
   @State var pendingPrivateJoin = false
@@ -50,6 +52,10 @@ struct ContentView: View {
     services.wsService.currentSessionCode != nil
   }
 
+  private var needsLegalConsent: Bool {
+    acceptedLegalVersion < LegalConsent.currentVersion
+  }
+
   var body: some View {
     ZStack {
       chatScreen.chatEventHandlers(self)
@@ -60,12 +66,28 @@ struct ContentView: View {
           .zIndex(1)
           .onReceive(services.wsService.didConnect) { dismissSplash() }
           .task {
-            if services.wsService.isConnected { dismissSplash() }
+            if services.wsService.isConnected || needsLegalConsent { dismissSplash() }
           }
           .task {
             try? await Task.sleep(for: .seconds(splashCeiling))
             dismissSplash()
           }
+      }
+
+      if needsLegalConsent, !showSplash {
+        LegalGateView {
+          withAnimation { acceptedLegalVersion = LegalConsent.currentVersion }
+
+          if let url = pendingLegalDeepLink {
+            pendingLegalDeepLink = nil
+            handleIncomingURL(url)
+          } else {
+            Task { await services.handleForeground() }
+          }
+        }
+        .transition(.opacity)
+        .zIndex(2)
+        .preferredColorScheme(AppColors.Scheme.colorScheme(from: colorSchemeRaw))
       }
     }
     .fullScreenCover(isPresented: forcedUpdatePresented) {
