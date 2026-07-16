@@ -2,10 +2,4 @@
   <router-outlet />
 </ng-container>
 
-@if (showSplash) {
-  <app-splash (finished)="showSplash = false" />
-}
-
-@if (!showSplash) {
-  <app-update-gate />
-}
+<app-update-gate />

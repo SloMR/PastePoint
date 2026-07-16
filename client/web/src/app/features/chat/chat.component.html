@@ -263,3 +263,8 @@
     />
   </div>
 </div>
+
+<!-- MARK: - Splash -->
+@if (showSplash) {
+  <app-splash (finished)="showSplash = false" />
+}

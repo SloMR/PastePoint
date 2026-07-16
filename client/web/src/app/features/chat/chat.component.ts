@@ -62,6 +62,7 @@ import { ConnectionWarningComponent } from './components/connection-warning/conn
 import { ServerReconnectComponent } from './components/server-reconnect/server-reconnect.component';
 import { ChatInputComponent, StagedAttachment } from './components/chat-input/chat-input.component';
 import { ChatMessagesComponent } from './components/chat-messages/chat-messages.component';
+import { SplashComponent } from '../../core/components/splash/splash.component';
 import { ChatSidebarComponent } from './components/chat-sidebar/chat-sidebar.component';
 
 /**
@@ -85,6 +86,7 @@ import { ChatSidebarComponent } from './components/chat-sidebar/chat-sidebar.com
     ChatInputComponent,
     ChatMessagesComponent,
     ChatSidebarComponent,
+    SplashComponent,
   ],
   providers: [FileSizePipe],
   templateUrl: './chat.component.html',
@@ -126,6 +128,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   protected readonly MB: number = MB;
   protected readonly ChatMessageType = ChatMessageType;
   protected stagedFiles: StagedAttachment[] = [];
+  protected showSplash = true;
 
   message = '';
   newRoomName = '';
