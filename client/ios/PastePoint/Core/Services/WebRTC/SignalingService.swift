@@ -499,10 +499,17 @@ extension SignalingService {
       outboundSequences[peer] = nil
       inboundSequences[peer] = nil
     }
-    dataChannels[peer]?.close()
-    dataChannels[peer] = nil
-    peerConnections[peer]?.close()
-    peerConnections[peer] = nil
+
+    let dataChannel = dataChannels.removeValue(forKey: peer)
+    let peerConnection = peerConnections.removeValue(forKey: peer)
+    if dataChannel != nil || peerConnection != nil {
+      let closing = UnsafeSendable(value: (dataChannel, peerConnection))
+      Task.detached {
+        closing.value.0?.close()
+        closing.value.1?.close()
+      }
+    }
+
     candidateQueues[peer] = nil
     collectedCandidates[peer] = nil
     connectionLocks.remove(peer)
