@@ -13,7 +13,6 @@ import { LanguageSwitcherComponent } from '../../language-switcher/language-swit
 })
 export class PageHeaderComponent {
   @Input() isDarkMode = false;
-  @Input() isRTL = false;
   @Input() currentLanguage: LanguageCode = 'en';
 
   @Output() toggleTheme = new EventEmitter<void>();
