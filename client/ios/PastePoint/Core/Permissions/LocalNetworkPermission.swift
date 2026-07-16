@@ -14,7 +14,7 @@ enum LocalNetworkPermission {
   @MainActor
   static func requestAccess() {
     logger.info("Requesting local network permission")
-    let browser = NWBrowser(for: .bonjour(type: "_http._tcp", domain: nil), using: NWParameters())
+    let browser = NWBrowser(for: .bonjour(type: "_pastepoint._tcp", domain: nil), using: NWParameters())
     browser.stateUpdateHandler = { _ in }
     browser.start(queue: .main)
 

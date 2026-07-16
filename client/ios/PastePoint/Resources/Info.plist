@@ -28,7 +28,7 @@
 	<true/>
 	<key>NSBonjourServices</key>
 	<array>
-		<string>_http._tcp</string>
+		<string>_pastepoint._tcp</string>
 	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>PastePoint uses the camera to scan QR codes for joining private sessions.</string>
