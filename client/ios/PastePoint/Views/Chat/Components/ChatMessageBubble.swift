@@ -105,16 +105,63 @@ struct ChatMessageBubble: View {
       .fixedSize(horizontal: false, vertical: true)
   }
 
-  private func attachmentBody(transfer: FileTransferData) -> some View {
-    VStack(alignment: .leading, spacing: 8) {
+  private var previewSlot: some View {
+    Group {
       if let previewImage {
         Image(uiImage: previewImage)
           .resizable()
           .scaledToFit()
-          .frame(maxWidth: bubbleMaxWidth - 24, maxHeight: 220)
-          .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-          .allowsHitTesting(false)
+      } else {
+        Image(systemName: "doc")
+          .resizable()
+          .scaledToFit()
+          .opacity(0.5)
+          .padding(50)
       }
+    }
+    .frame(maxWidth: bubbleMaxWidth - 24, maxHeight: 220)
+    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+    .allowsHitTesting(false)
+  }
+
+  @ViewBuilder
+  private func attachmentStatus(_ transfer: FileTransferData) -> some View {
+    if transfer.status == .pending, onAccept != nil, onDecline != nil {
+      HStack(spacing: 8) {
+        Button(.accept) {
+          onAccept?()
+        }
+        .buttonStyle(.borderedProminent)
+        .controlSize(.small)
+        Button(.decline, role: .destructive) {
+          onDecline?()
+        }
+        .buttonStyle(.bordered)
+        .controlSize(.small)
+      }
+    } else if alignment == .leading {
+      if transfer.status == .completed {
+        Label(
+          transfer.fileURL == nil ? .savedToPhotos : .savedToFiles,
+          systemImage: "checkmark.circle",
+        )
+        .font(.caption2)
+        .foregroundStyle(.secondary)
+      } else {
+        Text(statusLabel(transfer.status))
+          .font(.caption2)
+          .foregroundStyle(.secondary)
+      }
+    } else if alignment == .trailing {
+      Text(outgoingStatusLabel(transfer))
+        .font(.caption2)
+        .foregroundStyle(.secondary)
+    }
+  }
+
+  private func attachmentBody(transfer: FileTransferData) -> some View {
+    VStack(alignment: .leading, spacing: 8) {
+      previewSlot
 
       HStack(spacing: 8) {
         Image(systemName: "doc")
@@ -131,37 +178,7 @@ struct ChatMessageBubble: View {
         }
       }
 
-      if transfer.status == .pending, onAccept != nil, onDecline != nil {
-        HStack(spacing: 8) {
-          Button(.accept) {
-            onAccept?()
-          }
-          .buttonStyle(.borderedProminent)
-          .controlSize(.small)
-          Button(.decline, role: .destructive) {
-            onDecline?()
-          }
-          .buttonStyle(.bordered)
-          .controlSize(.small)
-        }
-      } else if alignment == .leading {
-        if transfer.status == .completed {
-          Label(
-            transfer.fileURL == nil ? .savedToPhotos : .savedToFiles,
-            systemImage: "checkmark.circle",
-          )
-          .font(.caption2)
-          .foregroundStyle(.secondary)
-        } else {
-          Text(statusLabel(transfer.status))
-            .font(.caption2)
-            .foregroundStyle(.secondary)
-        }
-      } else if alignment == .trailing {
-        Text(outgoingStatusLabel(transfer))
-          .font(.caption2)
-          .foregroundStyle(.secondary)
-      }
+      attachmentStatus(transfer)
     }
     .task(id: transfer.previewDataUrl) {
       let dataUrl = transfer.previewDataUrl
