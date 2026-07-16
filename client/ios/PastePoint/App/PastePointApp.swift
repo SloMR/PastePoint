@@ -10,6 +10,7 @@ import UIKit
 struct PastePointApp: App {
   @Environment(\.scenePhase) private var phase
   @AppStorage(AppColors.Scheme.storageKey) private var colorSchemeRaw: String = AppColors.Scheme.default
+  @State private var didRequestLocalNetwork = false
 
   @StateObject private var services = AppServices.shared
   @StateObject private var toast = ToastCenter()
@@ -39,6 +40,10 @@ struct PastePointApp: App {
       switch newPhase {
 
       case .active:
+        if !didRequestLocalNetwork {
+          didRequestLocalNetwork = true
+          LocalNetworkPermission.requestAccess()
+        }
         Task { await services.handleForeground() }
         Task { await services.updateService.check() }
 
