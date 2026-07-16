@@ -71,6 +71,8 @@
   "MEMBERS": "الأعضاء",
   "ONLINE_MEMBERS_COUNT": "عدد المتصلين",
   "NO_MEMBERS_ONLINE": "لا يوجد أعضاء متصلون",
+  "BLOCK_USER": "حظر",
+  "BLOCKED_USER_TOAST": "تم حظر {{user}}. تمت إزالة رسائله.",
 
   "_END_SESSION_SECTION": "==== END SESSION ====",
   "END_SESSION": "إنهاء الجلسة",

@@ -25,6 +25,7 @@
     (joinPrivateSessionRequested)="openJoinSessionPopup()"
     (endSessionRequested)="openEndSessionPopup()"
     (filePickerRequested)="openFilePickerForMember($event)"
+    (blockRequested)="blockUser($event)"
     (cancelUploadRequested)="cancelUpload($event)"
     (cancelDownloadRequested)="cancelDownload($event)"
   />
@@ -79,6 +80,7 @@
         [currentUser]="userService.user"
         (acceptFile)="acceptIncomingFile($event)"
         (declineFile)="declineIncomingFile($event)"
+        (blockRequested)="blockUser($event)"
       />
 
       <!-- MARK: - Message Input -->

@@ -18,6 +18,7 @@ import { isPlatformBrowser } from '@angular/common';
 
 import { ThemeService } from '../../core/services/ui/theme.service';
 import { ChatService } from '../../core/services/communication/chat.service';
+import { BlockService } from '../../core/services/communication/block.service';
 import { HeartbeatService } from '../../core/services/communication/heartbeat.service';
 import { RoomService } from '../../core/services/room-management/room.service';
 import { FileTransferService } from '../../core/services/file-management/file-transfer.service';
@@ -97,6 +98,7 @@ import { ChatSidebarComponent } from './components/chat-sidebar/chat-sidebar.com
 export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   userService = inject(UserService);
   private chatService = inject(ChatService);
+  private blockService = inject(BlockService);
   private heartbeatService = inject(HeartbeatService);
   private roomService = inject(RoomService);
   private fileTransferService = inject(FileTransferService);
@@ -568,10 +570,16 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
 
     // Listen for current members in the room
     this.subscriptions.push(
-      combineLatest([this.roomService.members$, this.userService.user$])
+      combineLatest([
+        this.roomService.members$,
+        this.userService.user$,
+        this.blockService.blockedPeers$,
+      ])
         .pipe(
           filter(([, currentUser]) => currentUser.trim().length > 0),
-          map(([allMembers, currentUser]) => allMembers.filter((m) => m !== currentUser)),
+          map(([allMembers, currentUser, blocked]) =>
+            allMembers.filter((m) => m !== currentUser && !blocked.has(m))
+          ),
           distinctUntilChanged(
             (previous, current) =>
               previous.length === current.length &&
@@ -1013,6 +1021,21 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
         this.isNavigatingIntentionally = false;
       }
     }
+  }
+
+  /**
+   * ==========================================================
+   * BLOCK USER
+   * Blocks the peer and clears their messages. Dropping them from `members`
+   * takes the connection down through the departed-member path above.
+   * ==========================================================
+   */
+  blockUser(peer: string): void {
+    if (!peer) return;
+
+    this.blockService.block(peer);
+    this.chatService.removeMessagesFrom(peer);
+    this.toaster.success(this.translate.instant('BLOCKED_USER_TOAST', { user: peer }));
   }
 
   /**

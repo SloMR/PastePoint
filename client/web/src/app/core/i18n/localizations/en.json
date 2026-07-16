@@ -71,6 +71,8 @@
   "MEMBERS": "Members",
   "ONLINE_MEMBERS_COUNT": "Online Now",
   "NO_MEMBERS_ONLINE": "No one is online right now",
+  "BLOCK_USER": "Block",
+  "BLOCKED_USER_TOAST": "Blocked {{user}}. Their messages were removed.",
 
   "_END_SESSION_SECTION": "==== END SESSION ====",
   "END_SESSION": "Leave Session",

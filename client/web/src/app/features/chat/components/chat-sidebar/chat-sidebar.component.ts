@@ -48,6 +48,7 @@ export class ChatSidebarComponent {
   @Output() joinPrivateSessionRequested = new EventEmitter<void>();
   @Output() endSessionRequested = new EventEmitter<void>();
   @Output() filePickerRequested = new EventEmitter<string>();
+  @Output() blockRequested = new EventEmitter<string>();
   @Output() cancelUploadRequested = new EventEmitter<FileUpload>();
   @Output() cancelDownloadRequested = new EventEmitter<FileDownload>();
 

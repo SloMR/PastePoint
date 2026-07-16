@@ -149,6 +149,17 @@ export class ChatService implements IChatService {
   }
 
   /**
+   * Removes every message from a peer, keeping your own.
+   * App Review requires a block to clear their content from the feed instantly.
+   */
+  public removeMessagesFrom(peer: string): void {
+    this.ngZone.run(() => {
+      this.messages = this.messages.filter((message) => message.isMine || message.from !== peer);
+      this.messages$.next(this.messages);
+    });
+  }
+
+  /**
    * ==========================================================
    * PRIVATE METHODS
    * Handlers for incoming messages
