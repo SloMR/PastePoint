@@ -36,6 +36,7 @@ final class SignalingService: NSObject, ObservableObject {
   private let wsService: WebSocketConnectionService
   private let userService: UserService
   private let peerDirectory: PeerDirectory
+  private let blockService: BlockService
   private var cancellables: Set<AnyCancellable> = []
 
   private static let connectionTimeout: TimeInterval = 8.0 // Seconds
@@ -59,10 +60,16 @@ final class SignalingService: NSObject, ObservableObject {
 
   // MARK: - Init
 
-  init(wsService: WebSocketConnectionService, userService: UserService, peerDirectory: PeerDirectory) {
+  init(
+    wsService: WebSocketConnectionService,
+    userService: UserService,
+    peerDirectory: PeerDirectory,
+    blockService: BlockService,
+  ) {
     self.wsService = wsService
     self.userService = userService
     self.peerDirectory = peerDirectory
+    self.blockService = blockService
     super.init()
 
     wsService.signalMessage
@@ -227,6 +234,11 @@ extension SignalingService {
   private func handle(_ message: SignalMessage) {
     guard !message.from.isEmpty else {
       logger.warning("ignoring message with empty 'from'")
+      return
+    }
+
+    guard !blockService.isBlocked(message.from) else {
+      logger.info("ignoring \(message.payload.typeString) from blocked peer \(message.from)")
       return
     }
 
@@ -789,6 +801,11 @@ extension SignalingService: RTCDataChannelDelegate {
   }
 
   private func route(_ decoded: DataChannelMessage.Decoded, from peer: String) {
+    guard !blockService.isBlocked(peer) else {
+      logger.info("dropping data-channel message from blocked peer \(peer)")
+      return
+    }
+
     switch decoded {
     case .chat(let msg): chatMessages.send(msg)
     case .fileOffer(let payload): fileEvent.send(.offer(payload, from: peer))

@@ -8,6 +8,14 @@ import SwiftUI
 struct SettingsMembersSection: View {
   @EnvironmentObject private var services: AppServices
 
+  let onBlock: (String) -> Void
+
+  private var others: [String] {
+    services.roomService.members.filter {
+      $0 != services.userService.user && !services.blockService.isBlocked($0)
+    }
+  }
+
   var body: some View {
     VStack {
       HStack(alignment: .center, spacing: 0) {
@@ -24,14 +32,13 @@ struct SettingsMembersSection: View {
 
         Spacer()
 
-        Text(.onlineMembersCount(services.roomService.members.filter { $0 != services.userService.user }.count))
+        Text(.onlineMembersCount(others.count))
           .font(.caption2)
           .foregroundColor(.textPrimary)
       }
       .padding(.horizontal)
 
       Group {
-        let others = services.roomService.members.filter { $0 != services.userService.user }
         if others.isEmpty {
           Text(.noMembersOnline)
             .font(.subheadline)
@@ -86,6 +93,14 @@ struct SettingsMembersSection: View {
                 .accessibilityLabel(Text(.sendFileToUser))
               }
               .animation(.easeInOut(duration: 0.2), value: dotColor)
+              .contentShape(Rectangle())
+              .contextMenu {
+                Button(role: .destructive) {
+                  onBlock(member)
+                } label: {
+                  Label(String(localized: .blockUser), systemImage: "hand.raised")
+                }
+              }
 
               if !uploads.isEmpty || !downloads.isEmpty {
                 VStack(alignment: .leading, spacing: 4) {

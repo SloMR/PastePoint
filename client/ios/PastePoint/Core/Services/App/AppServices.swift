@@ -16,11 +16,16 @@ final class AppServices: ObservableObject {
 
   let wsService: WebSocketConnectionService
   let sessionService: SessionService
+
   let userService: UserService
   let signalingService: SignalingService
+
   let roomService: RoomService
+  let blockService: BlockService
+
   let peerDirectory: PeerDirectory
   let fileTransferService: FileTransferService
+
   let connectionWarningMonitor: ConnectionWarningMonitor
   let updateService: AppUpdateService
 
@@ -37,19 +42,31 @@ final class AppServices: ObservableObject {
   private init() {
     wsService = WebSocketConnectionService()
     sessionService = SessionService()
+
     userService = UserService(wsService: wsService)
     roomService = RoomService(wsService: wsService)
-    peerDirectory = PeerDirectory(roomService: roomService, userService: userService)
-    signalingService = SignalingService(wsService: wsService, userService: userService, peerDirectory: peerDirectory)
+
+    blockService = BlockService(wsService: wsService)
+
+    peerDirectory = PeerDirectory(roomService: roomService, userService: userService, blockService: blockService)
+    signalingService = SignalingService(
+      wsService: wsService,
+      userService: userService,
+      peerDirectory: peerDirectory,
+      blockService: blockService,
+    )
+
     fileTransferService = FileTransferService(
       signalingService: signalingService,
       userService: userService,
       peerDirectory: peerDirectory,
     )
+
     connectionWarningMonitor = ConnectionWarningMonitor(
       peerDirectory: peerDirectory,
       signalingService: signalingService,
     )
+
     updateService = AppUpdateService()
 
 #if DEBUG
@@ -69,19 +86,31 @@ final class AppServices: ObservableObject {
   private init(preview _: Bool) {
     wsService = WebSocketConnectionService()
     sessionService = SessionService()
+
     userService = UserService(wsService: wsService)
     roomService = RoomService(wsService: wsService)
-    peerDirectory = PeerDirectory(roomService: roomService, userService: userService)
-    signalingService = SignalingService(wsService: wsService, userService: userService, peerDirectory: peerDirectory)
+
+    blockService = BlockService(wsService: wsService)
+    peerDirectory = PeerDirectory(roomService: roomService, userService: userService, blockService: blockService)
+
+    signalingService = SignalingService(
+      wsService: wsService,
+      userService: userService,
+      peerDirectory: peerDirectory,
+      blockService: blockService,
+    )
+
     fileTransferService = FileTransferService(
       signalingService: signalingService,
       userService: userService,
       peerDirectory: peerDirectory,
     )
+
     connectionWarningMonitor = ConnectionWarningMonitor(
       peerDirectory: peerDirectory,
       signalingService: signalingService,
     )
+
     updateService = AppUpdateService()
 
     forwardServiceChanges()
@@ -189,21 +218,31 @@ final class AppServices: ObservableObject {
     wsService.objectWillChange
       .sink { [weak self] _ in self?.objectWillChange.send() }
       .store(in: &cancellables)
+
     userService.objectWillChange
       .sink { [weak self] _ in self?.objectWillChange.send() }
       .store(in: &cancellables)
+
     roomService.objectWillChange
       .sink { [weak self] _ in self?.objectWillChange.send() }
       .store(in: &cancellables)
+
+    blockService.objectWillChange
+      .sink { [weak self] _ in self?.objectWillChange.send() }
+      .store(in: &cancellables)
+
     signalingService.objectWillChange
       .sink { [weak self] _ in self?.objectWillChange.send() }
       .store(in: &cancellables)
+
     fileTransferService.objectWillChange
       .sink { [weak self] _ in self?.objectWillChange.send() }
       .store(in: &cancellables)
+
     connectionWarningMonitor.objectWillChange
       .sink { [weak self] _ in self?.objectWillChange.send() }
       .store(in: &cancellables)
+
     updateService.objectWillChange
       .sink { [weak self] _ in self?.objectWillChange.send() }
       .store(in: &cancellables)
