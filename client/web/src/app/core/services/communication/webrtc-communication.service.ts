@@ -12,6 +12,7 @@ import {
 import { NGXLogger } from 'ngx-logger';
 import { HotToastService } from '@ngxpert/hot-toast';
 import { decodeChunk } from '../../../utils/chunk-protocol';
+import { BlockService } from './block.service';
 
 @Injectable({
   providedIn: 'root',
@@ -21,6 +22,7 @@ export class WebRTCCommunicationService {
   private logger = inject(NGXLogger);
   private toaster = inject(HotToastService);
   private platformId = inject(PLATFORM_ID);
+  private blockService = inject(BlockService);
 
   // =============== Properties ===============
 
@@ -348,6 +350,14 @@ export class WebRTCCommunicationService {
    * @param targetUser The user who sent the data
    */
   private handleDataChannelMessage(data: unknown, targetUser: string): void {
+    if (this.blockService.isBlocked(targetUser)) {
+      this.logger.info(
+        'handleDataChannelMessage',
+        `Dropping data-channel message from blocked peer ${targetUser}`
+      );
+      return;
+    }
+
     this.zone.run(() => {
       if (typeof data === 'string') {
         let message: DataChannelMessage;

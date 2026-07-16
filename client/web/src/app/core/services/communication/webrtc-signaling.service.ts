@@ -3,6 +3,7 @@ import * as Sentry from '@sentry/angular';
 import { startNewTrace } from '@sentry/core';
 import { WebSocketConnectionService } from './websocket-connection.service';
 import { UserService } from '../user-management/user.service';
+import { BlockService } from './block.service';
 import {
   MAX_RECONNECT_ATTEMPTS,
   RECONNECT_DELAY,
@@ -28,6 +29,7 @@ import { Subject } from 'rxjs';
 export class WebRTCSignalingService {
   private wsService = inject(WebSocketConnectionService);
   private userService = inject(UserService);
+  private blockService = inject(BlockService);
   private toaster = inject(HotToastService);
   private translate = inject<TranslateService>(TranslateService);
   private logger = inject(NGXLogger);
@@ -840,6 +842,14 @@ export class WebRTCSignalingService {
    * @param message The signal message to handle
    */
   private handleSignalMessage(message: SignalMessage): void {
+    if (this.blockService.isBlocked(message.from)) {
+      this.logger.info(
+        'handleSignalMessage',
+        `Ignoring ${message.type} from blocked peer ${message.from}`
+      );
+      return;
+    }
+
     if (message.from === message.to) {
       this.logger.warn(
         'handleSignalMessage',
