@@ -11,6 +11,7 @@ struct ChatView: View {
   let messages: [ChatMessage]
   let onAcceptFile: (_ fromUser: String, _ fileId: String) -> Void
   let onDeclineFile: (_ fromUser: String, _ fileId: String) -> Void
+  let onBlock: (String) -> Void
 
   var body: some View {
     GeometryReader { geometry in
@@ -30,6 +31,7 @@ struct ChatView: View {
                 fileTransfer: message.fileTransfer,
                 onAccept: acceptHandler(for: message),
                 onDecline: declineHandler(for: message),
+                onBlock: blockHandler(for: message),
               )
               .transition(.asymmetric(
                 insertion: .move(edge: .bottom).combined(with: .opacity),
@@ -135,6 +137,14 @@ struct ChatView: View {
       onDeclineFile(transfer.fromUser, transfer.fileId)
     }
   }
+
+  private func blockHandler(for message: ChatMessage) -> (() -> Void)? {
+    guard !message.isMine else { return nil }
+
+    return {
+      onBlock(message.from)
+    }
+  }
 }
 
 // MARK: - Preview
@@ -159,6 +169,7 @@ struct ChatView: View {
     ],
     onAcceptFile: { _, _ in },
     onDeclineFile: { _, _ in },
+    onBlock: { _ in },
   )
   .environmentObject(services)
 }

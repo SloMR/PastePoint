@@ -22,6 +22,7 @@ struct ChatMessageBubble: View {
   let fileTransfer: FileTransferData?
   let onAccept: (() -> Void)?
   let onDecline: (() -> Void)?
+  var onBlock: (() -> Void)?
 
   private var bubbleMaxWidth: CGFloat {
     isIPad ? 280 : 260
@@ -60,11 +61,14 @@ struct ChatMessageBubble: View {
           }
         }
 
-        if let transfer = fileTransfer {
-          attachmentBody(transfer: transfer)
-        } else {
-          textBody
+        Group {
+          if let transfer = fileTransfer {
+            attachmentBody(transfer: transfer)
+          } else {
+            textBody
+          }
         }
+        .contextMenu { bubbleMenu }
       }
 
       if alignment == .trailing {
@@ -74,6 +78,23 @@ struct ChatMessageBubble: View {
       }
     }
     .frame(maxWidth: .infinity)
+  }
+
+  @ViewBuilder
+  private var bubbleMenu: some View {
+    if fileTransfer == nil {
+      Button {
+        UIPasteboard.general.string = text
+      } label: {
+        Label(String(localized: .copy), systemImage: "doc.on.doc")
+      }
+    }
+
+    if let onBlock {
+      Button(role: .destructive, action: onBlock) {
+        Label(String(localized: .blockUser), systemImage: "hand.raised")
+      }
+    }
   }
 
   private var avatar: some View {
@@ -86,7 +107,6 @@ struct ChatMessageBubble: View {
 
   private var textBody: some View {
     Text(text)
-      .textSelection(.enabled)
       .font(.callout)
       .foregroundStyle(alignment == .trailing ? .textPrimary : .white)
       .padding(.horizontal, 12)

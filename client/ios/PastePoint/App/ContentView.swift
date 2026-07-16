@@ -138,6 +138,7 @@ struct ContentView: View {
           messages: messages,
           onAcceptFile: handleAcceptFile,
           onDeclineFile: handleDeclineFile,
+          onBlock: blockPeer,
         )
         .simultaneousGesture(
           TapGesture().onEnded {
