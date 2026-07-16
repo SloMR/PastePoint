@@ -11,6 +11,19 @@ import os
 enum LocalNetworkPermission {
   private static let logger = Logger(label: "LocalNetworkPermission")
 
+  @MainActor
+  static func requestAccess() {
+    logger.info("Requesting local network permission")
+    let browser = NWBrowser(for: .bonjour(type: "_pastepoint._tcp", domain: nil), using: NWParameters())
+    browser.stateUpdateHandler = { _ in }
+    browser.start(queue: .main)
+
+    Task { @MainActor in
+      try? await Task.sleep(for: .seconds(2))
+      browser.cancel()
+    }
+  }
+
   static func isDenied() async -> Bool {
     logger.info("Checking local network permission")
 
