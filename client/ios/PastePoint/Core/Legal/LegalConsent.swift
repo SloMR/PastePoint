@@ -9,4 +9,8 @@ import Foundation
 enum LegalConsent {
   static let storageKey = "legal.acceptedVersion"
   static let currentVersion = 1
+
+  static var isAccepted: Bool {
+    UserDefaults.standard.integer(forKey: storageKey) >= currentVersion
+  }
 }

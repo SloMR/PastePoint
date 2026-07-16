@@ -65,6 +65,12 @@ extension ContentView {
   /// Universal-link entry: validates an invite URL and joins its private session,
   /// mirroring the manual join flow in `SettingsJoinPrivateView`.
   func handleIncomingURL(_ url: URL) {
+    guard LegalConsent.isAccepted else {
+      logger.info("Deferring incoming URL until the terms are accepted")
+      pendingLegalDeepLink = url
+      return
+    }
+
     guard
       let code = AppEnvironment.privateSessionCode(from: url.absoluteString),
       SessionService.isValidSessionCode(code)

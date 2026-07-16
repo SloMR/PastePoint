@@ -26,6 +26,7 @@ struct ContentView: View {
   @State private var splashDismissing = false
 
   @State var messages: [ChatMessage] = []
+  @State var pendingLegalDeepLink: URL?
   @State var hasConnectedBefore = false
   @State var showSettings = false
   @State var pendingPrivateJoin = false
@@ -65,7 +66,7 @@ struct ContentView: View {
           .zIndex(1)
           .onReceive(services.wsService.didConnect) { dismissSplash() }
           .task {
-            if services.wsService.isConnected { dismissSplash() }
+            if services.wsService.isConnected || needsLegalConsent { dismissSplash() }
           }
           .task {
             try? await Task.sleep(for: .seconds(splashCeiling))
@@ -76,6 +77,13 @@ struct ContentView: View {
       if needsLegalConsent, !showSplash {
         LegalGateView {
           withAnimation { acceptedLegalVersion = LegalConsent.currentVersion }
+
+          if let url = pendingLegalDeepLink {
+            pendingLegalDeepLink = nil
+            handleIncomingURL(url)
+          } else {
+            Task { await services.handleForeground() }
+          }
         }
         .transition(.opacity)
         .zIndex(2)

@@ -135,6 +135,12 @@ final class AppServices: ObservableObject {
 #endif
 
     isInBackground = false
+
+    guard LegalConsent.isAccepted else {
+      logger.debug("handleForeground — terms not accepted, staying offline")
+      return
+    }
+
     guard !wsService.isConnected, !wsService.isConnecting, !isForegroundHandling else {
       logger.debug("handleForeground — already connected or connecting, skipping")
       return
