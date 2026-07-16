@@ -14,6 +14,7 @@ struct SettingsView: View {
   private let logger = Logger(label: "SettingsView")
   var onClose: (() -> Void)?
   var onSessionJoin: (() -> Void)?
+  var onBlock: ((String) -> Void)?
 
   @State private var isLeaveSessionSheetPresented: Bool = false
   @State private var isJoinRoomSheetPresented: Bool = false
@@ -90,7 +91,7 @@ struct SettingsView: View {
 
           // MARK: - Members
 
-          SettingsMembersSection()
+          SettingsMembersSection { onBlock?($0) }
         }
       }
 

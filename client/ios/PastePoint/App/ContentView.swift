@@ -209,10 +209,13 @@ struct ContentView: View {
     .preferredColorScheme(AppColors.Scheme.colorScheme(from: colorSchemeRaw))
     .sheet(isPresented: settingsSheetPresented) {
       NavigationStack {
-        SettingsView {
-          showSettings = false
-          pendingPrivateJoin = true
-        }
+        SettingsView(
+          onSessionJoin: {
+            showSettings = false
+            pendingPrivateJoin = true
+          },
+          onBlock: blockPeer,
+        )
       }
     }
   }
@@ -243,6 +246,7 @@ struct ContentView: View {
             setSettingsVisible(false)
             pendingPrivateJoin = true
           },
+          onBlock: blockPeer,
         )
       }
       .frame(width: 320)

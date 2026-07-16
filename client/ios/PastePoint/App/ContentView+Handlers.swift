@@ -144,6 +144,16 @@ extension ContentView {
     messages[idx].fileTransfer?.previewMime = previewMime
   }
 
+  func blockPeer(_ peer: String) {
+    guard !peer.isEmpty else { return }
+
+    services.blockService.block(peer)
+    messages.removeAll { !$0.isMine && $0.from == peer }
+
+    haptic(.success)
+    toast.show(.success(.blockedUserToast(peer)))
+  }
+
   func peerWarning() -> ToastItem {
     // Peers are in the room but no data channel is open yet still (re)connecting.
     if !services.peerDirectory.peers.isEmpty {
