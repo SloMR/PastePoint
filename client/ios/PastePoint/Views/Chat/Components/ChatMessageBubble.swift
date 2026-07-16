@@ -164,7 +164,9 @@ struct ChatMessageBubble: View {
       }
     }
     .task(id: transfer.previewDataUrl) {
-      previewImage = Self.decodePreview(transfer.previewDataUrl)
+      let dataUrl = transfer.previewDataUrl
+      let data = await Task.detached { Self.decodePreviewData(dataUrl) }.value
+      previewImage = data.flatMap { UIImage(data: $0) }
     }
     .foregroundStyle(alignment == .trailing ? .textPrimary : .white)
     .padding(.horizontal, 12)
@@ -185,7 +187,7 @@ struct ChatMessageBubble: View {
     ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)
   }
 
-  private static func decodePreview(_ dataUrl: String?) -> UIImage? {
+  private nonisolated static func decodePreviewData(_ dataUrl: String?) -> Data? {
     guard
       let dataUrl,
       let comma = dataUrl.firstIndex(of: ","),
@@ -194,7 +196,7 @@ struct ChatMessageBubble: View {
       return nil
     }
 
-    return UIImage(data: data)
+    return data
   }
 
   private func statusLabel(_ status: FileTransferStatus) -> LocalizedStringResource {
