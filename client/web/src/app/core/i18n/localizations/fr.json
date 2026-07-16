@@ -115,7 +115,7 @@
   "DISCLAIMER_USER_RESPONSIBILITY": "Vous êtes seul responsable des données que vous transmettez et de la conformité de votre utilisation du Service avec toutes les lois et réglementations en vigueur.",
   "DISCLAIMER_NO_STORAGE": "Le Service fonctionne strictement de pair à pair ; aucun fichier, message ni métadonnée de session n'est stocké de manière permanente sur nos serveurs.",
   "DISCLAIMER_FULL_REFERENCE": "Pour l'avertissement légal complet, consultez le fichier",
-  "DISCLAIMER_LINK_TEXT": "DISCLAIMERS.md",
+  "DISCLAIMER_LINK_TEXT": "DISCLAIMER.md",
   "DISCLAIMER_LINK": "dans le dépôt du projet.",
   "PRIVACY_TITLE": "Politique de confidentialité",
   "PRIVACY_INTRO": "Cette politique explique comment nous traitons les informations lorsque vous utilisez PastePoint. Le Service étant conçu pour la communication directe pair-à-pair, nous limitons délibérément les données collectées et conservées.",
@@ -139,7 +139,6 @@
   "TERMS_ZERO_TOLERANCE": "Nous n'avons aucune tolérance envers les contenus répréhensibles ou les utilisateurs abusifs. Comme les contenus sont transférés directement entre les appareils et ne sont jamais stockés sur nos serveurs, bloquer un utilisateur supprime immédiatement ses contenus de votre appareil et met fin à la connexion. Vous pouvez nous contacter à support@pastepoint.com au sujet d'un abus, et nous examinons chaque signalement.",
   "TERMS_TERMINATION": "Nous pouvons suspendre ou résilier votre accès au Service à tout moment, avec ou sans préavis, si nous estimons raisonnablement que vous avez enfreint ces Conditions.",
   "TERMS_GOVERNING_LAW": "Ces Conditions sont régies et interprétées conformément aux lois de la juridiction où l'opérateur du Service est établi, sans tenir compte de ses dispositions sur les conflits de lois.",
-  "LEGAL_NOTICE": "Ce document est fourni à titre informatif uniquement et ne constitue pas un avis juridique. Consultez un avocat qualifié pour un conseil adapté à votre situation.",
 
   "_CONNECTION_WARNING_SECTION": "==== CONNECTION WARNING ====",
   "CONNECTION_WARNING_TITLE": "Impossible de se connecter à certains membres",
