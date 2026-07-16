@@ -2773,6 +2773,216 @@
         }
       }
     },
+    "LEGAL_GATE_ACCEPT" : {
+      "comment" : "Button: accept the terms and enter the app.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أوافق ومتابعة"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Agree & Continue"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aceptar y continuar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accepter et continuer"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Принять и продолжить"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "同意并继续"
+          }
+        }
+      }
+    },
+    "LEGAL_GATE_AGREEMENT" : {
+      "comment" : "Fine print under the accept button of the first-launch terms gate.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "بالمتابعة، فإنك توافق على شروط الخدمة وسياسة الخصوصية."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "By continuing, you agree to our Terms of Service and Privacy Policy."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Al continuar, aceptas nuestros Términos del servicio y nuestra Política de privacidad."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En continuant, vous acceptez nos Conditions d'utilisation et notre Politique de confidentialité."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Продолжая, вы соглашаетесь с нашими Условиями обслуживания и Политикой конфиденциальности."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "继续即表示您同意我们的服务条款和隐私政策。"
+          }
+        }
+      }
+    },
+    "LEGAL_GATE_MESSAGE" : {
+      "comment" : "Body text of the first-launch terms acceptance gate.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يربط PastePoint أجهزتك مباشرةً لمشاركة الرسائل والملفات."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PastePoint connects your devices directly to share messages and files."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PastePoint conecta tus dispositivos directamente para compartir mensajes y archivos."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PastePoint connecte vos appareils directement pour partager des messages et des fichiers."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PastePoint напрямую соединяет ваши устройства для обмена сообщениями и файлами."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PastePoint 直接连接您的设备，用于共享消息和文件。"
+          }
+        }
+      }
+    },
+    "LEGAL_GATE_TITLE" : {
+      "comment" : "Title of the first-launch terms acceptance gate.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مرحبًا بك في PastePoint"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Welcome to PastePoint"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Te damos la bienvenida a PastePoint"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bienvenue sur PastePoint"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добро пожаловать в PastePoint"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "欢迎使用 PastePoint"
+          }
+        }
+      }
+    },
+    "LEGAL_GATE_ZERO_TOLERANCE" : {
+      "comment" : "Zero-tolerance notice on the first-launch terms gate, required by App Review guideline 1.2.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لا نتسامح إطلاقًا مع المحتوى المرفوض أو المستخدمين المسيئين. يمكنك حظر أي شخص في المحادثة."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "There is zero tolerance for objectionable content or abusive users. You can block anyone in a chat."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se tolera el contenido objetable ni los usuarios abusivos. Puedes bloquear a cualquier persona en un chat."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucune tolérance envers les contenus répréhensibles ou les utilisateurs abusifs. Vous pouvez bloquer toute personne dans une discussion."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нулевая терпимость к неприемлемому контенту и злоупотребляющим пользователям. Вы можете заблокировать любого участника чата."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "我们对令人反感的内容和滥用行为的用户采取零容忍政策。您可以屏蔽聊天中的任何人。"
+          }
+        }
+      }
+    },
     "LOCAL_NETWORK_OFF_DESC" : {
       "comment" : "Banner message when Local Network permission is denied.",
       "extractionState" : "manual",
