@@ -47,6 +47,7 @@
       (dragenter)="onChatDragEnter($event)"
       (dragleave)="onChatDragLeave($event)"
       (drop)="onChatDrop($event)"
+      (paste)="onChatPaste($event)"
     >
       <!-- MARK: - Drag & Drop Overlay (whole chat view) -->
       @if (isDraggingFiles) {
