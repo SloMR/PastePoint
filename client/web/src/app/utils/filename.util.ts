@@ -3,13 +3,13 @@
  * bubbles, sidebar transfer rows) so the elision logic lives in one place.
  */
 
-export interface FilenameParts {
+interface FilenameParts {
   baseName: string;
   extension: string;
 }
 
 /** Split the final extension from a filename so the UI can keep it visible. */
-export function splitFilenameExtension(filename: string): FilenameParts {
+function splitFilenameExtension(filename: string): FilenameParts {
   const lastDotIndex = filename.lastIndexOf('.');
 
   if (lastDotIndex <= 0 || lastDotIndex === filename.length - 1) {
