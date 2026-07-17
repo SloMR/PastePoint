@@ -77,6 +77,7 @@
   "REPORT_AND_BLOCK": "Пожаловаться и заблокировать",
   "REPORT_EMAIL_SUBJECT": "Жалоба PastePoint: неприемлемый контент",
   "REPORT_EMAIL_INTRO": "Опишите, что произошло (необязательно):",
+  "TAP_TO_REVEAL": "Нажмите, чтобы показать",
 
   "_END_SESSION_SECTION": "==== END SESSION ====",
   "END_SESSION": "Покинуть сессию",

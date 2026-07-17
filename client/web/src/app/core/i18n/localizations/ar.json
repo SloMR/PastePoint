@@ -77,6 +77,7 @@
   "REPORT_AND_BLOCK": "إبلاغ وحظر",
   "REPORT_EMAIL_SUBJECT": "بلاغ PastePoint: محتوى مرفوض",
   "REPORT_EMAIL_INTRO": "يرجى وصف ما حدث (اختياري):",
+  "TAP_TO_REVEAL": "اضغط للعرض",
 
   "_END_SESSION_SECTION": "==== END SESSION ====",
   "END_SESSION": "إنهاء الجلسة",

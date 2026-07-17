@@ -5,10 +5,7 @@ import { TranslateModule } from '@ngx-translate/core';
 
 import { FileDownload, FileUpload, MemberConnectionState } from '../../../../utils/constants';
 import { LanguageCode } from '../../../../core/i18n/languages';
-import {
-  splitFilenameExtension,
-  truncateFilename as truncateFilenameUtil,
-} from '../../../../utils/filename.util';
+import { middleTruncateFilename as middleTruncateFilenameUtil } from '../../../../utils/filename.util';
 import { LanguageSwitcherComponent } from '../../../../core/components/language-switcher/language-switcher.component';
 import { SELF_AVATAR } from '../../../../utils/avatar.util';
 
@@ -100,15 +97,7 @@ export class ChatSidebarComponent {
     return `${safeProgress}%`;
   }
 
-  protected truncateFilename(filename: string, maxLength = 30): string {
-    return truncateFilenameUtil(filename, maxLength);
-  }
-
-  protected filenameBaseName(filename: string): string {
-    return splitFilenameExtension(filename).baseName;
-  }
-
-  protected filenameExtension(filename: string): string {
-    return splitFilenameExtension(filename).extension;
+  protected middleTruncateFilename(filename: string, maxLength = 22): string {
+    return middleTruncateFilenameUtil(filename, maxLength);
   }
 }

@@ -303,12 +303,18 @@
                               />
                               <div class="flex-1 min-w-0">
                                 <p
-                                  class="mb-1 text-xs font-expoArabic text-white leading-5 break-words overflow-hidden [display:-webkit-box] [-webkit-line-clamp:2] [-webkit-box-orient:vertical]"
+                                  class="truncate text-xs leading-5 text-white font-expoArabic"
+                                  dir="ltr"
+                                  [title]="message.fileTransfer?.fileName || ''"
                                 >
-                                  {{ truncateFilename(message.fileTransfer?.fileName || '') }}
-                                  ({{ message.fileTransfer?.fileSize || 0 | filesize: 2 }})
+                                  {{
+                                    middleTruncateFilename(message.fileTransfer?.fileName || '', 30)
+                                  }}
                                 </p>
-                                <p class="text-xs font-normal font-expoArabic text-white">
+                                <p class="text-[11px] text-white/70 font-expoArabic" dir="ltr">
+                                  {{ message.fileTransfer?.fileSize || 0 | filesize: 2 }}
+                                </p>
+                                <p class="mt-1 text-xs font-normal font-expoArabic text-white">
                                   {{ 'WANTS_TO_SEND_FILE' | translate }}
                                 </p>
                               </div>
@@ -320,19 +326,15 @@
                                 message.previewMime?.startsWith('image/') ||
                                 message.previewMime === 'application/pdf'
                               ) {
-                                <img
+                                <app-blurred-preview
+                                  class="mb-3"
                                   [src]="message.previewUrl"
                                   [alt]="message.fileTransfer?.fileName || 'Attachment'"
-                                  [title]="message.fileTransfer?.fileName || 'Attachment'"
-                                  class="max-w-full h-auto max-h-[220px] rounded-lg mb-3 mx-auto object-contain"
-                                  loading="lazy"
-                                  width="320"
-                                  height="192"
                                 />
                               }
                             } @else {
                               <div
-                                class="h-[180px] w-[280px] rounded-xl border border-gray-200 mb-2 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex items-center justify-center shadow-inner"
+                                class="h-[180px] w-full min-w-0 rounded-xl border border-gray-200 mb-2 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex items-center justify-center shadow-inner"
                               >
                                 <img
                                   [src]="
@@ -362,19 +364,15 @@
                                 message.previewMime?.startsWith('image/') ||
                                 message.previewMime === 'application/pdf'
                               ) {
-                                <img
+                                <app-blurred-preview
+                                  class="mb-2"
                                   [src]="message.previewUrl"
                                   [alt]="message.fileTransfer?.fileName || 'Attachment'"
-                                  [title]="message.fileTransfer?.fileName || 'Attachment'"
-                                  class="max-w-full h-auto max-h-[220px] rounded-lg mb-2 mx-auto object-contain"
-                                  loading="lazy"
-                                  width="320"
-                                  height="192"
                                 />
                               }
                             } @else {
                               <div
-                                class="h-[180px] w-[280px] rounded-xl border border-gray-200 mb-2 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex items-center justify-center shadow-inner"
+                                class="h-[180px] w-full min-w-0 rounded-xl border border-gray-200 mb-2 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex items-center justify-center shadow-inner"
                               >
                                 <img
                                   [src]="
@@ -553,7 +551,7 @@
                               }
                             } @else {
                               <div
-                                class="h-[180px] w-[280px] rounded-xl border border-gray-200 mb-2 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex items-center justify-center shadow-inner"
+                                class="h-[180px] w-full min-w-0 rounded-xl border border-gray-200 mb-2 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex items-center justify-center shadow-inner"
                               >
                                 <img
                                   [src]="
@@ -568,21 +566,38 @@
                                 />
                               </div>
                             }
-                            <!-- Single filename/text line below -->
-                            <p
-                              class="flex items-center gap-2 break-all text-xs font-expoArabic text-content dark:text-contentMuted"
+                            <div
+                              class="flex min-w-0 items-start gap-2 text-xs font-expoArabic text-content dark:text-contentMuted"
                             >
                               <img
                                 [src]="isDarkMode ? '/icons/file-white.svg' : '/icons/file.svg'"
                                 alt="File"
                                 title="File"
-                                class="h-4 w-4"
+                                class="mt-0.5 h-4 w-4 shrink-0"
                                 loading="lazy"
                                 width="16"
                                 height="16"
                               />
-                              {{ message.text }}
-                            </p>
+                              @if (message.fileTransfer) {
+                                <div class="min-w-0 flex-1">
+                                  <p
+                                    class="truncate leading-5"
+                                    dir="ltr"
+                                    [title]="message.fileTransfer.fileName"
+                                  >
+                                    {{ middleTruncateFilename(message.fileTransfer.fileName, 30) }}
+                                  </p>
+                                  <p
+                                    class="text-[11px] text-content/70 dark:text-contentMuted/70"
+                                    dir="ltr"
+                                  >
+                                    {{ message.fileTransfer.fileSize | filesize: 2 }}
+                                  </p>
+                                </div>
+                              } @else {
+                                <p class="min-w-0 flex-1 break-words">{{ message.text }}</p>
+                              }
+                            </div>
                             @if (message.fileTransfer?.groupId) {
                               <p
                                 class="mt-1 text-xs font-expoArabic text-content/70 dark:text-contentMuted/70"

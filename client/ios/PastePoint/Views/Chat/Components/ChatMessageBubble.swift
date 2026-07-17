@@ -13,6 +13,7 @@ enum MessageAlignment {
 struct ChatMessageBubble: View {
   @Environment(\.isIPad) private var isIPad
   @State private var previewImage: UIImage?
+  @State private var previewRevealed = false
 
   let alignment: MessageAlignment
   let name: String
@@ -132,6 +133,10 @@ struct ChatMessageBubble: View {
       .fixedSize(horizontal: false, vertical: true)
   }
 
+  private var shouldBlurPreview: Bool {
+    alignment == .leading && previewImage != nil && !previewRevealed
+  }
+
   private var previewSlot: some View {
     Group {
       if let previewImage {
@@ -146,9 +151,29 @@ struct ChatMessageBubble: View {
           .padding(50)
       }
     }
+    .blur(radius: shouldBlurPreview ? 18 : 0)
     .frame(maxWidth: bubbleMaxWidth - 24, maxHeight: 220)
     .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
     .allowsHitTesting(false)
+    .overlay {
+      if shouldBlurPreview {
+        Button {
+          withAnimation(.easeOut(duration: 0.2)) { previewRevealed = true }
+        } label: {
+          VStack(spacing: 4) {
+            Image(systemName: "eye.slash.fill")
+              .font(.title3)
+            Text(.tapToReveal)
+              .font(.caption2)
+              .fontWeight(.semibold)
+          }
+          .foregroundStyle(.white)
+          .padding(10)
+          .background(.black.opacity(0.35), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        }
+        .buttonStyle(.plain)
+      }
+    }
   }
 
   @ViewBuilder
@@ -211,6 +236,7 @@ struct ChatMessageBubble: View {
       let dataUrl = transfer.previewDataUrl
       let data = await Task.detached { Self.decodePreviewData(dataUrl) }.value
       previewImage = data.flatMap { UIImage(data: $0) }
+      previewRevealed = false
     }
     .foregroundStyle(alignment == .trailing ? .textPrimary : .white)
     .padding(.horizontal, 12)

@@ -15,13 +15,21 @@ import Autolinker from 'autolinker';
 
 import { ChatMessage, ChatMessageType, FileTransferStatus } from '../../../../utils/constants';
 import { FileSizePipe } from '../../../../utils/file-size.pipe';
-import { truncateFilename as truncateFilenameUtil } from '../../../../utils/filename.util';
+import { middleTruncateFilename as middleTruncateFilenameUtil } from '../../../../utils/filename.util';
 import { avatarFor } from '../../../../utils/avatar.util';
 import { MessageActionsComponent } from '../message-actions/message-actions.component';
+import { BlurredPreviewComponent } from '../blurred-preview/blurred-preview.component';
 
 @Component({
   selector: 'app-chat-messages',
-  imports: [CommonModule, DatePipe, FileSizePipe, TranslateModule, MessageActionsComponent],
+  imports: [
+    CommonModule,
+    DatePipe,
+    FileSizePipe,
+    TranslateModule,
+    MessageActionsComponent,
+    BlurredPreviewComponent,
+  ],
   providers: [FileSizePipe],
   templateUrl: './chat-messages.component.html',
   styleUrl: './chat-messages.component.css',
@@ -103,7 +111,7 @@ export class ChatMessagesComponent {
     return sanitizedHtml || '';
   }
 
-  protected truncateFilename(filename: string, maxLength = 30): string {
-    return truncateFilenameUtil(filename, maxLength);
+  protected middleTruncateFilename(filename: string, maxLength = 30): string {
+    return middleTruncateFilenameUtil(filename, maxLength);
   }
 }

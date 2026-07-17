@@ -56,7 +56,7 @@ import { Router } from '@angular/router';
 import { HotToastService } from '@ngxpert/hot-toast';
 import { PreviewService } from '../../core/services/ui/preview.service';
 import { FileSizePipe } from '../../utils/file-size.pipe';
-import { truncateFilename as truncateFilenameUtil } from '../../utils/filename.util';
+import { middleTruncateFilename as middleTruncateFilenameUtil } from '../../utils/filename.util';
 import { JoinSessionPopupComponent } from './components/popups/join-session-popup/join-session-popup.component';
 import { CreateRoomPopupComponent } from './components/popups/create-room-popup/create-room-popup.component';
 import { EndSessionPopupComponent } from './components/popups/end-session-popup/end-session-popup.component';
@@ -1145,7 +1145,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
    * ==========================================================
    */
   protected truncateFilename(filename: string, maxLength = 30): string {
-    return truncateFilenameUtil(filename, maxLength);
+    return middleTruncateFilenameUtil(filename, maxLength);
   }
 
   /**

@@ -77,6 +77,7 @@
   "REPORT_AND_BLOCK": "Report and Block",
   "REPORT_EMAIL_SUBJECT": "PastePoint report: objectionable content",
   "REPORT_EMAIL_INTRO": "Please describe what happened (optional):",
+  "TAP_TO_REVEAL": "Tap to reveal",
 
   "_END_SESSION_SECTION": "==== END SESSION ====",
   "END_SESSION": "Leave Session",
