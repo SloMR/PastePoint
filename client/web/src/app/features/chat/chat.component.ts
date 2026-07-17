@@ -2018,6 +2018,14 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     this.handleFilesDropped(files);
   }
 
+  protected onChatPaste(event: ClipboardEvent): void {
+    const files = Array.from(event.clipboardData?.files ?? []);
+    if (files.length === 0) return;
+
+    event.preventDefault();
+    this.handleFilesDropped(files);
+  }
+
   /**
    * ==========================================================
    * HANDLE FILES DROPPED
