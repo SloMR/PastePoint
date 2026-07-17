@@ -49,7 +49,8 @@ module.exports = {
         textVeryMuted: '#9CA3AF', // Very muted text
       },
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
+        sans: ['expo-arabic-book', 'sans-serif'],
+        expoArabic: ['expo-arabic-book', 'sans-serif'],
         expoArabicBold: ['expo-arabic-bold', 'sans-serif'],
         expoArabicMedium: ['expo-arabic-medium', 'sans-serif'],
         expoArabicLight: ['expo-arabic-light', 'sans-serif'],

@@ -20,6 +20,12 @@
   src: url('/fonts/expo-arabic-light.ttf');
 }
 
+@font-face {
+  font-family: expo-arabic-book;
+  font-display: swap;
+  src: url('/fonts/expo-arabic-book.ttf');
+}
+
 * {
   backface-visibility: hidden;
 }
