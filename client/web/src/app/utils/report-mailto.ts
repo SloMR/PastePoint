@@ -1,6 +1,7 @@
 import { ChatMessage, ChatMessageType } from './constants';
 
 const MAX_REPORTED_TEXT = 1000;
+const MAX_FILENAME = 200;
 
 export function buildReportMailto(
   supportEmail: string,
@@ -23,7 +24,7 @@ export function buildReportMailto(
   ];
 
   if (message.type === ChatMessageType.ATTACHMENT && message.fileTransfer) {
-    lines.push(`Reported file: ${message.fileTransfer.fileName}`);
+    lines.push(`Reported file: ${truncate(message.fileTransfer.fileName, MAX_FILENAME)}`);
   } else {
     lines.push('Reported message:');
     lines.push(truncate(message.text, MAX_REPORTED_TEXT));

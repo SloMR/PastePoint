@@ -308,10 +308,7 @@
                                   [title]="message.fileTransfer?.fileName || ''"
                                 >
                                   {{
-                                    middleTruncateFilename(
-                                      message.fileTransfer?.fileName || '',
-                                      30
-                                    )
+                                    middleTruncateFilename(message.fileTransfer?.fileName || '', 30)
                                   }}
                                 </p>
                                 <p class="text-[11px] text-white/70 font-expoArabic" dir="ltr">
@@ -588,9 +585,7 @@
                                     dir="ltr"
                                     [title]="message.fileTransfer.fileName"
                                   >
-                                    {{
-                                      middleTruncateFilename(message.fileTransfer.fileName, 30)
-                                    }}
+                                    {{ middleTruncateFilename(message.fileTransfer.fileName, 30) }}
                                   </p>
                                   <p
                                     class="text-[11px] text-content/70 dark:text-contentMuted/70"
