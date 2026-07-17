@@ -73,6 +73,10 @@
   "NO_MEMBERS_ONLINE": "No one is online right now",
   "BLOCK_USER": "Block",
   "BLOCKED_USER_TOAST": "Blocked {{user}}. Their messages were removed.",
+  "MESSAGE_ACTIONS": "Message actions",
+  "REPORT_AND_BLOCK": "Report and Block",
+  "REPORT_EMAIL_SUBJECT": "PastePoint report: objectionable content",
+  "REPORT_EMAIL_INTRO": "Please describe what happened (optional):",
 
   "_END_SESSION_SECTION": "==== END SESSION ====",
   "END_SESSION": "Leave Session",

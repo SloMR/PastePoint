@@ -73,6 +73,10 @@
   "NO_MEMBERS_ONLINE": "لا يوجد أعضاء متصلون",
   "BLOCK_USER": "حظر",
   "BLOCKED_USER_TOAST": "تم حظر {{user}}. تمت إزالة رسائله.",
+  "MESSAGE_ACTIONS": "إجراءات الرسالة",
+  "REPORT_AND_BLOCK": "إبلاغ وحظر",
+  "REPORT_EMAIL_SUBJECT": "بلاغ PastePoint: محتوى مرفوض",
+  "REPORT_EMAIL_INTRO": "يرجى وصف ما حدث (اختياري):",
 
   "_END_SESSION_SECTION": "==== END SESSION ====",
   "END_SESSION": "إنهاء الجلسة",

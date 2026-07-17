@@ -73,6 +73,10 @@
   "NO_MEMBERS_ONLINE": "Сейчас никого нет в сети",
   "BLOCK_USER": "Заблокировать",
   "BLOCKED_USER_TOAST": "Пользователь {{user}} заблокирован. Его сообщения удалены.",
+  "MESSAGE_ACTIONS": "Действия с сообщением",
+  "REPORT_AND_BLOCK": "Пожаловаться и заблокировать",
+  "REPORT_EMAIL_SUBJECT": "Жалоба PastePoint: неприемлемый контент",
+  "REPORT_EMAIL_INTRO": "Опишите, что произошло (необязательно):",
 
   "_END_SESSION_SECTION": "==== END SESSION ====",
   "END_SESSION": "Покинуть сессию",

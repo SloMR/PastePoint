@@ -73,6 +73,10 @@
   "NO_MEMBERS_ONLINE": "Nadie está conectado en este momento",
   "BLOCK_USER": "Bloquear",
   "BLOCKED_USER_TOAST": "Has bloqueado a {{user}}. Se han eliminado sus mensajes.",
+  "MESSAGE_ACTIONS": "Acciones del mensaje",
+  "REPORT_AND_BLOCK": "Denunciar y bloquear",
+  "REPORT_EMAIL_SUBJECT": "Denuncia de PastePoint: contenido objetable",
+  "REPORT_EMAIL_INTRO": "Describe lo que ha ocurrido (opcional):",
 
   "_END_SESSION_SECTION": "==== END SESSION ====",
   "END_SESSION": "Salir de la sesión",

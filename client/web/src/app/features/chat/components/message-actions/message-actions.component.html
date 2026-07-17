@@ -1,0 +1,72 @@
+<div class="relative">
+  <!-- MARK: - Overflow trigger -->
+  <button
+    type="button"
+    (click)="toggle()"
+    [attr.aria-label]="'MESSAGE_ACTIONS' | translate"
+    [attr.aria-expanded]="isOpen()"
+    aria-haspopup="menu"
+    [title]="'MESSAGE_ACTIONS' | translate"
+    class="flex h-6 w-6 items-center justify-center rounded text-gray-400 transition-colors hover:bg-inputBackground hover:text-content dark:text-gray-500 dark:hover:bg-surfaceDark dark:hover:text-white"
+  >
+    <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="5" cy="12" r="1.6" />
+      <circle cx="12" cy="12" r="1.6" />
+      <circle cx="19" cy="12" r="1.6" />
+    </svg>
+  </button>
+
+  <!-- MARK: - Menu -->
+  @if (isOpen()) {
+    <div
+      role="menu"
+      [attr.aria-label]="'MESSAGE_ACTIONS' | translate"
+      class="absolute start-0 top-full z-50 mt-1 min-w-[11rem] max-w-[calc(100vw-1rem)] overflow-hidden rounded-lg border border-borderLight bg-pageBackground py-1 shadow-lg dark:border-borderDark dark:bg-surfaceDark"
+    >
+      <button
+        type="button"
+        role="menuitem"
+        (click)="block()"
+        class="flex w-full items-center gap-2 px-3 py-1.5 text-start text-sm text-danger font-expoArabicLight transition-colors hover:bg-borderLight dark:hover:bg-baseDark"
+      >
+        <svg
+          class="h-4 w-4 shrink-0"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"
+          />
+        </svg>
+        {{ 'BLOCK_USER' | translate }}
+      </button>
+      <button
+        type="button"
+        role="menuitem"
+        (click)="report()"
+        class="flex w-full items-center gap-2 px-3 py-1.5 text-start text-sm text-danger font-expoArabicLight transition-colors hover:bg-borderLight dark:hover:bg-baseDark"
+      >
+        <svg
+          class="h-4 w-4 shrink-0"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M3 3v1.5M3 21v-6m0 0 2.77-.693a9 9 0 0 1 6.208.682l.108.054a9 9 0 0 0 6.086.71l3.114-.732a48.524 48.524 0 0 1-.005-10.499l-3.11.732a9 9 0 0 1-6.085-.711l-.108-.054a9 9 0 0 0-6.208-.682L3 4.5M3 15V4.5"
+          />
+        </svg>
+        {{ 'REPORT_AND_BLOCK' | translate }}
+      </button>
+    </div>
+  }
+</div>

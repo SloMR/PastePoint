@@ -21,6 +21,8 @@ export const WS_KEEP_ALIVE_INTERVAL_MS = 25_000;
 export const SESSION_CODE_KEY = 'session_code';
 export const LANGUAGE_PREFERENCE_KEY = 'language_preference';
 export const APP_VERSION_KEY = 'app_version';
+
+export const SUPPORT_EMAIL = 'support@pastepoint.com';
 export const THEME_PREFERENCE_KEY = 'theme_preference';
 export const UPDATE_LAST_PROMPT_KEY = 'update_last_prompt_at';
 export const NAVIGATION_DELAY_MS = 100;
