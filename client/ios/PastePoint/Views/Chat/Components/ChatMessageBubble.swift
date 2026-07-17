@@ -23,6 +23,7 @@ struct ChatMessageBubble: View {
   let onAccept: (() -> Void)?
   let onDecline: (() -> Void)?
   var onBlock: (() -> Void)?
+  var onReport: (() -> Void)?
 
   private var bubbleMaxWidth: CGFloat {
     isIPad ? 280 : 260
@@ -93,6 +94,12 @@ struct ChatMessageBubble: View {
     if let onBlock {
       Button(role: .destructive, action: onBlock) {
         Label(String(localized: .blockUser), systemImage: "hand.raised")
+      }
+    }
+
+    if let onReport {
+      Button(role: .destructive, action: onReport) {
+        Label(String(localized: .reportAndBlock), systemImage: "flag")
       }
     }
   }

@@ -150,6 +150,16 @@ extension ContentView {
     messages[idx].fileTransfer?.previewMime = previewMime
   }
 
+  func handleReport(_ message: ChatMessage) {
+    blockPeer(message.from)
+
+    guard ReportComposerView.canSendMail else {
+      toast.show(.warning(.reportMailUnavailable))
+      return
+    }
+    reportTarget = message
+  }
+
   func blockPeer(_ peer: String) {
     guard !peer.isEmpty else { return }
 
