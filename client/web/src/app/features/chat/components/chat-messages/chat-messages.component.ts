@@ -17,10 +17,11 @@ import { ChatMessage, ChatMessageType, FileTransferStatus } from '../../../../ut
 import { FileSizePipe } from '../../../../utils/file-size.pipe';
 import { truncateFilename as truncateFilenameUtil } from '../../../../utils/filename.util';
 import { avatarFor } from '../../../../utils/avatar.util';
+import { MessageActionsComponent } from '../message-actions/message-actions.component';
 
 @Component({
   selector: 'app-chat-messages',
-  imports: [CommonModule, DatePipe, FileSizePipe, TranslateModule],
+  imports: [CommonModule, DatePipe, FileSizePipe, TranslateModule, MessageActionsComponent],
   providers: [FileSizePipe],
   templateUrl: './chat-messages.component.html',
   styleUrl: './chat-messages.component.css',
@@ -35,6 +36,7 @@ export class ChatMessagesComponent {
   @Output() acceptFile = new EventEmitter<ChatMessage>();
   @Output() declineFile = new EventEmitter<ChatMessage>();
   @Output() blockRequested = new EventEmitter<string>();
+  @Output() reportRequested = new EventEmitter<ChatMessage>();
 
   @ViewChild('messageContainer') messageContainer!: ElementRef;
 

@@ -19,6 +19,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { ThemeService } from '../../core/services/ui/theme.service';
 import { ChatService } from '../../core/services/communication/chat.service';
 import { BlockService } from '../../core/services/communication/block.service';
+import { buildReportMailto } from '../../utils/report-mailto';
 import { HeartbeatService } from '../../core/services/communication/heartbeat.service';
 import { RoomService } from '../../core/services/room-management/room.service';
 import { FileTransferService } from '../../core/services/file-management/file-transfer.service';
@@ -41,6 +42,7 @@ import {
   SESSION_CODE_KEY,
   THEME_PREFERENCE_KEY,
   PREVIEW_MIME_TYPE,
+  SUPPORT_EMAIL,
 } from '../../utils/constants';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { SessionService } from '../../core/services/session/session.service';
@@ -1036,6 +1038,27 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     this.blockService.block(peer);
     this.chatService.removeMessagesFrom(peer);
     this.toaster.success(this.translate.instant('BLOCKED_USER_TOAST', { user: peer }));
+  }
+
+  /**
+   * ==========================================================
+   * REPORT USER
+   * Blocks first, then opens a pre-filled report. Blocking is not contingent
+   * on the mail being sent — the content must leave the feed either way.
+   * ==========================================================
+   */
+  reportUser(message: ChatMessage): void {
+    this.blockUser(message.from);
+
+    const url = buildReportMailto(
+      SUPPORT_EMAIL,
+      this.translate.instant('REPORT_EMAIL_SUBJECT'),
+      this.translate.instant('REPORT_EMAIL_INTRO'),
+      message,
+      this.SessionCode.length > 0,
+      this.appVersion
+    );
+    window.location.href = url;
   }
 
   /**
