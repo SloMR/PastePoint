@@ -1845,11 +1845,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
           }
         }
 
-        if (
-          this.showConnectionWarning &&
-          otherMembers.length > 0 &&
-          otherMembers.every((m) => this.webrtcService.isConnected(m))
-        ) {
+        if (this.showConnectionWarning && !this.isIsolatedFromPeers) {
           this.showConnectionWarning = false;
           this.connectionWarningDismissed = false;
         }
@@ -1867,6 +1863,11 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
    */
   protected isConnectedToMember(member: string): boolean {
     return this.memberConnectionStatus.get(member) ?? false;
+  }
+
+  private get isIsolatedFromPeers(): boolean {
+    const otherMembers = this.members.filter((m) => m !== this.userService.user);
+    return otherMembers.length > 0 && !otherMembers.some((m) => this.isConnectedToMember(m));
   }
 
   protected get hasNoConnectedPeers(): boolean {
@@ -1900,11 +1901,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     const timeoutId = setTimeout(() => {
       this.ngZone.run(() => {
         this.connectionWarningTimeouts.delete(member);
-        if (
-          this.members.includes(member) &&
-          !this.webrtcService.isConnected(member) &&
-          !this.connectionWarningDismissed
-        ) {
+        if (this.isIsolatedFromPeers && !this.connectionWarningDismissed) {
           this.showConnectionWarning = true;
           this.cdr.detectChanges();
         }
@@ -1919,9 +1916,8 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
       clearTimeout(timeoutId);
       this.connectionWarningTimeouts.delete(member);
     }
-    // Hide banner if all peers are now connected
-    const otherMembers = this.members.filter((m) => m !== this.userService.user);
-    if (otherMembers.length > 0 && otherMembers.every((m) => this.webrtcService.isConnected(m))) {
+    // Hide the banner as soon as any peer is reachable, or everyone has left.
+    if (!this.isIsolatedFromPeers) {
       this.showConnectionWarning = false;
       this.connectionWarningDismissed = false;
     }
