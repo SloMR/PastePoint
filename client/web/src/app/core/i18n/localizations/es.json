@@ -77,6 +77,7 @@
   "REPORT_AND_BLOCK": "Denunciar y bloquear",
   "REPORT_EMAIL_SUBJECT": "Denuncia de PastePoint: contenido objetable",
   "REPORT_EMAIL_INTRO": "Describe lo que ha ocurrido (opcional):",
+  "TAP_TO_REVEAL": "Toca para mostrar",
 
   "_END_SESSION_SECTION": "==== END SESSION ====",
   "END_SESSION": "Salir de la sesión",

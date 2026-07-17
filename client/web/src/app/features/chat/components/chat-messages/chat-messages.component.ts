@@ -18,10 +18,18 @@ import { FileSizePipe } from '../../../../utils/file-size.pipe';
 import { middleTruncateFilename as middleTruncateFilenameUtil } from '../../../../utils/filename.util';
 import { avatarFor } from '../../../../utils/avatar.util';
 import { MessageActionsComponent } from '../message-actions/message-actions.component';
+import { BlurredPreviewComponent } from '../blurred-preview/blurred-preview.component';
 
 @Component({
   selector: 'app-chat-messages',
-  imports: [CommonModule, DatePipe, FileSizePipe, TranslateModule, MessageActionsComponent],
+  imports: [
+    CommonModule,
+    DatePipe,
+    FileSizePipe,
+    TranslateModule,
+    MessageActionsComponent,
+    BlurredPreviewComponent,
+  ],
   providers: [FileSizePipe],
   templateUrl: './chat-messages.component.html',
   styleUrl: './chat-messages.component.css',

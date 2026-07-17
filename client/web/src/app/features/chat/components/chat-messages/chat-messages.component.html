@@ -329,14 +329,10 @@
                                 message.previewMime?.startsWith('image/') ||
                                 message.previewMime === 'application/pdf'
                               ) {
-                                <img
+                                <app-blurred-preview
+                                  class="mb-3"
                                   [src]="message.previewUrl"
                                   [alt]="message.fileTransfer?.fileName || 'Attachment'"
-                                  [title]="message.fileTransfer?.fileName || 'Attachment'"
-                                  class="max-w-full h-auto max-h-[220px] rounded-lg mb-3 mx-auto object-contain"
-                                  loading="lazy"
-                                  width="320"
-                                  height="192"
                                 />
                               }
                             } @else {
@@ -371,14 +367,10 @@
                                 message.previewMime?.startsWith('image/') ||
                                 message.previewMime === 'application/pdf'
                               ) {
-                                <img
+                                <app-blurred-preview
+                                  class="mb-2"
                                   [src]="message.previewUrl"
                                   [alt]="message.fileTransfer?.fileName || 'Attachment'"
-                                  [title]="message.fileTransfer?.fileName || 'Attachment'"
-                                  class="max-w-full h-auto max-h-[220px] rounded-lg mb-2 mx-auto object-contain"
-                                  loading="lazy"
-                                  width="320"
-                                  height="192"
                                 />
                               }
                             } @else {
