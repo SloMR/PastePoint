@@ -52,10 +52,6 @@ export class MetaInitService {
       manifest: '/site.webmanifest',
     });
 
-    // Set preconnect for performance
-    this.metaService.setPreconnect(['https://fonts.googleapis.com'], false);
-    this.metaService.setPreconnect(['https://fonts.gstatic.com'], true);
-
     // Set structured data for the application
     this.metaService.setStructuredData(this.getApplicationStructuredData(), 'app-structured-data');
 
