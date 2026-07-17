@@ -55,6 +55,11 @@ enum AppEnvironment {
     "https://\(webUrl)/\(privateSessionPath)/\(sessionCode)"
   }
 
+  // MARK: - Support
+
+  /// Destination for user-submitted reports of objectionable content.
+  static let supportEmail = "support@pastepoint.com"
+
   // MARK: - URL Parsing
 
   /// Extracts the session code candidate from a PastePoint private-session URL.

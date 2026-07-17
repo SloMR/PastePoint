@@ -266,29 +266,14 @@
                     {{ message.timestamp | date: 'shortTime' }}
                   </span>
 
-                  <!-- Block sender -->
-                  <button
-                    type="button"
-                    class="ms-auto rounded p-0.5 text-gray-400 transition-colors hover:text-danger dark:text-gray-500 dark:hover:text-danger"
-                    [attr.aria-label]="'BLOCK_USER' | translate"
-                    [title]="'BLOCK_USER' | translate"
-                    (click)="blockRequested.emit(message.from)"
-                  >
-                    <svg
-                      class="h-3.5 w-3.5"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.8"
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"
-                      />
-                    </svg>
-                  </button>
+                  <!-- Actions -->
+                  <div class="ms-auto">
+                    <app-message-actions
+                      [isRTL]="isRTL"
+                      (blockRequested)="blockRequested.emit(message.from)"
+                      (reportRequested)="reportRequested.emit(message)"
+                    />
+                  </div>
                 </div>
                 <div
                   class="flex min-h-[60px] w-[250px] flex-col justify-center rounded-xl p-3 bg-brand md:w-[280px] dark:bg-brandDark"

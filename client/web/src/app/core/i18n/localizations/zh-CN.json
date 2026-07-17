@@ -73,6 +73,10 @@
   "NO_MEMBERS_ONLINE": "目前没有人在线",
   "BLOCK_USER": "屏蔽",
   "BLOCKED_USER_TOAST": "已屏蔽 {{user}}。其消息已被移除。",
+  "MESSAGE_ACTIONS": "消息操作",
+  "REPORT_AND_BLOCK": "举报并屏蔽",
+  "REPORT_EMAIL_SUBJECT": "PastePoint 举报：令人反感的内容",
+  "REPORT_EMAIL_INTRO": "请描述发生了什么（可选）：",
 
   "_END_SESSION_SECTION": "==== END SESSION ====",
   "END_SESSION": "退出会话",

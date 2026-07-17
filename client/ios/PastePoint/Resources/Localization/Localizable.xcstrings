@@ -4009,6 +4009,174 @@
         }
       }
     },
+    "REPORT_AND_BLOCK" : {
+      "comment" : "Context-menu action: report a message to support and block its sender.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إبلاغ وحظر"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Report and Block"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Denunciar y bloquear"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Signaler et bloquer"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пожаловаться и заблокировать"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "举报并屏蔽"
+          }
+        }
+      }
+    },
+    "REPORT_EMAIL_INTRO" : {
+      "comment" : "Prompt at the top of the pre-filled report email body.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يرجى وصف ما حدث (اختياري):"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please describe what happened (optional):"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Describe lo que ha ocurrido (opcional):"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Décrivez ce qui s'est passé (facultatif) :"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Опишите, что произошло (необязательно):"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请描述发生了什么（可选）："
+          }
+        }
+      }
+    },
+    "REPORT_EMAIL_SUBJECT" : {
+      "comment" : "Subject line of the pre-filled report email.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "بلاغ PastePoint: محتوى مرفوض"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PastePoint report: objectionable content"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Denuncia de PastePoint: contenido objetable"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Signalement PastePoint : contenu répréhensible"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Жалоба PastePoint: неприемлемый контент"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PastePoint 举报：令人反感的内容"
+          }
+        }
+      }
+    },
+    "REPORT_MAIL_UNAVAILABLE" : {
+      "comment" : "Toast shown when the device has no mail account configured to send a report.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لا يوجد حساب بريد إلكتروني مُعد، لذا تعذّر إرسال البلاغ. تم حظر المستخدم."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No email account is set up, so the report could not be sent. The user has been blocked."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hay ninguna cuenta de correo configurada, así que no se pudo enviar la denuncia. El usuario ha sido bloqueado."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun compte e-mail n'est configuré, le signalement n'a pas pu être envoyé. L'utilisateur a été bloqué."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Учётная запись почты не настроена, поэтому жалобу отправить не удалось. Пользователь заблокирован."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未设置电子邮件账户，无法发送举报。该用户已被屏蔽。"
+          }
+        }
+      }
+    },
     "ROOM_CREATED" : {
       "comment" : "Toast: a room was created.",
       "extractionState" : "manual",

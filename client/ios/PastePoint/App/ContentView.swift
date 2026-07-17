@@ -26,6 +26,7 @@ struct ContentView: View {
   @State private var splashDismissing = false
 
   @State var messages: [ChatMessage] = []
+  @State var reportTarget: ChatMessage?
   @State var pendingLegalDeepLink: URL?
   @State var hasConnectedBefore = false
   @State var showSettings = false
@@ -161,6 +162,7 @@ struct ContentView: View {
           onAcceptFile: handleAcceptFile,
           onDeclineFile: handleDeclineFile,
           onBlock: blockPeer,
+          onReport: handleReport,
         )
         .simultaneousGesture(
           TapGesture().onEnded {
@@ -226,6 +228,12 @@ struct ContentView: View {
             .accessibilityLabel(Text(.settings))
           }
         }
+      }
+      .sheet(item: $reportTarget) { message in
+        ReportComposerView(message: message, isPrivateRoom: isPrivateRoom) {
+          reportTarget = nil
+        }
+        .ignoresSafeArea()
       }
     }
     .background(AppColors.Background.background)

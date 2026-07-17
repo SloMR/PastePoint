@@ -19,6 +19,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { ThemeService } from '../../core/services/ui/theme.service';
 import { ChatService } from '../../core/services/communication/chat.service';
 import { BlockService } from '../../core/services/communication/block.service';
+import { buildReportMailto } from '../../utils/report-mailto';
 import { HeartbeatService } from '../../core/services/communication/heartbeat.service';
 import { RoomService } from '../../core/services/room-management/room.service';
 import { FileTransferService } from '../../core/services/file-management/file-transfer.service';
@@ -41,6 +42,7 @@ import {
   SESSION_CODE_KEY,
   THEME_PREFERENCE_KEY,
   PREVIEW_MIME_TYPE,
+  SUPPORT_EMAIL,
 } from '../../utils/constants';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { SessionService } from '../../core/services/session/session.service';
@@ -1040,6 +1042,27 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
 
   /**
    * ==========================================================
+   * REPORT USER
+   * Blocks first, then opens a pre-filled report. Blocking is not contingent
+   * on the mail being sent — the content must leave the feed either way.
+   * ==========================================================
+   */
+  reportUser(message: ChatMessage): void {
+    this.blockUser(message.from);
+
+    const url = buildReportMailto(
+      SUPPORT_EMAIL,
+      this.translate.instant('REPORT_EMAIL_SUBJECT'),
+      this.translate.instant('REPORT_EMAIL_INTRO'),
+      message,
+      this.SessionCode.length > 0,
+      this.appVersion
+    );
+    window.location.href = url;
+  }
+
+  /**
+   * ==========================================================
    * SEND MESSAGE
    * Sends the chat message to other members via WebRTC, then clears
    * the input field and scrolls chat down.
@@ -1845,11 +1868,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
           }
         }
 
-        if (
-          this.showConnectionWarning &&
-          otherMembers.length > 0 &&
-          otherMembers.every((m) => this.webrtcService.isConnected(m))
-        ) {
+        if (this.showConnectionWarning && !this.isIsolatedFromPeers) {
           this.showConnectionWarning = false;
           this.connectionWarningDismissed = false;
         }
@@ -1867,6 +1886,11 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
    */
   protected isConnectedToMember(member: string): boolean {
     return this.memberConnectionStatus.get(member) ?? false;
+  }
+
+  private get isIsolatedFromPeers(): boolean {
+    const otherMembers = this.members.filter((m) => m !== this.userService.user);
+    return otherMembers.length > 0 && !otherMembers.some((m) => this.isConnectedToMember(m));
   }
 
   protected get hasNoConnectedPeers(): boolean {
@@ -1900,11 +1924,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     const timeoutId = setTimeout(() => {
       this.ngZone.run(() => {
         this.connectionWarningTimeouts.delete(member);
-        if (
-          this.members.includes(member) &&
-          !this.webrtcService.isConnected(member) &&
-          !this.connectionWarningDismissed
-        ) {
+        if (this.isIsolatedFromPeers && !this.connectionWarningDismissed) {
           this.showConnectionWarning = true;
           this.cdr.detectChanges();
         }
@@ -1919,9 +1939,8 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
       clearTimeout(timeoutId);
       this.connectionWarningTimeouts.delete(member);
     }
-    // Hide banner if all peers are now connected
-    const otherMembers = this.members.filter((m) => m !== this.userService.user);
-    if (otherMembers.length > 0 && otherMembers.every((m) => this.webrtcService.isConnected(m))) {
+    // Hide the banner as soon as any peer is reachable, or everyone has left.
+    if (!this.isIsolatedFromPeers) {
       this.showConnectionWarning = false;
       this.connectionWarningDismissed = false;
     }

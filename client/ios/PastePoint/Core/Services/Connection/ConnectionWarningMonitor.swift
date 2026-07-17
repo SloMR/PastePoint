@@ -17,7 +17,7 @@ final class ConnectionWarningMonitor: ObservableObject {
 
   private static let warningDelay: TimeInterval = 15
   private var dismissed = false
-  private var timers: [String: Task<Void, Never>] = [:]
+  private var timer: Task<Void, Never>?
   private var cancellables: Set<AnyCancellable> = []
 
   init(
@@ -42,48 +42,42 @@ final class ConnectionWarningMonitor: ObservableObject {
 
   // MARK: -
 
-  private func reconcile(peers: [String], connected: Set<String>) {
-    let expected = Set(peers)
-    let unconnected = expected.subtracting(connected)
-
-    for peer in Array(timers.keys) where !unconnected.contains(peer) {
-      cancelTimer(for: peer)
-    }
-
-    for peer in unconnected where timers[peer] == nil {
-      scheduleWarning(for: peer)
-    }
-
-    if unconnected.isEmpty {
-      showWarning = false
-      dismissed = false
-    }
+  private func isIsolated(peers: [String], connected: Set<String>) -> Bool {
+    !peers.isEmpty && connected.isEmpty
   }
 
-  private func scheduleWarning(for peer: String) {
-    guard !showWarning else { return }
+  private func reconcile(peers: [String], connected: Set<String>) {
+    guard isIsolated(peers: peers, connected: connected) else {
+      timer?.cancel()
+      timer = nil
+      showWarning = false
+      dismissed = false
+      return
+    }
 
-    timers[peer] = Task { [weak self] in
+    guard timer == nil, !showWarning else { return }
+    scheduleWarning()
+  }
+
+  private func scheduleWarning() {
+    timer = Task { [weak self] in
       try? await Task.sleep(nanoseconds: UInt64(Self.warningDelay * 1_000_000_000))
 
       guard !Task.isCancelled, let self else { return }
+      self.timer = nil
 
-      self.timers[peer] = nil
       guard
-        self.peerDirectory.peers.contains(peer),
-        !self.signalingService.connectedPeers.contains(peer),
+        self.isIsolated(
+          peers: self.peerDirectory.peers,
+          connected: self.signalingService.connectedPeers,
+        ),
         !self.dismissed
       else {
         return
       }
 
-      self.logger.warning("Peer \(peer) unconnected past \(Self.warningDelay)s — showing warning")
+      self.logger.warning("No peer reachable past \(Self.warningDelay)s — showing warning")
       self.showWarning = true
     }
-  }
-
-  private func cancelTimer(for peer: String) {
-    timers[peer]?.cancel()
-    timers[peer] = nil
   }
 }

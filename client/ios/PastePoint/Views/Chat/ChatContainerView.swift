@@ -10,6 +10,7 @@ struct ChatContainerView: View {
   let onAcceptFile: (_ fromUser: String, _ fileId: String) -> Void
   let onDeclineFile: (_ fromUser: String, _ fileId: String) -> Void
   let onBlock: (String) -> Void
+  let onReport: (ChatMessage) -> Void
 
   var body: some View {
     Group {
@@ -21,6 +22,7 @@ struct ChatContainerView: View {
           onAcceptFile: onAcceptFile,
           onDeclineFile: onDeclineFile,
           onBlock: onBlock,
+          onReport: onReport,
         )
       }
     }
