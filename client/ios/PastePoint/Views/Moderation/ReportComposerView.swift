@@ -12,6 +12,7 @@ struct ReportComposerView: UIViewControllerRepresentable {
   let onFinish: () -> Void
 
   private static let maxReportedText = 1000
+  private static let maxFilename = 200
 
   static var canSendMail: Bool { MFMailComposeViewController.canSendMail() }
 
@@ -45,17 +46,17 @@ struct ReportComposerView: UIViewControllerRepresentable {
 
     if let transfer = message.fileTransfer {
       let size = ByteCountFormatter.string(fromByteCount: transfer.fileSize, countStyle: .file)
-      lines.append("Reported file: \(transfer.fileName) (\(size))")
+      lines.append("Reported file: \(Self.truncated(transfer.fileName, to: Self.maxFilename)) (\(size))")
     } else {
       lines.append("Reported message:")
-      lines.append(Self.truncated(message.text))
+      lines.append(Self.truncated(message.text, to: Self.maxReportedText))
     }
 
     return lines.joined(separator: "\n")
   }
 
-  private static func truncated(_ text: String) -> String {
-    text.count <= maxReportedText ? text : "\(text.prefix(maxReportedText))…"
+  private static func truncated(_ text: String, to limit: Int) -> String {
+    text.count <= limit ? text : "\(text.prefix(limit))…"
   }
 
   final class Coordinator: NSObject, MFMailComposeViewControllerDelegate {
