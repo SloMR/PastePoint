@@ -15,7 +15,7 @@ final class ConnectionWarningMonitor: ObservableObject {
   private let signalingService: SignalingService
   private let logger = Logger(label: "ConnectionWarningMonitor")
 
-  private static let warningDelay: TimeInterval = 15
+  private static let warningDelay: TimeInterval = 25
   private var dismissed = false
   private var timer: Task<Void, Never>?
   private var cancellables: Set<AnyCancellable> = []
