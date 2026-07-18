@@ -33,7 +33,7 @@ export const UPDATE_OPTIONAL_THROTTLE_MS = 12 * 60 * 60 * 1000; // 12h
 // Inactivity timeout constants
 export const IDLE_TIMEOUT = 12 * 60 * 60 * 1000; // 12 hours
 export const BACKGROUND_EXPIRY_THRESHOLD = 5 * 60 * 1000; // 5 minutes
-export const CONNECTION_WARNING_DELAY_MS = 15_000; // 15 seconds before showing connection warning
+export const CONNECTION_WARNING_DELAY_MS = 25_000; // 25 seconds before showing connection warning
 
 // WebRTC constants
 export const MAX_RECONNECT_ATTEMPTS = 5;
