@@ -20,6 +20,7 @@ import { ThemeService } from '../../core/services/ui/theme.service';
 import { ChatService } from '../../core/services/communication/chat.service';
 import { BlockService } from '../../core/services/communication/block.service';
 import { buildReportMailto } from '../../utils/report-mailto';
+import { environment } from '../../../environments/environment';
 import { HeartbeatService } from '../../core/services/communication/heartbeat.service';
 import { RoomService } from '../../core/services/room-management/room.service';
 import { FileTransferService } from '../../core/services/file-management/file-transfer.service';
@@ -1676,7 +1677,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     if (!this.SessionCode || !isPlatformBrowser(this.platformId)) {
       return '';
     }
-    return `${window.location.origin}/private/${this.SessionCode}`;
+    return `https://${environment.webUrl}/private/${this.SessionCode}`;
   }
 
   /**
