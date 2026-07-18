@@ -15,6 +15,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { HotToastService } from '@ngxpert/hot-toast';
 import { NGXLogger } from 'ngx-logger';
 import * as QRCode from 'qrcode';
+import { environment } from '../../../../../../environments/environment';
 
 @Component({
   selector: 'app-qr-code-popup',
@@ -50,7 +51,7 @@ export class QrCodePopupComponent implements OnChanges {
 
     try {
       const parsedUrl = new URL(this.sessionUrl);
-      if (parsedUrl.origin !== window.location.origin) {
+      if (parsedUrl.host !== environment.webUrl) {
         this.logger.warn('generateQRCode', 'Rejected QR code for external URL');
         this.toaster.error(this.translate.instant('QR_CODE_INVALID_URL'));
         return;

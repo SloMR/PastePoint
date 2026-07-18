@@ -57,6 +57,7 @@ final class SignalingService: NSObject, ObservableObject {
   private var reconnectTasks: [String: Task<Void, Never>] = [:]
   private var connectionTimeouts: [String: Task<Void, Never>] = [:]
   private var connectionRequestTimeouts: [String: Task<Void, Never>] = [:]
+  private var pendingOpens: Set<String> = []
 
   // MARK: - Init
 
@@ -107,6 +108,11 @@ final class SignalingService: NSObject, ObservableObject {
 
     guard peerConnections[peer] == nil else {
       logger.warning("already have a connection to \(peer)")
+      return
+    }
+
+    if !force, connectionRequestTimeouts[peer] != nil {
+      logger.debug("connection request already outstanding for \(peer)")
       return
     }
 
@@ -200,7 +206,10 @@ final class SignalingService: NSObject, ObservableObject {
 #endif
 
     let target = Set(peers)
-    let tracked = Set(peerConnections.keys).union(connectionLocks)
+    let tracked = Set(peerConnections.keys)
+      .union(connectionLocks)
+      .union(connectionRequestTimeouts.keys)
+      .union(pendingOpens)
 
     let toOpen = target.subtracting(tracked)
     let toClose = tracked.subtracting(target)
@@ -212,8 +221,10 @@ final class SignalingService: NSObject, ObservableObject {
 
     for peer in toOpen {
       logger.info("opening connection to \(peer) (joined room)")
+      pendingOpens.insert(peer)
       Task {
         await initiateConnection(to: peer)
+        pendingOpens.remove(peer)
       }
     }
   }
@@ -222,6 +233,7 @@ final class SignalingService: NSObject, ObservableObject {
     for peer in Set(peerConnections.keys).union(connectionLocks) {
       closePeerConnection(peer)
     }
+    pendingOpens.removeAll()
 
     syncMesh(peers: peerDirectory.peers)
   }
@@ -591,8 +603,8 @@ extension SignalingService {
       return false
     }
 
-    guard channel.bufferedAmount < WebRTCConfig.maxBufferedAmount else {
-      logger.warning("channel to \(peer) back-pressured (\(channel.bufferedAmount) bytes)")
+    guard !isBinary || channel.bufferedAmount < WebRTCConfig.maxBufferedAmount else {
+      logger.debug("channel to \(peer) back-pressured (\(channel.bufferedAmount) bytes)")
       return false
     }
 

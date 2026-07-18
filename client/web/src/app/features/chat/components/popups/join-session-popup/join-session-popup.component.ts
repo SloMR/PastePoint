@@ -16,6 +16,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { DeviceDetectorService } from 'ngx-device-detector';
+import { environment } from '../../../../../../environments/environment';
 
 type JsQrFn = typeof import('jsqr').default;
 
@@ -187,7 +188,7 @@ export class JoinSessionPopupComponent implements OnChanges, OnDestroy {
   private extractSessionCode(payload: string): string | null {
     try {
       const url = new URL(payload);
-      if (url.origin !== window.location.origin) {
+      if (url.host !== environment.webUrl) {
         return null;
       }
       const parts = url.pathname.split('/').filter(Boolean);

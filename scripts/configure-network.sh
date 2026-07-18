@@ -89,9 +89,13 @@ escaped_ip="$(escape_sed_replacement "$local_ip")"
 # Use regex to match any current IP so the script is idempotent across runs
 sed_in_place "s|apiUrl: '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*:9000'|apiUrl: '$escaped_ip:9000'|g" \
     "$PROJECT_ROOT/client/web/src/environments/environment.ts"
+sed_in_place "s|webUrl: '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*'|webUrl: '$escaped_ip'|g" \
+    "$PROJECT_ROOT/client/web/src/environments/environment.ts"
 echo "Updated environment.ts"
 
 sed_in_place "s|apiUrl: '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*'|apiUrl: '$escaped_ip'|g" \
+    "$PROJECT_ROOT/client/web/src/environments/environment.docker-dev.ts"
+sed_in_place "s|webUrl: '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*'|webUrl: '$escaped_ip'|g" \
     "$PROJECT_ROOT/client/web/src/environments/environment.docker-dev.ts"
 echo "Updated environment.docker-dev.ts"
 

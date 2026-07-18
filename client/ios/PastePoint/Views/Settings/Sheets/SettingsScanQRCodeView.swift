@@ -30,6 +30,10 @@ private struct QRCodeScannerRepresentable: UIViewControllerRepresentable {
 
   func updateUIViewController(_: DataScannerViewController, context _: Context) {}
 
+  static func dismantleUIViewController(_ scanner: DataScannerViewController, coordinator _: Coordinator) {
+    scanner.stopScanning()
+  }
+
   func makeCoordinator() -> Coordinator {
     Coordinator(
       onCodeScanned: onCodeScanned,
