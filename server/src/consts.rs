@@ -20,8 +20,8 @@ pub(crate) const MAX_WS_MESSAGES_PER_SEC: usize = 30;
 
 // Timing intervals
 pub const KEEP_ALIVE_INTERVAL: Duration = Duration::from_secs(3600);
-pub const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(30);
-pub const HEARTBEAT_TIMEOUT: Duration = Duration::from_secs(90);
+pub const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(5);
+pub const HEARTBEAT_TIMEOUT: Duration = Duration::from_secs(15);
 pub const SESSION_EXPIRATION_TIME: Duration = Duration::from_secs(60);
 pub const CLEANUP_INTERVAL: Duration = Duration::from_secs(3600);
 
