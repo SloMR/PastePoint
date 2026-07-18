@@ -704,7 +704,7 @@ export class FileUploadService extends FileTransferBaseService {
         fileTransfer.phase = 'finalizing';
 
         const userMap = await this.getFileTransfers(fileTransfer.targetUser);
-        if (userMap) {
+        if (userMap?.has(fileTransfer.fileId)) {
           userMap.set(fileTransfer.fileId, fileTransfer);
           await this.setFileTransfers(fileTransfer.targetUser, userMap);
         }
