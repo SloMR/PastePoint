@@ -603,8 +603,8 @@ extension SignalingService {
       return false
     }
 
-    guard channel.bufferedAmount < WebRTCConfig.maxBufferedAmount else {
-      logger.warning("channel to \(peer) back-pressured (\(channel.bufferedAmount) bytes)")
+    guard !isBinary || channel.bufferedAmount < WebRTCConfig.maxBufferedAmount else {
+      logger.debug("channel to \(peer) back-pressured (\(channel.bufferedAmount) bytes)")
       return false
     }
 
