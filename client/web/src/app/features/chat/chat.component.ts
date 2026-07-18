@@ -1799,7 +1799,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     // Callers initiate immediately, callees wait to give callers time to send offers
     otherMembers.forEach((member, index) => {
       // Determine if we should be the caller for this member
-      const shouldInitiate = this.userService.user.localeCompare(member) < 0;
+      const shouldInitiate = this.userService.user < member;
 
       // Callers start at 1000ms, callees wait an additional 500ms
       const baseDelay = 1000;
