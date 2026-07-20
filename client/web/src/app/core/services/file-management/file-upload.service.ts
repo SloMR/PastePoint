@@ -35,8 +35,6 @@ export class FileUploadService extends FileTransferBaseService {
   private consecutiveErrorCounts = new Map<string, number>();
   private maxConsecutiveErrors = 5;
   private offerReady = new Map<string, Promise<void>>();
-  // Memoize SHA-256 per File so broadcasting one file to N peers hashes once,
-  // not N times. WeakMap so entries are GC'd when the File is released.
   private fileHashCache = new WeakMap<File, Promise<string>>();
 
   // Outgoing group aggregation: one logical send (a file fanned out to N peers)
@@ -55,6 +53,19 @@ export class FileUploadService extends FileTransferBaseService {
   }
 
   // =============== Public File Management Methods ===============
+  /**
+   * Pre-computes a file's hash so it's ready by the time the user hits send.
+   * Call when a file is staged; the result is memoized per File.
+   */
+  public prewarmFileHash(file: File): Promise<string> {
+    let hashPromise = this.fileHashCache.get(file);
+    if (!hashPromise) {
+      hashPromise = calculateFileHashStreaming(file);
+      this.fileHashCache.set(file, hashPromise);
+    }
+    return hashPromise;
+  }
+
   /**
    * Prepares a file for sending by creating necessary transfer metadata
    */
@@ -457,12 +468,7 @@ export class FileUploadService extends FileTransferBaseService {
       // file without a verified hash). Abort and tell the receiver to drop the
       // phase-1 offer they already saw.
       try {
-        let hashPromise = this.fileHashCache.get(fileTransfer.file);
-        if (!hashPromise) {
-          hashPromise = calculateFileHashStreaming(fileTransfer.file);
-          this.fileHashCache.set(fileTransfer.file, hashPromise);
-        }
-        fileHash = await hashPromise;
+        fileHash = await this.prewarmFileHash(fileTransfer.file);
         this.logger.debug(
           'sendFileOffer',
           `File hash for ${fileId}: ${fileHash.substring(0, 16)}...`
@@ -574,6 +580,9 @@ export class FileUploadService extends FileTransferBaseService {
     const totalChunks = calculateTotalChunks(fileTransfer.file.size, CHUNK_SIZE);
     let chunkIndex = Math.floor(fileTransfer.currentOffset / CHUNK_SIZE);
 
+    const PROGRESS_FLUSH_INTERVAL_MS = 250;
+    let lastProgressFlush = 0;
+
     this.logger.info(
       'sendFileChunks',
       `Starting: ${fileTransfer.file.name}, size=${fileTransfer.file.size}, chunks=${totalChunks}`
@@ -660,8 +669,13 @@ export class FileUploadService extends FileTransferBaseService {
           // Reset error count on success
           this.consecutiveErrorCounts.set(transferId, 0);
 
-          // Update state (only if not cancelled)
-          if (!fileTransfer.isPaused && userMap.has(fileTransfer.fileId)) {
+          const now = Date.now();
+          if (
+            now - lastProgressFlush >= PROGRESS_FLUSH_INTERVAL_MS &&
+            !fileTransfer.isPaused &&
+            userMap.has(fileTransfer.fileId)
+          ) {
+            lastProgressFlush = now;
             userMap.set(fileTransfer.fileId, fileTransfer);
             await this.setFileTransfers(fileTransfer.targetUser, userMap);
             await this.updateActiveUploads();
@@ -671,11 +685,6 @@ export class FileUploadService extends FileTransferBaseService {
           if (fileTransfer.currentOffset % MB < CHUNK_SIZE) {
             const mbSent = (fileTransfer.currentOffset / MB).toFixed(2);
             this.logger.info('sendFileChunks', `${fileTransfer.fileId}: ${mbSent}MB sent`);
-          }
-
-          // Small yield to prevent blocking
-          if (chunkIndex % 10 === 0) {
-            await new Promise((resolve) => setTimeout(resolve, 1));
           }
         } catch (error) {
           this.logger.error('sendFileChunks', `Error preparing chunk: ${error}`);
