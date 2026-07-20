@@ -22,6 +22,8 @@
   "CANCEL": "Cancel",
   "ATTACH_FILES": "Attach files",
   "REMOVE_FILE": "Remove file",
+  "VERIFYING_FILE": "Verifying…",
+  "VERIFYING_FILES_WAIT": "Please wait — still verifying files…",
   "NO_PEERS_CONNECTED": "No connected users",
   "SEND_FILE_TO_USER": "Send file to user",
   "NOT_CONNECTED_TO_USER": "Not connected to this user",

@@ -22,6 +22,8 @@
   "CANCEL": "Отмена",
   "ATTACH_FILES": "Прикрепить файлы",
   "REMOVE_FILE": "Удалить файл",
+  "VERIFYING_FILE": "Проверка…",
+  "VERIFYING_FILES_WAIT": "Подождите — файлы ещё проверяются…",
   "NO_PEERS_CONNECTED": "Нет подключённых пользователей",
   "SEND_FILE_TO_USER": "Отправить файл пользователю",
   "NOT_CONNECTED_TO_USER": "Нет соединения с этим пользователем",

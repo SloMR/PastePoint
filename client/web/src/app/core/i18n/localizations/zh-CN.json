@@ -22,6 +22,8 @@
   "CANCEL": "取消",
   "ATTACH_FILES": "附加文件",
   "REMOVE_FILE": "移除文件",
+  "VERIFYING_FILE": "正在校验…",
+  "VERIFYING_FILES_WAIT": "请稍候——文件仍在校验中…",
   "NO_PEERS_CONNECTED": "没有已连接的用户",
   "SEND_FILE_TO_USER": "发送文件给用户",
   "NOT_CONNECTED_TO_USER": "未连接到此用户",
