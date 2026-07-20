@@ -176,7 +176,6 @@
   "NO_FILE_TO_SEND": "لا يوجد ملف لإرساله",
   "ALL_FILES_RESPONDED": "تم الرد على جميع الملفات",
   "SUCCESS": "تم بنجاح",
-  "AUTO_REFRESH_NOTICE": "سيتم تحديث الصفحة تلقائيًا لمحاولة استعادة الاتصال",
   "NO_USERS_FOR_UPLOAD": "لا يوجد مستخدم لإرسال الملف إليه",
   "NO_MEMBERS_TO_SEND_MESSAGE": "لا يوجد أعضاء لاستلام الرسالة",
   "MESSAGE_REQUIRED": "الرسالة مطلوبة",

@@ -176,7 +176,6 @@
   "NO_FILE_TO_SEND": "No hay archivo para enviar.",
   "ALL_FILES_RESPONDED": "Se han gestionado todas las solicitudes de archivo.",
   "SUCCESS": "Éxito",
-  "AUTO_REFRESH_NOTICE": "La página se recargará para reconectar.",
   "NO_USERS_FOR_UPLOAD": "No hay nadie disponible para recibir el archivo.",
   "NO_MEMBERS_TO_SEND_MESSAGE": "No hay nadie disponible para recibir el mensaje.",
   "MESSAGE_REQUIRED": "El mensaje es obligatorio.",

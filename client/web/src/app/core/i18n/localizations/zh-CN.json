@@ -176,7 +176,6 @@
   "NO_FILE_TO_SEND": "没有要发送的文件。",
   "ALL_FILES_RESPONDED": "所有文件请求都已处理完毕。",
   "SUCCESS": "成功",
-  "AUTO_REFRESH_NOTICE": "页面将刷新以重新连接。",
   "NO_USERS_FOR_UPLOAD": "没有可接收文件的成员。",
   "NO_MEMBERS_TO_SEND_MESSAGE": "没有可接收消息的成员。",
   "MESSAGE_REQUIRED": "消息不能为空。",

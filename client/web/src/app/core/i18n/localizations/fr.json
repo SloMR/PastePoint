@@ -176,7 +176,6 @@
   "NO_FILE_TO_SEND": "Aucun fichier à envoyer.",
   "ALL_FILES_RESPONDED": "Toutes les demandes de fichier ont été traitées.",
   "SUCCESS": "Succès",
-  "AUTO_REFRESH_NOTICE": "La page va se recharger pour rétablir la connexion.",
   "NO_USERS_FOR_UPLOAD": "Personne n'est disponible pour recevoir le fichier.",
   "NO_MEMBERS_TO_SEND_MESSAGE": "Personne n'est disponible pour recevoir le message.",
   "MESSAGE_REQUIRED": "Le message est requis.",
