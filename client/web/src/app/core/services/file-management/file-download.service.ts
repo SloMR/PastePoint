@@ -288,7 +288,7 @@ export class FileDownloadService extends FileTransferBaseService {
       return;
     }
 
-    // Verify file integrity via streaming SHA-256 hash (memory efficient!)
+    // Verify file integrity via streaming BLAKE3 hash (memory efficient!)
     // Hashes chunk-by-chunk without loading entire file into memory.
     try {
       const hasher = await createStreamingHash();
