@@ -133,6 +133,14 @@ export class FileTransferService implements IFileTransferService {
   }
 
   // =============== Upload Methods ===============
+  /**
+   * Pre-computes a file's hash so it's ready by the time the user hits send.
+   * Call when a file is staged; the result is memoized per File.
+   */
+  public prewarmFileHash(file: File): Promise<string> {
+    return this.fileUploadService.prewarmFileHash(file);
+  }
+
   /** Registers a logical send to `total` recipients before per-peer prep. */
   public beginUploadGroup(groupId: string, total: number): void {
     this.fileUploadService.beginUploadGroup(groupId, total);
