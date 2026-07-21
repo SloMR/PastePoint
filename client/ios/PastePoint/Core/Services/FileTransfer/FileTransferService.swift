@@ -33,6 +33,7 @@ final class FileTransferService: ObservableObject {
   private var stallWatchdog: Task<Void, Never>?
   private var knownPeers: Set<String> = []
   private var cancellables: Set<AnyCancellable> = []
+  private var fileHashTasks: [URL: Task<String?, Never>] = [:]
 
   init(signalingService: SignalingService, userService: UserService, peerDirectory: PeerDirectory) {
     self.signalingService = signalingService
@@ -166,9 +167,7 @@ final class FileTransferService: ObservableObject {
       ),
     )
 
-    let hashTask = Task.detached {
-      try? BinaryChunk.sha256Hex(ofFileAt: stagedFile.url)
-    }
+    let hashTask = prewarmFileHash(forFileAt: stagedFile.url)
     for peer in peers {
       await prepareFileForSending(
         stagedFile: stagedFile,
@@ -178,6 +177,17 @@ final class FileTransferService: ObservableObject {
         preview: preview,
       )
     }
+    // All peers have consumed the shared hash; drop the cache entry.
+    fileHashTasks[stagedFile.url] = nil
+  }
+
+  /// Pre-computes a file's BLAKE3 hash so it's ready by send time.
+  @discardableResult
+  func prewarmFileHash(forFileAt url: URL) -> Task<String?, Never> {
+    if let existing = fileHashTasks[url] { return existing }
+    let task = Task.detached { try? BinaryChunk.blake3Hex(ofFileAt: url) }
+    fileHashTasks[url] = task
+    return task
   }
 
   func sendFiles(_ files: [StagedFile], to member: String) async {
@@ -478,7 +488,7 @@ extension FileTransferService {
       hash = await hashTask.value
     } else {
       hash = await Task.detached {
-        try? BinaryChunk.sha256Hex(ofFileAt: stagedFile.url)
+        try? BinaryChunk.blake3Hex(ofFileAt: stagedFile.url)
       }.value
     }
 
@@ -731,7 +741,7 @@ extension FileTransferService {
           guard let expectedHash = download.expectedHash else {
             return (false, .noHash)
           }
-          let actual = try BinaryChunk.sha256Hex(ofFileAt: finalURL)
+          let actual = try BinaryChunk.blake3Hex(ofFileAt: finalURL)
           if actual != expectedHash {
             return (false, .integrity)
           }

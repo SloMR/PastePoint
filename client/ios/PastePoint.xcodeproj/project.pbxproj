@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		4C099FD52F4CE70800E71A3D /* Logging in Frameworks */ = {isa = PBXBuildFile; productRef = 4C099FD42F4CE70800E71A3D /* Logging */; };
+		5C2FC06C300FC91E003CF5C9 /* BlakeHash in Frameworks */ = {isa = PBXBuildFile; productRef = 5C2FC06B300FC91E003CF5C9 /* BlakeHash */; };
 		5C44B07D2FB11C120080A2A7 /* WebRTC in Frameworks */ = {isa = PBXBuildFile; productRef = 5C44B07C2FB11C120080A2A7 /* WebRTC */; };
 /* End PBXBuildFile section */
 
@@ -71,6 +72,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5C2FC06C300FC91E003CF5C9 /* BlakeHash in Frameworks */,
 				4C099FD52F4CE70800E71A3D /* Logging in Frameworks */,
 				5C44B07D2FB11C120080A2A7 /* WebRTC in Frameworks */,
 			);
@@ -135,6 +137,7 @@
 			packageProductDependencies = (
 				4C099FD42F4CE70800E71A3D /* Logging */,
 				5C44B07C2FB11C120080A2A7 /* WebRTC */,
+				5C2FC06B300FC91E003CF5C9 /* BlakeHash */,
 			);
 			productName = PastePoint;
 			productReference = 4C2327002F1ECB1B005FED3A /* PastePoint.app */;
@@ -226,6 +229,7 @@
 			packageReferences = (
 				4C099FD32F4CE70800E71A3D /* XCRemoteSwiftPackageReference "swift-log" */,
 				5C44B07B2FB11C120080A2A7 /* XCRemoteSwiftPackageReference "WebRTC" */,
+				5C2FC06A300FC91E003CF5C9 /* XCRemoteSwiftPackageReference "blake-hash" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 4C2327012F1ECB1B005FED3A /* Products */;
@@ -660,6 +664,15 @@
 				minimumVersion = 1.10.1;
 			};
 		};
+		5C2FC06A300FC91E003CF5C9 /* XCRemoteSwiftPackageReference "blake-hash" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/trancee/blake-hash.git";
+			requirement = {
+				kind = versionRange;
+				maximumVersion = 2.0.0;
+				minimumVersion = 1.0.0;
+			};
+		};
 		5C44B07B2FB11C120080A2A7 /* XCRemoteSwiftPackageReference "WebRTC" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/stasel/WebRTC.git";
@@ -675,6 +688,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 4C099FD32F4CE70800E71A3D /* XCRemoteSwiftPackageReference "swift-log" */;
 			productName = Logging;
+		};
+		5C2FC06B300FC91E003CF5C9 /* BlakeHash */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5C2FC06A300FC91E003CF5C9 /* XCRemoteSwiftPackageReference "blake-hash" */;
+			productName = BlakeHash;
 		};
 		5C44B07C2FB11C120080A2A7 /* WebRTC */ = {
 			isa = XCSwiftPackageProductDependency;

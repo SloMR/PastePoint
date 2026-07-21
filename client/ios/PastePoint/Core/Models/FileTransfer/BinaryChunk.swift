@@ -3,7 +3,7 @@
 //  SPDX-License-Identifier: GPL-3.0-only
 //
 
-import CryptoKit
+import BlakeHash
 import Foundation
 
 struct ParsedChunk: Sendable {
@@ -137,15 +137,15 @@ enum BinaryChunk {
     }
   }
 
-  nonisolated static func sha256Hex(ofFileAt url: URL) throws -> String {
+  nonisolated static func blake3Hex(ofFileAt url: URL) throws -> String {
     let handle = try FileHandle(forReadingFrom: url)
     defer { try? handle.close() }
 
-    var hasher = SHA256()
+    var hasher = BLAKE3.Hasher()
 
     // TODO: Create const value for the file reading count
     while let chunk = try handle.read(upToCount: 1024 * 1024), !chunk.isEmpty {
-      hasher.update(data: chunk)
+      hasher.update(chunk)
     }
 
     return hasher.finalize().map { val in
