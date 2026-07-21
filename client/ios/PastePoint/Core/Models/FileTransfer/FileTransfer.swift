@@ -138,4 +138,5 @@ struct StagedFile: Identifiable, Sendable, Equatable {
   let size: Int64
   let url: URL
   let kind: FileSourceKind
+  var hashing: Bool = false
 }

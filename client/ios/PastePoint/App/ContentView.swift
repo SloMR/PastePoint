@@ -179,6 +179,9 @@ struct ContentView: View {
             onSend: handleSend,
             onSendFiles: handleSendFiles,
             hasConnectedPeers: !services.signalingService.connectedPeers.isEmpty,
+            prewarmHash: { staged in
+              _ = await services.fileTransferService.prewarmFileHash(forFileAt: staged.url).value
+            },
           )
           .padding(.horizontal, 8)
           .padding(.top, 4)

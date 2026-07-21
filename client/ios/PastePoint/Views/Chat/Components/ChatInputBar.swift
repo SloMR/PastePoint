@@ -8,11 +8,14 @@ import SwiftUI
 
 struct ChatInputBar: View {
   @Environment(\.layoutDirection) private var layoutDirection
+  @EnvironmentObject private var toast: ToastCenter
 
   private let logger = Logger(label: "ChatInputBar")
   let onSend: (String) -> Bool
   let onSendFiles: ([StagedFile]) -> Bool
   let hasConnectedPeers: Bool
+
+  var prewarmHash: (StagedFile) async -> Void = { _ in }
 
   @State private var message = ""
   @State private var stagedFiles: [StagedFile] = []
@@ -21,8 +24,12 @@ struct ChatInputBar: View {
     message.trimmingCharacters(in: .whitespacesAndNewlines)
   }
 
+  private var anyHashing: Bool {
+    stagedFiles.contains { $0.hashing }
+  }
+
   private var isSendDisabled: Bool {
-    trimmed.isEmpty && stagedFiles.isEmpty
+    (trimmed.isEmpty && stagedFiles.isEmpty) || anyHashing
   }
 
   var body: some View {
@@ -45,7 +52,13 @@ struct ChatInputBar: View {
 
         // TODO: Show toast on picker/stage failure (see logger.error sites)
         AttachmentMenu { staged in
-          stagedFiles.append(contentsOf: staged)
+          let marked = staged.map { file -> StagedFile in
+            var copy = file
+            copy.hashing = true
+            return copy
+          }
+          stagedFiles.append(contentsOf: marked)
+          for file in marked { startHashing(file) }
         } content: {
           Image("link")
             .renderingMode(.template)
@@ -103,6 +116,15 @@ struct ChatInputBar: View {
     .padding(.bottom, 6)
   }
 
+  private func startHashing(_ file: StagedFile) {
+    Task {
+      await prewarmHash(file)
+      if let idx = stagedFiles.firstIndex(where: { $0.id == file.id }) {
+        stagedFiles[idx].hashing = false
+      }
+    }
+  }
+
   private func removeStagedFile(_ file: StagedFile) {
     guard let idx = stagedFiles.firstIndex(where: { $0.id == file.id }) else { return }
     let removed = stagedFiles.remove(at: idx)
@@ -113,6 +135,11 @@ struct ChatInputBar: View {
     let hasText = !trimmed.isEmpty
     let hasFiles = !stagedFiles.isEmpty
     guard hasText || hasFiles else { return }
+
+    if anyHashing {
+      toast.show(.info(.verifyingFilesWait))
+      return
+    }
 
     if hasText {
       if onSend(trimmed) {
