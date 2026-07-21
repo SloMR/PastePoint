@@ -406,6 +406,9 @@ extension FileTransferService {
     var chunkIndex: UInt32 = 0
     var bytesSent: Int64 = 0
 
+    let progressFlushInterval: TimeInterval = 0.25
+    var lastProgressFlush = Date.distantPast
+
     // 3. Send loop.
     while true {
       if Task.isCancelled {
@@ -445,18 +448,26 @@ extension FileTransferService {
       bytesSent += Int64(chunkData.count)
       chunkIndex += 1
 
-      let progressValue = min(1.0, Double(bytesSent) / Double(snapshot.fileSize))
-      await MainActor.run {
-        if let idx = activeUploads.firstIndex(where: { $0.id == uploadId }) {
-          activeUploads[idx].currentOffset = bytesSent
-          activeUploads[idx].progress = progressValue
+      let now = Date()
+      if now.timeIntervalSince(lastProgressFlush) >= progressFlushInterval {
+        lastProgressFlush = now
+        let progressValue = min(1.0, Double(bytesSent) / Double(snapshot.fileSize))
+        await MainActor.run {
+          if let idx = activeUploads.firstIndex(where: { $0.id == uploadId }) {
+            activeUploads[idx].currentOffset = bytesSent
+            activeUploads[idx].progress = progressValue
+          }
         }
       }
     }
 
-    // 4. Flip phase to .finalizing — bytes shipped, awaiting receiver ack.
+    // 4. Final flush + flip phase to .finalizing — bytes shipped, awaiting
+    //    receiver ack. The flush guarantees the bar hits 100% even if the last
+    //    periodic update was throttled out.
     await MainActor.run {
       if let idx = activeUploads.firstIndex(where: { $0.id == uploadId }) {
+        activeUploads[idx].currentOffset = bytesSent
+        activeUploads[idx].progress = min(1.0, Double(bytesSent) / Double(snapshot.fileSize))
         activeUploads[idx].phase = .finalizing
       }
     }
