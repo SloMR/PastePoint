@@ -17,17 +17,6 @@ enum WebRTCConfig {
       "stun:stun.cloudflare.com:3478",
       "stun:global.stun.twilio.com:3478",
     ]),
-
-    // Open Relay Project TURN servers
-    RTCIceServer(
-      urlStrings: [
-        "turn:openrelay.metered.ca:80",
-        "turn:openrelay.metered.ca:443",
-        "turns:openrelay.metered.ca:443",
-      ],
-      username: "openrelayproject",
-      credential: "openrelayproject",
-    ),
   ]
 
   static let peerConnectionConfig: RTCConfiguration = {
