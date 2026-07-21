@@ -25,6 +25,7 @@ export interface EnterKeyEvent {
 export interface StagedAttachment {
   id: string;
   file: File;
+  hashing?: boolean;
 }
 
 @Component({

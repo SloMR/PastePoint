@@ -11,14 +11,19 @@ struct ChatStagedFileTile: View {
 
   var body: some View {
     HStack(spacing: 8) {
-      Image(systemName: file.symbolName)
-        .font(.system(size: 12, weight: .medium))
-        .foregroundStyle(.brand)
-        .frame(width: 26, height: 26)
-        .background(
-          Circle()
-            .fill(.brand.opacity(0.15)),
-        )
+      ZStack {
+        Circle().fill(.brand.opacity(0.15))
+        if file.hashing {
+          ProgressView()
+            .controlSize(.mini)
+            .tint(.brand)
+        } else {
+          Image(systemName: file.symbolName)
+            .font(.system(size: 12, weight: .medium))
+            .foregroundStyle(.brand)
+        }
+      }
+      .frame(width: 26, height: 26)
 
       VStack(alignment: .leading, spacing: 1) {
         Text(file.name)
@@ -27,9 +32,15 @@ struct ChatStagedFileTile: View {
           .truncationMode(.middle)
           .foregroundStyle(.textPrimary)
 
-        Text(file.sizeDescription)
-          .font(.system(size: 10))
-          .foregroundStyle(.textSecondary)
+        if file.hashing {
+          Text(.verifyingFile)
+            .font(.system(size: 10))
+            .foregroundStyle(.textSecondary)
+        } else {
+          Text(file.sizeDescription)
+            .font(.system(size: 10))
+            .foregroundStyle(.textSecondary)
+        }
       }
       .frame(maxWidth: 120, alignment: .leading)
 

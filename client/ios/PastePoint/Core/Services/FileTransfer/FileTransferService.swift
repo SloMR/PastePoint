@@ -33,6 +33,7 @@ final class FileTransferService: ObservableObject {
   private var stallWatchdog: Task<Void, Never>?
   private var knownPeers: Set<String> = []
   private var cancellables: Set<AnyCancellable> = []
+  private var fileHashTasks: [URL: Task<String?, Never>] = [:]
 
   init(signalingService: SignalingService, userService: UserService, peerDirectory: PeerDirectory) {
     self.signalingService = signalingService
@@ -166,9 +167,7 @@ final class FileTransferService: ObservableObject {
       ),
     )
 
-    let hashTask = Task.detached {
-      try? BinaryChunk.sha256Hex(ofFileAt: stagedFile.url)
-    }
+    let hashTask = prewarmFileHash(forFileAt: stagedFile.url)
     for peer in peers {
       await prepareFileForSending(
         stagedFile: stagedFile,
@@ -178,6 +177,17 @@ final class FileTransferService: ObservableObject {
         preview: preview,
       )
     }
+    // All peers have consumed the shared hash; drop the cache entry.
+    fileHashTasks[stagedFile.url] = nil
+  }
+
+  /// Pre-computes a file's BLAKE3 hash so it's ready by send time.
+  @discardableResult
+  func prewarmFileHash(forFileAt url: URL) -> Task<String?, Never> {
+    if let existing = fileHashTasks[url] { return existing }
+    let task = Task.detached { try? BinaryChunk.blake3Hex(ofFileAt: url) }
+    fileHashTasks[url] = task
+    return task
   }
 
   func sendFiles(_ files: [StagedFile], to member: String) async {
@@ -396,6 +406,9 @@ extension FileTransferService {
     var chunkIndex: UInt32 = 0
     var bytesSent: Int64 = 0
 
+    let progressFlushInterval: TimeInterval = 0.25
+    var lastProgressFlush = Date.distantPast
+
     // 3. Send loop.
     while true {
       if Task.isCancelled {
@@ -435,22 +448,36 @@ extension FileTransferService {
       bytesSent += Int64(chunkData.count)
       chunkIndex += 1
 
-      let progressValue = min(1.0, Double(bytesSent) / Double(snapshot.fileSize))
-      await MainActor.run {
-        if let idx = activeUploads.firstIndex(where: { $0.id == uploadId }) {
-          activeUploads[idx].currentOffset = bytesSent
-          activeUploads[idx].progress = progressValue
-        }
+      let now = Date()
+      if now.timeIntervalSince(lastProgressFlush) >= progressFlushInterval {
+        lastProgressFlush = now
+        await applyUploadProgress(uploadId: uploadId, bytesSent: bytesSent, fileSize: snapshot.fileSize)
       }
     }
 
-    // 4. Flip phase to .finalizing — bytes shipped, awaiting receiver ack.
-    await MainActor.run {
-      if let idx = activeUploads.firstIndex(where: { $0.id == uploadId }) {
-        activeUploads[idx].phase = .finalizing
-      }
-    }
+    // 4. Final flush + flip phase to .finalizing — bytes shipped, awaiting
+    //    receiver ack. The flush guarantees the bar hits 100% even if the last
+    //    periodic update was throttled out.
+    await applyUploadProgress(
+      uploadId: uploadId,
+      bytesSent: bytesSent,
+      fileSize: snapshot.fileSize,
+      phase: .finalizing,
+    )
     logger.info("chunk loop: finished \(chunkIndex) chunks for \(uploadId) → \(targetUser)")
+  }
+
+  /// Applies progress (and optionally a phase) to the matching active upload.
+  private func applyUploadProgress(
+    uploadId: String,
+    bytesSent: Int64,
+    fileSize: Int64,
+    phase: FileUpload.Phase? = nil,
+  ) {
+    guard let idx = activeUploads.firstIndex(where: { $0.id == uploadId }) else { return }
+    activeUploads[idx].currentOffset = bytesSent
+    activeUploads[idx].progress = min(1.0, Double(bytesSent) / Double(fileSize))
+    if let phase { activeUploads[idx].phase = phase }
   }
 
   /// Sends one encoded chunk, waiting out back-pressure. False if cancelled.
@@ -478,7 +505,7 @@ extension FileTransferService {
       hash = await hashTask.value
     } else {
       hash = await Task.detached {
-        try? BinaryChunk.sha256Hex(ofFileAt: stagedFile.url)
+        try? BinaryChunk.blake3Hex(ofFileAt: stagedFile.url)
       }.value
     }
 
@@ -731,7 +758,7 @@ extension FileTransferService {
           guard let expectedHash = download.expectedHash else {
             return (false, .noHash)
           }
-          let actual = try BinaryChunk.sha256Hex(ofFileAt: finalURL)
+          let actual = try BinaryChunk.blake3Hex(ofFileAt: finalURL)
           if actual != expectedHash {
             return (false, .integrity)
           }

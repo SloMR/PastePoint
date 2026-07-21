@@ -3,7 +3,7 @@
 //  SPDX-License-Identifier: GPL-3.0-only
 //
 
-import CryptoKit
+import BlakeHash
 import Foundation
 
 struct ParsedChunk: Sendable {
@@ -18,7 +18,9 @@ struct ParsedChunk: Sendable {
 /// Layout (all little-endian):
 /// `[u16 fileId byte length][fileId UTF-8 bytes][u32 chunkIndex][u32 totalChunks][u32 CRC32][data]`
 enum BinaryChunk {
-  nonisolated static let chunkSize = 64 * 1024 // 64KB
+  // SCTP caps messages at ~256KB; chunk data + header (~64 bytes) must stay
+  // under it, so 192KB is the largest safe chunk.
+  nonisolated static let chunkSize = 192 * 1024 // 192KB
 
   // MARK: CRC32
 
@@ -137,15 +139,15 @@ enum BinaryChunk {
     }
   }
 
-  nonisolated static func sha256Hex(ofFileAt url: URL) throws -> String {
+  nonisolated static func blake3Hex(ofFileAt url: URL) throws -> String {
     let handle = try FileHandle(forReadingFrom: url)
     defer { try? handle.close() }
 
-    var hasher = SHA256()
+    var hasher = BLAKE3.Hasher()
 
     // TODO: Create const value for the file reading count
     while let chunk = try handle.read(upToCount: 1024 * 1024), !chunk.isEmpty {
-      hasher.update(data: chunk)
+      hasher.update(chunk)
     }
 
     return hasher.finalize().map { val in

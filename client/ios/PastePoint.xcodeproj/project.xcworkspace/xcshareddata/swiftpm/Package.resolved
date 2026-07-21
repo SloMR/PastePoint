@@ -1,6 +1,15 @@
 {
-  "originHash" : "235e18ad9d303591afa70afa7243df73da8689efa2a6f85c25cd28b920ef23b5",
+  "originHash" : "f4e5d4f9d4343d3d99f1c57cb06a923cbc969a313dcf823d36305fbd09d2ecb2",
   "pins" : [
+    {
+      "identity" : "blake-hash",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/trancee/blake-hash.git",
+      "state" : {
+        "revision" : "30148ebb247ecf41535a91775ccff153bb9100f9",
+        "version" : "1.1.1"
+      }
+    },
     {
       "identity" : "swift-log",
       "kind" : "remoteSourceControl",

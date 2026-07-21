@@ -1,4 +1,4 @@
-import { createSHA256, IHasher } from 'hash-wasm';
+import { createBLAKE3, IHasher } from 'hash-wasm';
 
 // Re-export IHasher type for consumers
 export type { IHasher };
@@ -44,11 +44,11 @@ function crc32(data: Uint8Array): number {
 
 // =============== Streaming Hash ===============
 /**
- * Creates a new incremental SHA-256 hasher
+ * Creates a new incremental BLAKE3 hasher (256-bit)
  * Use this to hash large files chunk-by-chunk without loading into memory
  */
 export async function createStreamingHash(): Promise<IHasher> {
-  return await createSHA256();
+  return await createBLAKE3();
 }
 
 /**
@@ -67,20 +67,23 @@ export function finalizeStreamingHash(hasher: IHasher): string {
 }
 
 // =============== File Hash ===============
+const HASH_SLICE_SIZE = 8 * 1024 * 1024;
+
 /**
- * Calculates SHA-256 hash of a File using streaming (memory efficient)
- * Reads file in 1MB chunks to avoid loading entire file into memory
+ * Calculates the BLAKE3 hash of a File by streaming it in fixed-size slices.
  */
 export async function calculateFileHashStreaming(file: File): Promise<string> {
-  const STREAM_CHUNK_SIZE = 1024 * 1024; // 1MB chunks for hashing
-  const hasher = await createSHA256();
+  const hasher = await createBLAKE3();
+  const readSliceAt = (offset: number): Promise<ArrayBuffer> | null =>
+    offset < file.size ? file.slice(offset, offset + HASH_SLICE_SIZE).arrayBuffer() : null;
 
   let offset = 0;
-  while (offset < file.size) {
-    const slice = file.slice(offset, offset + STREAM_CHUNK_SIZE);
-    const buffer = await slice.arrayBuffer();
+  let pending = readSliceAt(offset);
+  while (pending) {
+    const buffer = await pending;
+    offset += HASH_SLICE_SIZE;
+    pending = readSliceAt(offset);
     hasher.update(new Uint8Array(buffer));
-    offset += STREAM_CHUNK_SIZE;
   }
 
   return hasher.digest('hex');

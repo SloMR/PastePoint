@@ -20,16 +20,28 @@
             <span
               class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand/15 dark:bg-brandDark/25"
             >
-              <span class="staged-file-icon" aria-hidden="true"></span>
+              @if (item.hashing) {
+                <span
+                  class="staged-file-spinner"
+                  role="status"
+                  [attr.aria-label]="'VERIFYING_FILE' | translate"
+                ></span>
+              } @else {
+                <span class="staged-file-icon" aria-hidden="true"></span>
+              }
             </span>
             <div class="flex min-w-0 flex-col" [ngClass]="isRTL ? 'items-end' : 'items-start'">
               <span
                 class="max-w-[150px] truncate text-xs font-medium text-content dark:text-gray-100"
                 >{{ stagedDisplayName(item.file.name) }}</span
               >
-              <span class="text-[10px] leading-tight text-textMuted dark:text-contentMuted">{{
-                item.file.size | filesize: 1
-              }}</span>
+              <span class="text-[10px] leading-tight text-textMuted dark:text-contentMuted">
+                @if (item.hashing) {
+                  {{ 'VERIFYING_FILE' | translate }}
+                } @else {
+                  {{ item.file.size | filesize: 1 }}
+                }
+              </span>
             </div>
             <button
               type="button"

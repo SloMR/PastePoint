@@ -468,12 +468,18 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   private startHeartbeatMonitor(): void {
     this.subscriptions.push(
       this.heartbeatService.suspended$.subscribe(() => {
-        this.toaster.warning(this.translate.instant('AUTO_REFRESH_NOTICE'));
-        if (isPlatformBrowser(this.platformId)) {
-          setTimeout(() => {
-            window.location.reload();
-          }, 2000);
-        }
+        if (!isPlatformBrowser(this.platformId)) return;
+        if (document.visibilityState !== 'visible') return;
+
+        this.logger.warn(
+          'startHeartbeatMonitor',
+          'Suspension detected; reconnecting in place instead of reloading'
+        );
+
+        this.wsConnectionService.disconnect(false);
+        this.connect(this.SessionCode || undefined).catch((err: unknown) => {
+          this.logger.warn('startHeartbeatMonitor', `Reconnect after suspension failed: ${err}`);
+        });
       })
     );
     this.heartbeatService.start();
@@ -1080,6 +1086,11 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
 
+    if (this.hasStagedFilesVerifying) {
+      this.toaster.info(this.translate.instant('VERIFYING_FILES_WAIT'));
+      return;
+    }
+
     const otherMembers = this.members.filter((m) => m !== this.userService.user);
     if (otherMembers.length === 0) {
       this.toaster.warning(this.translate.instant('NO_MEMBERS_TO_SEND_MESSAGE'));
@@ -1088,12 +1099,14 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
 
     this.isSending = true;
     try {
-      // 1) Staged attachments first — cleared only after a successful send so a
-      //    failure keeps the chips (and the text) for the user to retry.
+      // 1) Staged attachments first. Clear the chips up front — the echo bubble
+      //    now represents the send, and hashing/offer prep can take a while for
+      //    large files, so leaving the chips up looks like a stuck duplicate.
       if (hasFiles) {
         const filesToSend = this.stagedFiles.map((s) => s.file);
-        await this.sendFilesToRecipients(filesToSend, otherMembers);
         this.stagedFiles = [];
+        this.cdr.detectChanges();
+        await this.sendFilesToRecipients(filesToSend, otherMembers);
       }
 
       // 2) Send the text message, if any.
@@ -1246,8 +1259,24 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
    * ==========================================================
    */
   protected stageFiles(files: File[]): void {
-    const staged = files.map((file) => ({ id: crypto.randomUUID(), file }));
+    const staged: StagedAttachment[] = files.map((file) => ({
+      id: crypto.randomUUID(),
+      file,
+      hashing: true,
+    }));
     this.stagedFiles = [...this.stagedFiles, ...staged];
+    this.cdr.detectChanges();
+
+    for (const item of staged) {
+      this.fileTransferService
+        .prewarmFileHash(item.file)
+        .catch(() => undefined)
+        .finally(() => this.markStagedFileHashed(item.id));
+    }
+  }
+
+  private markStagedFileHashed(id: string): void {
+    this.stagedFiles = this.stagedFiles.map((s) => (s.id === id ? { ...s, hashing: false } : s));
     this.cdr.detectChanges();
   }
 
@@ -1904,8 +1933,13 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     return (
       this.isSending ||
       (!this.message.trim() && this.stagedFiles.length === 0) ||
+      this.hasStagedFilesVerifying ||
       this.hasNoConnectedPeers
     );
+  }
+
+  protected get hasStagedFilesVerifying(): boolean {
+    return this.stagedFiles.some((s) => s.hashing);
   }
 
   protected dismissConnectionWarning(): void {

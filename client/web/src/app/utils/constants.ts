@@ -2,16 +2,17 @@
 export const KB = 1024;
 export const MB = 1024 * KB;
 
-// Note: WebRTC SCTP has ~256KB message limit. With protocol header (~64 bytes),
-export const CHUNK_SIZE = 64 * KB;
-export const MAX_BUFFERED_AMOUNT = 2 * MB;
-export const BUFFERED_AMOUNT_LOW_THRESHOLD = MB;
+// Note: WebRTC SCTP has a ~256KB message limit. Chunk data + protocol header
+// (~64 bytes) must stay under it, so 192KB is the largest safe chunk.
+export const CHUNK_SIZE = 192 * KB;
+export const MAX_BUFFERED_AMOUNT = 16 * MB;
+export const BUFFERED_AMOUNT_LOW_THRESHOLD = 8 * MB;
 
 // Heartbeat constants
 export const HEARTBEAT_INTERVAL_DESKTOP_SEC = 60;
 export const HEARTBEAT_TIMEOUT_DESKTOP_SEC = 120;
-export const HEARTBEAT_INTERVAL_MOBILE_SEC = 1;
-export const HEARTBEAT_TIMEOUT_MOBILE_SEC = 2;
+export const HEARTBEAT_INTERVAL_MOBILE_SEC = 10;
+export const HEARTBEAT_TIMEOUT_MOBILE_SEC = 30;
 
 // WebSocket keepalive — sent every 25 seconds to prevent idle timeouts on the server and intermediate proxies
 export const WS_PREFIX_KEEP_ALIVE = '[KeepAlive]';
@@ -64,23 +65,6 @@ export const ICE_SERVERS: RTCIceServer[] = [
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun.cloudflare.com:3478' },
   { urls: 'stun:global.stun.twilio.com:3478' },
-
-  // Open Relay Project TURN servers
-  {
-    urls: 'turn:openrelay.metered.ca:80',
-    username: 'openrelayproject',
-    credential: 'openrelayproject',
-  },
-  {
-    urls: 'turn:openrelay.metered.ca:443',
-    username: 'openrelayproject',
-    credential: 'openrelayproject',
-  },
-  {
-    urls: 'turns:openrelay.metered.ca:443',
-    username: 'openrelayproject',
-    credential: 'openrelayproject',
-  },
 ];
 
 export const RTC_CONFIGURATION = {
@@ -94,7 +78,6 @@ export const RTC_CONFIGURATION = {
 // WebRTC data channel constants
 export const DATA_CHANNEL_OPTIONS = {
   ordered: true,
-  maxPacketLifeTime: 30000,
 };
 
 // WebRTC signaling message types

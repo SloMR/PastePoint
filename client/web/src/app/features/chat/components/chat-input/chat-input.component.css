@@ -24,6 +24,33 @@
   background-color: #6366f1; /* brandDark */
 }
 
+/* Staged-attachment chip spinner */
+.staged-file-spinner {
+  width: 0.875rem;
+  height: 0.875rem;
+  border-radius: 9999px;
+  border: 2px solid rgba(60, 84, 240, 0.25);
+  border-top-color: #3c54f0;
+  animation: staged-file-spin 0.7s linear infinite;
+}
+
+:host-context(.dark) .staged-file-spinner {
+  border-color: rgba(99, 102, 241, 0.3);
+  border-top-color: #6366f1;
+}
+
+@keyframes staged-file-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .staged-file-spinner {
+    animation-duration: 1.6s;
+  }
+}
+
 .chat-send-icon {
   transform-origin: center;
 }
