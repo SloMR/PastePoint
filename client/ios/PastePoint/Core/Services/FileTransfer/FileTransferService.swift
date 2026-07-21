@@ -451,27 +451,33 @@ extension FileTransferService {
       let now = Date()
       if now.timeIntervalSince(lastProgressFlush) >= progressFlushInterval {
         lastProgressFlush = now
-        let progressValue = min(1.0, Double(bytesSent) / Double(snapshot.fileSize))
-        await MainActor.run {
-          if let idx = activeUploads.firstIndex(where: { $0.id == uploadId }) {
-            activeUploads[idx].currentOffset = bytesSent
-            activeUploads[idx].progress = progressValue
-          }
-        }
+        await applyUploadProgress(uploadId: uploadId, bytesSent: bytesSent, fileSize: snapshot.fileSize)
       }
     }
 
     // 4. Final flush + flip phase to .finalizing — bytes shipped, awaiting
     //    receiver ack. The flush guarantees the bar hits 100% even if the last
     //    periodic update was throttled out.
-    await MainActor.run {
-      if let idx = activeUploads.firstIndex(where: { $0.id == uploadId }) {
-        activeUploads[idx].currentOffset = bytesSent
-        activeUploads[idx].progress = min(1.0, Double(bytesSent) / Double(snapshot.fileSize))
-        activeUploads[idx].phase = .finalizing
-      }
-    }
+    await applyUploadProgress(
+      uploadId: uploadId,
+      bytesSent: bytesSent,
+      fileSize: snapshot.fileSize,
+      phase: .finalizing,
+    )
     logger.info("chunk loop: finished \(chunkIndex) chunks for \(uploadId) → \(targetUser)")
+  }
+
+  /// Applies progress (and optionally a phase) to the matching active upload.
+  private func applyUploadProgress(
+    uploadId: String,
+    bytesSent: Int64,
+    fileSize: Int64,
+    phase: FileUpload.Phase? = nil,
+  ) {
+    guard let idx = activeUploads.firstIndex(where: { $0.id == uploadId }) else { return }
+    activeUploads[idx].currentOffset = bytesSent
+    activeUploads[idx].progress = min(1.0, Double(bytesSent) / Double(fileSize))
+    if let phase { activeUploads[idx].phase = phase }
   }
 
   /// Sends one encoded chunk, waiting out back-pressure. False if cancelled.
