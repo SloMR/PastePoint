@@ -7,8 +7,8 @@ import Foundation
 import WebRTC
 
 enum WebRTCConfig {
-  static let maxBufferedAmount: UInt64 = 2 * 1024 * 1024 // 2MB
-  static let bufferedAmountLowThreshold: UInt64 = 1 * 1024 * 1024 // 1MB
+  static let maxBufferedAmount: UInt64 = 16 * 1024 * 1024 // 16MB
+  static let bufferedAmountLowThreshold: UInt64 = 8 * 1024 * 1024 // 8MB
 
   static let iceServers: [RTCIceServer] = [
     // Public STUN servers
@@ -42,7 +42,6 @@ enum WebRTCConfig {
   static let dataChannelConfig: RTCDataChannelConfiguration = {
     let config = RTCDataChannelConfiguration()
     config.isOrdered = true
-    config.maxPacketLifeTime = 30_000
     return config
   }()
 }

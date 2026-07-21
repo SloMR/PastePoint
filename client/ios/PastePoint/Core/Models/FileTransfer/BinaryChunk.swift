@@ -18,7 +18,9 @@ struct ParsedChunk: Sendable {
 /// Layout (all little-endian):
 /// `[u16 fileId byte length][fileId UTF-8 bytes][u32 chunkIndex][u32 totalChunks][u32 CRC32][data]`
 enum BinaryChunk {
-  nonisolated static let chunkSize = 64 * 1024 // 64KB
+  // SCTP caps messages at ~256KB; chunk data + header (~64 bytes) must stay
+  // under it, so 192KB is the largest safe chunk.
+  nonisolated static let chunkSize = 192 * 1024 // 192KB
 
   // MARK: CRC32
 
