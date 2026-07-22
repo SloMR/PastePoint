@@ -28,8 +28,12 @@ serde = { version = "1.0.228", features = ["derive"] }
 env_logger = "0.11.10"
 log = "0.4.29"
 rand = "0.10.1"
+hmac = "0.12.1"
+sha1 = "0.10.6"
+base64 = "0.22.1"
 bytes = "1.11.1"
 config = "0.15.22"
+dotenvy = "0.15.7"
 url = "2.5.8"
 sentry = { version = "0.48", features = ["log", "logs"] }
 sentry-actix = "0.48"

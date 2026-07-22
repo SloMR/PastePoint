@@ -2,11 +2,18 @@
 
 use crate::{
     CONTENT_TYPE_TEXT_PLAIN, ClientVersionConfig, MIN_USER_AGENT_LENGTH, SESSION_CODE_LENGTH,
-    ServerConfig, ServerError, SessionStore, consts::MAX_SESSIONS, session_store::SessionData,
+    ServerConfig, ServerError, SessionStore, TurnConfig, consts::MAX_SESSIONS,
+    session_store::SessionData,
 };
 use actix_web::{Error, HttpRequest, HttpResponse, Responder, get, http::header, web};
+use base64::{Engine, engine::general_purpose::STANDARD};
+use hmac::{Hmac, Mac};
 use serde_json::json;
+use sha1::Sha1;
+use std::time::{SystemTime, UNIX_EPOCH};
 use uuid::Uuid;
+
+type HmacSha1 = Hmac<Sha1>;
 
 // -----------------------------------------------------
 // Simple index route
@@ -36,6 +43,36 @@ pub async fn version(config: web::Data<ClientVersionConfig>) -> impl Responder {
     HttpResponse::Ok()
         .insert_header((header::CACHE_CONTROL, "public, max-age=300"))
         .json(config.get_ref())
+}
+
+// -----------------------------------------------------
+// TURN ephemeral credentials route
+// -----------------------------------------------------
+#[get("/turn-credentials")]
+pub async fn turn_credentials(turn: web::Data<TurnConfig>) -> Result<HttpResponse, ServerError> {
+    if !turn.is_enabled() {
+        return Ok(HttpResponse::NoContent().finish());
+    }
+
+    let now = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map_err(|_| ServerError::InternalServerError)?
+        .as_secs();
+    let username = format!("{}:pastepoint", now + turn.ttl_seconds);
+
+    let mut mac = HmacSha1::new_from_slice(turn.secret.as_bytes())
+        .map_err(|_| ServerError::InternalServerError)?;
+    mac.update(username.as_bytes());
+    let credential = STANDARD.encode(mac.finalize().into_bytes());
+
+    Ok(HttpResponse::Ok()
+        .insert_header((header::CACHE_CONTROL, "no-store"))
+        .json(json!({
+            "username": username,
+            "credential": credential,
+            "ttl": turn.ttl_seconds,
+            "urls": turn.urls,
+        })))
 }
 
 // -----------------------------------------------------

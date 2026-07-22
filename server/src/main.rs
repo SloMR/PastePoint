@@ -9,8 +9,8 @@ use actix_web::{
 use openssl::ssl::{SslAcceptor, SslFiletype, SslMethod};
 use server::{
     CORS_MAX_AGE, ClientVersionConfig, KEEP_ALIVE_INTERVAL, SentryConfig, ServerConfig,
-    SessionStore, chat_ws, create_session, health, index, private_chat_ws,
-    version as version_route,
+    SessionStore, TurnConfig, chat_ws, create_session, health, index, private_chat_ws,
+    turn_credentials, version as version_route,
 };
 use std::borrow::Cow;
 use std::io::Result;
@@ -79,6 +79,9 @@ fn init_sentry(cfg: &SentryConfig) -> Option<sentry::ClientInitGuard> {
 
 #[actix_web::main]
 async fn main() -> Result<()> {
+    #[cfg(debug_assertions)]
+    let _ = dotenvy::from_filename(".env.development");
+
     let sentry_cfg = SentryConfig::load();
     let _sentry_guard = init_sentry(&sentry_cfg);
 
@@ -146,12 +149,14 @@ async fn main() -> Result<()> {
 
     let server_config = Data::new(config.clone());
     let client_version = Data::new(ClientVersionConfig::load());
+    let turn_config = Data::new(TurnConfig::load());
     let sentry_enabled = _sentry_guard.is_some();
 
     HttpServer::new(move || {
         let server_config = server_config.clone();
         let server_config_for_app = server_config.clone();
         let client_version = client_version.clone();
+        let turn_config = turn_config.clone();
         let cors = Cors::default()
             .allowed_origin_fn(move |origin, _req_head| server_config.check_origin(origin))
             .allowed_methods(vec!["GET", "OPTIONS"])
@@ -169,9 +174,11 @@ async fn main() -> Result<()> {
             .app_data(session_manager.clone())
             .app_data(server_config_for_app)
             .app_data(client_version)
+            .app_data(turn_config)
             .service(index)
             .service(health)
             .service(version_route)
+            .service(turn_credentials)
             .service(create_session)
             .service(chat_ws)
             .service(private_chat_ws)

@@ -89,6 +89,51 @@ impl ClientVersionConfig {
     }
 }
 
+fn default_turn_ttl() -> u64 {
+    1800
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct TurnConfig {
+    #[serde(default)]
+    pub secret: String,
+    #[serde(default)]
+    pub urls: Vec<String>,
+    #[serde(default = "default_turn_ttl")]
+    pub ttl_seconds: u64,
+}
+
+impl Default for TurnConfig {
+    fn default() -> Self {
+        Self {
+            secret: String::new(),
+            urls: Vec::new(),
+            ttl_seconds: default_turn_ttl(),
+        }
+    }
+}
+
+impl TurnConfig {
+    pub fn load() -> Self {
+        let environment = env::var("RUN_ENV").unwrap_or_else(|_| "development".to_string());
+
+        let mut cfg: Self = Config::builder()
+            .add_source(File::with_name(&format!("config/{environment}")).required(false))
+            .build()
+            .and_then(|s| s.get::<Self>("turn"))
+            .unwrap_or_default();
+
+        if let Ok(secret) = env::var("TURN_SECRET") {
+            cfg.secret = secret;
+        }
+        cfg
+    }
+
+    pub fn is_enabled(&self) -> bool {
+        !self.secret.is_empty() && !self.urls.is_empty()
+    }
+}
+
 #[derive(Clone, Debug, Deserialize)]
 pub struct ServerConfig {
     pub bind_address: String,
