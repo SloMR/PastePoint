@@ -20,6 +20,7 @@ import {
 import { TranslateService } from '@ngx-translate/core';
 import { NGXLogger } from 'ngx-logger';
 import { WebRTCCommunicationService } from './webrtc-communication.service';
+import { TurnCredentialsService } from './turn-credentials.service';
 import { HotToastService } from '@ngxpert/hot-toast';
 import { Subject } from 'rxjs';
 
@@ -34,6 +35,7 @@ export class WebRTCSignalingService {
   private translate = inject<TranslateService>(TranslateService);
   private logger = inject(NGXLogger);
   private communicationService = inject(WebRTCCommunicationService);
+  private turnCredentials = inject(TurnCredentialsService);
 
   // =============== Properties ===============
   public peerDisconnected$ = new Subject<string>();
@@ -60,6 +62,9 @@ export class WebRTCSignalingService {
 
   constructor() {
     this.initializeSignalMessageHandler();
+
+    // Refresh TURN credentials on every connect so peers created afterwards
+    this.wsService.connected$.subscribe(() => void this.turnCredentials.refresh());
 
     this.userService.user$.subscribe((user) => {
       if (user && this.pendingSignals.length > 0) {
@@ -552,7 +557,10 @@ export class WebRTCSignalingService {
       this.peerConnections.delete(targetUser);
     }
 
-    const peerConnection = new RTCPeerConnection(RTC_CONFIGURATION);
+    const peerConnection = new RTCPeerConnection({
+      ...RTC_CONFIGURATION,
+      iceServers: this.turnCredentials.iceServers,
+    });
 
     let iceGatheringTimeout: ReturnType<typeof setTimeout> | null = null;
     let iceGatheringComplete = false;
