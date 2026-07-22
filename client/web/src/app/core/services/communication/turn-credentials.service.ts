@@ -56,7 +56,10 @@ export class TurnCredentialsService {
       } else {
         // 204 / disabled — stay STUN-only.
         this.servers = [...ICE_SERVERS];
-        this.logger.info('TurnCredentialsService', 'No TURN relay configured on server — STUN-only');
+        this.logger.info(
+          'TurnCredentialsService',
+          'No TURN relay configured on server — STUN-only'
+        );
       }
     } catch (error) {
       this.logger.debug('TurnCredentialsService', 'TURN fetch failed, STUN-only', error);
