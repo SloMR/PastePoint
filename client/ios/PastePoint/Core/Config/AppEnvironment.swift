@@ -32,6 +32,9 @@ enum AppEnvironment {
   /// Used for the launch-time client version/update-policy check.
   static var versionUrl: String { "https://\(apiUrl)/version" }
 
+  /// Used for fetching short-lived TURN relay credentials.
+  static var turnCredentialsUrl: String { "https://\(apiUrl)/turn-credentials" }
+
   /// Used for connecting to the signaling WebSocket.
   static func webSocketUrl(sessionCode: String?) -> String {
     "wss://\(apiUrl)/ws\(sessionCode.map { "/\($0)" } ?? "")"

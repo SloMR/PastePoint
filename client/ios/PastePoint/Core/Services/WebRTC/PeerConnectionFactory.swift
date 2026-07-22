@@ -19,10 +19,13 @@ final class PeerConnectionFactory: @unchecked Sendable {
     factory = RTCPeerConnectionFactory(encoderFactory: nil, decoderFactory: nil)
   }
 
-  func makePeerConnection(delegate: RTCPeerConnectionDelegate) -> RTCPeerConnection? {
+  func makePeerConnection(
+    iceServers: [RTCIceServer],
+    delegate: RTCPeerConnectionDelegate,
+  ) -> RTCPeerConnection? {
     let constraints = RTCMediaConstraints(mandatoryConstraints: nil, optionalConstraints: nil)
     return factory.peerConnection(
-      with: WebRTCConfig.peerConnectionConfig,
+      with: WebRTCConfig.makeConfiguration(iceServers: iceServers),
       constraints: constraints,
       delegate: delegate,
     )
