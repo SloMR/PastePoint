@@ -31,9 +31,11 @@
 		<string>_pastepoint._tcp</string>
 	</array>
 	<key>NSCameraUsageDescription</key>
-	<string>PastePoint uses the camera to scan QR codes for joining private sessions.</string>
+	<string>PastePoint uses the camera to scan QR codes and to take photos and videos to share.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>PastePoint needs local network access to connect to the server on your network.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>PastePoint uses the microphone to record audio when you capture a video to share.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>PastePoint saves photos and videos you receive to your photo library.</string>
 	<key>UIAppFonts</key>

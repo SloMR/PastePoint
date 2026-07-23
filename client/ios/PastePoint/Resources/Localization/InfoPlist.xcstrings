@@ -44,43 +44,43 @@
       }
     },
     "NSCameraUsageDescription" : {
-      "comment" : "Permission prompt shown when requesting camera access (QR code scanning).",
+      "comment" : "Permission prompt shown when requesting camera access (QR scanning and photo/video capture).",
       "extractionState" : "manual",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "يستخدم PastePoint الكاميرا لمسح رموز QR للانضمام إلى الجلسات الخاصة."
+            "value" : "يستخدم PastePoint الكاميرا لمسح رموز QR والتقاط الصور ومقاطع الفيديو لمشاركتها."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "PastePoint uses the camera to scan QR codes for joining private sessions."
+            "value" : "PastePoint uses the camera to scan QR codes and to take photos and videos to share."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "PastePoint usa la cámara para escanear códigos QR y unirse a sesiones privadas."
+            "value" : "PastePoint usa la cámara para escanear códigos QR y para tomar fotos y vídeos que compartir."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "PastePoint utilise la caméra pour scanner les codes QR afin de rejoindre des sessions privées."
+            "value" : "PastePoint utilise la caméra pour scanner les codes QR et pour prendre des photos et vidéos à partager."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "PastePoint использует камеру для сканирования QR-кодов, чтобы присоединяться к приватным сессиям."
+            "value" : "PastePoint использует камеру для сканирования QR-кодов и съёмки фото и видео для отправки."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "PastePoint 使用相机扫描二维码以加入私密会话。"
+            "value" : "PastePoint 使用相机扫描二维码，并拍摄照片和视频以供分享。"
           }
         }
       }
@@ -123,6 +123,48 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "PastePoint 需要访问本地网络以连接到您网络中的服务器。"
+          }
+        }
+      }
+    },
+    "NSMicrophoneUsageDescription" : {
+      "comment" : "Permission prompt shown when recording audio for a captured video.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يستخدم PastePoint الميكروفون لتسجيل الصوت عند التقاط مقطع فيديو لمشاركته."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PastePoint uses the microphone to record audio when you capture a video to share."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PastePoint usa el micrófono para grabar audio cuando capturas un vídeo para compartir."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PastePoint utilise le microphone pour enregistrer le son lorsque vous filmez une vidéo à partager."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PastePoint использует микрофон для записи звука при съёмке видео для отправки."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PastePoint 使用麦克风在您拍摄视频以供分享时录制声音。"
           }
         }
       }
