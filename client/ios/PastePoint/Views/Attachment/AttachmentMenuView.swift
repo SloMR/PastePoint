@@ -3,9 +3,11 @@
 //  SPDX-License-Identifier: GPL-3.0-only
 //
 
+import AVFoundation
 import Logging
 import PhotosUI
 import SwiftUI
+import UIKit
 
 /// Shared attach menu: a native `Menu` of source options (Files / Photo Library),
 /// each routing through `FileStaging`. Callers supply the trigger label and an
@@ -19,6 +21,7 @@ struct AttachmentMenu<Content: View>: View {
   @State private var showFileImporter = false
   @State private var showPhotoPicker = false
   @State private var photosPickerSelection: [PhotosPickerItem] = []
+  @State private var showCamera = false
 
   init(
     onStaged: @escaping ([StagedFile]) async -> Void,
@@ -35,7 +38,24 @@ struct AttachmentMenu<Content: View>: View {
       } label: {
         Label(.chooseFiles, systemImage: "folder")
       }
-      // TODO: "Take Photo or Video" — camera capture (UIImagePickerController + NSCameraUsageDescription).
+      if UIImagePickerController.isSourceTypeAvailable(.camera) {
+        Button {
+          Task {
+            let status = CameraPermission.status == .notDetermined ? await CameraPermission.request() : CameraPermission.status
+
+            switch status {
+            case .authorized:
+              showCamera = true
+            case .denied, .restricted:
+              CameraPermission.openSettings()
+            default:
+              break
+            }
+          }
+        } label: {
+          Label(.takePhotoOrVideo, systemImage: "camera")
+        }
+      }
       Button {
         showPhotoPicker = true
       } label: {
@@ -63,6 +83,14 @@ struct AttachmentMenu<Content: View>: View {
       maxSelectionCount: 10, // TODO: unlimited later
       matching: .any(of: [.images, .videos]),
     )
+    .fullScreenCover(isPresented: $showCamera) {
+      CameraCapturePicker { capture in
+        showCamera = false
+        guard let capture else { return }
+        Task { await onStaged(await FileStaging.stage(camera: capture)) }
+      }
+      .ignoresSafeArea()
+    }
     .onChange(of: photosPickerSelection) { _, items in
       guard !items.isEmpty else { return }
       let toProcess = items
