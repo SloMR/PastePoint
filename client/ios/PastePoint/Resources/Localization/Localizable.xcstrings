@@ -5371,6 +5371,48 @@
         }
       }
     },
+    "TAKE_PHOTO_OR_VIDEO" : {
+      "comment" : "Attach menu option that opens the camera to capture a photo or video.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "التقاط صورة أو فيديو"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Take Photo or Video"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tomar foto o vídeo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prendre une photo ou une vidéo"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Снять фото или видео"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "拍摄照片或视频"
+          }
+        }
+      }
+    },
     "TAP_TO_REVEAL" : {
       "comment" : "Overlay on a blurred incoming image preview; tapping shows the image.",
       "extractionState" : "manual",
