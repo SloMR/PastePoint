@@ -60,8 +60,8 @@ export const RTC_SIGNALING_STATES = {
   STABLE: 'stable',
 } as const;
 
+// Public STUN servers only.
 export const ICE_SERVERS: RTCIceServer[] = [
-  // Public STUN servers
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun.cloudflare.com:3478' },
   { urls: 'stun:global.stun.twilio.com:3478' },

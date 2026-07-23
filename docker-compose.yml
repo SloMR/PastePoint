@@ -33,6 +33,7 @@ services:
       - RUN_ENV=${SERVER_ENV:?SERVER_ENV is required (set it in your .env file)}
       - SENTRY_ENABLED=${SENTRY_ENABLED:-false}
       - SENTRY_DSN=${SENTRY_DSN:-}
+      - TURN_SECRET=${TURN_SECRET:-}
     volumes:
       - ${CERT_PATH}:/etc/ssl/pastepoint:ro
     depends_on:

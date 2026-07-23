@@ -27,3 +27,9 @@ enabled = false
 environment = "docker-dev"
 sample_rate = 1.0
 traces_sample_rate = 0.1
+
+# TURN relay for GET /turn-credentials. urls are the fixed public relay (same in
+# every env); the shared secret comes from the TURN_SECRET env var, never here.
+[turn]
+urls = ["turn:turn.pastepoint.com:3478", "turns:turn.pastepoint.com:5349"]
+ttl_seconds = 1800

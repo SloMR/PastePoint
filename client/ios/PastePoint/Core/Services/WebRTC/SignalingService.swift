@@ -59,6 +59,8 @@ final class SignalingService: NSObject, ObservableObject {
   private var connectionRequestTimeouts: [String: Task<Void, Never>] = [:]
   private var pendingOpens: Set<String> = []
 
+  private let turnCredentials = TurnCredentialsService()
+
   // MARK: - Init
 
   init(
@@ -77,6 +79,14 @@ final class SignalingService: NSObject, ObservableObject {
       .receive(on: DispatchQueue.main)
       .sink { [weak self] message in
         self?.handle(message)
+      }
+      .store(in: &cancellables)
+
+    // Warm the TURN credential cache on connect so the first peer connection
+    wsService.didConnect
+      .receive(on: DispatchQueue.main)
+      .sink { [weak self] in
+        Task { _ = await self?.turnCredentials.iceServers() }
       }
       .store(in: &cancellables)
 
@@ -136,7 +146,7 @@ final class SignalingService: NSObject, ObservableObject {
     connectingPeers.insert(peer)
     startConnectionTimeout(for: peer)
 
-    guard let pc = PeerConnectionFactory.shared.makePeerConnection(delegate: self) else {
+    guard let pc = PeerConnectionFactory.shared.makePeerConnection(iceServers: await turnCredentials.iceServers(), delegate: self) else {
       logger.error("factory returned nil for \(peer)")
       connectionLocks.remove(peer)
       return
@@ -304,7 +314,7 @@ extension SignalingService {
     }
     let remoteSdp = RTCSessionDescription(type: .offer, sdp: sdpString)
 
-    guard let pc = PeerConnectionFactory.shared.makePeerConnection(delegate: self) else {
+    guard let pc = PeerConnectionFactory.shared.makePeerConnection(iceServers: await turnCredentials.iceServers(), delegate: self) else {
       logger.error("factory returned nil for \(message.from)")
       connectionLocks.remove(message.from)
       return
