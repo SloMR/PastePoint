@@ -330,6 +330,8 @@
                                   class="mb-3"
                                   [src]="message.previewUrl"
                                   [alt]="message.fileTransfer?.fileName || 'Attachment'"
+                                  [revealed]="isPreviewRevealed(message)"
+                                  (revealedChange)="revealPreview(message)"
                                 />
                               }
                             } @else {
@@ -368,6 +370,8 @@
                                   class="mb-2"
                                   [src]="message.previewUrl"
                                   [alt]="message.fileTransfer?.fileName || 'Attachment'"
+                                  [revealed]="isPreviewRevealed(message)"
+                                  (revealedChange)="revealPreview(message)"
                                 />
                               }
                             } @else {

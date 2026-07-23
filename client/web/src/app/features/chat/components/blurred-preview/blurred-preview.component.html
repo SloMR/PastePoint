@@ -1,18 +1,18 @@
 <!-- MARK: - Hidden Preview -->
 <div class="relative mx-auto w-fit overflow-hidden rounded-lg">
   <img
-    [src]="source"
+    [src]="src"
     [alt]="alt"
     [title]="alt"
     class="max-w-full h-auto max-h-[220px] rounded-lg object-contain transition duration-200"
-    [class.blur-lg]="!revealed()"
-    [class.scale-110]="!revealed()"
+    [class.blur-lg]="!revealed"
+    [class.scale-110]="!revealed"
     loading="lazy"
     width="320"
     height="192"
   />
 
-  @if (!revealed()) {
+  @if (!revealed) {
     <button
       type="button"
       (click)="reveal()"

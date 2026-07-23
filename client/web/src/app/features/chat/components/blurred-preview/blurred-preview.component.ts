@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
@@ -9,18 +9,14 @@ import { TranslateModule } from '@ngx-translate/core';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BlurredPreviewComponent {
-  @Input()
-  set src(value: string | undefined) {
-    this.source = value;
-    this.revealed.set(false);
-  }
-
+  @Input() src?: string;
   @Input() alt = '';
+  @Input() revealed = false;
 
-  protected source?: string;
-  protected readonly revealed = signal(false);
+  @Output() revealedChange = new EventEmitter<boolean>();
 
   protected reveal(): void {
-    this.revealed.set(true);
+    this.revealed = true;
+    this.revealedChange.emit(true);
   }
 }
