@@ -50,8 +50,21 @@ export class ChatMessagesComponent {
 
   protected readonly ChatMessageType = ChatMessageType;
   protected readonly FileTransferStatus = FileTransferStatus;
+  private readonly revealedPreviews = new Set<string>();
 
   private sanitizer = inject(DomSanitizer);
+
+  protected isPreviewRevealed(msg: ChatMessage): boolean {
+    const id = msg.fileTransfer?.fileId;
+    return id ? this.revealedPreviews.has(id) : false;
+  }
+
+  protected revealPreview(msg: ChatMessage): void {
+    const id = msg.fileTransfer?.fileId;
+    if (id) {
+      this.revealedPreviews.add(id);
+    }
+  }
 
   trackMessage(index: number, message: ChatMessage): string {
     if (message.type === ChatMessageType.ATTACHMENT && message.fileTransfer?.fileId) {

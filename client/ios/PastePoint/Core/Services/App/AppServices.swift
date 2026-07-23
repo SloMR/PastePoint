@@ -194,7 +194,10 @@ final class AppServices: ObservableObject {
 
         let previous = self.lastPathStatus
         self.lastPathStatus = path.status
-        self.logger.debug("Network path updated: \(path.status)")
+
+        if previous != path.status {
+          self.logger.debug("Network path changed: \(previous) → \(path.status)")
+        }
 
         guard path.status == .satisfied, previous != .satisfied else { return }
         guard !self.isInBackground else { return }
