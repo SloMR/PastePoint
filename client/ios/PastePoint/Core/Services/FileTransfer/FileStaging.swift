@@ -83,4 +83,35 @@ enum FileStaging {
 
     return staged
   }
+
+  /// Camera capture: photo bytes → write to tmp; video temp file → copy to tmp.
+  /// Both are owned temp files.
+  static func stage(camera capture: CameraCapture) async -> [StagedFile] {
+    let stamp = Self.photoNameFormatter.string(from: Date())
+    let suffix = UUID().uuidString.prefix(4)
+
+    do {
+      switch capture {
+      case .photo(let data):
+        let name = "Photo-\(stamp)-\(suffix).jpg"
+        let size = Int64(data.count)
+        let dest = FileManager.default.temporaryDirectory.appendingPathComponent(name)
+
+        try data.write(to: dest)
+        return [StagedFile(id: UUID(), name: name, size: size, url: dest, kind: .ownedTemp)]
+      case .video(let src):
+        let ext = src.pathExtension.isEmpty ? "mov" : src.pathExtension
+        let name = "Video-\(stamp)-\(suffix).\(ext)"
+        let dest = FileManager.default.temporaryDirectory.appendingPathComponent(name)
+
+        try FileManager.default.copyItem(at: src, to: dest)
+
+        let size = Int64((try? dest.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0)
+        return [StagedFile(id: UUID(), name: name, size: size, url: dest, kind: .ownedTemp)]
+      }
+    } catch {
+      logger.error("failed to stage camera capture: \(String(describing: error))")
+      return []
+    }
+  }
 }
