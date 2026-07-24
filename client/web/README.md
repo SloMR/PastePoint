@@ -34,54 +34,35 @@ web/
 ├── src/
 │   ├── app/
 │   │   ├── core/
-│   │   │   ├── i18n/           # Internationalization
-│   │   │   ├── components/     # Reusable layout & cross-cutting UI
-│   │   │   ├── services/       # Core services
-│   │   │   │   ├── communication/    # WebRTC, WebSocket, Chat
-│   │   │   │   ├── file-management/  # File transfer services
-│   │   │   │   ├── room-management/  # Room/session join, list, create
-│   │   │   │   ├── session/          # Session lifecycle & QR sharing
-│   │   │   │   ├── user-management/  # User identity & presence
-│   │   │   │   ├── ui/               # Theme, Language services
-│   │   │   │   ├── monitoring/       # Error tracking (Sentry)
-│   │   │   │   └── migration/        # App migration
-│   │   │   └── interfaces/     # TypeScript interfaces
-│   │   ├── features/           # Features such as chat, file sharing, etc.
-│   │   ├── utils/              # Utility functions
+│   │   │   ├── components/     # Shared layout and UI
+│   │   │   ├── i18n/           # Localization
+│   │   │   ├── interfaces/     # Shared types
+│   │   │   └── services/       # Communication, files, rooms, and UI
+│   │   ├── features/           # Feature UI and flows
 │   │   ├── testing/            # Test utilities
-│   │   ├── app.component.*        # Root component
-│   │   ├── app.routes.ts          # Application routes
-│   │   └── app.config.*           # App configuration
-│   ├── environments/           # Environment configs
-│   ├── index.html                 # Main HTML file
-│   ├── main.ts                    # Application entry point
-│   ├── server.ts                  # SSR server
-│   └── styles.css                 # Global styles
-├── public/                     # Static assets
-│   ├── assets/                 # Assets
-│   │   ├── favicon.*              # Favicon files
-│   │   ├── pastepoint-*.svg       # Logo files
-│   │   └── *.png                  # App icons
+│   │   └── utils/              # Shared helpers and constants
+│   ├── environments/           # Build-specific configuration
+│   ├── main.ts                 # Browser entry point
+│   ├── server.ts               # SSR entry point
+│   └── styles.css              # Global styles
+├── public/
+│   ├── assets/                 # Logos and app icons
 │   ├── fonts/                  # Custom fonts
-│   ├── icons/                  # SVG icons
-│   └── site.webmanifest           # Web app manifest
-├── dist/                       # Build output
-├── node_modules/               # Dependencies
-├── package.json                   # Project dependencies
-├── angular.json                   # Angular CLI config
-├── tailwind.config.js             # Tailwind CSS config
-├── tsconfig.json                  # TypeScript config
-├── Dockerfile                     # Docker configuration
-└── README.md                      # Project documentation
+│   └── icons/                  # SVG icons
+├── angular.json                # Angular workspace configuration
+├── package.json                # Scripts and dependencies
+├── tailwind.config.js          # Tailwind configuration
+├── tsconfig.json               # TypeScript configuration
+├── Dockerfile                  # Container build
+└── README.md
 ```
 
 ## Quick Start
 
 ### Prerequisites
 
-- **Node.js**: v24.16.0 (specified in `../.nvmrc`)
+- **Node.js**: v24.16.0 (specified in `../../.nvmrc`)
 - **npm**: Latest version
-- **Angular CLI**: `npm install -g @angular/cli`
 
 ### Development Setup
 
@@ -94,17 +75,23 @@ web/
 2. **Install dependencies**:
 
    ```bash
-   npm install
+   npm ci
    ```
 
-3. **Start development server**:
+3. **Generate the development certificate**:
 
    ```bash
-   ng serve
+   ../../scripts/generate-certs.sh
    ```
 
-4. **Open browser**:
-   Navigate to `http://localhost:4200`
+4. **Start the development server**:
+
+   ```bash
+   npm start
+   ```
+
+5. **Open the browser**:
+   Navigate to `https://localhost`.
 
 ### Available Scripts
 
@@ -136,7 +123,8 @@ Example environment configuration:
 ```typescript
 export const environment = {
   production: false,
-  apiUrl: 'https://localhost:9000',
+  apiUrl: '127.0.0.1:9000',
+  webUrl: '127.0.0.1',
   logLevel: NgxLoggerLevel.DEBUG,
   enableSourceMaps: true,
   disableFileDetails: false,
@@ -145,7 +133,7 @@ export const environment = {
     enabled: false,
     dsn: '',
     environment: 'development',
-    tracesSampleRate: 0.1,
+    tracesSampleRate: 0.25,
     enableLogs: true,
   },
 };
@@ -297,5 +285,6 @@ This project is licensed under the GPL-3.0 License. See the [LICENSE](../../LICE
 ## Related Documentation
 
 - [Main project readme](../../README.md)
+- [iOS client readme](../ios/README.md)
 - [Server readme](../../server/README.md)
 - [Docker Compose setup](../../docker-compose.yml)

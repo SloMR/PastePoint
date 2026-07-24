@@ -118,19 +118,37 @@ npm run test:ci    # Run tests
 
 ### iOS (SwiftUI)
 
-Requires macOS + Xcode. CI runs only on `client/ios/**` changes. Build and test with the standard `xcodebuild` scheme.
+Requires macOS Tahoe 26.2+ and Xcode **26.5** (see `client/ios/.xcode-version`). Deployment target iOS 17.6+, Swift 6 language mode.
+
+```bash
+cd client/ios
+swiftformat .          # Format code
+swiftlint --fix        # Autocorrect lint issues
+swiftlint lint --strict  # Lint code (CI runs this)
+xcodebuild test \
+  -project PastePoint.xcodeproj \
+  -scheme PastePoint \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro'  # Run tests
+```
 
 **Requirements:**
 
 - Follow Swift API design guidelines
 - Prefer `async/await` for concurrency
 - Keep UI logic in SwiftUI views and business logic in separate types
+- Match the CI-pinned tool versions — SwiftLint **0.65.0**, SwiftFormat **0.61.1** (see `.github/workflows/ios.yml`); CI asserts the exact versions
+- Localize user-facing strings in `Localizable.xcstrings` using the symbolic `UPPER_SNAKE_CASE` keys shared with the web client
+- Changes to the signaling, data-channel, or chunk protocol must stay wire-compatible with the web client — the two clients interoperate
+
+**Running against a server:** the app needs a signaling server to do anything useful. Start one with `make dev` (Docker stack, reachable on 443) or `cd server && cargo run` (standalone, port 9000), then point the `DEBUG` host and `wsPort` in `PastePoint/Core/Config/AppEnvironment.swift` at it. Those are local-only values — do not commit them.
+
+**Testing peer-to-peer flows** needs two peers: run two simulators, a simulator plus a device, or one simulator plus the web client in a browser. Web ↔ iOS is a valid pair, and it is the fastest way to catch a protocol regression.
 
 ### General Guidelines
 
 - **Files**: kebab-case (`user-service.ts`) in Web, snake_case (`user_name.rs`) in Server, PascalCase (`UserService.swift`) on iOS, PascalCase (`UserService.kt`) on Android.
 - **Variables**: camelCase (`userName`) in TypeScript, Swift, and Kotlin; snake_case (`user_name`) in Server
-- **Constants**: UPPER_SNAKE_CASE (`MAX_FILE_SIZE`)
+- **Constants**: UPPER_SNAKE_CASE in TypeScript, Rust, and Kotlin; lowerCamelCase in Swift
 - **Comments**: Explain "why", not "what"
 - **Error handling**: Always handle errors gracefully
 
@@ -142,6 +160,12 @@ cd client/web && npm run build:dev
 
 # Server build
 cd server && cargo build
+
+# iOS build
+cd client/ios && xcodebuild build \
+  -project PastePoint.xcodeproj \
+  -scheme PastePoint \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 
 # Full stack via Docker Compose
 make dev
