@@ -45,7 +45,7 @@ enum FileTransferStatus: String, Codable, Sendable {
 }
 
 enum FileTransferFailureReason: Sendable {
-  case integrity // SHA-256 / CRC mismatch
+  case integrity // BLAKE3 / CRC mismatch
   case assembly // couldn't read/write chunks to disk
   case noHash // receiver: sender sent no hash -> reject (verify is mandatory)
   case sendHashFailed // sender: couldn't hash the file -> send aborted
