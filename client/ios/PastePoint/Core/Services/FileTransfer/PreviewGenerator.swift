@@ -5,12 +5,10 @@
 
 import Foundation
 import ImageIO
-import Logging
 import PDFKit
 import UniformTypeIdentifiers
 
 enum PreviewGenerator {
-  private nonisolated static let logger = Logger(label: "PreviewGenerator")
 
   private nonisolated static let maxPixelSize = 320
   private nonisolated static let jpegQuality: CGFloat = 0.7
@@ -52,7 +50,7 @@ enum PreviewGenerator {
       let src = CGImageSourceCreateWithURL(url as CFURL, nil),
       let cg = CGImageSourceCreateThumbnailAtIndex(src, 0, options as CFDictionary)
     else {
-      logger.warning("image preview failed")
+      log.warning("image preview failed")
       return nil
     }
 
@@ -66,11 +64,11 @@ enum PreviewGenerator {
       let jpeg = image.jpegData(compressionQuality: jpegQuality),
       let preview = dataUrl(jpeg, mime: "image/jpeg")
     {
-      logger.info("image preview: PNG over cap, used JPEG fallback")
+      log.info("image preview: PNG over cap, used JPEG fallback")
       return preview
     }
 
-    logger.warning("image preview over cap even as JPEG, dropping")
+    log.warning("image preview over cap even as JPEG, dropping")
     return nil
   }
 
@@ -83,7 +81,7 @@ enum PreviewGenerator {
       let doc = PDFDocument(url: url),
       let page = doc.page(at: 0)
     else {
-      logger.warning("pdf preview failed")
+      log.warning("pdf preview failed")
       return nil
     }
 
@@ -95,7 +93,7 @@ enum PreviewGenerator {
     }
 
     guard let preview = dataUrl(data, mime: "image/jpeg") else {
-      logger.warning("pdf preview over cap, dropping")
+      log.warning("pdf preview over cap, dropping")
       return nil
     }
 

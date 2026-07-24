@@ -3,15 +3,12 @@
 //  SPDX-License-Identifier: GPL-3.0-only
 //
 
-import Logging
 import SwiftUI
 
 struct SettingsJoinPrivateView: View {
   @Environment(\.dismiss) private var dismiss
   @EnvironmentObject private var services: AppServices
   @EnvironmentObject private var toast: ToastCenter
-
-  private let logger = Logger(label: "SettingsJoinPrivateView")
 
   var onSessionJoin: (() -> Void)?
 
@@ -61,7 +58,7 @@ struct SettingsJoinPrivateView: View {
         .opacity(sessionCode.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.6 : 1)
 
         Button {
-          logger.info("Dismiss join private session")
+          log.info("Dismiss join private session")
           dismiss()
         } label: {
           Text(.cancel)
@@ -83,26 +80,26 @@ struct SettingsJoinPrivateView: View {
   private func joinSession(code: String) async {
     let trimmed = code.trimmingCharacters(in: .whitespacesAndNewlines)
     guard !trimmed.isEmpty else { return }
+
     guard SessionService.isValidSessionCode(trimmed) else {
-      logger.warning("Invalid session code entered: \(trimmed)")
+      log.warning("Invalid session code entered: \(trimmed)")
       toast.show(.error(.invalidSessionCode))
       return
     }
-    logger.info("Joining private session with code: \(trimmed)")
+
+    log.info("Joining private session with code: \(trimmed)")
     isJoining = true
+
     await services.wsService.setupPrivateSession(trimmed)
     guard await services.connectIfPermitted() else {
       isJoining = false
       toast.show(.error(.localNetworkOffJoin))
       return
     }
+
     isJoining = false
     dismiss()
     onSessionJoin?()
-    Task {
-      await services.roomService.listRooms()
-      await services.userService.getUsername()
-    }
   }
 }
 

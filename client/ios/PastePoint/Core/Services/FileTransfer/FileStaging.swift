@@ -4,7 +4,6 @@
 //
 
 import Foundation
-import Logging
 import PhotosUI
 import SwiftUI
 
@@ -27,7 +26,6 @@ private struct StagedPhotoFile: Transferable {
 /// Copies picked files/photos into the app tmp dir and returns `StagedFile`s.
 /// Shared by the broadcast input bar and the per-member send button.
 enum FileStaging {
-  private static let logger = Logger(label: "FileStaging")
 
   private static let photoNameFormatter: DateFormatter = {
     let formatter = DateFormatter()
@@ -43,7 +41,7 @@ enum FileStaging {
     var staged: [StagedFile] = []
     for url in urls {
       guard url.startAccessingSecurityScopedResource() else {
-        logger.error("couldn't access security-scoped \(url.lastPathComponent)")
+        log.error("couldn't access security-scoped \(url.lastPathComponent)")
         continue
       }
 
@@ -51,10 +49,10 @@ enum FileStaging {
       do {
         let size = Int64(try url.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0)
         staged.append(StagedFile(id: UUID(), name: fileName, size: size, url: url, kind: .securityScoped))
-        logger.info("staged file: \(fileName) (\(size) bytes)")
+        log.info("staged file: \(fileName) (\(size) bytes)")
       } catch {
         url.stopAccessingSecurityScopedResource()
-        logger.error("failed to stat \(fileName): \(String(describing: error))")
+        log.error("failed to stat \(fileName): \(String(describing: error))")
       }
     }
     return staged
@@ -66,7 +64,7 @@ enum FileStaging {
     for item in photoItems {
       do {
         guard let picked = try await item.loadTransferable(type: StagedPhotoFile.self) else {
-          logger.error("photosPicker item returned nil file")
+          log.error("photosPicker item returned nil file")
           continue
         }
 
@@ -75,9 +73,9 @@ enum FileStaging {
         let size = Int64((try? picked.url.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0)
 
         staged.append(StagedFile(id: UUID(), name: displayName, size: size, url: picked.url, kind: .ownedTemp))
-        logger.info("staged photo: \(displayName) (\(size) bytes)")
+        log.info("staged photo: \(displayName) (\(size) bytes)")
       } catch {
-        logger.error("failed to stage photo: \(String(describing: error))")
+        log.error("failed to stage photo: \(String(describing: error))")
       }
     }
 
@@ -110,7 +108,7 @@ enum FileStaging {
         return [StagedFile(id: UUID(), name: name, size: size, url: dest, kind: .ownedTemp)]
       }
     } catch {
-      logger.error("failed to stage camera capture: \(String(describing: error))")
+      log.error("failed to stage camera capture: \(String(describing: error))")
       return []
     }
   }

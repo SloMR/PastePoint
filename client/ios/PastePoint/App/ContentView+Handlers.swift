@@ -3,7 +3,6 @@
 //  SPDX-License-Identifier: GPL-3.0-only
 //
 
-import Logging
 import SwiftUI
 
 // MARK: - Handlers
@@ -66,7 +65,7 @@ extension ContentView {
   /// mirroring the manual join flow in `SettingsJoinPrivateView`.
   func handleIncomingURL(_ url: URL) {
     guard LegalConsent.isAccepted else {
-      logger.info("Deferring incoming URL until the terms are accepted")
+      log.info("Deferring incoming URL until the terms are accepted")
       pendingLegalDeepLink = url
       return
     }
@@ -75,7 +74,7 @@ extension ContentView {
       let code = AppEnvironment.privateSessionCode(from: url.absoluteString),
       SessionService.isValidSessionCode(code)
     else {
-      logger.warning("Ignoring invalid incoming URL")
+      log.warning("Ignoring invalid incoming URL")
       toast.show(.error(.invalidSessionCode))
       return
     }
@@ -83,17 +82,16 @@ extension ContentView {
     // Already in this session
     guard services.wsService.currentSessionCode != code else { return }
 
-    logger.info("Joining private session from universal link")
+    log.info("Joining private session from universal link")
     Task {
       await services.wsService.setupPrivateSession(code)
       guard await services.connectIfPermitted() else {
         toast.show(.error(.localNetworkOffJoin))
         return
       }
+
       setSettingsVisible(false)
       pendingPrivateJoin = true
-      await services.roomService.listRooms()
-      await services.userService.getUsername()
     }
   }
 

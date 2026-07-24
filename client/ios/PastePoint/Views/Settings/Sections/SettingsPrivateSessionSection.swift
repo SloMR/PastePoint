@@ -3,7 +3,6 @@
 //  SPDX-License-Identifier: GPL-3.0-only
 //
 
-import Logging
 import SwiftUI
 
 struct SettingsPrivateSessionSection: View {
@@ -14,7 +13,6 @@ struct SettingsPrivateSessionSection: View {
   @State private var isJoinPrivateSessionPresented: Bool = false
   @State private var isStarting: Bool = false
 
-  private let logger = Logger(label: "SettingsPrivateSessionSection")
   var onSessionJoin: (() -> Void)?
 
   var body: some View {
@@ -111,20 +109,21 @@ struct SettingsPrivateSessionSection: View {
         Task {
           isStarting = true
           do {
-            logger.info("Start private session button tapped")
+            log.info("Start private session button tapped")
+
             let code = try await services.sessionService.getNewSessionCode()
             await services.wsService.setupPrivateSession(code)
+
             isStarting = false
             guard await services.connectIfPermitted() else {
               toast.show(.error(.localNetworkOffStart))
               return
             }
+
             toast.show(.success(.privateSessionStarted))
-            await services.roomService.listRooms()
-            await services.userService.getUsername()
           } catch {
             isStarting = false
-            logger.error("Cannot get the session code \(error)")
+            log.error("Cannot get the session code \(error)")
             toast.show(.error(.startPrivateFailed))
           }
         }
@@ -159,7 +158,7 @@ struct SettingsPrivateSessionSection: View {
       .disabled(isStarting)
 
       Button {
-        logger.info("Join private session button tapped")
+        log.info("Join private session button tapped")
         isJoinPrivateSessionPresented = true
       } label: {
         HStack(spacing: 8) {

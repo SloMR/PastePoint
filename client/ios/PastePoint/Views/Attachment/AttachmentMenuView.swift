@@ -4,7 +4,6 @@
 //
 
 import AVFoundation
-import Logging
 import PhotosUI
 import SwiftUI
 import UIKit
@@ -13,7 +12,6 @@ import UIKit
 /// each routing through `FileStaging`. Callers supply the trigger label and an
 /// `onStaged` handler (stage into chips, or send to one member).
 struct AttachmentMenu<Content: View>: View {
-  private let logger = Logger(label: "AttachmentMenu")
 
   let onStaged: ([StagedFile]) async -> Void
   @ViewBuilder let content: Content
@@ -74,7 +72,7 @@ struct AttachmentMenu<Content: View>: View {
         Task { await onStaged(await FileStaging.stage(urls: urls)) }
       case .failure(let error):
         // TODO: surface a toast on failure.
-        logger.error("fileImporter failed: \(String(describing: error))")
+        log.error("fileImporter failed: \(String(describing: error))")
       }
     }
     .photosPicker(

@@ -3,14 +3,11 @@
 //  SPDX-License-Identifier: GPL-3.0-only
 //
 
-import Logging
 import SwiftUI
 
 struct SettingsLeaveSessionView: View {
   @Environment(\.dismiss) private var dismiss
   @EnvironmentObject private var services: AppServices
-
-  private let logger = Logger(label: "SettingsLeaveSessionView")
 
   var onSessionLeft: (() -> Void)?
 
@@ -42,7 +39,7 @@ struct SettingsLeaveSessionView: View {
         .disabled(isLeaving)
 
         Button {
-          logger.info("Dismiss Leave Session view")
+          log.info("Dismiss Leave Session view")
           dismiss()
         } label: {
           Text(.cancel)
@@ -56,15 +53,14 @@ struct SettingsLeaveSessionView: View {
   }
 
   private func leaveSession() async {
-    logger.info("User confirmed leaving private session")
+    log.info("User confirmed leaving private session")
     isLeaving = true
+
     services.wsService.disconnect(manual: true)
-    if await services.connectIfPermitted(sessionCode: nil) {
-      await services.roomService.listRooms()
-      await services.userService.getUsername()
-    }
+    _ = await services.connectIfPermitted(sessionCode: nil)
+
     isLeaving = false
-    logger.info("Left private session")
+    log.info("Left private session")
     dismiss()
     onSessionLeft?()
   }

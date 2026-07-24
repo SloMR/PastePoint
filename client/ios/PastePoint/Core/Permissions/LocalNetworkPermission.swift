@@ -4,16 +4,14 @@
 //
 
 import Foundation
-import Logging
 import Network
 import os
 
 enum LocalNetworkPermission {
-  private static let logger = Logger(label: "LocalNetworkPermission")
 
   @MainActor
   static func requestAccess() {
-    logger.info("Requesting local network permission")
+    log.info("Requesting local network permission")
     let browser = NWBrowser(for: .bonjour(type: "_pastepoint._tcp", domain: nil), using: NWParameters())
     browser.stateUpdateHandler = { _ in }
     browser.start(queue: .main)
@@ -25,7 +23,7 @@ enum LocalNetworkPermission {
   }
 
   static func isDenied() async -> Bool {
-    logger.info("Checking local network permission")
+    log.info("Checking local network permission")
 
     let port = NWEndpoint.Port(integerLiteral: UInt16(AppEnvironment.localNetworkProbePort))
     let connection = NWConnection(host: NWEndpoint.Host(AppEnvironment.localNetworkProbeHost), port: port, using: .tcp)
@@ -45,23 +43,23 @@ enum LocalNetworkPermission {
           switch newState {
           case .ready:
             guard claim() else { return }
-            Self.logger.info("Connection ready — permission granted")
+            log.info("Connection ready — permission granted")
             connection.cancel()
             continuation.resume(returning: false)
           case .waiting(let error):
             guard claim() else { return }
             if case .posix(.ECONNREFUSED) = error {
-              Self.logger.info("Connection refused — server down, permission granted")
+              log.info("Connection refused — server down, permission granted")
               connection.cancel()
               continuation.resume(returning: false)
             } else {
-              Self.logger.warning("Connection waiting — \(error.localizedDescription) — assuming denied")
+              log.warning("Connection waiting — \(error.localizedDescription) — assuming denied")
               connection.cancel()
               continuation.resume(returning: true)
             }
           case .failed(let error):
             guard claim() else { return }
-            Self.logger.error("Connection failed — \(error.localizedDescription)")
+            log.error("Connection failed — \(error.localizedDescription)")
             connection.cancel()
             continuation.resume(returning: false)
           default:
@@ -75,7 +73,7 @@ enum LocalNetworkPermission {
       Task {
         try? await Task.sleep(for: .seconds(3))
         guard claim() else { return }
-        Self.logger.info("Timeout — assuming permitted")
+        log.info("Timeout — assuming permitted")
         connection.cancel()
         continuation.resume(returning: false)
       }

@@ -5,7 +5,6 @@
 
 import Combine
 import Foundation
-import Logging
 
 @MainActor
 final class ConnectionWarningMonitor: ObservableObject {
@@ -13,7 +12,6 @@ final class ConnectionWarningMonitor: ObservableObject {
 
   private let peerDirectory: PeerDirectory
   private let signalingService: SignalingService
-  private let logger = Logger(label: "ConnectionWarningMonitor")
 
   private static let warningDelay: TimeInterval = 25
   private var dismissed = false
@@ -76,7 +74,7 @@ final class ConnectionWarningMonitor: ObservableObject {
         return
       }
 
-      self.logger.warning("No peer reachable past \(Self.warningDelay)s — showing warning")
+      log.warning("No peer reachable past \(Self.warningDelay)s — showing warning")
       self.showWarning = true
     }
   }
