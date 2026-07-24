@@ -5,7 +5,6 @@
 
 import Combine
 import Foundation
-import Logging
 
 struct CreateSessionResponse: Decodable {
   let code: String
@@ -13,7 +12,6 @@ struct CreateSessionResponse: Decodable {
 
 @MainActor
 final class SessionService: ObservableObject {
-  private let logger = Logger(label: "Session")
 
   func getNewSessionCode() async throws -> String {
 #if DEBUG
@@ -44,7 +42,7 @@ final class SessionService: ObservableObject {
 
     let decoded = try JSONDecoder().decode(CreateSessionResponse.self, from: data)
     // TODO: Remove this log before release.
-    logger.debug("Private session code received successfully with: \(decoded.code)")
+    log.debug("Private session code received successfully with: \(decoded.code)")
     return decoded.code
   }
 

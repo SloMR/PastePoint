@@ -4,7 +4,6 @@
 //
 
 import AVFoundation
-import Logging
 import SwiftUI
 import Vision
 import VisionKit
@@ -182,7 +181,6 @@ private struct ViewfinderBracketsShape: Shape {
 struct SettingsScanQRCodeView: View {
   @Environment(\.dismiss) private var dismiss
   @EnvironmentObject private var toast: ToastCenter
-  private let logger = Logger(label: "SettingsScanQRCodeView")
 
   private let cutoutSize: CGFloat = 240
   @State private var bracketScale: CGFloat = 1.0
@@ -232,12 +230,12 @@ struct SettingsScanQRCodeView: View {
       // Camera feed
       QRCodeScannerRepresentable { code in
         UINotificationFeedbackGenerator().notificationOccurred(.success)
-        logger.info("QR code scanned successfully")
+        log.info("QR code scanned successfully")
         onCodeScanned(code)
         dismiss()
       } onInvalidCodeScanned: {
         UINotificationFeedbackGenerator().notificationOccurred(.error)
-        logger.warning("Invalid QR code scanned")
+        log.warning("Invalid QR code scanned")
         toast.show(.error(.invalidQrCode))
       }
       .ignoresSafeArea()

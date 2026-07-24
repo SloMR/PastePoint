@@ -4,7 +4,6 @@
 //
 
 import Combine
-import Logging
 import Network
 import SwiftUI
 import UIKit
@@ -12,7 +11,6 @@ import WebRTC
 
 @MainActor
 final class AppServices: ObservableObject {
-  private let logger = Logger(label: "App")
 
   @Published private(set) var localNetworkDenied = false
 
@@ -143,12 +141,12 @@ final class AppServices: ObservableObject {
     endBackgroundGrace()
 
     guard LegalConsent.isAccepted else {
-      logger.debug("handleForeground — terms not accepted, staying offline")
+      log.debug("handleForeground — terms not accepted, staying offline")
       return
     }
 
     guard !wsService.isConnected, !wsService.isConnecting, !isForegroundHandling else {
-      logger.debug("handleForeground — already connected or connecting, skipping")
+      log.debug("handleForeground — already connected or connecting, skipping")
       return
     }
     isForegroundHandling = true
@@ -172,7 +170,7 @@ final class AppServices: ObservableObject {
     let denied = await LocalNetworkPermission.isDenied()
     localNetworkDenied = denied
     guard !denied else {
-      logger.warning("connectIfPermitted — local network denied, skipping connect")
+      log.warning("connectIfPermitted — local network denied, skipping connect")
       wsService.disconnect(manual: false)
       return false
     }
@@ -182,7 +180,7 @@ final class AppServices: ObservableObject {
   }
 
   func handleBackground() {
-    logger.info("handleBackground — starting disconnect grace window")
+    log.info("handleBackground — starting disconnect grace window")
     isInBackground = true
 
     backgroundGraceTask?.cancel()
@@ -201,7 +199,7 @@ final class AppServices: ObservableObject {
   /// Teardown, run once the grace window elapses
   private func performBackgroundDisconnect() {
     guard backgroundTaskID != .invalid else { return }
-    logger.info("handleBackground — grace elapsed, disconnecting")
+    log.info("handleBackground — grace elapsed, disconnecting")
     fileTransferService.cancelAllTransfers()
     wsService.disconnect(manual: false)
     endBackgroundGrace()
@@ -231,13 +229,13 @@ final class AppServices: ObservableObject {
         self.lastPathStatus = path.status
 
         if previous != path.status {
-          self.logger.debug("Network path changed: \(previous) → \(path.status)")
+          log.debug("Network path changed: \(previous) → \(path.status)")
         }
 
         guard path.status == .satisfied, previous != .satisfied else { return }
         guard !self.isInBackground else { return }
 
-        self.logger.info("Network restored — triggering reconnect")
+        log.info("Network restored — triggering reconnect")
         await self.handleForeground()
       }
     }

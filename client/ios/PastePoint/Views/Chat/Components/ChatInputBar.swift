@@ -3,14 +3,12 @@
 //  SPDX-License-Identifier: GPL-3.0-only
 //
 
-import Logging
 import SwiftUI
 
 struct ChatInputBar: View {
   @Environment(\.layoutDirection) private var layoutDirection
   @EnvironmentObject private var toast: ToastCenter
 
-  private let logger = Logger(label: "ChatInputBar")
   let onSend: (String) -> Bool
   let onSendFiles: ([StagedFile]) -> Bool
   let hasConnectedPeers: Bool
@@ -50,7 +48,7 @@ struct ChatInputBar: View {
 
       HStack(alignment: .bottom, spacing: 8) {
 
-        // TODO: Show toast on picker/stage failure (see logger.error sites)
+        // TODO: Show toast on picker/stage failure (see log.error sites)
         AttachmentMenu { staged in
           let marked = staged.map { file -> StagedFile in
             var copy = file
@@ -143,20 +141,20 @@ struct ChatInputBar: View {
 
     if hasText {
       if onSend(trimmed) {
-        logger.info("send message successfully")
+        log.info("send message successfully")
         message = ""
       } else {
-        logger.error("send message failed")
+        log.error("send message failed")
       }
     }
 
     if hasFiles {
       if onSendFiles(stagedFiles) {
         // Ownership of tmp files transfers to FileUpload; do NOT delete here.
-        logger.info("send files successfully")
+        log.info("send files successfully")
         stagedFiles = []
       } else {
-        logger.error("send files failed")
+        log.error("send files failed")
       }
     }
   }

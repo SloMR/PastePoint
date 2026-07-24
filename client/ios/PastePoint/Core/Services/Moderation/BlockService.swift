@@ -5,11 +5,9 @@
 
 import Combine
 import Foundation
-import Logging
 
 @MainActor
 final class BlockService: ObservableObject {
-  private let logger = Logger(label: "Block")
 
   @Published private(set) var blockedPeers: Set<String> = []
 
@@ -27,12 +25,12 @@ final class BlockService: ObservableObject {
   func block(_ peer: String) {
     guard !peer.isEmpty else { return }
 
-    logger.info("blocking peer \(peer)")
+    log.info("blocking peer \(peer)")
     blockedPeers.insert(peer)
   }
 
   func unblock(_ peer: String) {
-    logger.info("unblocking peer \(peer)")
+    log.info("unblocking peer \(peer)")
     blockedPeers.remove(peer)
   }
 
@@ -43,7 +41,7 @@ final class BlockService: ObservableObject {
   private func clear() {
     guard !blockedPeers.isEmpty else { return }
 
-    logger.debug("clearing blocks — identities are reassigned on reconnect")
+    log.debug("clearing blocks — identities are reassigned on reconnect")
     blockedPeers.removeAll()
   }
 }

@@ -4,7 +4,6 @@
 //
 
 import Foundation
-import Logging
 import Photos
 import UniformTypeIdentifiers
 
@@ -12,7 +11,6 @@ import UniformTypeIdentifiers
 /// library, everything else into the app's Documents folder. The tmp buffer is
 /// consumed (moved) or deleted afterwards — nothing lingers.
 enum ReceivedFileSaver {
-  private nonisolated static let logger = Logger(label: "ReceivedFileSaver")
 
   enum Outcome: Sendable {
     case photos
@@ -34,7 +32,7 @@ enum ReceivedFileSaver {
   private nonisolated static func saveToPhotos(url: URL, isVideo: Bool) async -> Outcome {
     let status = await PHPhotoLibrary.requestAuthorization(for: .addOnly)
     guard status == .authorized || status == .limited else {
-      logger.error("Photos add permission denied")
+      log.error("Photos add permission denied")
       return .permissionDenied
     }
 
@@ -48,10 +46,10 @@ enum ReceivedFileSaver {
       } completionHandler: { success, error in
         if success {
           try? FileManager.default.removeItem(at: url)
-          Self.logger.info("saved to Photos: \(url.lastPathComponent)")
+          log.info("saved to Photos: \(url.lastPathComponent)")
           continuation.resume(returning: .photos)
         } else {
-          Self.logger.error("Photos save failed: \(String(describing: error))")
+          log.error("Photos save failed: \(String(describing: error))")
           continuation.resume(returning: .failed)
         }
       }
@@ -71,10 +69,10 @@ enum ReceivedFileSaver {
 
       let dest = uniqueURL(in: docs, fileName: fileName)
       try FileManager.default.moveItem(at: url, to: dest)
-      logger.info("saved to Documents: \(dest.lastPathComponent)")
+      log.info("saved to Documents: \(dest.lastPathComponent)")
       return .documents(dest)
     } catch {
-      logger.error("Documents save failed: \(String(describing: error))")
+      log.error("Documents save failed: \(String(describing: error))")
       return .failed
     }
   }

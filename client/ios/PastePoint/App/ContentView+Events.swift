@@ -3,7 +3,6 @@
 //  SPDX-License-Identifier: GPL-3.0-only
 //
 
-import Logging
 import SwiftUI
 
 // MARK: - Event Wiring
@@ -28,7 +27,7 @@ private struct ChatEventHandlers: ViewModifier {
     content
       .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { activity in
         guard let url = activity.webpageURL else {
-          owner.logger.error("Ignoring universal-link activity without URL")
+          log.error("Ignoring universal-link activity without URL")
           return
         }
         owner.handleIncomingURL(url)
@@ -43,10 +42,10 @@ private struct ChatEventHandlers: ViewModifier {
   private func messageHandlers(_ content: some View) -> some View {
     content
       .onReceive(owner.services.wsService.message) { msg in
-        owner.logger.info("User message: \(msg)")
+        log.info("User message: \(msg)")
       }
       .onReceive(owner.services.wsService.signalMessage) { sig in
-        owner.logger.debug("Signal: \(sig.payload.typeString) | from: \(sig.from) → to: \(sig.to)")
+        log.debug("Signal: \(sig.payload.typeString) | from: \(sig.from) → to: \(sig.to)")
       }
       .onReceive(owner.services.signalingService.chatMessages) { message in
         owner.messages.append(message)

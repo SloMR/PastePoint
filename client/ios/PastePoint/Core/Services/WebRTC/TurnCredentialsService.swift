@@ -4,7 +4,6 @@
 //
 
 import Foundation
-import Logging
 import WebRTC
 
 /// Fetches short-lived TURN credentials from `GET /turn-credentials` and caches
@@ -19,8 +18,6 @@ final class TurnCredentialsService {
     let ttl: Int
     let urls: [String]
   }
-
-  private let logger = Logger(label: "TurnCredentials")
 
   private var cached: [RTCIceServer]?
   private var expiresAt: Date = .distantPast
@@ -44,13 +41,13 @@ final class TurnCredentialsService {
         http.statusCode != 204,
         !data.isEmpty
       else {
-        logger.info("No TURN relay configured on server — STUN-only")
+        log.info("No TURN relay configured on server — STUN-only")
         return WebRTCConfig.stunServers
       }
 
       let creds = try JSONDecoder().decode(Response.self, from: data)
       guard !creds.urls.isEmpty, !creds.username.isEmpty, !creds.credential.isEmpty else {
-        logger.info("No TURN relay configured on server — STUN-only")
+        log.info("No TURN relay configured on server — STUN-only")
         return WebRTCConfig.stunServers
       }
 
@@ -64,10 +61,10 @@ final class TurnCredentialsService {
 
       // Refresh a minute before the credential actually expires.
       expiresAt = Date().addingTimeInterval(TimeInterval(max(creds.ttl - 60, 60)))
-      logger.info("TURN credentials fetched — relay available (ttl \(creds.ttl)s, urls: \(creds.urls.joined(separator: ", ")))")
+      log.info("TURN credentials fetched — relay available (ttl \(creds.ttl)s, urls: \(creds.urls.joined(separator: ", ")))")
       return servers
     } catch {
-      logger.debug("TURN fetch failed, STUN-only: \(error.localizedDescription)")
+      log.debug("TURN fetch failed, STUN-only: \(error.localizedDescription)")
       return WebRTCConfig.stunServers
     }
   }

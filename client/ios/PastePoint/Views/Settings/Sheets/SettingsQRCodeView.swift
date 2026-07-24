@@ -4,7 +4,6 @@
 //
 
 import CoreImage.CIFilterBuiltins
-import Logging
 import SwiftUI
 
 struct QRCodeView: View {
@@ -47,8 +46,6 @@ struct SettingsQRCodeView: View {
   @Environment(\.dismiss) private var dismiss
   @EnvironmentObject private var services: AppServices
 
-  private let logger = Logger(label: "SettingsQRCodeView")
-
   var body: some View {
     VStack(spacing: 16) {
       QRCodeView(
@@ -70,7 +67,7 @@ struct SettingsQRCodeView: View {
         .padding(.horizontal)
     }
     .padding()
-    .onAppear { logger.info("QR code sheet presented for session: \(services.wsService.currentSessionCode ?? "none")") }
+    .onAppear { log.info("QR code sheet presented for session: \(services.wsService.currentSessionCode ?? "none")") }
     .sheetContainer(title: .qrCode, initialHeight: 420)
   }
 }

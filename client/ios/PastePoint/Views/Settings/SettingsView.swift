@@ -3,7 +3,6 @@
 //  SPDX-License-Identifier: GPL-3.0-only
 //
 
-import Logging
 import SwiftUI
 
 struct SettingsView: View {
@@ -11,7 +10,6 @@ struct SettingsView: View {
   @EnvironmentObject private var services: AppServices
   @EnvironmentObject private var toast: ToastCenter
 
-  private let logger = Logger(label: "SettingsView")
   var onClose: (() -> Void)?
   var onSessionJoin: (() -> Void)?
   var onBlock: ((String) -> Void)?
@@ -53,7 +51,7 @@ struct SettingsView: View {
           // MARK: - Create New Room Button
 
           Button {
-            logger.info("Create new room tapped")
+            log.info("Create new room tapped")
             isJoinRoomSheetPresented = true
           } label: {
             HStack(spacing: 8) {
@@ -158,13 +156,13 @@ struct SettingsView: View {
     }
     .sheet(isPresented: $isLeaveSessionSheetPresented) {
       SettingsLeaveSessionView {
-        logger.info("User left a private session")
+        log.info("User left a private session")
         toast.show(.info(.leftPrivateSession))
       }
     }
     .sheet(isPresented: $isJoinRoomSheetPresented) {
       SettingsCreateRoomView {
-        logger.info("User created a room")
+        log.info("User created a room")
         toast.show(.success(.roomCreated))
       }
     }

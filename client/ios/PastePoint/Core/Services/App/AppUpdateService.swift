@@ -5,7 +5,6 @@
 
 import Combine
 import Foundation
-import Logging
 
 // MARK: - Wire model
 
@@ -35,8 +34,6 @@ enum UpdateRecommendation {
 final class AppUpdateService: ObservableObject {
   @Published private(set) var recommendation: UpdateRecommendation?
 
-  private let logger = Logger(label: "AppUpdate")
-
   private var isChecking: Bool = false
 
   private static let lastOptionalPromptKey = "AppUpdate.lastOptionalPromptAt"
@@ -53,7 +50,7 @@ final class AppUpdateService: ObservableObject {
     defer { isChecking = false }
 
     guard let url = URL(string: AppEnvironment.versionUrl) else {
-      logger.error("Invalid version URL")
+      log.error("Invalid version URL")
       return
     }
 
@@ -62,7 +59,7 @@ final class AppUpdateService: ObservableObject {
       let data = try await fetch(url)
       policy = try JSONDecoder().decode(VersionResponse.self, from: data).ios
     } catch {
-      logger.debug("Version check failed, ignoring: \(error.localizedDescription)")
+      log.debug("Version check failed, ignoring: \(error.localizedDescription)")
       return
     }
 
@@ -95,7 +92,7 @@ private extension AppUpdateService {
 
     guard !policy.url.isEmpty, let url = URL(string: policy.url) else {
       if !policy.minimum.isEmpty || !policy.latest.isEmpty {
-        logger.warning("Version policy has no valid url; ignoring")
+        log.warning("Version policy has no valid url; ignoring")
       }
       return recommendation
     }

@@ -3,14 +3,11 @@
 //  SPDX-License-Identifier: GPL-3.0-only
 //
 
-import Logging
 import SwiftUI
 
 struct SettingsCreateRoomView: View {
   @Environment(\.dismiss) private var dismiss
   @EnvironmentObject private var services: AppServices
-
-  private let logger = Logger(label: "SettingsCreateRoomView")
 
   var onRoomCreate: (() -> Void)?
 
@@ -35,10 +32,10 @@ struct SettingsCreateRoomView: View {
       // Buttons
       HStack(spacing: 12) {
         Button {
-          logger.info("User joining room with name: \(sanitizedRoomName)")
+          log.info("User joining room with name: \(sanitizedRoomName)")
           Task {
             await services.roomService.joinOrCreateRoom(sanitizedRoomName)
-            logger.info("Successfully joined room: \(sanitizedRoomName)")
+            log.info("Successfully joined room: \(sanitizedRoomName)")
             dismiss()
             onRoomCreate?()
           }
@@ -50,7 +47,7 @@ struct SettingsCreateRoomView: View {
         .opacity(sanitizedRoomName.isEmpty ? 0.6 : 1)
 
         Button {
-          logger.info("Dismiss join private session")
+          log.info("Dismiss join private session")
           dismiss()
         } label: {
           Text(.cancel)

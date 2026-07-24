@@ -3,7 +3,6 @@
 //  SPDX-License-Identifier: GPL-3.0-only
 //
 
-import Logging
 import SwiftUI
 
 // MARK: - Root
@@ -18,8 +17,6 @@ struct ContentView: View {
 
   @EnvironmentObject var toast: ToastCenter
   @EnvironmentObject var services: AppServices
-
-  let logger = Logger(label: "ContentView")
 
   @State private var showSplash = true
   @State private var splashStart = Date()

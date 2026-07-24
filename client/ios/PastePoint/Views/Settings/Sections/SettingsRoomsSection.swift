@@ -3,15 +3,12 @@
 //  SPDX-License-Identifier: GPL-3.0-only
 //
 
-import Logging
 import SwiftUI
 
 struct SettingsRoomsSection: View {
   @Environment(\.layoutDirection) private var layoutDirection
   @EnvironmentObject private var services: AppServices
   @EnvironmentObject private var toast: ToastCenter
-
-  private let logger = Logger(label: "SettingsRoomsSection")
 
   var body: some View {
     VStack {
@@ -39,7 +36,7 @@ struct SettingsRoomsSection: View {
         HStack(alignment: .center, spacing: 0) {
           Button {
             Task {
-              logger.info("Joining room \(room)")
+              log.info("Joining room \(room)")
               await services.roomService.joinOrCreateRoom(room)
               toast.show(.info(.roomJoined(room)))
             }
