@@ -77,7 +77,7 @@ ios/
 - **macOS**: Tahoe 26.2 or later
 - **Xcode**: 26.5 (specified in `.xcode-version`)
 - **iOS Deployment Target**: 17.6+ (iPhone and iPad)
-- **Backend**: A running PastePoint server (see the [server readme](../../server/README.md) or `make dev` at the repo root)
+- **Backend**: A running PastePoint server (see the [server readme](../../server/README.md) or `make dev` at the repository root)
 
 ### Development Setup
 
@@ -156,7 +156,7 @@ It derives the app's endpoints and local-network probe settings from those two v
 
 > **Note:** `wsPort` selects how the server is reached in development. Use `9000` for a standalone `cargo run` server, and `nil` when running the Docker stack, where only nginx is published on 443. Host and port changes are local-only — do not commit them.
 
-To test against a server on your LAN, replace the `DEBUG` host with your machine's IP. `scripts/configure-network.sh` at the repo root can update it automatically.
+To test against a server on your LAN, replace the `DEBUG` host with your machine's IP. `scripts/configure-network.sh` at the repository root can update it automatically.
 
 ### Entitlements and Permissions
 
@@ -265,7 +265,7 @@ String(localized: .joinRoom)  // for TextField placeholders
 - **Naming**: standalone screens end in `…View`, embedded sub-sections end in `…Section`
 - **Shared components**: reuse `Views/Components/` (`.pill` buttons, `.sheetContainer`, `LabeledInputField`, `StatusBanner`) rather than re-inlining markup
 - **Logging**: `os.Logger` with subsystem `com.pastepoint`; log messages stay in English
-- **Commits**: `iOS:` + imperative subject, `-` bullet body explaining what and why (see the [git history](../../CONTRIBUTING.md))
+- **Commits**: `iOS:` + imperative subject, `-` bullet body explaining what and why (see the [Git history](../../CONTRIBUTING.md))
 
 ### Debug Logging
 
