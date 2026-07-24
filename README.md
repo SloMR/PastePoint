@@ -4,13 +4,13 @@
 <br>
 <br>
 
-![Docker](https://img.shields.io/badge/Docker-Containers-blue) ![Rust](https://img.shields.io/badge/Rust-Backend-orange) ![Angular](https://img.shields.io/badge/Angular-Frontend-red) [![Nginx](https://img.shields.io/badge/Nginx-Reverse_Proxy-green)](https://nginx.org)
+![Docker](https://img.shields.io/badge/Docker-Containers-blue) ![Rust](https://img.shields.io/badge/Rust-Backend-orange) ![Angular](https://img.shields.io/badge/Angular-Frontend-red) [![iOS](https://img.shields.io/badge/iOS-17.6%2B-black)](https://developer.apple.com/ios/) [![Nginx](https://img.shields.io/badge/Nginx-Reverse_Proxy-green)](https://nginx.org)
 
 </div>
 
 # PastePoint
 
-PastePoint is a secure, feature-rich file-sharing service designed for local networks. It enables users to share files and communicate efficiently through peer-to-peer WebRTC connections. Built with a Rust-based backend using Actix Web and an Angular 21 frontend with SSR support, PastePoint prioritizes security, performance, and usability.
+PastePoint is a secure, feature-rich file-sharing service designed for local networks. It enables users to share files and communicate efficiently through peer-to-peer WebRTC connections. It combines a Rust signaling server, an Angular 21 web client with SSR, and a native SwiftUI iOS client.
 
 ## Usage Disclaimer
 
@@ -87,12 +87,26 @@ PastePoint is a secure, feature-rich file-sharing service designed for local net
 - **Rendering**: Server-Side Rendering with Angular SSR
 - **State Management**: RxJS observables
 - **Styling**: Tailwind CSS with dark mode
-- **I18n**: ngx-translate integration (English, Arabic with RTL)
+- **I18n**: ngx-translate integration (English, Arabic with RTL, Spanish, French, Russian, Simplified Chinese)
 - **WebRTC**: Native WebRTC API for file transfers
 - **QR Sharing**: `qrcode` for generation, `jsqr` for camera-based scanning
 - **Integrity**: `hash-wasm` for fast file hashing
 - **Notifications**: Hot-toast for real-time feedback
 - **Error Tracking**: `@sentry/angular` with privacy-tight redaction
+
+#### iOS (SwiftUI)
+
+[![Swift](https://img.shields.io/badge/Swift-6.0-orange)](https://swift.org/)
+[![iOS](https://img.shields.io/badge/iOS-17.6%2B-black)](https://developer.apple.com/ios/)
+[![WebRTC](https://img.shields.io/badge/WebRTC-147.0-green)](https://github.com/stasel/WebRTC)
+
+- **UI**: Native SwiftUI for iPhone and iPad
+- **Concurrency**: Swift 6 strict concurrency
+- **WebRTC**: `stasel/WebRTC` binary distribution, same mesh protocol as the web client
+- **I18n**: String Catalogs (English, Arabic with RTL, Spanish, French, Russian, Simplified Chinese)
+- **QR Sharing**: AVFoundation scanning, Core Image generation
+- **Universal Links**: Invite URLs open the app when installed
+- **Integrity**: BLAKE3 file hashing with per-chunk CRC32
 
 ### Infrastructure
 
@@ -112,7 +126,7 @@ PastePoint is a secure, feature-rich file-sharing service designed for local net
 pastepoint/
 ├── client/                         # Frontend clients
 │   ├── web/                        # Angular SSR frontend
-│   └── ios/                        # iOS client (WIP)
+│   └── ios/                        # SwiftUI iOS client
 ├── server/                         # Rust backend with WebSockets
 ├── nginx/                          # Reverse proxy & SSL termination
 ├── scripts/                        # Development & deployment scripts
@@ -133,9 +147,9 @@ pastepoint/
 
 - [Web readme](client/web/README.md)
 
-##### iOS:
+##### iOS (SwiftUI):
 
-- Work in progress
+- [iOS readme](client/ios/README.md)
 
 ##### Android:
 
@@ -233,8 +247,10 @@ pastepoint/
      - Localhost: [https://localhost](https://localhost)
      - Local Network: `https://<your-local-ip>`
    - WebSocket signaling:
-     - Localhost: `wss://localhost:9000/ws`
-     - Local Network: `wss://<your-local-ip>:9000/ws`
+     - Localhost: `wss://localhost/ws`
+     - Local Network: `wss://<your-local-ip>/ws`
+
+   A standalone `cargo run` server uses port 9000 instead of nginx on 443.
 
 ## Contributing
 
