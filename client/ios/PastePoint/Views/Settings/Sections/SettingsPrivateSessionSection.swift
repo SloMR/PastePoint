@@ -110,16 +110,17 @@ struct SettingsPrivateSessionSection: View {
           isStarting = true
           do {
             log.info("Start private session button tapped")
+
             let code = try await services.sessionService.getNewSessionCode()
             await services.wsService.setupPrivateSession(code)
+
             isStarting = false
             guard await services.connectIfPermitted() else {
               toast.show(.error(.localNetworkOffStart))
               return
             }
+
             toast.show(.success(.privateSessionStarted))
-            await services.roomService.listRooms()
-            await services.userService.getUsername()
           } catch {
             isStarting = false
             log.error("Cannot get the session code \(error)")

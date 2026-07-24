@@ -55,11 +55,10 @@ struct SettingsLeaveSessionView: View {
   private func leaveSession() async {
     log.info("User confirmed leaving private session")
     isLeaving = true
+
     services.wsService.disconnect(manual: true)
-    if await services.connectIfPermitted(sessionCode: nil) {
-      await services.roomService.listRooms()
-      await services.userService.getUsername()
-    }
+    _ = await services.connectIfPermitted(sessionCode: nil)
+
     isLeaving = false
     log.info("Left private session")
     dismiss()

@@ -89,10 +89,9 @@ extension ContentView {
         toast.show(.error(.localNetworkOffJoin))
         return
       }
+
       setSettingsVisible(false)
       pendingPrivateJoin = true
-      await services.roomService.listRooms()
-      await services.userService.getUsername()
     }
   }
 

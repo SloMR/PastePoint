@@ -80,26 +80,26 @@ struct SettingsJoinPrivateView: View {
   private func joinSession(code: String) async {
     let trimmed = code.trimmingCharacters(in: .whitespacesAndNewlines)
     guard !trimmed.isEmpty else { return }
+
     guard SessionService.isValidSessionCode(trimmed) else {
       log.warning("Invalid session code entered: \(trimmed)")
       toast.show(.error(.invalidSessionCode))
       return
     }
+
     log.info("Joining private session with code: \(trimmed)")
     isJoining = true
+
     await services.wsService.setupPrivateSession(trimmed)
     guard await services.connectIfPermitted() else {
       isJoining = false
       toast.show(.error(.localNetworkOffJoin))
       return
     }
+
     isJoining = false
     dismiss()
     onSessionJoin?()
-    Task {
-      await services.roomService.listRooms()
-      await services.userService.getUsername()
-    }
   }
 }
 
