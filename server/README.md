@@ -1,6 +1,6 @@
 # PastePoint Server (Rust Backend)
 
-The PastePoint server is a high-performance Rust-based backend built with Actix Web, providing WebSocket-based file sharing and communication services for local networks. Features comprehensive session management, WebRTC signaling, and secure file transfer capabilities.
+The PastePoint server is a Rust signaling backend built with Actix Web. It manages rooms and ephemeral identities, issues TURN credentials, and relays WebRTC signaling without handling file payloads.
 
 [![Actix](https://img.shields.io/badge/Actix-4.13-blue)](https://actix.rs/)
 [![OpenSSL](https://img.shields.io/badge/OpenSSL-0.10-yellow)](https://www.openssl.org/)
@@ -53,21 +53,22 @@ server/
    cd server
    ```
 
-2. **Install dependencies**:
+2. **Generate the development certificate**:
+
+   ```bash
+   ../scripts/generate-certs.sh
+   ```
+
+3. **Build the server**:
 
    ```bash
    cargo build
    ```
 
-3. **Run development server**:
+4. **Run the development server**:
 
    ```bash
    cargo run
-   ```
-
-4. **Run with a specific configuration**:
-   ```bash
-   RUN_ENV=docker-dev cargo run
    ```
 
 ## Configuration
@@ -80,7 +81,8 @@ server/
 
 The active config is selected via the `RUN_ENV` environment variable (e.g.
 `RUN_ENV=development`, `production`, or `docker-dev`), defaulting to the
-development configuration when unset.
+development configuration when unset. The `docker-dev` configuration is used
+inside Docker Compose and expects container certificate paths.
 
 ## Testing
 
@@ -127,7 +129,7 @@ cargo build --release
 - **CORS**: Configurable Cross-Origin Resource Sharing
 - **Input Validation**: Comprehensive input validation and sanitization
 - **Session Management**: Secure UUID-based session handling
-- **WebSocket Security**: Secure WebSocket connections with proper authentication
+- **WebSocket Security**: TLS, origin validation, and room-scoped signaling relay
 
 ## Troubleshooting
 
@@ -174,5 +176,6 @@ This project is licensed under the GPL-3.0 License. See the [LICENSE](../LICENSE
 ## Related Documentation
 
 - [Main project readme](../README.md)
-- [Client readme](../client/web/README.md)
+- [Web client readme](../client/web/README.md)
+- [iOS client readme](../client/ios/README.md)
 - [Docker Compose setup](../docker-compose.yml)
