@@ -14,6 +14,10 @@ import WebRTC
 final class AppServices: ObservableObject {
   private let logger = Logger(label: "App")
 
+  @Published private(set) var localNetworkDenied = false
+
+  static let shared = AppServices()
+
   let wsService: WebSocketConnectionService
   let sessionService: SessionService
 
@@ -29,15 +33,16 @@ final class AppServices: ObservableObject {
   let connectionWarningMonitor: ConnectionWarningMonitor
   let updateService: AppUpdateService
 
-  static let shared = AppServices()
-
-  @Published private(set) var localNetworkDenied = false
-
   private var isInBackground = false
   private var isForegroundHandling = false
+
   private let networkMonitor = NWPathMonitor()
   private var lastPathStatus: NWPath.Status = .satisfied
   private var cancellables = Set<AnyCancellable>()
+
+  private static let backgroundGraceInterval: Duration = .seconds(10)
+  private var backgroundGraceTask: Task<Void, Never>?
+  private var backgroundTaskID: UIBackgroundTaskIdentifier = .invalid
 
   private init() {
     wsService = WebSocketConnectionService()
@@ -135,6 +140,7 @@ final class AppServices: ObservableObject {
 #endif
 
     isInBackground = false
+    endBackgroundGrace()
 
     guard LegalConsent.isAccepted else {
       logger.debug("handleForeground — terms not accepted, staying offline")
@@ -176,10 +182,39 @@ final class AppServices: ObservableObject {
   }
 
   func handleBackground() {
-    logger.info("handleBackground — disconnecting")
+    logger.info("handleBackground — starting disconnect grace window")
     isInBackground = true
+
+    backgroundGraceTask?.cancel()
+    backgroundTaskID = UIApplication.shared.beginBackgroundTask(withName: "pastepoint.disconnectgrace") { [weak self] in
+      self?.backgroundGraceTask?.cancel()
+      self?.performBackgroundDisconnect()
+    }
+
+    backgroundGraceTask = Task { [weak self] in
+      try? await Task.sleep(for: Self.backgroundGraceInterval)
+      guard !Task.isCancelled else { return }
+      self?.performBackgroundDisconnect()
+    }
+  }
+
+  /// Teardown, run once the grace window elapses
+  private func performBackgroundDisconnect() {
+    guard backgroundTaskID != .invalid else { return }
+    logger.info("handleBackground — grace elapsed, disconnecting")
     fileTransferService.cancelAllTransfers()
     wsService.disconnect(manual: false)
+    endBackgroundGrace()
+  }
+
+  /// Cancels a pending grace timer and releases the background-task assertion.
+  private func endBackgroundGrace() {
+    backgroundGraceTask?.cancel()
+    backgroundGraceTask = nil
+    if backgroundTaskID != .invalid {
+      UIApplication.shared.endBackgroundTask(backgroundTaskID)
+      backgroundTaskID = .invalid
+    }
   }
 
   // MARK: - Network Monitoring
