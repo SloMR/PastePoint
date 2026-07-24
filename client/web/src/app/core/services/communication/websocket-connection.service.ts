@@ -323,10 +323,16 @@ export class WebSocketConnectionService implements OnDestroy {
       'scheduleReconnect',
       `Scheduling reconnect attempt ${this.reconnectAttempts} in ${currentDelay}ms`
     );
-    this.reconnectState$.next({
-      attempt: this.reconnectAttempts,
-      nextAttemptAt: Date.now() + currentDelay,
-    });
+
+    // Don't flag the server as troubled on the first retry — a suspended tab
+    // resuming (e.g. after picking a file) reconnects on attempt 1 without ever
+    // showing the banner. Only a persistent failure surfaces it.
+    if (this.reconnectAttempts > 1) {
+      this.reconnectState$.next({
+        attempt: this.reconnectAttempts,
+        nextAttemptAt: Date.now() + currentDelay,
+      });
+    }
 
     this.reconnectTimer = setTimeout(() => {
       if (this.isConnected()) {
