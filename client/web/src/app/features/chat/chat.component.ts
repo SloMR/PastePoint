@@ -183,9 +183,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
       !this.wsConnectionService.isConnected()
     ) {
       this.logger.info('visibilitychange', 'Page visible, reconnecting if needed');
-      this.connect(this.SessionCode).catch((err: unknown) => {
-        this.logger.warn('visibilitychange', `Reconnect after visibility change failed: ${err}`);
-      });
+      this.reconnectInPlace('visibilitychange');
     }
   };
   private beforeUnloadHandler = () => {
@@ -476,13 +474,33 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
           'Suspension detected; reconnecting in place instead of reloading'
         );
 
-        this.wsConnectionService.disconnect(false);
-        this.connect(this.SessionCode || undefined).catch((err: unknown) => {
-          this.logger.warn('startHeartbeatMonitor', `Reconnect after suspension failed: ${err}`);
-        });
+        this.reconnectInPlace('startHeartbeatMonitor');
       })
     );
     this.heartbeatService.start();
+  }
+
+  /**
+   * Reconnect the WebSocket in place after a suspend/resume
+   * (tab backgrounded while picking a file, then resumed).
+   */
+  private reconnectInPlace(context: string): void {
+    this.wsConnectionService.disconnect(false);
+    this.webrtcService.closeAllConnections();
+
+    this.members
+      .filter((member) => member !== this.userService.user)
+      .forEach((member) => {
+        this.memberConnectionStatus.set(member, false);
+        this.memberConnectionState.set(member, 'connecting');
+      });
+    this.cdr.detectChanges();
+
+    this.connect(this.SessionCode || undefined)
+      .then(() => this.initiateConnectionsWithMembers())
+      .catch((err: unknown) => {
+        this.logger.warn(context, `Reconnect after resume failed: ${err}`);
+      });
   }
 
   /**
