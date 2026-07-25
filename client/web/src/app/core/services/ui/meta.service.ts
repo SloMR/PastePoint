@@ -137,10 +137,10 @@ export class MetaService {
       // Private session - no indexing
       this.setTag('robots', 'noindex');
       this.update({
-        title: 'Private Session – Secure File Sharing & Encrypted Chat App',
+        title: 'Invite-only · PastePoint',
         canonical: 'https://pastepoint.com/',
         og: {
-          title: 'Private Session – Secure File Sharing & Encrypted Chat App',
+          title: 'Join on PastePoint',
           description:
             'PastePoint lets you share files and chat instantly with end-to-end encryption. No cloud, no accounts, no tracking—secure peer-to-peer transfers made simple.',
           type: 'website',
@@ -152,7 +152,7 @@ export class MetaService {
           card: 'summary_large_image',
           site: '@pastepoint',
           creator: '@pastepoint',
-          title: 'Private Session – Secure File Sharing & Encrypted Chat App',
+          title: 'Join on PastePoint',
           description:
             'PastePoint lets you share files and chat instantly with end-to-end encryption. No cloud, no accounts, no tracking—secure peer-to-peer transfers made simple.',
           image: 'https://pastepoint.com/assets/pastepoint-og-image.png',
