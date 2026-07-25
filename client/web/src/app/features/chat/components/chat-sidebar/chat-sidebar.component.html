@@ -20,14 +20,14 @@
       />
       <span
         class="absolute left-1/2 -translate-x-1/2 text-sm font-expoArabicLight text-content dark:text-white"
-        >Settings</span
+        >{{ 'SETTINGS' | translate }}</span
       >
       <button
         type="button"
         (click)="isMenuOpenChange.emit(false)"
         class="ms-auto flex h-9 w-9 items-center justify-center rounded-lg text-content transition-colors hover:bg-inputBackground dark:text-white dark:hover:bg-borderDark md:hidden"
-        aria-label="Close"
-        title="Close"
+        [attr.aria-label]="'CLOSE' | translate"
+        [title]="'CLOSE' | translate"
       >
         <svg
           class="h-5 w-5"
@@ -49,8 +49,7 @@
       <div class="flex w-full items-center gap-2 overflow-hidden px-4 pb-4 pt-1">
         <img
           [src]="selfAvatar"
-          alt="You"
-          title="You"
+          alt=""
           class="h-9 w-9 shrink-0 select-none rounded-full"
           loading="lazy"
           width="36"
@@ -62,7 +61,7 @@
           [class.dark:text-white]="currentUser"
           [class.text-gray-400]="!currentUser"
         >
-          {{ currentUser || 'Connecting…' }}
+          {{ currentUser || ('CONNECTING' | translate) }}
         </p>
       </div>
 
@@ -74,8 +73,7 @@
         >
           <img
             src="/icons/white-plus.svg"
-            alt="Create New Room"
-            title="Create New Room"
+            alt=""
             class="h-5 w-5"
             loading="lazy"
             width="20"
@@ -93,8 +91,7 @@
           <div class="flex items-center justify-center gap-2">
             <img
               [src]="isDarkMode ? '/icons/home-white.svg' : '/icons/home.svg'"
-              alt="Rooms"
-              title="Rooms"
+              alt=""
               class="opacity-80"
               loading="lazy"
               width="16"
@@ -122,8 +119,8 @@
                     ? 'text-brand dark:text-brandDark'
                     : 'text-content/80 hover:text-content/60 dark:text-contentMuted dark:hover:text-contentMuted/80'
                 "
-                [attr.aria-label]="'Join room ' + room"
-                [attr.title]="'Join room ' + room"
+                [attr.aria-label]="('JOIN_ROOM' | translate) + ' ' + room"
+                [attr.title]="('JOIN_ROOM' | translate) + ' ' + room"
               >
                 <img
                   [src]="
@@ -131,8 +128,7 @@
                       ? '/icons/active-comment.svg'
                       : '/icons/inactive-comment.svg'
                   "
-                  alt="Home"
-                  title="Join Room"
+                  alt=""
                   class="h-[18px] w-[18px]"
                   loading="lazy"
                   width="18"
@@ -151,8 +147,7 @@
         <div class="flex w-full items-center gap-2 px-4 py-2">
           <img
             [src]="isDarkMode ? '/icons/code-white.svg' : '/icons/code.svg'"
-            alt="Session Code"
-            title="Session Code"
+            alt=""
             class="h-4 w-4 opacity-80"
             loading="lazy"
             width="16"
@@ -179,8 +174,8 @@
             >
               <img
                 src="/icons/copy.svg"
-                alt="Copy"
-                title="Copy"
+                [alt]="'COPY' | translate"
+                [title]="'COPY' | translate"
                 class="h-5 w-5"
                 loading="lazy"
                 width="20"
@@ -193,8 +188,8 @@
             >
               <img
                 src="/icons/qrcode.svg"
-                alt="QR Code"
-                title="QR Code"
+                [alt]="'QR_CODE' | translate"
+                [title]="'QR_CODE' | translate"
                 class="h-5 w-5"
                 loading="lazy"
                 width="20"
@@ -216,8 +211,7 @@
             >
               <img
                 src="/icons/blue-plus.svg"
-                alt="Create Private Session"
-                title="Create Private Session"
+                alt=""
                 class="h-5 w-5"
                 loading="lazy"
                 width="20"
@@ -234,9 +228,7 @@
               (click)="joinPrivateSessionRequested.emit(); isMenuOpenChange.emit(false)"
               class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border p-2 border-brand text-brand hover:bg-brand/10 dark:border-brandDark dark:text-brandDark dark:hover:bg-brandDark/10"
             >
-              <span class="text-sm font-expoArabicMedium">{{
-                'ENTER_A_CODE' | translate
-              }}</span>
+              <span class="text-sm font-expoArabicMedium">{{ 'ENTER_A_CODE' | translate }}</span>
             </button>
           </div>
         </div>
@@ -250,8 +242,7 @@
           <div class="flex items-center justify-center gap-2">
             <img
               [src]="isDarkMode ? '/icons/users-white.svg' : '/icons/users.svg'"
-              alt="Members"
-              title="Members"
+              alt=""
               class="opacity-80"
               loading="lazy"
               width="16"
@@ -294,8 +285,7 @@
                   >
                     <img
                       [src]="'/icons/link.svg'"
-                      alt="Send file"
-                      title="Send file"
+                      alt=""
                       class="h-4 w-4"
                       loading="lazy"
                       width="16"
@@ -371,8 +361,8 @@
                             cancelUploadRequested.emit(upload)
                           "
                           class="shrink-0 rounded-md text-textMuted hover:text-danger dark:text-textVeryMuted dark:hover:text-danger"
-                          aria-label="Cancel upload"
-                          title="Cancel upload"
+                          [attr.aria-label]="'CANCEL_UPLOAD' | translate"
+                          [title]="'CANCEL_UPLOAD' | translate"
                         >
                           <svg
                             class="h-3.5 w-3.5"
@@ -435,8 +425,8 @@
                             cancelDownloadRequested.emit(download)
                           "
                           class="shrink-0 rounded-md text-textMuted hover:text-danger dark:text-textVeryMuted dark:hover:text-danger"
-                          aria-label="Cancel download"
-                          title="Cancel download"
+                          [attr.aria-label]="'CANCEL_DOWNLOAD' | translate"
+                          [title]="'CANCEL_DOWNLOAD' | translate"
                         >
                           <svg
                             class="h-3.5 w-3.5"
@@ -489,8 +479,7 @@
           <div class="flex w-full cursor-pointer items-center justify-center gap-2 px-3 py-3">
             <img
               class=""
-              alt="End Session"
-              title="End Session"
+              alt=""
               src="/icons/cross-small.svg"
               loading="lazy"
               width="16"
@@ -582,7 +571,6 @@
       >
         <a
           routerLink="/privacy"
-          title="Privacy and Terms"
           rel="noopener noreferrer nofollow"
           class="text-brand transition-colors hover:underline dark:text-brandDark"
         >

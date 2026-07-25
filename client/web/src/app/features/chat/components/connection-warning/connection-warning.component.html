@@ -50,7 +50,7 @@
       <button
         (click)="dismissed.emit()"
         class="shrink-0 text-amber-500 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-200"
-        aria-label="Dismiss"
+        [attr.aria-label]="'DISMISS' | translate"
       >
         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path

@@ -18,7 +18,7 @@
           <button
             type="button"
             (click)="closed.emit()"
-            aria-label="Close"
+            [attr.aria-label]="'CLOSE' | translate"
             class="flex items-center justify-center rounded-full p-2 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
           >
             <img

@@ -95,8 +95,8 @@
           (mouseenter)="openEmojiPicker()"
           (mouseleave)="handleEmojiIconMouseLeave()"
           class="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-inputBackground dark:hover:bg-borderDark md:h-9 md:w-9"
-          [attr.aria-label]="'Open emoji picker'"
-          title="Open emoji picker"
+          [attr.aria-label]="'OPEN_EMOJI_PICKER' | translate"
+          [title]="'OPEN_EMOJI_PICKER' | translate"
         >
           <img
             [src]="'/icons/emoji.svg'"
@@ -137,7 +137,7 @@
       >
         <img
           [src]="'/icons/send.svg'"
-          alt="Send"
+          alt=""
           class="chat-send-icon h-4 w-4 md:h-[18px] md:w-[18px]"
           [style.transform]="isRTL ? 'scaleX(-1)' : null"
           loading="lazy"

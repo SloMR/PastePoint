@@ -54,12 +54,12 @@
         <button
           class="flex items-center justify-center gap-2 rounded-md px-4 py-2 text-white font-expoArabicMedium bg-brand hover:bg-brand/80 dark:bg-brandDark dark:hover:bg-brandDark/80"
           routerLink="/"
-          title="Go Back"
+          [title]="'GO_BACK' | translate"
         >
           <img
             src="/icons/back-arrow.svg"
             alt="arrow-right"
-            title="Go Back"
+            [title]="'GO_BACK' | translate"
             [ngClass]="isRTL ? 'rotate-0' : 'rotate-180'"
             loading="lazy"
             width="16"

@@ -147,15 +147,13 @@
         @if (SessionCode.length > 0) {
           <img
             [src]="isDarkMode ? '/icons/lock-white.svg' : '/icons/lock.svg'"
-            alt="Lock"
-            title="Lock"
+            alt=""
             class="h-4 w-4"
           />
         } @else {
           <img
             [src]="isDarkMode ? '/icons/users-white.svg' : '/icons/users.svg'"
-            alt="Room"
-            title="Room"
+            alt=""
             class="h-4 w-4 opacity-80"
           />
         }
@@ -175,8 +173,8 @@
           type="button"
           (click)="toggleTheme()"
           class="flex h-10 w-10 items-center justify-center rounded-full text-content transition-colors hover:bg-inputBackground dark:text-white dark:hover:bg-surfaceDark"
-          [attr.aria-label]="isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'"
-          [attr.title]="isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'"
+          [attr.aria-label]="'SWITCH_APPEARANCE' | translate"
+          [title]="'SWITCH_APPEARANCE' | translate"
         >
           @if (isDarkMode) {
             <svg
@@ -214,8 +212,8 @@
           type="button"
           (click)="isMenuOpen = !isMenuOpen"
           class="flex h-10 w-10 items-center justify-center rounded-full text-content transition-colors hover:bg-inputBackground dark:text-white dark:hover:bg-surfaceDark md:hidden"
-          aria-label="Settings"
-          title="Settings"
+          [attr.aria-label]="'SETTINGS' | translate"
+          [title]="'SETTINGS' | translate"
           [attr.aria-expanded]="isMenuOpen"
         >
           <svg

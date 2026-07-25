@@ -14,13 +14,12 @@
           <button
             (click)="closed.emit()"
             class="flex items-center justify-center rounded-full p-2 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
-            aria-label="Close QR Code"
-            title="Close QR Code"
+            [attr.aria-label]="'CLOSE' | translate"
+            [title]="'CLOSE' | translate"
           >
             <img
               src="/icons/cross-close.svg"
-              alt="Close"
-              title="Close"
+              alt=""
               class="h-4 w-4"
               loading="lazy"
               width="16"
