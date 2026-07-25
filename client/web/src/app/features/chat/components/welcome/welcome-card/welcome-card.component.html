@@ -1,0 +1,12 @@
+<div
+  class="space-y-2 rounded-lg bg-stepCard p-3 dark:bg-gray-800 sm:p-4"
+  [ngClass]="isRTL ? 'text-right' : 'text-left'"
+>
+  <h2 class="text-sm font-expoArabicMedium text-content dark:text-white">
+    {{ title | translate }}
+  </h2>
+  <p class="text-xs font-expoArabic leading-relaxed text-gray-600 dark:text-gray-400">
+    {{ message | translate }}
+  </p>
+  <ng-content />
+</div>

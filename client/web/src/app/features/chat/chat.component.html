@@ -76,6 +76,7 @@
       <app-chat-messages
         [messages]="messages"
         [sessionCode]="SessionCode"
+        [memberCount]="members.length"
         [isRTL]="isRTL"
         [isDarkMode]="isDarkMode"
         [currentUser]="userService.user"
@@ -83,6 +84,9 @@
         (declineFile)="declineIncomingFile($event)"
         (blockRequested)="blockUser($event)"
         (reportRequested)="reportUser($event)"
+        (connectDeviceRequested)="createPrivateSession()"
+        (showQrRequested)="openQRCodePopup()"
+        (copyCodeRequested)="copySessionCode()"
       />
 
       <!-- MARK: - Message Input -->

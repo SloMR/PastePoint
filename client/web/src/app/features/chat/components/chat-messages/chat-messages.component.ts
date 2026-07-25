@@ -19,6 +19,7 @@ import { middleTruncateFilename as middleTruncateFilenameUtil } from '../../../.
 import { avatarFor } from '../../../../utils/avatar.util';
 import { MessageActionsComponent } from '../message-actions/message-actions.component';
 import { BlurredPreviewComponent } from '../blurred-preview/blurred-preview.component';
+import { WelcomeComponent } from '../welcome/welcome.component';
 
 @Component({
   selector: 'app-chat-messages',
@@ -29,6 +30,7 @@ import { BlurredPreviewComponent } from '../blurred-preview/blurred-preview.comp
     TranslateModule,
     MessageActionsComponent,
     BlurredPreviewComponent,
+    WelcomeComponent,
   ],
   providers: [FileSizePipe],
   templateUrl: './chat-messages.component.html',
@@ -37,6 +39,7 @@ import { BlurredPreviewComponent } from '../blurred-preview/blurred-preview.comp
 export class ChatMessagesComponent {
   @Input() messages: ChatMessage[] = [];
   @Input() sessionCode = '';
+  @Input() memberCount = 0;
   @Input() isRTL = false;
   @Input() isDarkMode = false;
   @Input() currentUser: string | null = null;
@@ -45,6 +48,9 @@ export class ChatMessagesComponent {
   @Output() declineFile = new EventEmitter<ChatMessage>();
   @Output() blockRequested = new EventEmitter<string>();
   @Output() reportRequested = new EventEmitter<ChatMessage>();
+  @Output() connectDeviceRequested = new EventEmitter<void>();
+  @Output() showQrRequested = new EventEmitter<void>();
+  @Output() copyCodeRequested = new EventEmitter<void>();
 
   @ViewChild('messageContainer') messageContainer!: ElementRef;
 
