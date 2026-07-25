@@ -39,8 +39,10 @@
   "ROOM_JOINED_SUCCESS": "Вы присоединились к комнате {{roomName}}.",
 
   "_SESSIONS_SECTION": "==== SESSIONS ====",
-  "PRIVATE_ROOM": "Приватная комната",
-  "PUBLIC_ROOM": "Публичная комната",
+  "SESSION_STATUS_WIFI": "В этой сети Wi-Fi · устройств: {{count}}",
+  "SESSION_STATUS_WIFI_ALONE": "В этой сети Wi-Fi · только вы",
+  "SESSION_STATUS_PRIVATE": "Только по приглашению · устройств: {{count}}",
+  "SESSION_STATUS_PRIVATE_ALONE": "Только по приглашению · только вы",
   "PRIVATE_SESSION_INFO": "Приватная сессия готова. Поделитесь кодом сессии с теми, кого хотите пригласить.",
   "PUBLIC_SESSION_INFO": "Вы в публичной комнате — любой пользователь в той же сети может присоединиться автоматически.",
   "CREATE_PRIVATE_SESSION": "Начать приватный чат",

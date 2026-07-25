@@ -158,9 +158,7 @@
         <span class="truncate text-sm font-expoArabicMedium text-content dark:text-white">
           {{
             currentRoom == 'main'
-              ? SessionCode.length > 0
-                ? ('PRIVATE_ROOM' | translate)
-                : ('PUBLIC_ROOM' | translate)
+              ? (sessionStatusKey | translate: { count: deviceCount })
               : currentRoom
           }}
         </span>

@@ -39,8 +39,10 @@
   "ROOM_JOINED_SUCCESS": "已加入「{{roomName}}」聊天室。",
 
   "_SESSIONS_SECTION": "==== SESSIONS ====",
-  "PRIVATE_ROOM": "私密聊天室",
-  "PUBLIC_ROOM": "公开聊天室",
+  "SESSION_STATUS_WIFI": "同一 Wi-Fi · {{count}} 台设备",
+  "SESSION_STATUS_WIFI_ALONE": "同一 Wi-Fi · 只有你",
+  "SESSION_STATUS_PRIVATE": "仅限邀请 · {{count}} 台设备",
+  "SESSION_STATUS_PRIVATE_ALONE": "仅限邀请 · 只有你",
   "PRIVATE_SESSION_INFO": "私密会话已就绪。将会话代码分享给您想邀请的人。",
   "PUBLIC_SESSION_INFO": "您正处于公开聊天室——同一网络中的任何人都可以自动加入。",
   "CREATE_PRIVATE_SESSION": "开始私密聊天",

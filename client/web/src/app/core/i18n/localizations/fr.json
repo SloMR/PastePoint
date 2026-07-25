@@ -39,8 +39,10 @@
   "ROOM_JOINED_SUCCESS": "Vous avez rejoint le salon {{roomName}}.",
 
   "_SESSIONS_SECTION": "==== SESSIONS ====",
-  "PRIVATE_ROOM": "Salon privé",
-  "PUBLIC_ROOM": "Salon public",
+  "SESSION_STATUS_WIFI": "Sur ce Wi-Fi · {{count}} appareils",
+  "SESSION_STATUS_WIFI_ALONE": "Sur ce Wi-Fi · vous seulement",
+  "SESSION_STATUS_PRIVATE": "Sur invitation · {{count}} appareils",
+  "SESSION_STATUS_PRIVATE_ALONE": "Sur invitation · vous seulement",
   "PRIVATE_SESSION_INFO": "La session privée est prête. Partagez votre code de session pour inviter d'autres personnes.",
   "PUBLIC_SESSION_INFO": "Vous êtes dans un salon public — toute personne sur le même réseau peut s'y connecter automatiquement.",
   "CREATE_PRIVATE_SESSION": "Démarrer un chat privé",

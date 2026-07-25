@@ -39,8 +39,10 @@
   "ROOM_JOINED_SUCCESS": "Te has unido a la sala {{roomName}}.",
 
   "_SESSIONS_SECTION": "==== SESSIONS ====",
-  "PRIVATE_ROOM": "Sala privada",
-  "PUBLIC_ROOM": "Sala pública",
+  "SESSION_STATUS_WIFI": "En esta Wi-Fi · {{count}} dispositivos",
+  "SESSION_STATUS_WIFI_ALONE": "En esta Wi-Fi · solo tú",
+  "SESSION_STATUS_PRIVATE": "Solo por invitación · {{count}} dispositivos",
+  "SESSION_STATUS_PRIVATE_ALONE": "Solo por invitación · solo tú",
   "PRIVATE_SESSION_INFO": "La sesión privada está lista. Comparte el código con quien quieras invitar.",
   "PUBLIC_SESSION_INFO": "Estás en una sala pública: cualquiera en la misma red puede unirse automáticamente.",
   "CREATE_PRIVATE_SESSION": "Iniciar chat privado",

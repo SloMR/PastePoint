@@ -39,8 +39,10 @@
   "ROOM_JOINED_SUCCESS": "Joined {{roomName}} room.",
 
   "_SESSIONS_SECTION": "==== SESSIONS ====",
-  "PRIVATE_ROOM": "Private Room",
-  "PUBLIC_ROOM": "Public Room",
+  "SESSION_STATUS_WIFI": "On this Wi-Fi · {{count}} devices",
+  "SESSION_STATUS_WIFI_ALONE": "On this Wi-Fi · just you",
+  "SESSION_STATUS_PRIVATE": "Invite-only · {{count}} devices",
+  "SESSION_STATUS_PRIVATE_ALONE": "Invite-only · just you",
   "PRIVATE_SESSION_INFO": "Private session is ready. Share your session code with others to invite them.",
   "PUBLIC_SESSION_INFO": "You're in a public room – anyone on the same network can join automatically.",
   "CREATE_PRIVATE_SESSION": "Start Private Chat",

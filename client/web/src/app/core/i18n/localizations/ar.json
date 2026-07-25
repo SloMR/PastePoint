@@ -39,8 +39,10 @@
   "ROOM_JOINED_SUCCESS": "تم الانضمام إلى الغرفة {{roomName}}.",
 
   "_SESSIONS_SECTION": "==== SESSIONS ====",
-  "PRIVATE_ROOM": "غرفة خاصة",
-  "PUBLIC_ROOM": "غرفة عامة",
+  "SESSION_STATUS_WIFI": "على هذه الشبكة · {{count}} أجهزة",
+  "SESSION_STATUS_WIFI_ALONE": "على هذه الشبكة · أنت فقط",
+  "SESSION_STATUS_PRIVATE": "بدعوة فقط · {{count}} أجهزة",
+  "SESSION_STATUS_PRIVATE_ALONE": "بدعوة فقط · أنت فقط",
   "PRIVATE_SESSION_INFO": "الجلسة الخاصة جاهزة. شارك رمز الجلسة مع الآخرين لدعوتهم للانضمام.",
   "PUBLIC_SESSION_INFO": "أنت في غرفة عامة – يمكن لأي شخص على نفس شبكة الانضمام تلقائياً.",
   "CREATE_PRIVATE_SESSION": "إنشاء جلسة خاصة",

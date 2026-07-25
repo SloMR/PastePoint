@@ -1714,6 +1714,18 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     );
   }
 
+  protected get sessionStatusKey(): string {
+    const alone = this.members.length === 0;
+    if (this.SessionCode.length > 0) {
+      return alone ? 'SESSION_STATUS_PRIVATE_ALONE' : 'SESSION_STATUS_PRIVATE';
+    }
+    return alone ? 'SESSION_STATUS_WIFI_ALONE' : 'SESSION_STATUS_WIFI';
+  }
+
+  protected get deviceCount(): number {
+    return this.members.length + 1;
+  }
+
   /**
    * ==========================================================
    * GET SESSION URL
