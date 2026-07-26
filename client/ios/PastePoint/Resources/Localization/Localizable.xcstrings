@@ -715,6 +715,47 @@
         }
       }
     },
+    "CONNECT_A_DEVICE" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إنشاء رابط دعوة"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create an invite link"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Crear un enlace de invitación"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Créer un lien d’invitation"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Создать ссылку-приглашение"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "创建邀请链接"
+          }
+        }
+      }
+    },
     "CONNECTED" : {
       "comment" : "Toast: connected to the server.",
       "extractionState" : "manual",
@@ -1135,48 +1176,6 @@
         }
       }
     },
-    "CREATE_PRIVATE_SESSION" : {
-      "comment" : "Button: start a new private session.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "إنشاء جلسة خاصة"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Start Private Chat"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Iniciar chat privado"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Démarrer un chat privé"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Начать приватный чат"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "开始私密聊天"
-          }
-        }
-      }
-    },
     "DECLINE" : {
       "comment" : "Button: decline an incoming file transfer.",
       "extractionState" : "manual",
@@ -1303,6 +1302,171 @@
         }
       }
     },
+    "EMPTY_STATE_ALONE" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لا يوجد أحد هنا بعد"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nobody here yet"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aún no hay nadie"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personne ici pour l’instant"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Здесь пока никого нет"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "还没有其他人"
+          }
+        }
+      }
+    },
+    "EMPTY_STATE_CONNECTED" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تم الاتصال"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You’re connected"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estás conectado"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vous êtes connecté"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вы подключены"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已连接"
+          }
+        }
+      }
+    },
+    "EMPTY_STATE_CONNECTED_BODY" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أرسل رسالة أو أفلت ملفًا للبدء."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send a message or drop a file to get started."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envía un mensaje o suelta un archivo para empezar."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envoyez un message ou déposez un fichier pour commencer."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отправьте сообщение или перетащите файл, чтобы начать."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "发送消息或拖入文件即可开始。"
+          }
+        }
+      }
+    },
+    "EMPTY_STATE_TITLE" : {
+      "comment" : "Welcome screen headline; stays constant across session types.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "شارك الملفات والنصوص بين أجهزتك"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share files and text, device to device"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comparte archivos y texto entre tus dispositivos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Partagez fichiers et texte entre vos appareils"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Делитесь файлами и текстом между устройствами"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在你的设备之间共享文件和文本"
+          }
+        }
+      }
+    },
     "END_SESSION" : {
       "comment" : "Button / title: leave the current private session.",
       "extractionState" : "manual",
@@ -1425,6 +1589,47 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "结束会话"
+          }
+        }
+      }
+    },
+    "ENTER_A_CODE" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إدخال رمز"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter a code"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Introducir un código"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saisir un code"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ввести код"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "输入代码"
           }
         }
       }
@@ -2521,44 +2726,84 @@
         }
       }
     },
-    "INVITE_OTHERS_PUBLIC" : {
-      "comment" : "Welcome step (public room): invite others on the same network.",
+    "INVITE_SHARE_BODY" : {
       "extractionState" : "manual",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "إدعِ أشخاص آخرين على نفس شبكة للانضمام إلى هذه الغرفة"
+            "value" : "امسح رمز QR بجهازك الآخر، أو أرسل له الرابط."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Invite others on the same network to join this room"
+            "value" : "Scan this QR code with your other device, or send it the link."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Invita a otros en la misma red a unirse a esta sala"
+            "value" : "Escanea este código QR con tu otro dispositivo o envíale el enlace."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Invitez d'autres personnes sur le même réseau à rejoindre ce salon"
+            "value" : "Scannez ce QR code avec votre autre appareil, ou envoyez-lui le lien."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Пригласите других в этой сети присоединиться к комнате"
+            "value" : "Отсканируйте этот QR-код другим устройством или отправьте ему ссылку."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "邀请同一网络中的其他人加入此聊天室"
+            "value" : "用你的另一台设备扫描此二维码，或将链接发送给它。"
+          }
+        }
+      }
+    },
+    "INVITE_THE_OTHER_DEVICE" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ادعُ الجهاز الآخر"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invite the other device"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invita al otro dispositivo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inviter l’autre appareil"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пригласить другое устройство"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "邀请另一台设备"
           }
         }
       }
@@ -2601,48 +2846,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "加入私密会话"
-          }
-        }
-      }
-    },
-    "JOIN_PRIVATE_SESSION" : {
-      "comment" : "Button: open the join-private-session sheet.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "الانضمام إلى جلسة خاصة"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Join Private Chat"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unirse a un chat privado"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rejoindre un chat privé"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Войти в приватный чат"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "加入私密聊天"
           }
         }
       }
@@ -3463,6 +3666,211 @@
         }
       }
     },
+    "OPTION_ELSEWHERE_BODY" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "هاتف على بيانات الجوال، أو شخص في مكان آخر؟ أنشئ رابطًا يمكن فتحه من أي مكان."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Phone on mobile data, or someone somewhere else? Create a link they can open from anywhere."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Un teléfono con datos móviles o alguien en otro lugar? Crea un enlace que puedan abrir desde cualquier sitio."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un téléphone en données mobiles, ou quelqu’un ailleurs ? Créez un lien qu’il pourra ouvrir de n’importe où."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Телефон на мобильном интернете или кто-то в другом месте? Создайте ссылку, которую можно открыть откуда угодно."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "手机使用移动数据，或对方在别处？创建一个可在任何地方打开的链接。"
+          }
+        }
+      }
+    },
+    "OPTION_ELSEWHERE_BODY_CONNECTED" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أنشئ رابطًا يمكن لشخص على شبكة أخرى فتحه. ستنتقل إلى غرفة خاصة جديدة — لن تتبعك الأجهزة الموجودة على هذه الشبكة."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create a link someone on another network can open. You’ll move to a new private room — devices on this Wi-Fi won’t follow."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Crea un enlace que alguien en otra red pueda abrir. Pasarás a una sala privada nueva: los dispositivos de esta Wi-Fi no te seguirán."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Créez un lien qu’une personne sur un autre réseau pourra ouvrir. Vous passerez dans un nouveau salon privé — les appareils de ce Wi-Fi ne suivront pas."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Создайте ссылку, которую откроет кто-то из другой сети. Вы перейдёте в новую приватную комнату — устройства в этой сети Wi-Fi за вами не последуют."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "创建一个其他网络的人可以打开的链接。你将进入一个新的私密房间——此 Wi-Fi 下的设备不会跟随。"
+          }
+        }
+      }
+    },
+    "OPTION_ELSEWHERE_TITLE" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "على شبكة أخرى؟"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On a different network?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿En otra red?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sur un autre réseau ?"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "В другой сети?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在其他网络？"
+          }
+        }
+      }
+    },
+    "OPTION_SAME_WIFI_BODY" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "افتح PastePoint على الجهاز الآخر فقط — سينضم تلقائيًا."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Just open PastePoint on the other device — it joins automatically."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Solo abre PastePoint en el otro dispositivo: se conectará automáticamente."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ouvrez simplement PastePoint sur l’autre appareil — il se connectera tout seul."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Просто откройте PastePoint на другом устройстве — оно подключится само."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "只需在另一台设备上打开 PastePoint，它会自动加入。"
+          }
+        }
+      }
+    },
+    "OPTION_SAME_WIFI_TITLE" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "على نفس الشبكة؟"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On this Wi-Fi?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿En esta Wi-Fi?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sur ce Wi-Fi ?"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "В этой же сети Wi-Fi?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在同一 Wi-Fi？"
+          }
+        }
+      }
+    },
     "PHOTO_LIBRARY" : {
       "comment" : "Attachment menu option: pick from the photo library.",
       "extractionState" : "manual",
@@ -3631,90 +4039,6 @@
         }
       }
     },
-    "PRIVATE_ROOM" : {
-      "comment" : "Title shown when the user is in a private room.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "غرفة خاصة"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Private Room"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sala privada"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Salon privé"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Приватная комната"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "私密聊天室"
-          }
-        }
-      }
-    },
-    "PRIVATE_SESSION_INFO" : {
-      "comment" : "Description shown for a private room.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "الجلسة الخاصة جاهزة. شارك رمز الجلسة مع الآخرين لدعوتهم للانضمام."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Private session is ready. Share your session code with others to invite them."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La sesión privada está lista. Comparte el código con quien quieras invitar."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La session privée est prête. Partagez votre code de session pour inviter d'autres personnes."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Приватная сессия готова. Поделитесь кодом сессии с теми, кого хотите пригласить."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "私密会话已就绪。将会话代码分享给您想邀请的人。"
-          }
-        }
-      }
-    },
     "PRIVATE_SESSION_JOINED" : {
       "comment" : "Toast: successfully joined a private session.",
       "extractionState" : "manual",
@@ -3795,90 +4119,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "私密会话已开始"
-          }
-        }
-      }
-    },
-    "PUBLIC_ROOM" : {
-      "comment" : "Title shown when the user is in a public room.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "غرفة عامة"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Public Room"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sala pública"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Salon public"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Публичная комната"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "公开聊天室"
-          }
-        }
-      }
-    },
-    "PUBLIC_SESSION_INFO" : {
-      "comment" : "Description shown for a public room.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "أنت في غرفة عامة – يمكن لأي شخص على نفس شبكة الانضمام تلقائياً."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "You're in a public room – anyone on the same network can join automatically."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Estás en una sala pública: cualquiera en la misma red puede unirse automáticamente."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vous êtes dans un salon public — toute personne sur le même réseau peut s'y connecter automatiquement."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Вы в публичной комнате — любой пользователь в той же сети может присоединиться автоматически."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "您正处于公开聊天室——同一网络中的任何人都可以自动加入。"
           }
         }
       }
@@ -5285,128 +5525,43 @@
         }
       }
     },
-    "SHARE_SESSION_CODE" : {
-      "comment" : "Welcome step (private room): share your session code.",
+    "SHOW_QR_CODE" : {
       "extractionState" : "manual",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "شارك رمز الجلسة مع الأشخاص الذين تريد دعوتهم"
+            "value" : "عرض رمز QR"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Share your session code with people you want to invite"
+            "value" : "Show QR code"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Comparte el código de sesión con las personas que quieras invitar"
+            "value" : "Mostrar código QR"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Partagez votre code de session avec les personnes que vous souhaitez inviter"
+            "value" : "Afficher le QR code"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Поделитесь кодом сессии с теми, кого хотите пригласить"
+            "value" : "Показать QR-код"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "将会话代码分享给您想邀请的人"
-          }
-        }
-      }
-    },
-    "START_CHATTING" : {
-      "comment" : "Welcome step (private room): start chatting and sharing files.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ابدأ التحدث وشارك الملفات!"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Start chatting and sharing files!"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "¡Empieza a chatear y a compartir archivos!"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Commencez à discuter et à partager des fichiers !"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Начните общаться и обмениваться файлами!"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "开始聊天和共享文件吧!"
-          }
-        }
-      }
-    },
-    "START_CONVERSATION" : {
-      "comment" : "Welcome step (public room): start the conversation.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ابدأ التحدث بإرسال رسالة"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Start the conversation by sending a message"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Inicia la conversación enviando un mensaje"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Démarrez la conversation en envoyant un message"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Начните разговор, отправив сообщение"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "发送一条消息开始对话吧"
+            "value" : "显示二维码"
           }
         }
       }
@@ -5953,90 +6108,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "请稍候——文件仍在校验中…"
-          }
-        }
-      }
-    },
-    "WAIT_FOR_MEMBERS" : {
-      "comment" : "Welcome step (private room): wait for members to join.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "انتظر أعضاء للانضمام إلى الجلسة"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wait for members to join the session"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Espera a que otros se unan a la sesión"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Attendez que d'autres membres rejoignent la session"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Подождите, пока другие присоединятся к сессии"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "等待其他成员加入会话"
-          }
-        }
-      }
-    },
-    "WHAT_TO_DO_NEXT" : {
-      "comment" : "Heading above the list of next steps. Displayed uppercased via styling.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ما التالي"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "What to do next"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Qué hacer ahora"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Et maintenant ?"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Что дальше"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "下一步该做什么"
           }
         }
       }

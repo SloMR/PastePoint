@@ -110,7 +110,7 @@ struct SettingsPrivateSessionSection: View {
           isStarting = true
           defer { isStarting = false }
           do {
-            log.info("Start private session button tapped")
+            log.info("Connect a device button tapped")
 
             try await services.sessionService.preparePrivateSession()
             guard await services.connectIfPermitted() else {
@@ -138,7 +138,7 @@ struct SettingsPrivateSessionSection: View {
               .scaledToFit()
               .frame(width: 24, height: 24)
           }
-          Text(isStarting ? .starting : .createPrivateSession)
+          Text(isStarting ? .starting : .connectADevice)
             .font(.headline)
         }
         .foregroundStyle(.brand)
@@ -155,11 +155,11 @@ struct SettingsPrivateSessionSection: View {
       .disabled(isStarting)
 
       Button {
-        log.info("Join private session button tapped")
+        log.info("Enter a code button tapped")
         isJoinPrivateSessionPresented = true
       } label: {
         HStack(spacing: 8) {
-          Text(.joinPrivateSession)
+          Text(.enterACode)
             .font(.headline)
         }
         .foregroundStyle(.brand)
