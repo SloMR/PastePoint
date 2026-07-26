@@ -50,6 +50,18 @@ struct ContentView: View {
     services.wsService.currentSessionCode != nil
   }
 
+  private var deviceCount: Int {
+    services.peerDirectory.peers.count + 1
+  }
+
+  private var sessionStatus: LocalizedStringResource {
+    let alone = services.peerDirectory.peers.isEmpty
+    if isPrivateRoom {
+      return alone ? .sessionStatusPrivateAlone : .sessionStatusPrivate(deviceCount)
+    }
+    return alone ? .sessionStatusWifiAlone : .sessionStatusWifi(deviceCount)
+  }
+
   private var needsLegalConsent: Bool {
     acceptedLegalVersion < LegalConsent.currentVersion
   }
@@ -199,9 +211,11 @@ struct ContentView: View {
                 .frame(width: 16, height: 16)
                 .foregroundStyle(.textPrimary)
 
-              Text(isPrivateRoom ? .privateRoom : .publicRoom)
+              Text(sessionStatus)
                 .font(.headline)
                 .foregroundStyle(.textPrimary)
+                .lineLimit(1)
+                .truncationMode(.tail)
             }
           }
 
