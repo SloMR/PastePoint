@@ -1474,37 +1474,37 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "إنهاء الجلسة"
+            "value" : "مغادرة"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Leave Session"
+            "value" : "Leave"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Salir de la sesión"
+            "value" : "Salir"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Quitter la session"
+            "value" : "Quitter"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Покинуть сессию"
+            "value" : "Выйти"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "退出会话"
+            "value" : "离开"
           }
         }
       }
@@ -1516,37 +1516,37 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "هل أنت متأكد من إنهاء الجلسة؟"
+            "value" : "مغادرة؟ ستعود إلى الأجهزة الموجودة على شبكتك."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Are you sure you want to end the session?"
+            "value" : "Leave? You’ll go back to the devices on your Wi-Fi."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "¿Seguro que quieres terminar la sesión?"
+            "value" : "¿Salir? Volverás a los dispositivos de tu Wi-Fi."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Voulez-vous vraiment terminer la session ?"
+            "value" : "Quitter ? Vous reviendrez aux appareils de votre Wi-Fi."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Вы уверены, что хотите завершить сессию?"
+            "value" : "Выйти? Вы вернётесь к устройствам в вашей сети Wi-Fi."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "确定要结束当前会话吗?"
+            "value" : "离开？你将回到同一 Wi-Fi 下的设备。"
           }
         }
       }
@@ -1558,37 +1558,37 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "نعم، إنهِها"
+            "value" : "مغادرة"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "End Session"
+            "value" : "Leave"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Terminar sesión"
+            "value" : "Salir"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Terminer la session"
+            "value" : "Quitter"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Завершить сессию"
+            "value" : "Выйти"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "结束会话"
+            "value" : "离开"
           }
         }
       }
@@ -1683,37 +1683,37 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "أدخل رمز الجلسة"
+            "value" : "الرمز الظاهر على الجهاز الآخر"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter the Session Code"
+            "value" : "Code from the other device"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Introduce el código de sesión"
+            "value" : "Código del otro dispositivo"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Saisissez le code de session"
+            "value" : "Code affiché sur l’autre appareil"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Введите код сессии"
+            "value" : "Код с другого устройства"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "输入会话代码"
+            "value" : "另一台设备上的代码"
           }
         }
       }
@@ -2691,37 +2691,37 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "رمز جلسة غير صالح"
+            "value" : "رمز غير صالح"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Invalid session code"
+            "value" : "Invalid code"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Código de sesión no válido"
+            "value" : "Código no válido"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Code de session invalide"
+            "value" : "Code invalide"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Недействительный код сессии"
+            "value" : "Неверный код"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无效的会话代码"
+            "value" : "代码无效"
           }
         }
       }
@@ -2815,37 +2815,37 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "أدخل جلسة خاصة"
+            "value" : "الاتصال بجهاز"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Join a Private Session"
+            "value" : "Connect to a device"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Unirse a una sesión privada"
+            "value" : "Conectar con un dispositivo"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rejoindre une session privée"
+            "value" : "Se connecter à un appareil"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Войти в приватную сессию"
+            "value" : "Подключиться к устройству"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "加入私密会话"
+            "value" : "连接到设备"
           }
         }
       }
@@ -2941,37 +2941,37 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "تمت مغادرة الجلسة الخاصة"
+            "value" : "عدت إلى شبكتك."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Left private session"
+            "value" : "You’re back on your Wi-Fi."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Saliste de la sesión privada"
+            "value" : "Has vuelto a tu Wi-Fi."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vous avez quitté la session privée"
+            "value" : "Vous êtes de retour sur votre Wi-Fi."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Вы покинули приватную сессию"
+            "value" : "Вы вернулись в свою сеть Wi-Fi."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已退出私密会话"
+            "value" : "你已回到自己的 Wi-Fi。"
           }
         }
       }
@@ -4046,37 +4046,37 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "تم الانضمام إلى الجلسة الخاصة"
+            "value" : "تم الاتصال. لا ينضم إلا من لديه الرابط."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Private session joined"
+            "value" : "Connected. Only people with the link can join."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Te has unido a la sesión privada"
+            "value" : "Conectado. Solo pueden unirse quienes tengan el enlace."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Session privée rejointe"
+            "value" : "Connecté. Seules les personnes ayant le lien peuvent rejoindre."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Вы вошли в приватную сессию"
+            "value" : "Подключено. Присоединиться могут только те, у кого есть ссылка."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已加入私密会话"
+            "value" : "已连接。只有拥有链接的人才能加入。"
           }
         }
       }
@@ -4088,37 +4088,37 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "تم بدء الجلسة الخاصة"
+            "value" : "جاهز. شارك الرمز لربط جهاز."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Private session started"
+            "value" : "Ready. Share the code to connect a device."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sesión privada iniciada"
+            "value" : "Listo. Comparte el código para conectar un dispositivo."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Session privée démarrée"
+            "value" : "Prêt. Partagez le code pour connecter un appareil."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Приватная сессия начата"
+            "value" : "Готово. Поделитесь кодом, чтобы подключить устройство."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "私密会话已开始"
+            "value" : "已就绪。分享代码以连接设备。"
           }
         }
       }
@@ -4904,37 +4904,37 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "امسح الرمز باستخدام جهاز آخر للانضمام إلى الجلسة"
+            "value" : "امسح هذا بالجهاز الذي تريد ربطه."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Scan the QR code on another device to join the session"
+            "value" : "Scan this with the device you want to connect."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Escanea el código QR en otro dispositivo para unirte a la sesión"
+            "value" : "Escanea esto con el dispositivo que quieras conectar."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Scannez le code QR sur un autre appareil pour rejoindre la session"
+            "value" : "Scannez ceci avec l’appareil à connecter."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Отсканируйте QR-код на другом устройстве, чтобы присоединиться к сессии"
+            "value" : "Отсканируйте это устройством, которое хотите подключить."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在另一台设备上扫描二维码以加入会话"
+            "value" : "用你想连接的设备扫描此码。"
           }
         }
       }
@@ -5198,37 +5198,37 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "أدخل رمز الجلسة للانضمام"
+            "value" : "اكتب الرمز الظاهر على الجهاز الآخر."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter the code to join a private chat."
+            "value" : "Type the code shown on the other device."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Introduce el código para unirte a un chat privado."
+            "value" : "Escribe el código que aparece en el otro dispositivo."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Saisissez le code pour rejoindre un chat privé."
+            "value" : "Saisissez le code affiché sur l’autre appareil."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Введите код, чтобы войти в приватный чат."
+            "value" : "Введите код, показанный на другом устройстве."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "输入代码以加入私密聊天。"
+            "value" : "输入另一台设备上显示的代码。"
           }
         }
       }
@@ -5240,37 +5240,37 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "رمز الجلسة"
+            "value" : "10 أحرف أو أرقام"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Session code"
+            "value" : "10 letters or numbers"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Código de sesión"
+            "value" : "10 letras o números"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Code de session"
+            "value" : "10 lettres ou chiffres"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Код сессии"
+            "value" : "10 букв или цифр"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "会话代码"
+            "value" : "10 位字母或数字"
           }
         }
       }
@@ -5282,37 +5282,37 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "تعذّر الانضمام إلى هذه الجلسة — قد يكون الرمز غير صالح أو منتهي الصلاحية. تم نقلك إلى الغرفة العامة."
+            "value" : "تعذّر الانضمام — قد يكون الرمز خاطئًا أو منتهي الصلاحية. عدت إلى شبكتك."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "That session code is invalid or expired — you’re back in the public room"
+            "value" : "Couldn’t join — the code may be wrong or expired. You’re back on your Wi-Fi."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No se pudo unir a esa sesión: el código puede no ser válido o haber caducado. Ahora estás en la sala pública."
+            "value" : "No se pudo unir: el código puede ser incorrecto o haber caducado. Has vuelto a tu Wi-Fi."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Impossible de rejoindre cette session — le code est peut-être invalide ou expiré. Vous êtes maintenant dans le salon public."
+            "value" : "Impossible de rejoindre — le code est peut-être incorrect ou expiré. Vous êtes de retour sur votre Wi-Fi."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Не удалось войти в эту сессию — код недействителен или истёк. Вы переключены в публичную комнату."
+            "value" : "Не удалось подключиться — код неверный или устарел. Вы вернулись в свою сеть Wi-Fi."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法加入该会话——代码可能无效或已过期。已为你切换到公共聊天室。"
+            "value" : "无法加入 — 代码可能有误或已过期。你已回到自己的 Wi-Fi。"
           }
         }
       }
@@ -5573,37 +5573,37 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "فشل بدء الجلسة الخاصة"
+            "value" : "تعذّر إنشاء الرابط. حاول مرة أخرى."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Failed to start private session"
+            "value" : "Couldn’t create the link. Try again."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No se pudo iniciar la sesión privada"
+            "value" : "No se pudo crear el enlace. Inténtalo de nuevo."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Échec du démarrage de la session privée"
+            "value" : "Impossible de créer le lien. Réessayez."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Не удалось начать приватную сессию"
+            "value" : "Не удалось создать ссылку. Попробуйте ещё раз."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法开始私密会话"
+            "value" : "无法创建链接。请重试。"
           }
         }
       }
