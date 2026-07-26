@@ -108,13 +108,11 @@ struct SettingsPrivateSessionSection: View {
       Button {
         Task {
           isStarting = true
+          defer { isStarting = false }
           do {
             log.info("Start private session button tapped")
 
-            let code = try await services.sessionService.getNewSessionCode()
-            await services.wsService.setupPrivateSession(code)
-
-            isStarting = false
+            try await services.sessionService.preparePrivateSession()
             guard await services.connectIfPermitted() else {
               toast.show(.error(.localNetworkOffStart))
               return
@@ -122,7 +120,6 @@ struct SettingsPrivateSessionSection: View {
 
             toast.show(.success(.privateSessionStarted))
           } catch {
-            isStarting = false
             log.error("Cannot get the session code \(error)")
             toast.show(.error(.startPrivateFailed))
           }

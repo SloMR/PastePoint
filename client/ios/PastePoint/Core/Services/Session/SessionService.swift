@@ -12,6 +12,16 @@ struct CreateSessionResponse: Decodable {
 
 @MainActor
 final class SessionService: ObservableObject {
+  private let wsService: WebSocketConnectionService
+
+  init(wsService: WebSocketConnectionService) {
+    self.wsService = wsService
+  }
+
+  func preparePrivateSession() async throws {
+    let code = try await getNewSessionCode()
+    await wsService.setupPrivateSession(code)
+  }
 
   func getNewSessionCode() async throws -> String {
 #if DEBUG

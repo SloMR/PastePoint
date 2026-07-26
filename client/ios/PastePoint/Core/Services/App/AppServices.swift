@@ -44,7 +44,7 @@ final class AppServices: ObservableObject {
 
   private init() {
     wsService = WebSocketConnectionService()
-    sessionService = SessionService()
+    sessionService = SessionService(wsService: wsService)
 
     userService = UserService(wsService: wsService)
     roomService = RoomService(wsService: wsService)
@@ -88,7 +88,7 @@ final class AppServices: ObservableObject {
   /// Preview-only: no WebSocket connection, no network monitoring, no lifecycle observers.
   private init(preview _: Bool) {
     wsService = WebSocketConnectionService()
-    sessionService = SessionService()
+    sessionService = SessionService(wsService: wsService)
 
     userService = UserService(wsService: wsService)
     roomService = RoomService(wsService: wsService)
