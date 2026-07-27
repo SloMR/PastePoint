@@ -1634,47 +1634,6 @@
         }
       }
     },
-    "ENTER_A_CODE" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "إدخال رمز"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enter a code"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Introducir un código"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Saisir un code"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ввести код"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "输入代码"
-          }
-        }
-      }
-    },
     "ENTER_ROOM_NAME" : {
       "comment" : "Label above the room-name field.",
       "extractionState" : "manual",
@@ -2927,48 +2886,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "加入"
-          }
-        }
-      }
-    },
-    "JOIN_A_PRIVATE_SESSION" : {
-      "comment" : "Join-private-session sheet navigation title.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "الاتصال بجهاز"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Connect to a device"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Conectar con un dispositivo"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Se connecter à un appareil"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Подключиться к устройству"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "连接到设备"
           }
         }
       }
@@ -4246,48 +4163,6 @@
         }
       }
     },
-    "QR_CODE" : {
-      "comment" : "QR code sheet navigation title.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "رمز QR"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "QR Code"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Código QR"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Code QR"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "QR-код"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "二维码"
-          }
-        }
-      }
-    },
     "QR_SCANNING_NOT_SUPPORTED" : {
       "comment" : "Description shown when the device has no supported QR scanner.",
       "extractionState" : "manual",
@@ -5020,48 +4895,6 @@
         }
       }
     },
-    "SCAN_QR_CODE_TO_JOIN_THE_SESSION" : {
-      "comment" : "Instruction under the displayed QR code.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "امسح هذا بالجهاز الذي تريد ربطه."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Scan this with the device you want to connect."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Escanea esto con el dispositivo que quieras conectar."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Scannez ceci avec l’appareil à connecter."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Отсканируйте это устройством, которое хотите подключить."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "用你想连接的设备扫描此码。"
-          }
-        }
-      }
-    },
     "SCANNER_UNAVAILABLE" : {
       "comment" : "Title shown when the device has no supported QR scanner.",
       "extractionState" : "manual",
@@ -5726,47 +5559,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "分享邀请"
-          }
-        }
-      }
-    },
-    "SHOW_QR_CODE" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "عرض رمز QR"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Show QR code"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mostrar código QR"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Afficher le QR code"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Показать QR-код"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "显示二维码"
           }
         }
       }
