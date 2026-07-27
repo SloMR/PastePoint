@@ -5,8 +5,7 @@
 
 import SwiftUI
 
-struct SettingsJoinPrivateView: View {
-  @Environment(\.dismiss) private var dismiss
+struct JoinCodeForm: View {
   @EnvironmentObject private var services: AppServices
   @EnvironmentObject private var toast: ToastCenter
 
@@ -16,9 +15,12 @@ struct SettingsJoinPrivateView: View {
   @State private var isScannerPresented: Bool = false
   @State private var isJoining: Bool = false
 
-  var body: some View {
-    VStack(alignment: .leading, spacing: 16) {
+  private var trimmedCode: String {
+    sessionCode.trimmingCharacters(in: .whitespacesAndNewlines)
+  }
 
+  var body: some View {
+    VStack(alignment: .leading, spacing: 12) {
       LabeledInputField(
         label: .enterSessionCode,
         placeholder: .sessionCodePlaceholder,
@@ -50,27 +52,17 @@ struct SettingsJoinPrivateView: View {
                 .tint(.white)
                 .scaleEffect(0.85)
             }
-            Text(isJoining ? .joining : .done)
+            Text(isJoining ? .joining : .join)
           }
         }
         .buttonStyle(.pill(tint: AppColors.Brand.brand))
-        .disabled(sessionCode.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isJoining)
-        .opacity(sessionCode.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.6 : 1)
+        .disabled(trimmedCode.isEmpty || isJoining)
+        .opacity(trimmedCode.isEmpty ? 0.6 : 1)
 
-        Button {
-          log.info("Dismiss join private session")
-          dismiss()
-        } label: {
-          Text(.cancel)
-        }
-        .buttonStyle(.pill(.outlined, tint: AppColors.Brand.brand))
-        .disabled(isJoining)
       }
     }
-    .padding(24)
-    .sheetContainer(title: .joinAPrivateSession)
     .fullScreenCover(isPresented: $isScannerPresented) {
-      SettingsScanQRCodeView { scannedCode in
+      ScanQRCodeView { scannedCode in
         sessionCode = scannedCode
         Task { await joinSession(code: scannedCode) }
       }
@@ -81,24 +73,23 @@ struct SettingsJoinPrivateView: View {
     let trimmed = code.trimmingCharacters(in: .whitespacesAndNewlines)
     guard !trimmed.isEmpty else { return }
 
-    guard SessionService.isValidSessionCode(trimmed) else {
-      log.warning("Invalid session code entered: \(trimmed)")
+    guard let resolved = SessionService.sessionCode(fromPayload: trimmed) else {
+      log.warning("Invalid session code entered")
       toast.show(.error(.invalidSessionCode))
       return
     }
 
-    log.info("Joining private session with code: \(trimmed)")
+    log.info("Joining private session with code: \(resolved)")
     isJoining = true
+    defer { isJoining = false }
 
-    await services.wsService.setupPrivateSession(trimmed)
+    await services.wsService.setupPrivateSession(resolved)
     guard await services.connectIfPermitted() else {
-      isJoining = false
       toast.show(.error(.localNetworkOffJoin))
       return
     }
 
-    isJoining = false
-    dismiss()
+    sessionCode = ""
     onSessionJoin?()
   }
 }
@@ -107,7 +98,8 @@ struct SettingsJoinPrivateView: View {
 
 #if DEBUG
 #Preview {
-  SettingsJoinPrivateView()
+  JoinCodeForm()
+    .padding()
     .environmentObject(AppServices.preview)
     .environmentObject(ToastCenter())
 }

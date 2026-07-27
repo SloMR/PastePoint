@@ -56,10 +56,12 @@ extension WelcomeCard where Footer == EmptyView {
     VStack(spacing: 10) {
       WelcomeCard(title: .optionSameWifiTitle, message: .optionSameWifiBody)
       WelcomeCard(title: .optionElsewhereTitle, message: .optionElsewhereBody) {
-        WelcomeConnectButton(label: .connectADevice, prominent: true, isBusy: false) {}
+        CreateInviteButton()
       }
     }
     .padding()
+    .environmentObject(AppServices.preview)
+    .environmentObject(ToastCenter())
   }
 }
 #endif

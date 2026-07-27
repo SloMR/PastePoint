@@ -9,8 +9,7 @@ struct WelcomeView: View {
   @EnvironmentObject private var services: AppServices
   @EnvironmentObject private var toast: ToastCenter
 
-  @State private var isStarting = false
-  @State private var isQRCodeSheetPresented = false
+  @State private var isConnectSheetPresented = false
 
   private var sessionCode: String? {
     services.wsService.currentSessionCode
@@ -30,8 +29,8 @@ struct WelcomeView: View {
           .frame(maxWidth: .infinity, minHeight: geometry.size.height)
       }
     }
-    .sheet(isPresented: $isQRCodeSheetPresented) {
-      SettingsQRCodeView()
+    .sheet(isPresented: $isConnectSheetPresented) {
+      ConnectView()
     }
   }
 
@@ -41,6 +40,19 @@ struct WelcomeView: View {
 
       actions
         .padding(.horizontal, 16)
+
+      if sessionCode == nil {
+        VStack(alignment: .leading, spacing: 8) {
+          Text(.haveACode)
+            .font(.caption)
+            .fontWeight(.semibold)
+            .foregroundStyle(.textSecondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+          JoinCodeForm()
+        }
+        .padding(.horizontal, 16)
+      }
 
       WelcomeFeatureGrid()
         .padding(.horizontal, 16)
@@ -67,50 +79,21 @@ struct WelcomeView: View {
           .multilineTextAlignment(.center)
       }
 
-      if let code = sessionCode {
-        WelcomeInviteCard(
-          code: code,
-          onShowQRCode: { isQRCodeSheetPresented = true },
-          onCopy: { copy(code) },
-        )
+      if sessionCode != nil {
+        WelcomeInviteCard { isConnectSheetPresented = true }
       } else if !isAlone {
         WelcomeCard(title: .optionElsewhereTitle, message: .optionElsewhereBodyConnected) {
-          WelcomeConnectButton(label: .connectADevice, prominent: false, isBusy: isStarting) {
-            Task { await startPrivateSession() }
-          }
+          CreateInviteButton(prominent: false)
         }
       } else {
         WelcomeCard(title: .optionSameWifiTitle, message: .optionSameWifiBody)
         WelcomeCard(title: .optionElsewhereTitle, message: .optionElsewhereBody) {
-          WelcomeConnectButton(label: .connectADevice, prominent: true, isBusy: isStarting) {
-            Task { await startPrivateSession() }
-          }
+          CreateInviteButton()
         }
       }
     }
   }
 
-  private func copy(_ code: String) {
-    UIPasteboard.general.string = code
-    toast.show(.success(.codeCopied))
-  }
-
-  private func startPrivateSession() async {
-    isStarting = true
-    defer { isStarting = false }
-    do {
-      log.info("Connect a device tapped from welcome screen")
-      try await services.sessionService.preparePrivateSession()
-      guard await services.connectIfPermitted() else {
-        toast.show(.error(.localNetworkOffStart))
-        return
-      }
-      toast.show(.success(.privateSessionStarted))
-    } catch {
-      log.error("Cannot get the session code \(error)")
-      toast.show(.error(.startPrivateFailed))
-    }
-  }
 }
 
 // MARK: - Preview

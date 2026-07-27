@@ -46,6 +46,8 @@ struct ContentView: View {
     }
   }
 
+  @State var showConnect = false
+
   private var isPrivateRoom: Bool {
     services.wsService.currentSessionCode != nil
   }
@@ -221,6 +223,16 @@ struct ContentView: View {
 
           ToolbarItemGroup(placement: .topBarTrailing) {
             Button {
+              showConnect = true
+            } label: {
+              Image(systemName: "qrcode")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 20, height: 20)
+            }
+            .accessibilityLabel(Text(.connectDeviceTitle))
+
+            Button {
               colorSchemeRaw = AppColors.Scheme.next(after: colorSchemeRaw)
             } label: {
               Image(systemName: colorScheme == .dark ? "sun.max.fill" : "moon")
@@ -251,6 +263,12 @@ struct ContentView: View {
     }
     .background(AppColors.Background.background)
     .preferredColorScheme(AppColors.Scheme.colorScheme(from: colorSchemeRaw))
+    .sheet(isPresented: $showConnect) {
+      ConnectView {
+        showConnect = false
+        pendingPrivateJoin = true
+      }
+    }
     .sheet(isPresented: settingsSheetPresented) {
       NavigationStack {
         SettingsView(
