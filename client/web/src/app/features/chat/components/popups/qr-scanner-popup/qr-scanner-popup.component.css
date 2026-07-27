@@ -1,0 +1,19 @@
+:host .scanner-active {
+  padding: 1rem;
+}
+
+/* Pulsing corner brackets. */
+@keyframes scanner-bracket-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.04);
+  }
+}
+
+.scanner-brackets {
+  animation: scanner-bracket-pulse 1.8s ease-in-out infinite;
+  transform-origin: center;
+}
