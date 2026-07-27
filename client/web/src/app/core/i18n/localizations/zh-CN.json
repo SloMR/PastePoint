@@ -27,6 +27,7 @@
   "YOU": "你",
   "DROP_FILES_HERE": "将文件拖放到此处",
   "WANTS_TO_SEND_FILE": "想向您发送一个文件",
+  "FILE_OFFER_SENT": "已发送文件请求",
   "ACCEPT": "接受",
   "DECLINE": "拒绝",
   "CANCEL": "取消",
