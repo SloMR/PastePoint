@@ -9,15 +9,15 @@ struct LabeledInputField<Trailing: View>: View {
   @ViewBuilder var trailing: () -> Trailing
   @Binding var text: String
 
-  let label: LocalizedStringResource
+  let label: LocalizedStringResource?
   let placeholder: LocalizedStringResource
-  let description: LocalizedStringResource
+  let description: LocalizedStringResource?
 
   init(
-    label: LocalizedStringResource,
+    label: LocalizedStringResource? = nil,
     placeholder: LocalizedStringResource,
     text: Binding<String>,
-    description: LocalizedStringResource,
+    description: LocalizedStringResource? = nil,
     @ViewBuilder trailing: @escaping () -> Trailing,
   ) {
     self.label = label
@@ -29,9 +29,11 @@ struct LabeledInputField<Trailing: View>: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 6) {
-      Text(label)
-        .font(.subheadline)
-        .foregroundStyle(.textPrimary)
+      if let label {
+        Text(label)
+          .font(.subheadline)
+          .foregroundStyle(.textPrimary)
+      }
 
       HStack(spacing: 0) {
         TextField(String(localized: placeholder), text: $text)
@@ -58,19 +60,21 @@ struct LabeledInputField<Trailing: View>: View {
       }
       .background(AppColors.Background.input, in: RoundedRectangle(cornerRadius: 8))
 
-      Text(description)
-        .font(.caption)
-        .foregroundStyle(.textSecondary)
+      if let description {
+        Text(description)
+          .font(.caption)
+          .foregroundStyle(.textSecondary)
+      }
     }
   }
 }
 
 extension LabeledInputField where Trailing == EmptyView {
   init(
-    label: LocalizedStringResource,
+    label: LocalizedStringResource? = nil,
     placeholder: LocalizedStringResource,
     text: Binding<String>,
-    description: LocalizedStringResource,
+    description: LocalizedStringResource? = nil,
   ) {
     self.init(label: label, placeholder: placeholder, text: text, description: description) { EmptyView() }
   }
