@@ -162,7 +162,10 @@
             class="h-4 w-4 opacity-80"
           />
         }
-        <span class="truncate text-sm font-expoArabicMedium text-content dark:text-white">
+
+        <span
+          class="truncate text-[clamp(0.6875rem,3vw,0.875rem)] font-expoArabicMedium text-content dark:text-white"
+        >
           {{
             currentRoom == 'main'
               ? (sessionStatusKey | translate: { count: deviceCount })
