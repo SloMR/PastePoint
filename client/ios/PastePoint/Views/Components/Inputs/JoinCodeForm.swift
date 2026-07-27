@@ -22,10 +22,8 @@ struct JoinCodeForm: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       LabeledInputField(
-        label: .enterSessionCode,
         placeholder: .sessionCodePlaceholder,
         text: $sessionCode,
-        description: .sessionCodeDescription,
       ) {
         Button {
           isScannerPresented = true

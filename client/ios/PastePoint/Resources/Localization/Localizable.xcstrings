@@ -1676,48 +1676,6 @@
         }
       }
     },
-    "ENTER_SESSION_CODE" : {
-      "comment" : "Label above the session-code field.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "الرمز الظاهر على الجهاز الآخر"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Code from the other device"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Código del otro dispositivo"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Code affiché sur l’autre appareil"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Код с другого устройства"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "另一台设备上的代码"
-          }
-        }
-      }
-    },
     "FEATURE_ANY_FILE" : {
       "comment" : "Welcome feature bullet: supports any file.",
       "extractionState" : "manual",
@@ -5143,48 +5101,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "无法连接到服务器"
-          }
-        }
-      }
-    },
-    "SESSION_CODE_DESCRIPTION" : {
-      "comment" : "Helper text under the session-code field.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "اكتب الرمز الظاهر على الجهاز الآخر."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Type the code shown on the other device."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Escribe el código que aparece en el otro dispositivo."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Saisissez le code affiché sur l’autre appareil."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Введите код, показанный на другом устройстве."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "输入另一台设备上显示的代码。"
           }
         }
       }
