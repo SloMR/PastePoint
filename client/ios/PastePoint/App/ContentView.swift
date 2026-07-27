@@ -226,10 +226,11 @@ struct ContentView: View {
             Button {
               showConnect = true
             } label: {
-              Image(systemName: "qrcode")
+              Image(systemName: "plus")
                 .resizable()
                 .scaledToFit()
                 .frame(width: 20, height: 20)
+                .foregroundStyle(AppColors.Brand.brand)
             }
             .accessibilityLabel(Text(.connectDeviceTitle))
 
