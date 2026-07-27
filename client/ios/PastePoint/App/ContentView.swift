@@ -217,6 +217,7 @@ struct ContentView: View {
                 .font(.headline)
                 .foregroundStyle(.textPrimary)
                 .lineLimit(1)
+                .minimumScaleFactor(0.75)
                 .truncationMode(.tail)
             }
           }
