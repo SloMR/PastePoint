@@ -1,0 +1,88 @@
+<!-- MARK: - Connect Panel -->
+@if (isOpen) {
+  <div
+    class="fixed inset-0 grid place-items-end bg-black/80 z-[10000] animate-fade-in sm:place-content-center"
+    (click)="closed.emit()"
+  >
+    <div
+      class="w-full rounded-2xl rounded-b-none bg-white px-4 py-6 animate-slide-up dark:bg-baseDark sm:w-[420px] sm:rounded-b-2xl sm:px-6 max-h-[90vh] overflow-y-auto supports-[height:100dvh]:max-h-[90dvh]"
+      [ngClass]="isRTL ? 'text-right' : 'text-left'"
+      (click)="$event.stopPropagation()"
+    >
+      <!-- MARK: - Header -->
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-expoArabicMedium text-content dark:text-white">
+          {{ 'CONNECT_DEVICE_TITLE' | translate }}
+        </h2>
+        <button
+          type="button"
+          (click)="closed.emit()"
+          [attr.aria-label]="'CLOSE' | translate"
+          class="flex items-center justify-center rounded-full p-2 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
+        >
+          <img src="/icons/cross-close.svg" alt="" class="h-4 w-4" width="16" height="16" />
+        </button>
+      </div>
+
+      <!-- MARK: - Share -->
+      @if (sessionCode.length > 0) {
+        <div class="mt-5 flex flex-col items-center gap-3">
+          <div #qrContainer class="overflow-hidden rounded-lg bg-white p-2"></div>
+          <p
+            class="w-full truncate rounded-lg bg-inputBackground p-2 text-center text-sm font-expoArabic tracking-widest dark:bg-borderDark dark:text-contentMuted"
+          >
+            {{ sessionCode }}
+          </p>
+          <div class="flex w-full gap-2">
+            @if (canShare) {
+              <button
+                type="button"
+                (click)="shareInvite()"
+                class="flex-1 rounded-lg p-2 text-sm text-white bg-brand font-expoArabicMedium hover:bg-brand/80 dark:bg-brandDark dark:hover:bg-brandDark/80"
+              >
+                {{ 'SHARE' | translate }}
+              </button>
+            }
+            <button
+              type="button"
+              (click)="copyRequested.emit()"
+              class="flex-1 rounded-lg border p-2 text-sm border-brand text-brand font-expoArabicMedium hover:bg-brand/10 dark:border-brandDark dark:text-brandDark dark:hover:bg-brandDark/10"
+            >
+              {{ 'COPY' | translate }}
+            </button>
+          </div>
+        </div>
+      } @else {
+        <div class="mt-5 flex flex-col gap-3">
+          <p class="text-xs font-expoArabic leading-relaxed text-gray-600 dark:text-gray-400">
+            {{
+              (memberCount > 0 ? 'OPTION_ELSEWHERE_BODY_CONNECTED' : 'OPTION_ELSEWHERE_BODY')
+                | translate
+            }}
+          </p>
+          <button
+            type="button"
+            (click)="createRequested.emit()"
+            class="flex w-full items-center justify-center gap-2 rounded-lg bg-brand p-2 text-sm font-expoArabicMedium text-white hover:bg-brand/80 dark:bg-brandDark dark:hover:bg-brandDark/80"
+          >
+            <img src="/icons/qrcode.svg" alt="" class="h-4 w-4" width="16" height="16" />
+            {{ 'CONNECT_A_DEVICE' | translate }}
+          </button>
+        </div>
+      }
+
+      <!-- MARK: - Join -->
+      <div class="mt-6 border-t pt-5 border-borderLight dark:border-surfaceDark">
+        <p class="text-xs font-expoArabicMedium text-textMuted dark:text-contentMuted">
+          {{ 'JOINING_SOMEONE_ELSE' | translate }}
+        </p>
+
+        <app-join-code-form
+          class="mt-3 block"
+          (joinRequested)="joinRequested.emit($event)"
+          (scanRequested)="scanRequested.emit()"
+        />
+      </div>
+    </div>
+  </div>
+}

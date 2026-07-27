@@ -36,7 +36,6 @@ import { BlurredPreviewComponent } from '../blurred-preview/blurred-preview.comp
 })
 export class ChatMessagesComponent {
   @Input() messages: ChatMessage[] = [];
-  @Input() sessionCode = '';
   @Input() isRTL = false;
   @Input() isDarkMode = false;
   @Input() currentUser: string | null = null;

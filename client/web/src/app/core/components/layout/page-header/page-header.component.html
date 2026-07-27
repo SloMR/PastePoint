@@ -3,7 +3,7 @@
   class="flex h-14 items-center px-4 bg-contentArea/10 backdrop-blur-md dark:bg-baseDark/10 md:px-8"
 >
   <!-- MARK: - Logo -->
-  <a routerLink="/" [replaceUrl]="true" title="Home">
+  <a routerLink="/" [replaceUrl]="true">
     <img
       [ngSrc]="isDarkMode ? '/icons/pastepoint-dark.svg' : '/icons/pastepoint-light.svg'"
       alt="PastePoint Logo"
@@ -22,8 +22,8 @@
       type="button"
       (click)="toggleTheme.emit()"
       class="flex h-10 w-10 items-center justify-center rounded-full text-content transition-colors hover:bg-inputBackground dark:text-white dark:hover:bg-surfaceDark"
-      [attr.aria-label]="isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'"
-      [attr.title]="isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'"
+      [attr.aria-label]="'SWITCH_APPEARANCE' | translate"
+      [title]="'SWITCH_APPEARANCE' | translate"
     >
       @if (isDarkMode) {
         <svg

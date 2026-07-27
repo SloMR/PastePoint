@@ -58,7 +58,7 @@ struct ChatInputBar: View {
           stagedFiles.append(contentsOf: marked)
           for file in marked { startHashing(file) }
         } content: {
-          Image("link")
+          Image(systemName: "photo")
             .renderingMode(.template)
             .resizable()
             .scaledToFit()

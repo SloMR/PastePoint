@@ -12,6 +12,16 @@ struct CreateSessionResponse: Decodable {
 
 @MainActor
 final class SessionService: ObservableObject {
+  private let wsService: WebSocketConnectionService
+
+  init(wsService: WebSocketConnectionService) {
+    self.wsService = wsService
+  }
+
+  func preparePrivateSession() async throws {
+    let code = try await getNewSessionCode()
+    await wsService.setupPrivateSession(code)
+  }
 
   func getNewSessionCode() async throws -> String {
 #if DEBUG
@@ -50,6 +60,24 @@ final class SessionService: ObservableObject {
     let allowed = CharacterSet.alphanumerics
     let scalars = code.unicodeScalars.filter { allowed.contains($0) }
     return String(String.UnicodeScalarView(scalars))
+  }
+
+  /// Invite URL → its code.
+  static func sessionCode(fromURL urlString: String) -> String? {
+    guard
+      let code = AppEnvironment.privateSessionCode(from: urlString),
+      isValidSessionCode(code)
+    else { return nil }
+    return code
+  }
+
+  /// Typed or pasted input → its code, accepting a bare code or an invite URL.
+  static func sessionCode(fromPayload payload: String) -> String? {
+    let trimmed = payload.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !trimmed.isEmpty else { return nil }
+
+    if isValidSessionCode(trimmed) { return trimmed }
+    return sessionCode(fromURL: trimmed)
   }
 
   static func isValidSessionCode(_ code: String) -> Bool {

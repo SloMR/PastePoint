@@ -54,18 +54,6 @@ private struct QRCodeScannerRepresentable: UIViewControllerRepresentable {
       self.onInvalidCodeScanned = onInvalidCodeScanned
     }
 
-    // Parses PastePoint private-session URLs and returns the embedded code.
-    static func extractSessionCode(from payload: String) -> String? {
-      guard
-        let sessionCode = AppEnvironment.privateSessionCode(from: payload),
-        SessionService.isValidSessionCode(sessionCode)
-      else {
-        return nil
-      }
-
-      return sessionCode
-    }
-
     func dataScanner(
       _: DataScannerViewController,
       didAdd addedItems: [RecognizedItem],
@@ -77,7 +65,7 @@ private struct QRCodeScannerRepresentable: UIViewControllerRepresentable {
         let payload = barcode.payloadStringValue
       else { return }
 
-      guard let code = Self.extractSessionCode(from: payload) else {
+      guard let code = SessionService.sessionCode(fromURL: payload) else {
         guard payload != lastInvalidPayload else { return }
         lastInvalidPayload = payload
         DispatchQueue.main.async { self.onInvalidCodeScanned() }
@@ -178,7 +166,7 @@ private struct ViewfinderBracketsShape: Shape {
 
 // MARK: - Main View
 
-struct SettingsScanQRCodeView: View {
+struct ScanQRCodeView: View {
   @Environment(\.dismiss) private var dismiss
   @EnvironmentObject private var toast: ToastCenter
 
@@ -311,7 +299,7 @@ struct SettingsScanQRCodeView: View {
 
 #if DEBUG
 #Preview {
-  SettingsScanQRCodeView { code in
+  ScanQRCodeView { code in
     print("Scanned: \(code)")
   }
   .environmentObject(ToastCenter())

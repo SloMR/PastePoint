@@ -19,10 +19,6 @@
     (switchLanguage)="switchLanguage($event)"
     (joinRoomRequested)="joinRoom($event)"
     (createRoomRequested)="openCreateRoomPopup()"
-    (copySessionCodeRequested)="copySessionCode()"
-    (qrCodeRequested)="openQRCodePopup()"
-    (createPrivateSessionRequested)="createPrivateSession()"
-    (joinPrivateSessionRequested)="openJoinSessionPopup()"
     (endSessionRequested)="openEndSessionPopup()"
     (filePickerRequested)="openFilePickerForMember($event)"
     (blockRequested)="blockUser($event)"
@@ -73,17 +69,30 @@
         </div>
       }
 
-      <app-chat-messages
-        [messages]="messages"
-        [sessionCode]="SessionCode"
-        [isRTL]="isRTL"
-        [isDarkMode]="isDarkMode"
-        [currentUser]="userService.user"
-        (acceptFile)="acceptIncomingFile($event)"
-        (declineFile)="declineIncomingFile($event)"
-        (blockRequested)="blockUser($event)"
-        (reportRequested)="reportUser($event)"
-      />
+      @if (messages.length === 0) {
+        <app-welcome
+          class="w-full flex-1 overflow-auto min-h-0 no-scrollbar pt-[calc(var(--chat-bar-h)+1rem)]"
+          [sessionCode]="SessionCode"
+          [memberCount]="members.length"
+          [isRTL]="isRTL"
+          [isDarkMode]="isDarkMode"
+          (connectDeviceRequested)="createPrivateSession()"
+          (shareInviteRequested)="isConnectPanelOpen = true"
+          (joinRequested)="joinWithCode($event)"
+          (scanRequested)="isScannerOpen = true"
+        />
+      } @else {
+        <app-chat-messages
+          [messages]="messages"
+          [isRTL]="isRTL"
+          [isDarkMode]="isDarkMode"
+          [currentUser]="userService.user"
+          (acceptFile)="acceptIncomingFile($event)"
+          (declineFile)="declineIncomingFile($event)"
+          (blockRequested)="blockUser($event)"
+          (reportRequested)="reportUser($event)"
+        />
+      }
 
       <!-- MARK: - Message Input -->
       <app-chat-input
@@ -138,29 +147,28 @@
 
       <!-- room title -->
       <div
-        class="pointer-events-none absolute inset-x-0 flex items-center justify-center gap-2 px-16"
+        class="pointer-events-none flex min-w-0 flex-1 items-center gap-2 md:absolute md:inset-x-0 md:flex-none md:justify-center md:px-16"
       >
         @if (SessionCode.length > 0) {
           <img
             [src]="isDarkMode ? '/icons/lock-white.svg' : '/icons/lock.svg'"
-            alt="Lock"
-            title="Lock"
+            alt=""
             class="h-4 w-4"
           />
         } @else {
           <img
             [src]="isDarkMode ? '/icons/users-white.svg' : '/icons/users.svg'"
-            alt="Room"
-            title="Room"
+            alt=""
             class="h-4 w-4 opacity-80"
           />
         }
-        <span class="truncate text-sm font-expoArabicMedium text-content dark:text-white">
+
+        <span
+          class="truncate text-[clamp(0.6875rem,3vw,0.875rem)] font-expoArabicMedium text-content dark:text-white"
+        >
           {{
             currentRoom == 'main'
-              ? SessionCode.length > 0
-                ? ('PRIVATE_ROOM' | translate)
-                : ('PUBLIC_ROOM' | translate)
+              ? (sessionStatusKey | translate: { count: deviceCount })
               : currentRoom
           }}
         </span>
@@ -168,13 +176,35 @@
 
       <!-- toolbar -->
       <div class="ms-auto flex items-center gap-1">
+        <!-- connect a device -->
+        <button
+          type="button"
+          (click)="isConnectPanelOpen = true"
+          class="flex h-10 w-10 items-center justify-center rounded-full bg-brand/10 text-brand transition-colors hover:bg-brand/20 md:w-auto md:gap-2 md:px-3 dark:bg-brandDark/20 dark:text-brandDark dark:hover:bg-brandDark/30"
+          [attr.aria-label]="'CONNECT_DEVICE_TITLE' | translate"
+          [title]="'CONNECT_DEVICE_TITLE' | translate"
+        >
+          <svg
+            class="h-5 w-5 shrink-0"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            viewBox="0 0 24 24"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          <span class="hidden whitespace-nowrap text-sm font-expoArabicMedium md:inline">
+            {{ 'CONNECT_DEVICE_TITLE' | translate }}
+          </span>
+        </button>
+
         <!-- theme toggle -->
         <button
           type="button"
           (click)="toggleTheme()"
           class="flex h-10 w-10 items-center justify-center rounded-full text-content transition-colors hover:bg-inputBackground dark:text-white dark:hover:bg-surfaceDark"
-          [attr.aria-label]="isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'"
-          [attr.title]="isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'"
+          [attr.aria-label]="'SWITCH_APPEARANCE' | translate"
+          [title]="'SWITCH_APPEARANCE' | translate"
         >
           @if (isDarkMode) {
             <svg
@@ -212,8 +242,8 @@
           type="button"
           (click)="isMenuOpen = !isMenuOpen"
           class="flex h-10 w-10 items-center justify-center rounded-full text-content transition-colors hover:bg-inputBackground dark:text-white dark:hover:bg-surfaceDark md:hidden"
-          aria-label="Settings"
-          title="Settings"
+          [attr.aria-label]="'SETTINGS' | translate"
+          [title]="'SETTINGS' | translate"
           [attr.aria-expanded]="isMenuOpen"
         >
           <svg
@@ -239,11 +269,23 @@
     </div>
 
     <!-- MARK: - Popups -->
-    <app-join-session-popup
-      [isOpen]="isOpenJoinSessionPopup"
-      [(sessionCode)]="newSessionCode"
-      (closed)="closePopup('join')"
-      (submitted)="joinPrivateSession()"
+    <app-connect-panel
+      [isOpen]="isConnectPanelOpen"
+      [sessionCode]="SessionCode"
+      [sessionUrl]="sessionUrl"
+      [memberCount]="members.length"
+      [isRTL]="isRTL"
+      (closed)="isConnectPanelOpen = false"
+      (createRequested)="isConnectPanelOpen = false; createPrivateSession()"
+      (copyRequested)="copySessionCode()"
+      (scanRequested)="isConnectPanelOpen = false; isScannerOpen = true"
+      (joinRequested)="joinWithCode($event)"
+    />
+
+    <app-qr-scanner-popup
+      [isOpen]="isScannerOpen"
+      (closed)="isScannerOpen = false"
+      (scanned)="onCodeScanned($event)"
     />
 
     <app-create-room-popup
@@ -257,13 +299,6 @@
       [isOpen]="isOpenEndSessionPopup"
       (closed)="closePopup('end')"
       (confirmed)="endSession()"
-    />
-
-    <app-qr-code-popup
-      [isOpen]="isOpenQRCodePopup"
-      [isRTL]="isRTL"
-      [sessionUrl]="sessionUrl"
-      (closed)="closePopup('qr')"
     />
   </div>
 </div>

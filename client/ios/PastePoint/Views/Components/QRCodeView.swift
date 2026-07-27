@@ -41,33 +41,3 @@ struct QRCodeView: View {
     return UIImage(cgImage: cgImage)
   }
 }
-
-struct SettingsQRCodeView: View {
-  @Environment(\.dismiss) private var dismiss
-  @EnvironmentObject private var services: AppServices
-
-  var body: some View {
-    VStack(spacing: 16) {
-      QRCodeView(
-        text: AppEnvironment.privateSessionUrl(sessionCode: services.wsService.currentSessionCode ?? ""),
-        size: 220,
-      )
-      .padding(20)
-      .background(Color(.white), in: RoundedRectangle(cornerRadius: 16))
-      .overlay(
-        RoundedRectangle(cornerRadius: 16)
-          .stroke(Color(.separator), lineWidth: 1),
-      )
-      .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
-
-      Text(.scanQrCodeToJoinTheSession)
-        .font(.subheadline)
-        .foregroundStyle(.secondary)
-        .multilineTextAlignment(.center)
-        .padding(.horizontal)
-    }
-    .padding()
-    .onAppear { log.info("QR code sheet presented for session: \(services.wsService.currentSessionCode ?? "none")") }
-    .sheetContainer(title: .qrCode, initialHeight: 420)
-  }
-}

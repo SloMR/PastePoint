@@ -46,8 +46,22 @@ struct ContentView: View {
     }
   }
 
+  @State var showConnect = false
+
   private var isPrivateRoom: Bool {
     services.wsService.currentSessionCode != nil
+  }
+
+  private var deviceCount: Int {
+    services.peerDirectory.peers.count + 1
+  }
+
+  private var sessionStatus: LocalizedStringResource {
+    let alone = services.peerDirectory.peers.isEmpty
+    if isPrivateRoom {
+      return alone ? .sessionStatusPrivateAlone : .sessionStatusPrivate(deviceCount)
+    }
+    return alone ? .sessionStatusWifiAlone : .sessionStatusWifi(deviceCount)
   }
 
   private var needsLegalConsent: Bool {
@@ -199,13 +213,27 @@ struct ContentView: View {
                 .frame(width: 16, height: 16)
                 .foregroundStyle(.textPrimary)
 
-              Text(isPrivateRoom ? .privateRoom : .publicRoom)
+              Text(sessionStatus)
                 .font(.headline)
                 .foregroundStyle(.textPrimary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+                .truncationMode(.tail)
             }
           }
 
           ToolbarItemGroup(placement: .topBarTrailing) {
+            Button {
+              showConnect = true
+            } label: {
+              Image(systemName: "plus")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 20, height: 20)
+                .foregroundStyle(AppColors.Brand.brand)
+            }
+            .accessibilityLabel(Text(.connectDeviceTitle))
+
             Button {
               colorSchemeRaw = AppColors.Scheme.next(after: colorSchemeRaw)
             } label: {
@@ -237,6 +265,12 @@ struct ContentView: View {
     }
     .background(AppColors.Background.background)
     .preferredColorScheme(AppColors.Scheme.colorScheme(from: colorSchemeRaw))
+    .sheet(isPresented: $showConnect) {
+      ConnectView {
+        showConnect = false
+        pendingPrivateJoin = true
+      }
+    }
     .sheet(isPresented: settingsSheetPresented) {
       NavigationStack {
         SettingsView(

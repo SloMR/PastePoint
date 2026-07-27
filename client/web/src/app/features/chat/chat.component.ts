@@ -58,10 +58,11 @@ import { HotToastService } from '@ngxpert/hot-toast';
 import { PreviewService } from '../../core/services/ui/preview.service';
 import { FileSizePipe } from '../../utils/file-size.pipe';
 import { middleTruncateFilename as middleTruncateFilenameUtil } from '../../utils/filename.util';
-import { JoinSessionPopupComponent } from './components/popups/join-session-popup/join-session-popup.component';
+import { QrScannerPopupComponent } from './components/popups/qr-scanner-popup/qr-scanner-popup.component';
+import { ConnectPanelComponent } from './components/connect-panel/connect-panel.component';
+import { WelcomeComponent } from './components/welcome/welcome.component';
 import { CreateRoomPopupComponent } from './components/popups/create-room-popup/create-room-popup.component';
 import { EndSessionPopupComponent } from './components/popups/end-session-popup/end-session-popup.component';
-import { QrCodePopupComponent } from './components/popups/qr-code-popup/qr-code-popup.component';
 import { ConnectionWarningComponent } from './components/connection-warning/connection-warning.component';
 import { ServerReconnectComponent } from './components/server-reconnect/server-reconnect.component';
 import { ChatInputComponent, StagedAttachment } from './components/chat-input/chat-input.component';
@@ -81,10 +82,11 @@ import { ChatSidebarComponent } from './components/chat-sidebar/chat-sidebar.com
     FormsModule,
     TranslateModule,
     RouterLink,
-    JoinSessionPopupComponent,
+    QrScannerPopupComponent,
+    ConnectPanelComponent,
+    WelcomeComponent,
     CreateRoomPopupComponent,
     EndSessionPopupComponent,
-    QrCodePopupComponent,
     ConnectionWarningComponent,
     ServerReconnectComponent,
     ChatInputComponent,
@@ -154,9 +156,9 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   isMenuOpen = false;
 
   isOpenCreateRoom = false;
-  isOpenJoinSessionPopup = false;
+  isScannerOpen = false;
+  isConnectPanelOpen = false;
   isOpenEndSessionPopup = false;
-  isOpenQRCodePopup = false;
   skipDrawerAnim = false;
 
   activeUploads: FileUpload[] = [];
@@ -1512,19 +1514,25 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
 
   /**
    * ==========================================================
-   * OPEN JOIN SESSION POPUP
-   * Opens the join session popup with proper DOM timing.
+   * CODE SCANNED
+   * A PastePoint QR code was decoded — join the session it names.
    * ==========================================================
    */
-  openJoinSessionPopup(): void {
-    this.isOpenJoinSessionPopup = true;
-    this.cdr.detectChanges();
-    requestAnimationFrame(() => {
-      const input = document.querySelector(
-        'input[ng-reflect-model="newSessionCode"]'
-      ) as HTMLInputElement;
-      input?.focus();
-    });
+  onCodeScanned(code: string): void {
+    this.isScannerOpen = false;
+    this.joinWithCode(code);
+  }
+
+  /**
+   * ==========================================================
+   * JOIN WITH CODE
+   * Single entry point for every join route — pasted, scanned or typed.
+   * ==========================================================
+   */
+  joinWithCode(code: string): void {
+    this.isConnectPanelOpen = false;
+    this.newSessionCode = code;
+    this.joinPrivateSession();
   }
 
   /**
@@ -1544,22 +1552,15 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
    * Closes any popup with proper DOM timing.
    * ==========================================================
    */
-  closePopup(popupType: 'create' | 'join' | 'end' | 'qr'): void {
+  closePopup(popupType: 'create' | 'end'): void {
     requestAnimationFrame(() => {
       switch (popupType) {
         case 'create':
           this.isOpenCreateRoom = false;
           this.newRoomName = '';
           break;
-        case 'join':
-          this.isOpenJoinSessionPopup = false;
-          this.newSessionCode = '';
-          break;
         case 'end':
           this.isOpenEndSessionPopup = false;
-          break;
-        case 'qr':
-          this.isOpenQRCodePopup = false;
           break;
       }
       this.cdr.detectChanges();
@@ -1632,7 +1633,6 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     requestAnimationFrame(() => {
-      this.isOpenJoinSessionPopup = false;
       this.newSessionCode = '';
       this.cdr.detectChanges();
       this.openChatSession(code);
@@ -1714,6 +1714,18 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     );
   }
 
+  protected get sessionStatusKey(): string {
+    const alone = this.members.length === 0;
+    if (this.SessionCode.length > 0) {
+      return alone ? 'SESSION_STATUS_PRIVATE_ALONE' : 'SESSION_STATUS_PRIVATE';
+    }
+    return alone ? 'SESSION_STATUS_WIFI_ALONE' : 'SESSION_STATUS_WIFI';
+  }
+
+  protected get deviceCount(): number {
+    return this.members.length + 1;
+  }
+
   /**
    * ==========================================================
    * GET SESSION URL
@@ -1725,17 +1737,6 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
       return '';
     }
     return `https://${environment.webUrl}/private/${this.SessionCode}`;
-  }
-
-  /**
-   * ==========================================================
-   * OPEN QR CODE POPUP
-   * Opens the QR code popup; the popup itself handles generation.
-   * ==========================================================
-   */
-  openQRCodePopup(): void {
-    this.isOpenQRCodePopup = true;
-    this.cdr.detectChanges();
   }
 
   /**

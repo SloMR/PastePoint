@@ -85,8 +85,6 @@ struct SettingsView: View {
 
           // MARK: - Private Session
 
-          SettingsPrivateSessionSection(onSessionJoin: onSessionJoin)
-
           // MARK: - Members
 
           SettingsMembersSection { onBlock?($0) }

@@ -80,7 +80,7 @@ struct SettingsMembersSection: View {
                 AttachmentMenu { staged in
                   await services.fileTransferService.sendFiles(staged, to: member)
                 } content: {
-                  Image("link")
+                  Image(systemName: "photo")
                     .renderingMode(.template)
                     .resizable()
                     .scaledToFit()

@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { TestImports, TestProviders } from '../../../../../testing/test-helper';
 
-describe('JoinSessionPopupComponent', () => {
+describe('QrScannerPopupComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [...TestImports],
