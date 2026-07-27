@@ -62,6 +62,24 @@ final class SessionService: ObservableObject {
     return String(String.UnicodeScalarView(scalars))
   }
 
+  /// Invite URL → its code.
+  static func sessionCode(fromURL urlString: String) -> String? {
+    guard
+      let code = AppEnvironment.privateSessionCode(from: urlString),
+      isValidSessionCode(code)
+    else { return nil }
+    return code
+  }
+
+  /// Typed or pasted input → its code, accepting a bare code or an invite URL.
+  static func sessionCode(fromPayload payload: String) -> String? {
+    let trimmed = payload.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !trimmed.isEmpty else { return nil }
+
+    if isValidSessionCode(trimmed) { return trimmed }
+    return sessionCode(fromURL: trimmed)
+  }
+
   static func isValidSessionCode(_ code: String) -> Bool {
     let trimmed = code.trimmingCharacters(in: .whitespacesAndNewlines)
     guard trimmed.count == 10 else { return false }
