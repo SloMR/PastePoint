@@ -180,23 +180,22 @@
         <button
           type="button"
           (click)="isConnectPanelOpen = true"
-          class="flex h-10 w-10 items-center justify-center rounded-full text-content transition-colors hover:bg-inputBackground dark:text-white dark:hover:bg-surfaceDark"
+          class="flex h-10 w-10 items-center justify-center rounded-full bg-brand/10 text-brand transition-colors hover:bg-brand/20 md:w-auto md:gap-2 md:px-3 dark:bg-brandDark/20 dark:text-brandDark dark:hover:bg-brandDark/30"
           [attr.aria-label]="'CONNECT_DEVICE_TITLE' | translate"
           [title]="'CONNECT_DEVICE_TITLE' | translate"
         >
           <svg
-            class="h-5 w-5"
+            class="h-5 w-5 shrink-0"
             fill="none"
             stroke="currentColor"
             stroke-width="1.8"
             viewBox="0 0 24 24"
           >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M3.75 4.5h4.5v4.5h-4.5zM15.75 4.5h4.5v4.5h-4.5zM3.75 15h4.5v4.5h-4.5zM15.75 15h2.25M20.25 15v2.25M15.75 19.5h2.25M20.25 19.5h-.008M12 3.75v16.5M3.75 12h16.5"
-            />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
+          <span class="hidden whitespace-nowrap text-sm font-expoArabicMedium md:inline">
+            {{ 'CONNECT_DEVICE_TITLE' | translate }}
+          </span>
         </button>
 
         <!-- theme toggle -->
