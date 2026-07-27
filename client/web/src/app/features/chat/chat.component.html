@@ -19,10 +19,6 @@
     (switchLanguage)="switchLanguage($event)"
     (joinRoomRequested)="joinRoom($event)"
     (createRoomRequested)="openCreateRoomPopup()"
-    (copySessionCodeRequested)="copySessionCode()"
-    (qrCodeRequested)="openQRCodePopup()"
-    (createPrivateSessionRequested)="createPrivateSession()"
-    (joinPrivateSessionRequested)="openJoinSessionPopup()"
     (endSessionRequested)="openEndSessionPopup()"
     (filePickerRequested)="openFilePickerForMember($event)"
     (blockRequested)="blockUser($event)"
@@ -73,21 +69,30 @@
         </div>
       }
 
-      <app-chat-messages
-        [messages]="messages"
-        [sessionCode]="SessionCode"
-        [memberCount]="members.length"
-        [isRTL]="isRTL"
-        [isDarkMode]="isDarkMode"
-        [currentUser]="userService.user"
-        (acceptFile)="acceptIncomingFile($event)"
-        (declineFile)="declineIncomingFile($event)"
-        (blockRequested)="blockUser($event)"
-        (reportRequested)="reportUser($event)"
-        (connectDeviceRequested)="createPrivateSession()"
-        (showQrRequested)="openQRCodePopup()"
-        (copyCodeRequested)="copySessionCode()"
-      />
+      @if (messages.length === 0) {
+        <app-welcome
+          class="w-full flex-1 overflow-auto min-h-0 no-scrollbar pt-[calc(var(--chat-bar-h)+1rem)]"
+          [sessionCode]="SessionCode"
+          [memberCount]="members.length"
+          [isRTL]="isRTL"
+          [isDarkMode]="isDarkMode"
+          (connectDeviceRequested)="createPrivateSession()"
+          (shareInviteRequested)="isConnectPanelOpen = true"
+          (joinRequested)="joinWithCode($event)"
+          (scanRequested)="isScannerOpen = true"
+        />
+      } @else {
+        <app-chat-messages
+          [messages]="messages"
+          [isRTL]="isRTL"
+          [isDarkMode]="isDarkMode"
+          [currentUser]="userService.user"
+          (acceptFile)="acceptIncomingFile($event)"
+          (declineFile)="declineIncomingFile($event)"
+          (blockRequested)="blockUser($event)"
+          (reportRequested)="reportUser($event)"
+        />
+      }
 
       <!-- MARK: - Message Input -->
       <app-chat-input
@@ -142,7 +147,7 @@
 
       <!-- room title -->
       <div
-        class="pointer-events-none absolute inset-x-0 flex items-center justify-center gap-2 px-16"
+        class="pointer-events-none flex min-w-0 flex-1 items-center gap-2 md:absolute md:inset-x-0 md:flex-none md:justify-center md:px-16"
       >
         @if (SessionCode.length > 0) {
           <img
@@ -168,6 +173,29 @@
 
       <!-- toolbar -->
       <div class="ms-auto flex items-center gap-1">
+        <!-- connect a device -->
+        <button
+          type="button"
+          (click)="isConnectPanelOpen = true"
+          class="flex h-10 w-10 items-center justify-center rounded-full text-content transition-colors hover:bg-inputBackground dark:text-white dark:hover:bg-surfaceDark"
+          [attr.aria-label]="'CONNECT_DEVICE_TITLE' | translate"
+          [title]="'CONNECT_DEVICE_TITLE' | translate"
+        >
+          <svg
+            class="h-5 w-5"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M3.75 4.5h4.5v4.5h-4.5zM15.75 4.5h4.5v4.5h-4.5zM3.75 15h4.5v4.5h-4.5zM15.75 15h2.25M20.25 15v2.25M15.75 19.5h2.25M20.25 19.5h-.008M12 3.75v16.5M3.75 12h16.5"
+            />
+          </svg>
+        </button>
+
         <!-- theme toggle -->
         <button
           type="button"
@@ -239,11 +267,23 @@
     </div>
 
     <!-- MARK: - Popups -->
-    <app-join-session-popup
-      [isOpen]="isOpenJoinSessionPopup"
-      [(sessionCode)]="newSessionCode"
-      (closed)="closePopup('join')"
-      (submitted)="joinPrivateSession()"
+    <app-connect-panel
+      [isOpen]="isConnectPanelOpen"
+      [sessionCode]="SessionCode"
+      [sessionUrl]="sessionUrl"
+      [memberCount]="members.length"
+      [isRTL]="isRTL"
+      (closed)="isConnectPanelOpen = false"
+      (createRequested)="isConnectPanelOpen = false; createPrivateSession()"
+      (copyRequested)="copySessionCode()"
+      (scanRequested)="isConnectPanelOpen = false; isScannerOpen = true"
+      (joinRequested)="joinWithCode($event)"
+    />
+
+    <app-qr-scanner-popup
+      [isOpen]="isScannerOpen"
+      (closed)="isScannerOpen = false"
+      (scanned)="onCodeScanned($event)"
     />
 
     <app-create-room-popup
@@ -257,13 +297,6 @@
       [isOpen]="isOpenEndSessionPopup"
       (closed)="closePopup('end')"
       (confirmed)="endSession()"
-    />
-
-    <app-qr-code-popup
-      [isOpen]="isOpenQRCodePopup"
-      [isRTL]="isRTL"
-      [sessionUrl]="sessionUrl"
-      (closed)="closePopup('qr')"
     />
   </div>
 </div>

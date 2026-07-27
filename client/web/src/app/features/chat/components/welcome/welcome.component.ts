@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { WelcomeCardComponent } from './welcome-card/welcome-card.component';
+import { JoinCodeFormComponent } from '../join-code-form/join-code-form.component';
 
 interface WelcomeFeature {
   icon: string;
@@ -12,7 +13,7 @@ interface WelcomeFeature {
 
 @Component({
   selector: 'app-welcome',
-  imports: [CommonModule, TranslateModule, WelcomeCardComponent],
+  imports: [CommonModule, TranslateModule, WelcomeCardComponent, JoinCodeFormComponent],
   templateUrl: './welcome.component.html',
   styleUrl: './welcome.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -24,8 +25,9 @@ export class WelcomeComponent {
   @Input() isDarkMode = false;
 
   @Output() connectDeviceRequested = new EventEmitter<void>();
-  @Output() showQrRequested = new EventEmitter<void>();
-  @Output() copyCodeRequested = new EventEmitter<void>();
+  @Output() shareInviteRequested = new EventEmitter<void>();
+  @Output() joinRequested = new EventEmitter<string>();
+  @Output() scanRequested = new EventEmitter<void>();
 
   protected readonly features: WelcomeFeature[] = [
     { icon: '/icons/lock.svg', iconDark: '/icons/lock-white.svg', label: 'FEATURE_ENCRYPTED' },

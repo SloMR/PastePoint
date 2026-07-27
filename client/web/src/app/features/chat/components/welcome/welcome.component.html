@@ -1,4 +1,4 @@
-<div class="flex w-full h-full items-center justify-center py-4 sm:py-8">
+<div class="flex w-full min-h-full items-center justify-center py-4 sm:py-8">
   <div
     class="flex w-full max-w-md flex-col items-center justify-center text-center px-4 sm:px-6 py-6 sm:py-8 space-y-4 sm:space-y-6"
   >
@@ -43,28 +43,14 @@
           message="INVITE_SHARE_BODY"
           [isRTL]="isRTL"
         >
-          <div class="mt-1 rounded-lg bg-inputBackground p-2 text-center dark:bg-borderDark">
-            <p class="truncate text-sm font-expoArabic tracking-widest dark:text-contentMuted">
-              {{ sessionCode }}
-            </p>
-          </div>
-          <div class="mt-2 flex gap-2">
-            <button
-              type="button"
-              (click)="showQrRequested.emit()"
-              class="flex flex-1 items-center justify-center gap-2 rounded-lg bg-brand p-2 text-sm font-expoArabicMedium text-white hover:bg-brand/80 dark:bg-brandDark dark:hover:bg-brandDark/80"
-            >
-              <img src="/icons/qrcode.svg" alt="" class="h-4 w-4" width="16" height="16" />
-              {{ 'SHOW_QR_CODE' | translate }}
-            </button>
-            <button
-              type="button"
-              (click)="copyCodeRequested.emit()"
-              class="flex items-center justify-center rounded-lg border border-brand px-3 py-2 text-sm font-expoArabicMedium text-brand hover:bg-brand/10 dark:border-brandDark dark:text-brandDark dark:hover:bg-brandDark/10"
-            >
-              {{ 'COPY' | translate }}
-            </button>
-          </div>
+          <button
+            type="button"
+            (click)="shareInviteRequested.emit()"
+            class="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-brand p-2 text-sm font-expoArabicMedium text-white hover:bg-brand/80 dark:bg-brandDark dark:hover:bg-brandDark/80"
+          >
+            <img src="/icons/qrcode.svg" alt="" class="h-4 w-4" width="16" height="16" />
+            {{ 'SHARE_INVITE' | translate }}
+          </button>
         </app-welcome-card>
       } @else if (memberCount > 0) {
         <app-welcome-card
@@ -103,6 +89,21 @@
         </app-welcome-card>
       }
     </div>
+
+    @if (sessionCode.length === 0) {
+      <div class="w-full">
+        <p
+          class="mb-2 text-xs font-expoArabicMedium text-textMuted dark:text-contentMuted"
+          [ngClass]="isRTL ? 'text-right' : 'text-left'"
+        >
+          {{ 'HAVE_A_CODE' | translate }}
+        </p>
+        <app-join-code-form
+          (joinRequested)="joinRequested.emit($event)"
+          (scanRequested)="scanRequested.emit()"
+        />
+      </div>
+    }
 
     <!-- MARK: - What the product is -->
     <div class="grid grid-cols-2 gap-2 sm:gap-3 w-full mt-2">

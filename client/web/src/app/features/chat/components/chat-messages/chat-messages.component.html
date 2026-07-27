@@ -3,18 +3,6 @@
   class="w-full flex-1 overflow-auto min-h-0 no-scrollbar pt-[calc(var(--chat-bar-h)+1rem)]"
   #messageContainer
 >
-  <!-- MARK: - Welcome State (Empty Messages) -->
-  @if (messages.length === 0) {
-    <app-welcome
-      [sessionCode]="sessionCode"
-      [memberCount]="memberCount"
-      [isRTL]="isRTL"
-      [isDarkMode]="isDarkMode"
-      (connectDeviceRequested)="connectDeviceRequested.emit()"
-      (showQrRequested)="showQrRequested.emit()"
-      (copyCodeRequested)="copyCodeRequested.emit()"
-    />
-  }
   <div class="flex w-full flex-col items-start justify-start gap-4">
     <!-- MARK: - Messages -->
     @for (message of messages; track trackMessage($index, message)) {
