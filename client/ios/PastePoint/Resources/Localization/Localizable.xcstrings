@@ -2600,47 +2600,6 @@
         }
       }
     },
-    "HAVE_A_CODE" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "لديك رمز؟"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Have a code?"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "¿Tienes un código?"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vous avez un code ?"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Есть код?"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "有代码？"
-          }
-        }
-      }
-    },
     "INVALID_QR_CODE" : {
       "comment" : "Toast: scanned QR code is not a valid PastePoint code.",
       "extractionState" : "manual",
@@ -2886,6 +2845,47 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "加入中…"
+          }
+        }
+      }
+    },
+    "JOINING_SOMEONE_ELSE" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تنضم إلى شخص آخر؟"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Joining someone else?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Te unes a otra persona?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vous rejoignez quelqu’un ?"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Присоединяетесь к кому-то?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要加入其他人吗？"
           }
         }
       }

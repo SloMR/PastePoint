@@ -43,7 +43,7 @@ struct WelcomeView: View {
 
       if sessionCode == nil {
         VStack(alignment: .leading, spacing: 8) {
-          Text(.haveACode)
+          Text(.joiningSomeoneElse)
             .font(.caption)
             .fontWeight(.semibold)
             .foregroundStyle(.textSecondary)

@@ -26,7 +26,7 @@ struct ConnectView: View {
       Divider()
 
       VStack(alignment: .leading, spacing: 10) {
-        Text(.haveACode)
+        Text(.joiningSomeoneElse)
           .font(.caption)
           .fontWeight(.semibold)
           .foregroundStyle(.textSecondary)
