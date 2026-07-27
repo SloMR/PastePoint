@@ -39,10 +39,6 @@ export class ChatSidebarComponent {
 
   @Output() joinRoomRequested = new EventEmitter<string>();
   @Output() createRoomRequested = new EventEmitter<void>();
-  @Output() copySessionCodeRequested = new EventEmitter<void>();
-  @Output() qrCodeRequested = new EventEmitter<void>();
-  @Output() createPrivateSessionRequested = new EventEmitter<void>();
-  @Output() joinPrivateSessionRequested = new EventEmitter<void>();
   @Output() endSessionRequested = new EventEmitter<void>();
   @Output() filePickerRequested = new EventEmitter<string>();
   @Output() blockRequested = new EventEmitter<string>();
