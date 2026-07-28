@@ -1091,6 +1091,47 @@
         }
       }
     },
+    "COPY_CODE" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "نسخ الرمز"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy code"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copiar código"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copier le code"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Скопировать код"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "复制代码"
+          }
+        }
+      }
+    },
     "COPYRIGHT_NOTICE" : {
       "comment" : "Copyright line in the settings footer.",
       "extractionState" : "manual",
@@ -1672,258 +1713,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "聊天室名称"
-          }
-        }
-      }
-    },
-    "FEATURE_ANY_FILE" : {
-      "comment" : "Welcome feature bullet: supports any file.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "أي نوع وحجم ملف"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Any file type & size"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cualquier tipo y tamaño de archivo"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tout type et toute taille de fichier"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Любой тип и размер файла"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "支持任意类型和大小的文件"
-          }
-        }
-      }
-    },
-    "FEATURE_ENCRYPTED" : {
-      "comment" : "Welcome feature bullet: end-to-end encryption.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تشفير من طرف إلى طرف"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "End-to-end encrypted"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cifrado de extremo a extremo"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Chiffré de bout en bout"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Сквозное шифрование"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "端到端加密"
-          }
-        }
-      }
-    },
-    "FEATURE_FREE" : {
-      "comment" : "Welcome feature bullet: free and open source.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "مجاني ومفتوح المصدر"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Free & open source"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gratis y de código abierto"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gratuit et open source"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Бесплатно и с открытым кодом"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "免费且开源"
-          }
-        }
-      }
-    },
-    "FEATURE_LOCAL_SPEED" : {
-      "comment" : "Welcome feature bullet: local network speed.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "سرعة الشبكة المحلية"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Local network speed"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Velocidad de red local"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vitesse du réseau local"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Скорость локальной сети"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "本地网络速度"
-          }
-        }
-      }
-    },
-    "FEATURE_NO_ACCOUNT" : {
-      "comment" : "Welcome feature bullet: no account needed.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "بدون إنشاء حساب"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No account needed"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sin necesidad de cuenta"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aucun compte requis"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Без регистрации"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无需注册账号"
-          }
-        }
-      }
-    },
-    "FEATURE_NO_CLOUD" : {
-      "comment" : "Welcome feature bullet: no cloud storage.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "بدون تخزين سحابي"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No cloud storage"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sin almacenamiento en la nube"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aucun stockage cloud"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Без облачного хранилища"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "不使用云存储"
           }
         }
       }
@@ -2684,88 +2473,6 @@
         }
       }
     },
-    "INVITE_SHARE_BODY" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "امسح رمز QR بجهازك الآخر، أو أرسل له الرابط."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Scan this QR code with your other device, or send it the link."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Escanea este código QR con tu otro dispositivo o envíale el enlace."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Scannez ce QR code avec votre autre appareil, ou envoyez-lui le lien."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Отсканируйте этот QR-код другим устройством или отправьте ему ссылку."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "用你的另一台设备扫描此二维码，或将链接发送给它。"
-          }
-        }
-      }
-    },
-    "INVITE_THE_OTHER_DEVICE" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ادعُ الجهاز الآخر"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Invite the other device"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Invita al otro dispositivo"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Inviter l’autre appareil"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Пригласить другое устройство"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "邀请另一台设备"
-          }
-        }
-      }
-    },
     "JOIN" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3352,6 +3059,47 @@
         }
       }
     },
+    "LOOKING_FOR_DEVICES" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "جارٍ البحث عن الأجهزة…"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Looking for devices…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buscando dispositivos…"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recherche d’appareils…"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Поиск устройств…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在查找设备…"
+          }
+        }
+      }
+    },
     "MEMBERS" : {
       "comment" : "Heading for the members list.",
       "extractionState" : "manual",
@@ -3670,37 +3418,37 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "هاتف على بيانات الجوال، أو شخص في مكان آخر؟ أنشئ رابطًا يمكن فتحه من أي مكان."
+            "value" : "بيانات الجوال، مكتب آخر، دولة أخرى — أرسل رابطًا يمكن فتحه من أي مكان."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Phone on mobile data, or someone somewhere else? Create a link they can open from anywhere."
+            "value" : "Mobile data, another office, another country — send a link they can open from anywhere."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "¿Un teléfono con datos móviles o alguien en otro lugar? Crea un enlace que puedan abrir desde cualquier sitio."
+            "value" : "Datos móviles, otra oficina, otro país: envía un enlace que puedan abrir desde cualquier sitio."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Un téléphone en données mobiles, ou quelqu’un ailleurs ? Créez un lien qu’il pourra ouvrir de n’importe où."
+            "value" : "Données mobiles, un autre bureau, un autre pays — envoyez un lien qu’ils pourront ouvrir de n’importe où."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Телефон на мобильном интернете или кто-то в другом месте? Создайте ссылку, которую можно открыть откуда угодно."
+            "value" : "Мобильный интернет, другой офис, другая страна — отправьте ссылку, которую можно открыть откуда угодно."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "手机使用移动数据，或对方在别处？创建一个可在任何地方打开的链接。"
+            "value" : "移动数据、另一间办公室、另一个国家——发送一个可在任何地方打开的链接。"
           }
         }
       }
@@ -3752,37 +3500,37 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "على شبكة أخرى؟"
+            "value" : "في مكان آخر"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "On a different network?"
+            "value" : "Somewhere else"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "¿En otra red?"
+            "value" : "En otro lugar"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sur un autre réseau ?"
+            "value" : "Ailleurs"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "В другой сети?"
+            "value" : "Где-то ещё"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在其他网络？"
+            "value" : "在其他地方"
           }
         }
       }
@@ -3793,37 +3541,37 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "افتح PastePoint على الجهاز الآخر فقط — سينضم تلقائيًا."
+            "value" : "لا شيء عليك فعله. افتح PastePoint على الجهاز الآخر وسينضم إلى هذه الغرفة تلقائيًا."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Just open PastePoint on the other device — it joins automatically."
+            "value" : "Nothing to do. Open PastePoint on the other device and it joins this room automatically."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Solo abre PastePoint en el otro dispositivo: se conectará automáticamente."
+            "value" : "No hay nada que hacer. Abre PastePoint en el otro dispositivo y se unirá a esta sala automáticamente."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ouvrez simplement PastePoint sur l’autre appareil — il se connectera tout seul."
+            "value" : "Rien à faire. Ouvrez PastePoint sur l’autre appareil et il rejoindra ce salon automatiquement."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Просто откройте PastePoint на другом устройстве — оно подключится само."
+            "value" : "Ничего делать не нужно. Откройте PastePoint на другом устройстве — оно само присоединится к этой комнате."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "只需在另一台设备上打开 PastePoint，它会自动加入。"
+            "value" : "无需任何操作。在另一台设备上打开 PastePoint，它会自动加入此房间。"
           }
         }
       }
@@ -3834,37 +3582,78 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "على نفس الشبكة؟"
+            "value" : "على هذه الشبكة"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "On this Wi-Fi?"
+            "value" : "On this Wi-Fi"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "¿En esta Wi-Fi?"
+            "value" : "En esta Wi-Fi"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sur ce Wi-Fi ?"
+            "value" : "Sur ce Wi-Fi"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "В этой же сети Wi-Fi?"
+            "value" : "В этой сети Wi-Fi"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在同一 Wi-Fi？"
+            "value" : "在同一 Wi-Fi"
+          }
+        }
+      }
+    },
+    "OR_TYPE_THE_CODE" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أو اكتب الرمز على الجهاز الآخر"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "or type the code on the other device"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "o escribe el código en el otro dispositivo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ou saisissez le code sur l’autre appareil"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "или введите код на другом устройстве"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "或在另一台设备上输入代码"
           }
         }
       }
@@ -4033,6 +3822,47 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "隐私与条款"
+          }
+        }
+      }
+    },
+    "PRIVATE_ROOM_ONLY_CODE" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "غرفة خاصة · لا يدخلها إلا من معه هذا الرمز"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Private room · only this code gets in"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sala privada · solo se entra con este código"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salon privé · seul ce code y donne accès"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Приватная комната · войти можно только по этому коду"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "私密房间 · 仅凭此代码可加入"
           }
         }
       }
@@ -4853,6 +4683,47 @@
         }
       }
     },
+    "SCAN_TO_JOIN_ROOM" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "امسح الرمز للانضمام إلى هذه الغرفة"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scan to join this room"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escanea para unirte a esta sala"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scannez pour rejoindre ce salon"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отсканируйте, чтобы войти в комнату"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "扫码加入此房间"
+          }
+        }
+      }
+    },
     "SCANNER_UNAVAILABLE" : {
       "comment" : "Title shown when the device has no supported QR scanner.",
       "extractionState" : "manual",
@@ -5479,6 +5350,88 @@
         }
       }
     },
+    "SHARE_LINK" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مشاركة الرابط"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share link"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compartir enlace"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Partager le lien"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Поделиться ссылкой"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分享链接"
+          }
+        }
+      }
+    },
+    "SOMEONE_SENT_YOU_A_CODE" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أرسل لك أحدهم رمزًا؟"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Someone sent you a code?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Alguien te envió un código?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quelqu’un vous a envoyé un code ?"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вам прислали код?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有人给你发了代码？"
+          }
+        }
+      }
+    },
     "START_PRIVATE_FAILED" : {
       "comment" : "Toast: starting a private session failed.",
       "extractionState" : "manual",
@@ -6021,6 +5974,88 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "请稍候——文件仍在校验中…"
+          }
+        }
+      }
+    },
+    "WAITING_FOR_DEVICE" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "في انتظار الجهاز الآخر…"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Waiting for the other device…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esperando al otro dispositivo…"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En attente de l’autre appareil…"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ожидание другого устройства…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在等待另一台设备…"
+          }
+        }
+      }
+    },
+    "WELCOME_PRIVACY_NOTE" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "كل عملية نقل مشفّرة من طرف إلى طرف ومباشرة بين الجهازين. بدون سحابة، بدون حساب، وبأي حجم ملف."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every transfer is end-to-end encrypted and peer-to-peer. No cloud, no account, any file size."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cada transferencia está cifrada de extremo a extremo y va directa entre dispositivos. Sin nube, sin cuenta, cualquier tamaño de archivo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chaque transfert est chiffré de bout en bout et se fait en pair-à-pair. Sans cloud, sans compte, quelle que soit la taille du fichier."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Каждая передача защищена сквозным шифрованием и идёт напрямую между устройствами. Без облака, без аккаунта, файл любого размера."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每次传输都经过端到端加密并点对点直连。无云端、无需账号、不限文件大小。"
           }
         }
       }
