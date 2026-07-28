@@ -41,34 +41,7 @@ struct ConnectView: View {
   // MARK: - Share
 
   private func shareSection(code: String) -> some View {
-    VStack(spacing: 12) {
-      QRCodeView(text: AppEnvironment.privateSessionUrl(sessionCode: code), size: 180)
-        .padding(12)
-        .background(Color(.white), in: RoundedRectangle(cornerRadius: 12))
-        .accessibilityHidden(true)
-
-      Text(code)
-        .font(.system(.body, design: .monospaced).weight(.medium))
-        .foregroundStyle(.textPrimary)
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 10)
-        .background(.inputBackground, in: RoundedRectangle(cornerRadius: 8))
-
-      HStack(spacing: 8) {
-        ShareLink(item: AppEnvironment.privateSessionUrl(sessionCode: code)) {
-          Text(.share)
-        }
-        .buttonStyle(.pill(tint: AppColors.Brand.brand))
-
-        Button {
-          UIPasteboard.general.string = code
-          toast.show(.success(.codeCopied))
-        } label: {
-          Text(.copy)
-        }
-        .buttonStyle(.pill(.outlined, tint: AppColors.Brand.brand))
-      }
-    }
+    SessionShareBlock(code: code)
   }
 
   // MARK: - Create
