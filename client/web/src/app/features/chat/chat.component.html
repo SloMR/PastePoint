@@ -73,11 +73,12 @@
         <app-welcome
           class="w-full flex-1 overflow-auto min-h-0 no-scrollbar pt-[calc(var(--chat-bar-h)+1rem)]"
           [sessionCode]="SessionCode"
+          [sessionUrl]="sessionUrl"
           [memberCount]="members.length"
           [isRTL]="isRTL"
           [isDarkMode]="isDarkMode"
           (connectDeviceRequested)="createPrivateSession()"
-          (shareInviteRequested)="isConnectPanelOpen = true"
+          (copyRequested)="copySessionCode()"
           (joinRequested)="joinWithCode($event)"
           (scanRequested)="isScannerOpen = true"
         />

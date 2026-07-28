@@ -1,11 +1,24 @@
 <div
-  class="space-y-2 rounded-lg bg-stepCard p-3 dark:bg-gray-800 sm:p-4"
+  class="flex h-full flex-col gap-2 rounded-xl bg-stepCard p-4 dark:bg-gray-800 sm:p-5"
   [ngClass]="isRTL ? 'text-right' : 'text-left'"
 >
-  <h2 class="text-sm font-expoArabicMedium text-content dark:text-white">
-    {{ title | translate }}
-  </h2>
-  <p class="text-xs font-expoArabic leading-relaxed text-gray-600 dark:text-gray-400">
+  <div class="flex items-center gap-2">
+    @if (icon) {
+      <img
+        [src]="isDarkMode ? iconDark : icon"
+        alt=""
+        class="h-[18px] w-[18px] shrink-0"
+        width="18"
+        height="18"
+      />
+    }
+    <h2 class="text-sm font-expoArabicMedium text-content dark:text-white sm:text-base">
+      {{ title | translate }}
+    </h2>
+  </div>
+  <p
+    class="text-xs font-expoArabic leading-relaxed text-secondary-600 dark:text-gray-400 sm:text-[13px]"
+  >
     {{ message | translate }}
   </p>
   <ng-content />
