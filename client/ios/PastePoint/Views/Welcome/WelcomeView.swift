@@ -7,7 +7,6 @@ import SwiftUI
 
 struct WelcomeView: View {
   @EnvironmentObject private var services: AppServices
-  @EnvironmentObject private var toast: ToastCenter
 
   private var sessionCode: String? {
     services.wsService.currentSessionCode
