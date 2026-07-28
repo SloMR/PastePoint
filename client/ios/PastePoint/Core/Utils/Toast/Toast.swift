@@ -107,6 +107,8 @@ private struct ToastRowView: View {
 struct ToastOverlayView: View {
   @ObservedObject var center: ToastCenter
 
+  var onFrameChange: (CGRect) -> Void = { _ in }
+
   var body: some View {
     VStack(spacing: 8) {
       ForEach(center.items) { item in
@@ -120,10 +122,9 @@ struct ToastOverlayView: View {
           removal: .move(edge: .top).combined(with: .opacity),
         ))
       }
-
-      Spacer(minLength: 0)
     }
     .padding(.horizontal, 20)
+    .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { onFrameChange($0) }
     .padding(.top, 8)
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     .animation(.spring(response: 0.4), value: center.items)
