@@ -3,15 +3,13 @@
   [ngClass]="isRTL ? 'text-right' : 'text-left'"
 >
   <div class="flex items-center gap-2">
-    @if (icon) {
-      <img
-        [src]="isDarkMode ? iconDark : icon"
-        alt=""
-        class="h-[18px] w-[18px] shrink-0"
-        width="18"
-        height="18"
-      />
-    }
+    <img
+      [src]="isDarkMode ? iconDark : icon"
+      alt=""
+      class="h-[18px] w-[18px] shrink-0"
+      width="18"
+      height="18"
+    />
     <h2 class="text-sm font-expoArabicMedium text-content dark:text-white sm:text-base">
       {{ title | translate }}
     </h2>
