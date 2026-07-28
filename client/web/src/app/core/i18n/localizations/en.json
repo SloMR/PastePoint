@@ -10,7 +10,6 @@
   "COPYRIGHT_NOTICE": "© 2026 PastePoint. All rights reserved.",
   "VERSION": "Version",
   "CHANGE_LANGUAGE": "Change language",
-  "QR_CODE": "QR code",
   "SWITCH_APPEARANCE": "Switch appearance",
   "CLOSE": "Close",
   "DISMISS": "Dismiss",
@@ -82,7 +81,6 @@
   "WELCOME_PRIVACY_NOTE": "Every transfer is end-to-end encrypted and peer-to-peer. No cloud, no account, any file size.",
 
   "_SESSION_CODE_SECTION": "==== SESSION CODE ====",
-  "CODE": "Code",
   "COPY": "Copy",
   "SESSION_CODE_PLACEHOLDER": "10 letters or numbers",
   "DONE": "Done",
@@ -112,7 +110,6 @@
   "CAMERA_NOT_AVAILABLE": "Camera access denied or unavailable.",
 
   "_FILE_TRANSFER_SECTION": "==== FILE TRANSFER ====",
-  "FILE_TRANSFER": "File Transfer",
   "FILE_SENT": "File sent",
   "FILE_SEND_SENDING": "Sending…",
   "FILE_SEND_DELIVERED": "Sent",
@@ -194,7 +191,6 @@
   "DECLINED": "Declined",
   "NO_FILE_TO_SEND": "No file to send.",
   "ALL_FILES_RESPONDED": "All file requests have been handled.",
-  "SUCCESS": "Success",
   "NO_USERS_FOR_UPLOAD": "No one’s available to receive the file.",
   "NO_MEMBERS_TO_SEND_MESSAGE": "No one’s available to receive the message.",
   "MESSAGE_REQUIRED": "Message is required.",

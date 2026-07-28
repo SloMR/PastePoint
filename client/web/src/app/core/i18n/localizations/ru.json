@@ -10,7 +10,6 @@
   "COPYRIGHT_NOTICE": "© 2026 PastePoint. Все права защищены.",
   "VERSION": "Версия",
   "CHANGE_LANGUAGE": "Сменить язык",
-  "QR_CODE": "QR-код",
   "SWITCH_APPEARANCE": "Сменить оформление",
   "CLOSE": "Закрыть",
   "DISMISS": "Скрыть",
@@ -82,7 +81,6 @@
   "WELCOME_PRIVACY_NOTE": "Каждая передача защищена сквозным шифрованием и идёт напрямую между устройствами. Без облака, без аккаунта, файл любого размера.",
 
   "_SESSION_CODE_SECTION": "==== SESSION CODE ====",
-  "CODE": "Код",
   "COPY": "Копировать",
   "SESSION_CODE_PLACEHOLDER": "10 букв или цифр",
   "DONE": "Готово",
@@ -112,7 +110,6 @@
   "CAMERA_NOT_AVAILABLE": "Доступ к камере запрещён или недоступен.",
 
   "_FILE_TRANSFER_SECTION": "==== FILE TRANSFER ====",
-  "FILE_TRANSFER": "Передача файлов",
   "FILE_SENT": "Файл отправлен",
   "FILE_SEND_SENDING": "Отправка…",
   "FILE_SEND_DELIVERED": "Отправлено",
@@ -194,7 +191,6 @@
   "DECLINED": "Отклонено",
   "NO_FILE_TO_SEND": "Нет файла для отправки.",
   "ALL_FILES_RESPONDED": "Все запросы на файлы обработаны.",
-  "SUCCESS": "Успешно",
   "NO_USERS_FOR_UPLOAD": "Нет получателей для отправки файла.",
   "NO_MEMBERS_TO_SEND_MESSAGE": "Нет получателей для отправки сообщения.",
   "MESSAGE_REQUIRED": "Сообщение обязательно.",

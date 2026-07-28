@@ -10,7 +10,6 @@
   "COPYRIGHT_NOTICE": "© 2026 PastePoint。保留所有权利。",
   "VERSION": "版本",
   "CHANGE_LANGUAGE": "切换语言",
-  "QR_CODE": "二维码",
   "SWITCH_APPEARANCE": "切换外观",
   "CLOSE": "关闭",
   "DISMISS": "忽略",
@@ -82,7 +81,6 @@
   "WELCOME_PRIVACY_NOTE": "每次传输都经过端到端加密并点对点直连。无云端、无需账号、不限文件大小。",
 
   "_SESSION_CODE_SECTION": "==== SESSION CODE ====",
-  "CODE": "代码",
   "COPY": "复制",
   "SESSION_CODE_PLACEHOLDER": "10 位字母或数字",
   "DONE": "完成",
@@ -112,7 +110,6 @@
   "CAMERA_NOT_AVAILABLE": "无法访问摄像头或权限被拒绝。",
 
   "_FILE_TRANSFER_SECTION": "==== FILE TRANSFER ====",
-  "FILE_TRANSFER": "文件传输",
   "FILE_SENT": "文件已发送",
   "FILE_SEND_SENDING": "发送中…",
   "FILE_SEND_DELIVERED": "已发送",
@@ -194,7 +191,6 @@
   "DECLINED": "已拒绝",
   "NO_FILE_TO_SEND": "没有要发送的文件。",
   "ALL_FILES_RESPONDED": "所有文件请求都已处理完毕。",
-  "SUCCESS": "成功",
   "NO_USERS_FOR_UPLOAD": "没有可接收文件的成员。",
   "NO_MEMBERS_TO_SEND_MESSAGE": "没有可接收消息的成员。",
   "MESSAGE_REQUIRED": "消息不能为空。",

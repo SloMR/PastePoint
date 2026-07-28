@@ -10,7 +10,6 @@
   "COPYRIGHT_NOTICE": "© 2026 PastePoint. جميع الحقوق محفوظة.",
   "VERSION": "الإصدار",
   "CHANGE_LANGUAGE": "تغيير اللغة",
-  "QR_CODE": "رمز QR",
   "SWITCH_APPEARANCE": "تبديل المظهر",
   "CLOSE": "إغلاق",
   "DISMISS": "تجاهل",
@@ -82,7 +81,6 @@
   "WELCOME_PRIVACY_NOTE": "كل عملية نقل مشفّرة من طرف إلى طرف ومباشرة بين الجهازين. بدون سحابة، بدون حساب، وبأي حجم ملف.",
 
   "_SESSION_CODE_SECTION": "==== SESSION CODE ====",
-  "CODE": "الرمز",
   "COPY": "نسخ",
   "SESSION_CODE_PLACEHOLDER": "10 أحرف أو أرقام",
   "DONE": "تم",
@@ -112,7 +110,6 @@
   "CAMERA_NOT_AVAILABLE": "تعذّر الوصول إلى الكاميرا.",
 
   "_FILE_TRANSFER_SECTION": "==== FILE TRANSFER ====",
-  "FILE_TRANSFER": "نقل الملفات",
   "FILE_SENT": "تم إرسال الملف",
   "FILE_SEND_SENDING": "جارٍ الإرسال…",
   "FILE_SEND_DELIVERED": "تم الإرسال",
@@ -194,7 +191,6 @@
   "DECLINED": "مرفوض",
   "NO_FILE_TO_SEND": "لا يوجد ملف لإرساله",
   "ALL_FILES_RESPONDED": "تم الرد على جميع الملفات",
-  "SUCCESS": "تم بنجاح",
   "NO_USERS_FOR_UPLOAD": "لا يوجد مستخدم لإرسال الملف إليه",
   "NO_MEMBERS_TO_SEND_MESSAGE": "لا يوجد أعضاء لاستلام الرسالة",
   "MESSAGE_REQUIRED": "الرسالة مطلوبة",

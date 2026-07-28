@@ -10,7 +10,6 @@
   "COPYRIGHT_NOTICE": "© 2026 PastePoint. Todos los derechos reservados.",
   "VERSION": "Versión",
   "CHANGE_LANGUAGE": "Cambiar idioma",
-  "QR_CODE": "Código QR",
   "SWITCH_APPEARANCE": "Cambiar apariencia",
   "CLOSE": "Cerrar",
   "DISMISS": "Descartar",
@@ -82,7 +81,6 @@
   "WELCOME_PRIVACY_NOTE": "Cada transferencia está cifrada de extremo a extremo y va directa entre dispositivos. Sin nube, sin cuenta, cualquier tamaño de archivo.",
 
   "_SESSION_CODE_SECTION": "==== SESSION CODE ====",
-  "CODE": "Código",
   "COPY": "Copiar",
   "SESSION_CODE_PLACEHOLDER": "10 letras o números",
   "DONE": "Listo",
@@ -112,7 +110,6 @@
   "CAMERA_NOT_AVAILABLE": "Acceso a la cámara denegado o no disponible.",
 
   "_FILE_TRANSFER_SECTION": "==== FILE TRANSFER ====",
-  "FILE_TRANSFER": "Transferencia de archivos",
   "FILE_SENT": "Archivo enviado",
   "FILE_SEND_SENDING": "Enviando…",
   "FILE_SEND_DELIVERED": "Enviado",
@@ -194,7 +191,6 @@
   "DECLINED": "Rechazado",
   "NO_FILE_TO_SEND": "No hay archivo para enviar.",
   "ALL_FILES_RESPONDED": "Se han gestionado todas las solicitudes de archivo.",
-  "SUCCESS": "Éxito",
   "NO_USERS_FOR_UPLOAD": "No hay nadie disponible para recibir el archivo.",
   "NO_MEMBERS_TO_SEND_MESSAGE": "No hay nadie disponible para recibir el mensaje.",
   "MESSAGE_REQUIRED": "El mensaje es obligatorio.",

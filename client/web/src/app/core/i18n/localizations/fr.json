@@ -10,7 +10,6 @@
   "COPYRIGHT_NOTICE": "© 2026 PastePoint. Tous droits réservés.",
   "VERSION": "Version",
   "CHANGE_LANGUAGE": "Changer de langue",
-  "QR_CODE": "QR code",
   "SWITCH_APPEARANCE": "Changer l’apparence",
   "CLOSE": "Fermer",
   "DISMISS": "Ignorer",
@@ -82,7 +81,6 @@
   "WELCOME_PRIVACY_NOTE": "Chaque transfert est chiffré de bout en bout et se fait en pair-à-pair. Sans cloud, sans compte, quelle que soit la taille du fichier.",
 
   "_SESSION_CODE_SECTION": "==== SESSION CODE ====",
-  "CODE": "Code",
   "COPY": "Copier",
   "SESSION_CODE_PLACEHOLDER": "10 lettres ou chiffres",
   "DONE": "Terminé",
@@ -112,7 +110,6 @@
   "CAMERA_NOT_AVAILABLE": "Accès à la caméra refusé ou indisponible.",
 
   "_FILE_TRANSFER_SECTION": "==== FILE TRANSFER ====",
-  "FILE_TRANSFER": "Transfert de fichier",
   "FILE_SENT": "Fichier envoyé",
   "FILE_SEND_SENDING": "Envoi…",
   "FILE_SEND_DELIVERED": "Envoyé",
@@ -194,7 +191,6 @@
   "DECLINED": "Refusé",
   "NO_FILE_TO_SEND": "Aucun fichier à envoyer.",
   "ALL_FILES_RESPONDED": "Toutes les demandes de fichier ont été traitées.",
-  "SUCCESS": "Succès",
   "NO_USERS_FOR_UPLOAD": "Personne n'est disponible pour recevoir le fichier.",
   "NO_MEMBERS_TO_SEND_MESSAGE": "Personne n'est disponible pour recevoir le message.",
   "MESSAGE_REQUIRED": "Le message est requis.",
