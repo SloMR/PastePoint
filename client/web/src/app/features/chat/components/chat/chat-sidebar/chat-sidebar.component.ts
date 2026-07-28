@@ -3,11 +3,11 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 
-import { FileDownload, FileUpload, MemberConnectionState } from '../../../../utils/constants';
-import { LanguageCode } from '../../../../core/i18n/languages';
-import { middleTruncateFilename as middleTruncateFilenameUtil } from '../../../../utils/filename.util';
-import { LanguageSwitcherComponent } from '../../../../core/components/language-switcher/language-switcher.component';
-import { SELF_AVATAR } from '../../../../utils/avatar.util';
+import { FileDownload, FileUpload, MemberConnectionState } from '../../../../../utils/constants';
+import { LanguageCode } from '../../../../../core/i18n/languages';
+import { middleTruncateFilename as middleTruncateFilenameUtil } from '../../../../../utils/filename.util';
+import { LanguageSwitcherComponent } from '../../../../../core/components/language-switcher/language-switcher.component';
+import { SELF_AVATAR } from '../../../../../utils/avatar.util';
 
 @Component({
   selector: 'app-chat-sidebar',

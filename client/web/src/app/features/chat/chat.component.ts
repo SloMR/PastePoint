@@ -59,16 +59,16 @@ import { PreviewService } from '../../core/services/ui/preview.service';
 import { FileSizePipe } from '../../utils/file-size.pipe';
 import { middleTruncateFilename as middleTruncateFilenameUtil } from '../../utils/filename.util';
 import { QrScannerPopupComponent } from './components/popups/qr-scanner-popup/qr-scanner-popup.component';
-import { ConnectPanelComponent } from './components/connect-panel/connect-panel.component';
+import { ConnectPanelComponent } from './components/connect/connect-panel/connect-panel.component';
 import { WelcomeComponent } from './components/welcome/welcome.component';
 import { CreateRoomPopupComponent } from './components/popups/create-room-popup/create-room-popup.component';
 import { EndSessionPopupComponent } from './components/popups/end-session-popup/end-session-popup.component';
-import { ConnectionWarningComponent } from './components/connection-warning/connection-warning.component';
-import { ServerReconnectComponent } from './components/server-reconnect/server-reconnect.component';
-import { ChatInputComponent, StagedAttachment } from './components/chat-input/chat-input.component';
-import { ChatMessagesComponent } from './components/chat-messages/chat-messages.component';
+import { ConnectionWarningComponent } from './components/feedback/connection-warning/connection-warning.component';
+import { ServerReconnectComponent } from './components/feedback/server-reconnect/server-reconnect.component';
+import { ChatInputComponent, StagedAttachment } from './components/chat/chat-input/chat-input.component';
+import { ChatMessagesComponent } from './components/chat/chat-messages/chat-messages.component';
 import { SplashComponent } from '../../core/components/splash/splash.component';
-import { ChatSidebarComponent } from './components/chat-sidebar/chat-sidebar.component';
+import { ChatSidebarComponent } from './components/chat/chat-sidebar/chat-sidebar.component';
 
 /**
  * ==========================================================

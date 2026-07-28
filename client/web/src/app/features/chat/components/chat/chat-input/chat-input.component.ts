@@ -14,8 +14,8 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import type { EmojiClickEvent } from 'emoji-picker-element/shared';
-import { FileSizePipe } from '../../../../utils/file-size.pipe';
-import { middleTruncateFilename } from '../../../../utils/filename.util';
+import { FileSizePipe } from '../../../../../utils/file-size.pipe';
+import { middleTruncateFilename } from '../../../../../utils/filename.util';
 
 export interface EnterKeyEvent {
   event: KeyboardEvent;

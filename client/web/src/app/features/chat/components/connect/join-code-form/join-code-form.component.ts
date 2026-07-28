@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { DeviceDetectorService } from 'ngx-device-detector';
 
-import { extractSessionCode } from '../../../../utils/session-link.util';
+import { extractSessionCode } from '../../../../../utils/session-link.util';
 
 @Component({
   selector: 'app-join-code-form',

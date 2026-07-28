@@ -11,8 +11,8 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { WelcomeCardComponent } from './welcome-card/welcome-card.component';
-import { JoinCodeFormComponent } from '../join-code-form/join-code-form.component';
-import { SessionQrCodeComponent } from '../session-qr-code/session-qr-code.component';
+import { JoinCodeFormComponent } from '../connect/join-code-form/join-code-form.component';
+import { SessionQrCodeComponent } from '../connect/session-qr-code/session-qr-code.component';
 
 @Component({
   selector: 'app-welcome',

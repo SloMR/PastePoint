@@ -17,7 +17,7 @@ import { HotToastService } from '@ngxpert/hot-toast';
 import { NGXLogger } from 'ngx-logger';
 import * as QRCode from 'qrcode';
 
-import { environment } from '../../../../../environments/environment';
+import { environment } from '../../../../../../environments/environment';
 
 /** Renders an invite URL as a QR canvas. Refuses any URL outside our own host. */
 @Component({

@@ -1,12 +1,11 @@
 import { TestBed } from '@angular/core/testing';
-import { TestImports, TestProviders } from '../../../../testing/test-helper';
-import { provideRouter } from '@angular/router';
+import { TestImports, TestProviders } from '../../../../../testing/test-helper';
 
-describe('ChatSidebarComponent', () => {
+describe('ChatInputComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [...TestImports],
-      providers: [...TestProviders, provideRouter([])],
+      providers: [...TestProviders],
     }).compileComponents();
   });
 
