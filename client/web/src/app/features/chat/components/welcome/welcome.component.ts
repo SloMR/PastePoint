@@ -7,8 +7,10 @@ import {
   PLATFORM_ID,
   inject,
 } from '@angular/core';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
+
+import { canWebShare, shareUrl } from '../../../../utils/web-share.util';
 
 import { WelcomeCardComponent } from './welcome-card/welcome-card.component';
 import { JoinCodeFormComponent } from '../connect/join-code-form/join-code-form.component';
@@ -42,15 +44,11 @@ export class WelcomeComponent {
   private platformId = inject(PLATFORM_ID);
 
   protected get canShare(): boolean {
-    return isPlatformBrowser(this.platformId) && typeof navigator.share === 'function';
+    return canWebShare(this.platformId);
   }
 
   protected async shareInvite(): Promise<void> {
     if (!this.canShare || !this.sessionUrl) return;
-    try {
-      await navigator.share({ url: this.sessionUrl });
-    } catch {
-      // dismissed
-    }
+    await shareUrl(this.sessionUrl);
   }
 }
