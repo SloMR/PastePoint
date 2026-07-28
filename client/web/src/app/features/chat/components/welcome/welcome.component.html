@@ -1,136 +1,191 @@
 <div class="flex w-full min-h-full items-center justify-center py-4 sm:py-8">
   <div
-    class="flex w-full max-w-md flex-col items-center justify-center text-center px-4 sm:px-6 py-6 sm:py-8 space-y-4 sm:space-y-6"
+    class="flex w-full max-w-2xl flex-col items-center justify-center gap-5 px-4 text-center sm:gap-6 sm:px-6"
   >
-    <!-- MARK: - Badge -->
-    <div
-      class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-brand dark:bg-brandDark flex items-center justify-center mb-1 sm:mb-2"
-    >
-      <img
-        [src]="sessionCode.length > 0 ? '/icons/lock-white.svg' : '/icons/users-white.svg'"
-        alt=""
-        class="h-6 w-6 sm:h-8 sm:w-8"
-        loading="lazy"
-        width="32"
-        height="32"
-      />
-    </div>
-
     <!-- MARK: - Headline -->
-    <div class="space-y-1 sm:space-y-2">
-      <h1
-        class="text-xl sm:text-2xl font-semibold font-expoArabicMedium text-content dark:text-white"
-      >
-        {{ 'EMPTY_STATE_TITLE' | translate }}
-      </h1>
-      <p
-        class="text-xs sm:text-sm font-normal font-expoArabic text-gray-600 dark:text-gray-400 leading-relaxed"
-      >
-        {{ (memberCount > 0 ? 'EMPTY_STATE_CONNECTED' : 'EMPTY_STATE_ALONE') | translate }}
-      </p>
-    </div>
+    @if (sessionCode.length === 0) {
+      <div class="space-y-1 sm:space-y-2">
+        <h1
+          class="text-xl sm:text-2xl font-semibold font-expoArabicMedium text-content dark:text-white"
+        >
+          {{ 'EMPTY_STATE_TITLE' | translate }}
+        </h1>
+        <p
+          class="text-xs sm:text-sm font-normal font-expoArabic text-gray-600 dark:text-gray-400 leading-relaxed"
+        >
+          {{ (memberCount > 0 ? 'EMPTY_STATE_CONNECTED' : 'EMPTY_STATE_ALONE') | translate }}
+        </p>
+      </div>
+    }
 
-    <div class="w-full space-y-2 sm:space-y-3">
-      @if (memberCount > 0) {
+    <!-- MARK: - Where is the other device? -->
+    @if (sessionCode.length > 0) {
+      <div class="flex w-full max-w-sm flex-col items-center gap-4">
+        <div
+          class="flex items-center gap-2 rounded-full bg-brand/10 py-1 ps-2 pe-3 dark:bg-brandDark/20"
+        >
+          <img
+            [src]="isDarkMode ? '/icons/lock-white.svg' : '/icons/lock.svg'"
+            alt=""
+            class="h-3.5 w-3.5"
+            width="14"
+            height="14"
+          />
+          <span class="text-[11px] font-expoArabicMedium text-brand dark:text-brandDark">
+            {{ 'PRIVATE_ROOM_ONLY_CODE' | translate }}
+          </span>
+        </div>
+
+        <h1
+          class="text-xl sm:text-2xl font-semibold font-expoArabicMedium text-content dark:text-white"
+        >
+          {{ 'SCAN_TO_JOIN_ROOM' | translate }}
+        </h1>
+
+        <app-session-qr-code
+          class="overflow-hidden rounded-xl border border-borderLight dark:border-surfaceDark"
+          [sessionUrl]="sessionUrl"
+        />
+
+        <div class="w-full space-y-1.5">
+          <p class="text-xs font-expoArabic text-textVeryMuted dark:text-gray-500">
+            {{ 'OR_TYPE_THE_CODE' | translate }}
+          </p>
+          <p
+            class="w-full truncate rounded-lg bg-inputBackground p-2.5 text-center text-base font-mono tracking-[0.22em] text-content dark:bg-borderDark dark:text-contentMuted"
+          >
+            {{ sessionCode }}
+          </p>
+        </div>
+
+        <div class="flex w-full gap-2.5">
+          @if (canShare) {
+            <button
+              type="button"
+              (click)="shareInvite()"
+              class="flex-1 rounded-lg bg-brand p-2.5 text-sm font-expoArabicMedium text-white hover:bg-brand/80 dark:bg-brandDark dark:hover:bg-brandDark/80"
+            >
+              {{ 'SHARE_LINK' | translate }}
+            </button>
+          }
+          <button
+            type="button"
+            (click)="copyRequested.emit()"
+            class="flex-1 rounded-lg border border-brand p-2.5 text-sm font-expoArabicMedium text-brand hover:bg-brand/10 dark:border-brandDark dark:text-brandDark dark:hover:bg-brandDark/10"
+          >
+            {{ 'COPY_CODE' | translate }}
+          </button>
+        </div>
+
+        @if (memberCount > 0) {
+          <p class="text-xs sm:text-sm font-expoArabic text-gray-600 dark:text-gray-400">
+            {{ 'EMPTY_STATE_CONNECTED_BODY' | translate }}
+          </p>
+        } @else {
+          <div class="flex items-center gap-2">
+            <span
+              class="looking-dot h-2 w-2 shrink-0 rounded-full bg-brand dark:bg-brandDark"
+            ></span>
+            <span class="text-xs font-expoArabic text-textMuted dark:text-contentMuted">
+              {{ 'WAITING_FOR_DEVICE' | translate }}
+            </span>
+          </div>
+        }
+      </div>
+    } @else if (memberCount > 0) {
+      <div class="w-full space-y-3">
         <p class="text-xs sm:text-sm font-expoArabic text-gray-600 dark:text-gray-400">
           {{ 'EMPTY_STATE_CONNECTED_BODY' | translate }}
         </p>
-      }
-
-      @if (sessionCode.length > 0) {
-        <app-welcome-card
-          title="INVITE_THE_OTHER_DEVICE"
-          message="INVITE_SHARE_BODY"
-          [isRTL]="isRTL"
-        >
-          <button
-            type="button"
-            (click)="shareInviteRequested.emit()"
-            class="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-brand p-2 text-sm font-expoArabicMedium text-white hover:bg-brand/80 dark:bg-brandDark dark:hover:bg-brandDark/80"
-          >
-            <img src="/icons/qrcode.svg" alt="" class="h-4 w-4" width="16" height="16" />
-            {{ 'SHARE_INVITE' | translate }}
-          </button>
-        </app-welcome-card>
-      } @else if (memberCount > 0) {
         <app-welcome-card
           title="OPTION_ELSEWHERE_TITLE"
           message="OPTION_ELSEWHERE_BODY_CONNECTED"
+          icon="/icons/qrcode-dark.svg"
+          iconDark="/icons/qrcode.svg"
           [isRTL]="isRTL"
+          [isDarkMode]="isDarkMode"
         >
           <button
             type="button"
             (click)="connectDeviceRequested.emit()"
-            class="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-brand p-2 text-sm font-expoArabicMedium text-brand hover:bg-brand/10 dark:border-brandDark dark:text-brandDark dark:hover:bg-brandDark/10"
+            class="mt-auto flex w-full items-center justify-center gap-2 rounded-lg border border-brand p-2.5 text-sm font-expoArabicMedium text-brand hover:bg-brand/10 dark:border-brandDark dark:text-brandDark dark:hover:bg-brandDark/10"
           >
-            <img src="/icons/qrcode.svg" alt="" class="h-4 w-4" width="16" height="16" />
+            <img
+              [src]="isDarkMode ? '/icons/qrcode.svg' : '/icons/qrcode-dark.svg'"
+              alt=""
+              class="h-4 w-4"
+              width="16"
+              height="16"
+            />
             {{ 'CONNECT_A_DEVICE' | translate }}
           </button>
         </app-welcome-card>
-      } @else {
+      </div>
+    } @else {
+      <div class="grid w-full gap-3 sm:grid-cols-2 sm:gap-4">
+        <!-- Passive door: nothing to do, so it only reports that we are listening. -->
         <app-welcome-card
           title="OPTION_SAME_WIFI_TITLE"
           message="OPTION_SAME_WIFI_BODY"
+          icon="/icons/users.svg"
+          iconDark="/icons/users-white.svg"
           [isRTL]="isRTL"
-        />
+          [isDarkMode]="isDarkMode"
+        >
+          <div class="mt-auto flex items-center gap-2 pt-3">
+            <span
+              class="looking-dot h-2 w-2 shrink-0 rounded-full bg-brand dark:bg-brandDark"
+            ></span>
+            <span class="text-xs font-expoArabicMedium text-brand dark:text-brandDark">
+              {{ 'LOOKING_FOR_DEVICES' | translate }}
+            </span>
+          </div>
+        </app-welcome-card>
+
         <app-welcome-card
           title="OPTION_ELSEWHERE_TITLE"
           message="OPTION_ELSEWHERE_BODY"
+          icon="/icons/qrcode-dark.svg"
+          iconDark="/icons/qrcode.svg"
           [isRTL]="isRTL"
+          [isDarkMode]="isDarkMode"
         >
           <button
             type="button"
             (click)="connectDeviceRequested.emit()"
-            class="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-brand p-2 text-sm font-expoArabicMedium text-white hover:bg-brand/80 dark:bg-brandDark dark:hover:bg-brandDark/80"
+            class="mt-auto flex w-full items-center justify-center gap-2 rounded-lg bg-brand p-2.5 text-sm font-expoArabicMedium text-white hover:bg-brand/80 dark:bg-brandDark dark:hover:bg-brandDark/80"
           >
             <img src="/icons/qrcode.svg" alt="" class="h-4 w-4" width="16" height="16" />
             {{ 'CONNECT_A_DEVICE' | translate }}
           </button>
         </app-welcome-card>
-      }
-    </div>
+      </div>
+    }
 
+    <!-- MARK: - Join by code -->
     @if (sessionCode.length === 0) {
-      <div class="w-full">
+      <div
+        class="flex w-full flex-col gap-2 border-t pt-5 border-borderLight dark:border-surfaceDark sm:flex-row sm:items-center sm:gap-3"
+      >
         <p
-          class="mb-2 text-xs font-expoArabicMedium text-textMuted dark:text-contentMuted"
+          class="text-xs font-expoArabicMedium text-textMuted dark:text-contentMuted sm:whitespace-nowrap"
           [ngClass]="isRTL ? 'text-right' : 'text-left'"
         >
-          {{ 'JOINING_SOMEONE_ELSE' | translate }}
+          {{ 'SOMEONE_SENT_YOU_A_CODE' | translate }}
         </p>
         <app-join-code-form
+          class="min-w-0 flex-1"
           (joinRequested)="joinRequested.emit($event)"
           (scanRequested)="scanRequested.emit()"
         />
       </div>
     }
 
-    <!-- MARK: - What the product is -->
-    <div class="grid grid-cols-2 gap-2 sm:gap-3 w-full mt-2">
-      @for (feature of features; track feature.label) {
-        <div class="flex items-center gap-2 p-2 sm:p-3 rounded-lg bg-stepCard dark:bg-gray-800">
-          <img
-            [src]="isDarkMode ? feature.iconDark : feature.icon"
-            alt=""
-            class="h-4 w-4 shrink-0"
-            width="16"
-            height="16"
-          />
-          <span class="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-expoArabic">{{
-            feature.label | translate
-          }}</span>
-        </div>
-      }
-    </div>
-
-    <!-- MARK: - Dots -->
-    <div
-      class="flex items-center justify-center space-x-2 opacity-50"
-      [ngClass]="isRTL ? 'space-x-reverse' : ''"
-    >
-      <div class="w-2 h-2 rounded-full bg-brand dark:bg-brandDark"></div>
-      <div class="w-2 h-2 rounded-full bg-brand dark:bg-brandDark"></div>
-      <div class="w-2 h-2 rounded-full bg-brand dark:bg-brandDark"></div>
-    </div>
+    <!-- MARK: - What you get, in one line -->
+    @if (sessionCode.length === 0) {
+      <p class="text-[11px] sm:text-xs font-expoArabic text-textVeryMuted dark:text-gray-500">
+        {{ 'WELCOME_PRIVACY_NOTE' | translate }}
+      </p>
+    }
   </div>
 </div>

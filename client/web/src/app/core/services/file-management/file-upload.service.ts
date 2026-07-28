@@ -13,7 +13,7 @@ import {
   PREVIEW_MIME_TYPE,
 } from '../../../utils/constants';
 import { FileTransferBaseService } from './file-transfer-base.service';
-import { PreviewService } from '../../services/ui/preview.service';
+import { PreviewService } from '../ui/preview.service';
 import {
   encodeChunk,
   calculateTotalChunks,

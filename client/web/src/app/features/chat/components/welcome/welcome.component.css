@@ -1,3 +1,25 @@
 :host {
   display: block;
 }
+
+.looking-dot {
+  animation: looking-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes looking-pulse {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .looking-dot {
+    animation: none;
+  }
+}

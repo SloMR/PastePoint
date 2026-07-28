@@ -10,36 +10,29 @@ import {
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 
-import { canWebShare, shareUrl } from '../../../../utils/web-share.util';
-
-import { WelcomeCardComponent } from './welcome-card/welcome-card.component';
-import { JoinCodeFormComponent } from '../connect/join-code-form/join-code-form.component';
-import { SessionQrCodeComponent } from '../connect/session-qr-code/session-qr-code.component';
+import { canWebShare, shareUrl } from '../../../../../utils/web-share.util';
+import { JoinCodeFormComponent } from '../join-code-form/join-code-form.component';
+import { SessionQrCodeComponent } from '../session-qr-code/session-qr-code.component';
 
 @Component({
-  selector: 'app-welcome',
-  imports: [
-    CommonModule,
-    TranslateModule,
-    WelcomeCardComponent,
-    JoinCodeFormComponent,
-    SessionQrCodeComponent,
-  ],
-  templateUrl: './welcome.component.html',
-  styleUrl: './welcome.component.css',
+  selector: 'app-connect-panel',
+  imports: [CommonModule, TranslateModule, JoinCodeFormComponent, SessionQrCodeComponent],
+  templateUrl: './connect-panel.component.html',
+  styleUrl: './connect-panel.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class WelcomeComponent {
+export class ConnectPanelComponent {
+  @Input() isOpen = false;
   @Input() sessionCode = '';
   @Input() sessionUrl = '';
   @Input() memberCount = 0;
   @Input() isRTL = false;
-  @Input() isDarkMode = false;
 
-  @Output() connectDeviceRequested = new EventEmitter<void>();
+  @Output() closed = new EventEmitter<void>();
+  @Output() createRequested = new EventEmitter<void>();
   @Output() copyRequested = new EventEmitter<void>();
-  @Output() joinRequested = new EventEmitter<string>();
   @Output() scanRequested = new EventEmitter<void>();
+  @Output() joinRequested = new EventEmitter<string>();
 
   private platformId = inject(PLATFORM_ID);
 

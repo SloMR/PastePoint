@@ -226,13 +226,13 @@ struct ContentView: View {
             Button {
               showConnect = true
             } label: {
-              Image(systemName: "plus")
+              Image(systemName: isPrivateRoom ? "qrcode" : "plus")
                 .resizable()
                 .scaledToFit()
                 .frame(width: 20, height: 20)
                 .foregroundStyle(AppColors.Brand.brand)
             }
-            .accessibilityLabel(Text(.connectDeviceTitle))
+            .accessibilityLabel(Text(isPrivateRoom ? .shareInvite : .connectDeviceTitle))
 
             Button {
               colorSchemeRaw = AppColors.Scheme.next(after: colorSchemeRaw)

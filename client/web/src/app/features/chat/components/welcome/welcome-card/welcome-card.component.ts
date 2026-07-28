@@ -13,4 +13,9 @@ export class WelcomeCardComponent {
   @Input({ required: true }) title!: string;
   @Input({ required: true }) message!: string;
   @Input() isRTL = false;
+  @Input() isDarkMode = false;
+
+  /** Glyph beside the title; `iconDark` is used when the theme is dark. */
+  @Input({ required: true }) icon!: string;
+  @Input({ required: true }) iconDark!: string;
 }

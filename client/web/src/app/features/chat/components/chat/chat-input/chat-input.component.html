@@ -1,0 +1,172 @@
+<!-- MARK: - Message Input -->
+<form
+  #messageForm="ngForm"
+  (submit)="messageSubmit.emit(messageForm); $event.preventDefault()"
+  class="flex w-full"
+  [attr.dir]="isRTL ? 'rtl' : 'ltr'"
+>
+  <div class="relative mt-4 mb-0 flex w-full flex-col gap-2">
+    <!-- MARK: - Staged Attachments (chips above the input, sent on submit) -->
+    @if (stagedFiles.length > 0) {
+      <div
+        class="staged-scroll flex gap-2 overflow-x-auto pb-0.5"
+        [ngClass]="isRTL ? 'flex-row-reverse' : 'flex-row'"
+      >
+        @for (item of stagedFiles; track item.id) {
+          <div
+            class="flex shrink-0 items-center gap-2 rounded-2xl py-1.5 ps-1.5 pe-2 bg-inputBackground dark:bg-borderDark"
+            [ngClass]="isRTL ? 'flex-row-reverse' : 'flex-row'"
+          >
+            <span
+              class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand/15 dark:bg-brandDark/25"
+            >
+              @if (item.hashing) {
+                <span
+                  class="staged-file-spinner"
+                  role="status"
+                  [attr.aria-label]="'VERIFYING_FILE' | translate"
+                ></span>
+              } @else {
+                <span class="staged-file-icon" aria-hidden="true"></span>
+              }
+            </span>
+            <div class="flex min-w-0 flex-col" [ngClass]="isRTL ? 'items-end' : 'items-start'">
+              <span
+                class="max-w-[150px] truncate text-xs font-medium text-content dark:text-gray-100"
+                >{{ stagedDisplayName(item.file.name) }}</span
+              >
+              <span class="text-[10px] leading-tight text-textMuted dark:text-contentMuted">
+                @if (item.hashing) {
+                  {{ 'VERIFYING_FILE' | translate }}
+                } @else {
+                  {{ item.file.size | filesize: 1 }}
+                }
+              </span>
+            </div>
+            <button
+              type="button"
+              (click)="removeStagedFile.emit(item.id)"
+              class="flex h-4 w-4 shrink-0 items-center justify-center rounded-full transition-colors bg-secondary-400/20 hover:bg-secondary-400/40"
+              [attr.aria-label]="'REMOVE_FILE' | translate"
+              [title]="'REMOVE_FILE' | translate"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                class="h-2.5 w-2.5 text-content dark:text-gray-100"
+                aria-hidden="true"
+              >
+                <path d="M6 6 18 18M18 6 6 18" />
+              </svg>
+            </button>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- MARK: - Input Row -->
+    <div class="relative flex w-full items-end gap-1.5 md:gap-2">
+      <!-- MARK: - Attach & Emoji -->
+      <div class="flex items-center gap-0.5 md:gap-1">
+        <button
+          type="button"
+          [disabled]="hasNoConnectedPeers"
+          (click)="fileInput.click()"
+          class="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-inputBackground disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed dark:hover:bg-borderDark md:h-9 md:w-9"
+          [attr.aria-label]="
+            (hasNoConnectedPeers ? 'NO_PEERS_CONNECTED' : 'ATTACH_FILES') | translate
+          "
+          [title]="(hasNoConnectedPeers ? 'NO_PEERS_CONNECTED' : 'ATTACH_FILES') | translate"
+        >
+          <img
+            [src]="'/icons/photo.svg'"
+            alt=""
+            class="h-4 w-4 md:h-[18px] md:w-[18px]"
+            loading="lazy"
+            width="18"
+            height="18"
+          />
+        </button>
+        <button
+          type="button"
+          (mouseenter)="openEmojiPicker()"
+          (mouseleave)="handleEmojiIconMouseLeave()"
+          class="hidden h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-inputBackground dark:hover:bg-borderDark md:flex md:h-9 md:w-9"
+          [attr.aria-label]="'OPEN_EMOJI_PICKER' | translate"
+          [title]="'OPEN_EMOJI_PICKER' | translate"
+        >
+          <img
+            [src]="'/icons/emoji.svg'"
+            alt=""
+            class="h-4 w-4 md:h-[18px] md:w-[18px]"
+            loading="lazy"
+            width="18"
+            height="18"
+          />
+        </button>
+      </div>
+
+      <!-- MARK: - Pill Textarea -->
+      <div
+        class="flex flex-1 items-center rounded-3xl px-3 py-1 bg-inputBackground dark:bg-borderDark md:px-4 md:py-1.5"
+      >
+        <textarea
+          #messageTextarea
+          [ngModel]="message"
+          (ngModelChange)="messageChange.emit($event); autoResize.emit()"
+          name="message"
+          rows="1"
+          class="w-full resize-none overflow-hidden border-none bg-transparent p-0 align-middle outline-none font-expoArabicLight text-base leading-6 text-content min-h-[24px] max-h-[120px] placeholder:text-secondary-400 [font-size-adjust:0.4375] dark:text-contentMuted md:[font-size-adjust:none]"
+          [placeholder]="'TYPE_YOUR_MESSAGE' | translate"
+          (keydown.enter)="enterKey.emit({ event: $any($event), form: messageForm })"
+          (input)="autoResize.emit()"
+        >
+        </textarea>
+      </div>
+
+      <!-- MARK: - Send -->
+      <button
+        type="submit"
+        [disabled]="isSendDisabled"
+        class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white bg-brand disabled:opacity-50 disabled:cursor-not-allowed dark:bg-brandDark md:h-9 md:w-9"
+        [attr.aria-label]="'SEND' | translate"
+        [title]="'SEND' | translate"
+      >
+        <img
+          [src]="'/icons/send.svg'"
+          alt=""
+          class="chat-send-icon h-4 w-4 md:h-[18px] md:w-[18px]"
+          [style.transform]="isRTL ? 'scaleX(-1)' : null"
+          loading="lazy"
+          width="18"
+          height="18"
+        />
+      </button>
+
+      <!-- MARK: - Emoji Picker -->
+      <div
+        class="absolute bottom-full z-10 mb-2 w-72 rounded-lg border shadow-lg border-primary-300 bg-primary-100 dark:border-secondary-600 dark:bg-secondary-800"
+        [ngClass]="isRTL ? 'right-0' : 'left-0'"
+        [ngStyle]="{
+          opacity: isEmojiPickerVisible ? '1' : '0',
+          pointerEvents: isEmojiPickerVisible ? 'auto' : 'none',
+        }"
+        (mouseenter)="isHoveringOverPicker = true"
+        (mouseleave)="isHoveringOverPicker = false; isEmojiPickerVisible = false"
+      >
+        @if (isEmojiPickerVisible || isHoveringOverPicker) {
+          <emoji-picker
+            [class.dark]="isDarkMode"
+            (emoji-click)="addEmoji($any($event))"
+          ></emoji-picker>
+        }
+      </div>
+
+      <!-- MARK: - Hidden File Input -->
+      <input type="file" #fileInput (change)="filesAttached.emit($event)" multiple class="hidden" />
+    </div>
+  </div>
+</form>
