@@ -65,7 +65,10 @@ import { CreateRoomPopupComponent } from './components/popups/create-room-popup/
 import { EndSessionPopupComponent } from './components/popups/end-session-popup/end-session-popup.component';
 import { ConnectionWarningComponent } from './components/feedback/connection-warning/connection-warning.component';
 import { ServerReconnectComponent } from './components/feedback/server-reconnect/server-reconnect.component';
-import { ChatInputComponent, StagedAttachment } from './components/chat/chat-input/chat-input.component';
+import {
+  ChatInputComponent,
+  StagedAttachment,
+} from './components/chat/chat-input/chat-input.component';
 import { ChatMessagesComponent } from './components/chat/chat-messages/chat-messages.component';
 import { SplashComponent } from '../../core/components/splash/splash.component';
 import { ChatSidebarComponent } from './components/chat/chat-sidebar/chat-sidebar.component';
