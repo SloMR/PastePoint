@@ -57,7 +57,7 @@ struct ConnectView: View {
       .foregroundStyle(.textSecondary)
       .fixedSize(horizontal: false, vertical: true)
 
-      CreateInviteButton()
+      WelcomeInviteButton()
     }
   }
 

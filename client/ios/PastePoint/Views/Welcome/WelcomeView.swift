@@ -83,7 +83,7 @@ struct WelcomeView: View {
           message: .optionElsewhereBodyConnected,
           icon: "qrcode",
         ) {
-          CreateInviteButton(prominent: false)
+          WelcomeInviteButton(prominent: false)
         }
       } else {
         WelcomeCard(title: .optionSameWifiTitle, message: .optionSameWifiBody, icon: "users") {
@@ -99,7 +99,7 @@ struct WelcomeView: View {
         }
 
         WelcomeCard(title: .optionElsewhereTitle, message: .optionElsewhereBody, icon: "qrcode") {
-          CreateInviteButton()
+          WelcomeInviteButton()
         }
       }
     }

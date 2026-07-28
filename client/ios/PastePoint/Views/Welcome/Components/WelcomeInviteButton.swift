@@ -5,7 +5,7 @@
 
 import SwiftUI
 
-struct CreateInviteButton: View {
+struct WelcomeInviteButton: View {
   @EnvironmentObject private var services: AppServices
   @EnvironmentObject private var toast: ToastCenter
 
@@ -63,8 +63,8 @@ struct CreateInviteButton: View {
 #Preview {
   PreviewStage {
     VStack(spacing: 12) {
-      CreateInviteButton()
-      CreateInviteButton(prominent: false)
+      WelcomeInviteButton()
+      WelcomeInviteButton(prominent: false)
     }
     .padding()
     .environmentObject(AppServices.preview)
