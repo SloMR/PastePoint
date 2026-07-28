@@ -11,10 +11,11 @@ import UIKit
 /// A transparent window that sits above the sheet/alert layer and lets touches
 /// fall through to the app below — except where they land on a toast row.
 final class PassthroughWindow: UIWindow {
+  var interactiveRect: CGRect = .zero
+
   override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
-    guard let hit = super.hitTest(point, with: event) else { return nil }
-    // Empty areas resolve to the hosting controller's root view → pass through.
-    return hit === rootViewController?.view ? nil : hit
+    guard interactiveRect.contains(point) else { return nil }
+    return super.hitTest(point, with: event)
   }
 }
 
@@ -28,10 +29,14 @@ final class ToastPresenter {
   func install(in scene: UIWindowScene, center: ToastCenter) {
     guard window == nil else { return }
 
-    let host = UIHostingController(rootView: ToastOverlayView(center: center))
+    let window = PassthroughWindow(windowScene: scene)
+    let host = UIHostingController(
+      rootView: ToastOverlayView(center: center) { [weak window] rect in
+        window?.interactiveRect = rect
+      },
+    )
     host.view.backgroundColor = .clear
 
-    let window = PassthroughWindow(windowScene: scene)
     window.rootViewController = host
     window.windowLevel = .alert + 1
     window.isHidden = false
