@@ -3,7 +3,7 @@
     type="text"
     [(ngModel)]="code"
     (keydown.enter)="submit()"
-    class="min-w-0 flex-1 rounded-lg border bg-transparent px-3 text-sm h-[38px] border-inputBackground font-expoArabicMedium text-textMuted outline-none dark:border-surfaceDark dark:bg-surfaceDark dark:text-contentMuted"
+    class="min-w-0 flex-1 rounded-lg border bg-transparent px-3 text-base h-[38px] border-inputBackground font-expoArabicMedium text-textMuted outline-none [font-size-adjust:0.4375] dark:border-surfaceDark dark:bg-surfaceDark dark:text-contentMuted"
     [placeholder]="'SESSION_CODE_PLACEHOLDER' | translate"
   />
   @if (showScan) {

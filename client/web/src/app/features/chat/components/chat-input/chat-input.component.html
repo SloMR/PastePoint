@@ -119,7 +119,7 @@
           (ngModelChange)="messageChange.emit($event); autoResize.emit()"
           name="message"
           rows="1"
-          class="w-full resize-none overflow-hidden border-none bg-transparent p-0 align-middle outline-none font-expoArabicLight text-sm leading-6 text-content min-h-[24px] max-h-[120px] placeholder:text-secondary-400 dark:text-contentMuted md:text-base"
+          class="w-full resize-none overflow-hidden border-none bg-transparent p-0 align-middle outline-none font-expoArabicLight text-base leading-6 text-content min-h-[24px] max-h-[120px] placeholder:text-secondary-400 [font-size-adjust:0.4375] dark:text-contentMuted md:[font-size-adjust:none]"
           [placeholder]="'TYPE_YOUR_MESSAGE' | translate"
           (keydown.enter)="enterKey.emit({ event: $any($event), form: messageForm })"
           (input)="autoResize.emit()"
