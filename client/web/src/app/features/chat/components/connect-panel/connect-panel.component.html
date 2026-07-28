@@ -27,7 +27,7 @@
       <!-- MARK: - Share -->
       @if (sessionCode.length > 0) {
         <div class="mt-5 flex flex-col items-center gap-3">
-          <div #qrContainer class="overflow-hidden rounded-lg bg-white p-2"></div>
+          <app-session-qr-code [sessionUrl]="sessionUrl" />
           <p
             class="w-full truncate rounded-lg bg-inputBackground p-2 text-center text-sm font-expoArabic tracking-widest dark:bg-borderDark dark:text-contentMuted"
           >
