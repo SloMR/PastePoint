@@ -12,7 +12,7 @@ import {
   inject,
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateService } from '@ngx-translate/core';
 import { HotToastService } from '@ngxpert/hot-toast';
 import { NGXLogger } from 'ngx-logger';
 import * as QRCode from 'qrcode';
@@ -22,7 +22,7 @@ import { environment } from '../../../../../../environments/environment';
 /** Renders an invite URL as a QR canvas. Refuses any URL outside our own host. */
 @Component({
   selector: 'app-session-qr-code',
-  imports: [CommonModule, TranslateModule],
+  imports: [CommonModule],
   templateUrl: './session-qr-code.component.html',
   styleUrl: './session-qr-code.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
