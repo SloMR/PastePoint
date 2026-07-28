@@ -177,13 +177,13 @@
 
       <!-- toolbar -->
       <div class="ms-auto flex items-center gap-1">
-        <!-- connect a device -->
+        <!-- connect a device / share the invite once the session is private -->
         <button
           type="button"
           (click)="isConnectPanelOpen = true"
           class="flex h-10 w-10 items-center justify-center rounded-full bg-brand/10 text-brand transition-colors hover:bg-brand/20 md:w-auto md:gap-2 md:px-3 dark:bg-brandDark/20 dark:text-brandDark dark:hover:bg-brandDark/30"
-          [attr.aria-label]="'CONNECT_DEVICE_TITLE' | translate"
-          [title]="'CONNECT_DEVICE_TITLE' | translate"
+          [attr.aria-label]="(SessionCode ? 'SHARE_INVITE' : 'CONNECT_DEVICE_TITLE') | translate"
+          [title]="(SessionCode ? 'SHARE_INVITE' : 'CONNECT_DEVICE_TITLE') | translate"
         >
           <svg
             class="h-5 w-5 shrink-0"
@@ -192,10 +192,18 @@
             stroke-width="1.8"
             viewBox="0 0 24 24"
           >
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            @if (SessionCode) {
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M4 4m0 2a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v2a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2zM4 16m0 2a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v2a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2zM16 4m0 2a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v2a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2zM7 17l0 .01M14 14l0 .01M14 20l0 .01M17 14l0 .01M17 17l0 .01M20 14l0 .01M20 17l0 .01M20 20l0 .01M7 7l0 .01M17 7l0 .01"
+              />
+            } @else {
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            }
           </svg>
           <span class="hidden whitespace-nowrap text-sm font-expoArabicMedium md:inline">
-            {{ 'CONNECT_DEVICE_TITLE' | translate }}
+            {{ (SessionCode ? 'SHARE_INVITE' : 'CONNECT_DEVICE_TITLE') | translate }}
           </span>
         </button>
 
