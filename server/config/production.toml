@@ -11,8 +11,8 @@ cors_allowed_origins = "https://pastepoint.com"
 # Client update policy (GET /version). minimum = force floor, latest = soft nudge.
 # Raise these only AFTER the build is live on the store/web, or you soft-brick users.
 [client_version.ios]
-minimum = "0.12.0"
-latest = "0.12.0"
+minimum = "0.13.0"
+latest = "0.13.0"
 url = "https://apps.apple.com/app/id6788860511"
 
 [client_version.web]
