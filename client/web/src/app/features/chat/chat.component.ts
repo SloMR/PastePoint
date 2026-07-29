@@ -178,17 +178,20 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   private connectionWarningDismissed = false;
   private connectionWarningTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
   private themeTransitionTimeout: ReturnType<typeof setTimeout> | null = null;
+  private isResumeReconnectInProgress = false;
 
   appVersion: string = packageJson.version;
 
   private visibilityChangeListener = () => {
-    if (
-      document.visibilityState === 'visible' &&
-      this.SessionCode &&
-      !this.wsConnectionService.isConnected()
-    ) {
+    if (document.visibilityState === 'visible' && !this.wsConnectionService.isConnected()) {
       this.logger.info('visibilitychange', 'Page visible, reconnecting if needed');
       this.reconnectInPlace('visibilitychange');
+    }
+  };
+  private onlineListener = () => {
+    if (document.visibilityState === 'visible' && !this.wsConnectionService.isConnected()) {
+      this.logger.info('online', 'Network restored, reconnecting if needed');
+      this.reconnectInPlace('online');
     }
   };
   private beforeUnloadHandler = () => {
@@ -423,6 +426,10 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     if (isPlatformBrowser(this.platformId) && this.beforeUnloadHandler) {
       window.removeEventListener('beforeunload', this.beforeUnloadHandler);
     }
+
+    if (isPlatformBrowser(this.platformId) && this.onlineListener) {
+      window.removeEventListener('online', this.onlineListener);
+    }
   }
 
   /**
@@ -465,7 +472,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
    * ==========================================================
    * HEARTBEAT MONITOR
    * Subscribes to HeartbeatService.suspended$ and reacts to suspensions
-   * by warning the user and forcing a page reload.
+   * by rebuilding the server and peer connections.
    * ==========================================================
    */
   private startHeartbeatMonitor(): void {
@@ -490,6 +497,12 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
    * (tab backgrounded while picking a file, then resumed).
    */
   private reconnectInPlace(context: string): void {
+    if (this.isResumeReconnectInProgress) {
+      this.logger.debug(context, 'Resume reconnect already in progress');
+      return;
+    }
+    this.isResumeReconnectInProgress = true;
+
     this.wsConnectionService.disconnect(false);
     this.webrtcService.closeAllConnections();
 
@@ -505,6 +518,9 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
       .then(() => this.initiateConnectionsWithMembers())
       .catch((err: unknown) => {
         this.logger.warn(context, `Reconnect after resume failed: ${err}`);
+      })
+      .finally(() => {
+        this.isResumeReconnectInProgress = false;
       });
   }
 
@@ -875,6 +891,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
 
     document.addEventListener('visibilitychange', this.visibilityChangeListener);
     window.addEventListener('beforeunload', this.beforeUnloadHandler);
+    window.addEventListener('online', this.onlineListener);
 
     this.cdr.detectChanges();
     if (this.messageInput?.nativeElement) {
