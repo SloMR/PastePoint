@@ -19,7 +19,9 @@ export const routes: Routes = [
   {
     path: 'acknowledgements',
     loadComponent: () =>
-      import('./features/acknowledgements/acknowledgements.component').then((m) => m.AcknowledgementsComponent),
+      import('./features/acknowledgements/acknowledgements.component').then(
+        (m) => m.AcknowledgementsComponent
+      ),
   },
   {
     path: 'privacy',

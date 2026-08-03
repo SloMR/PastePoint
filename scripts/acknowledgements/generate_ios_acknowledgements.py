@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Generates the iOS Settings.bundle acknowledgements pane from the pinned SPM checkouts.
 
-    python3 scripts/acknowledgements/generate-ios-acknowledgements.py           # write
-    python3 scripts/acknowledgements/generate-ios-acknowledgements.py --check   # check
+    python3 scripts/acknowledgements/generate_ios_acknowledgements.py           # write
+    python3 scripts/acknowledgements/generate_ios_acknowledgements.py --check   # check
 
 Packages are discovered from Package.resolved and their license files found by
 name inside each checkout, so adding a dependency needs no edit here.
@@ -10,6 +10,7 @@ name inside each checkout, so adding a dependency needs no edit here.
 --check needs no checkouts: it compares Package.resolved against the section
 titles already in Acknowledgements.plist, so CI catches a dependency nobody attributed.
 """
+
 import argparse
 import json
 import plistlib
@@ -19,7 +20,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 IOS = ROOT / "client/ios"
-RESOLVED = IOS / "PastePoint.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved"
+RESOLVED = (
+    IOS
+    / "PastePoint.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved"
+)
 OUTPUT = IOS / "PastePoint/Resources/Settings.bundle/Acknowledgements.plist"
 
 # LICENSE, LICENSE.md, LICENCE.txt, LICENSE-MIT, COPYING, NOTICE.txt.
@@ -33,6 +37,7 @@ def pins() -> dict[str, str]:
 
 
 def find_checkouts() -> Path:
+    """Newest DerivedData checkouts directory, since a project can have several."""
     derived = Path.home() / "Library/Developer/Xcode/DerivedData"
     candidates = sorted(derived.glob("PastePoint-*/SourcePackages/checkouts"))
     if not candidates:
@@ -41,6 +46,7 @@ def find_checkouts() -> Path:
 
 
 def checkout_for(checkouts: Path, identity: str) -> Path:
+    """Checkout folders use the repo name, which differs in case from the identity."""
     for child in sorted(checkouts.iterdir()):
         if child.is_dir() and child.name.lower() == identity.lower():
             return child
@@ -48,14 +54,20 @@ def checkout_for(checkouts: Path, identity: str) -> Path:
 
 
 def license_text(package: Path) -> str:
-    files = sorted(f for f in package.iterdir() if f.is_file() and LICENSE_FILE.match(f.name))
+    """Every LICENSE/NOTICE file the package ships, concatenated."""
+    files = sorted(
+        f for f in package.iterdir() if f.is_file() and LICENSE_FILE.match(f.name)
+    )
     if not files:
-        sys.exit(f"'{package.name}' ships no LICENSE/NOTICE file — attribute it by hand.")
+        sys.exit(
+            f"'{package.name}' ships no LICENSE/NOTICE file — attribute it by hand."
+        )
 
     return "\n\n".join(f.read_text(encoding="utf-8").strip() for f in files).strip()
 
 
 def generate(checkouts: Path) -> bytes:
+    """Serialized pane: a lead-in section, then one titled section per package."""
     specifiers = [
         {
             "Type": "PSGroupSpecifier",
@@ -80,8 +92,11 @@ def generate(checkouts: Path) -> bytes:
 
 
 def check() -> None:
+    """Exits non-zero when a pinned package has no section in the committed pane."""
     with OUTPUT.open("rb") as f:
-        titles = {s.get("Title", "").lower() for s in plistlib.load(f)["PreferenceSpecifiers"]}
+        titles = {
+            s.get("Title", "").lower() for s in plistlib.load(f)["PreferenceSpecifiers"]
+        }
 
     missing = [
         f"{identity} {version}"
@@ -90,7 +105,8 @@ def check() -> None:
     ]
 
     if missing:
-        print("Acknowledgements.plist is out of date. Run: python3 scripts/acknowledgements/generate-ios-acknowledgements.py")
+        print("Acknowledgements.plist is out of date. Regenerate it with:")
+        print("  python3 scripts/acknowledgements/generate_ios_acknowledgements.py")
         for entry in missing:
             print(f"  missing: {entry}")
         sys.exit(1)
@@ -99,6 +115,7 @@ def check() -> None:
 
 
 def main() -> None:
+    """Writes the pane, or verifies it when passed --check."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()

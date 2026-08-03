@@ -181,7 +181,7 @@ adding, removing, or upgrading a dependency, regenerate and commit them:
 cd client/web && npm run acknowledgements
 
 # iOS (build in Xcode once first, so the SPM checkouts exist)
-python3 scripts/acknowledgements/generate-ios-acknowledgements.py
+python3 scripts/acknowledgements/generate_ios_acknowledgements.py
 ```
 
 CI fails when these are stale.
