@@ -12,12 +12,12 @@ cors_allowed_origins = "https://pastepoint.com"
 # Raise these only AFTER the build is live on the store/web, or you soft-brick users.
 [client_version.ios]
 minimum = "0.13.0"
-latest = "0.13.0"
+latest = "0.13.1"
 url = "https://apps.apple.com/app/id6788860511"
 
 [client_version.web]
 minimum = "0.24.0"
-latest = "0.24.0"
+latest = "0.24.1"
 url = "https://pastepoint.com"
 
 [sentry]
