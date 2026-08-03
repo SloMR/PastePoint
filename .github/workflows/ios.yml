@@ -6,11 +6,13 @@ on:
     paths:
       - 'client/ios/**'
       - '.github/workflows/ios.yml'
+      - 'scripts/acknowledgements/**'
   pull_request:
     branches: [main]
     paths:
       - 'client/ios/**'
       - '.github/workflows/ios.yml'
+      - 'scripts/acknowledgements/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
@@ -63,6 +65,9 @@ jobs:
       - name: SwiftFormat (check only)
         working-directory: client/ios
         run: swiftformat --lint .
+
+      - name: Third-party acknowledgements
+        run: python3 scripts/acknowledgements/generate_ios_acknowledgements.py --check
 
   build:
     name: Build and Test iOS Client

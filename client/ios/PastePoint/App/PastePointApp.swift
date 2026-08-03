@@ -17,6 +17,7 @@ struct PastePointApp: App {
 
   init() {
     AppLogging.bootstrap()
+    SettingsBundle.syncVersion()
   }
 
   /// Resolved light/dark for the toast overlay window, which lives outside the

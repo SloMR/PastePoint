@@ -161,6 +161,12 @@
   "TERMS_TERMINATION": "We may suspend or terminate your access to the Service at any time, with or without notice, if we reasonably believe you have violated these Terms.",
   "TERMS_GOVERNING_LAW": "These Terms shall be governed by and construed in accordance with the laws of the jurisdiction where the Service operator is established, without regard to its conflict of law provisions.",
 
+  "_ACKNOWLEDGEMENTS_SECTION": "==== ACKNOWLEDGEMENTS ====",
+  "ACKNOWLEDGEMENTS": "Acknowledgements",
+  "ACKNOWLEDGEMENTS_INTRO": "PastePoint is built with these open source packages. Each is provided under its own license.",
+  "ACKNOWLEDGEMENTS_LOADING": "Loading acknowledgements…",
+  "ACKNOWLEDGEMENTS_UNAVAILABLE": "The list is not available in this build.",
+
   "_CONNECTION_WARNING_SECTION": "==== CONNECTION WARNING ====",
   "CONNECTION_WARNING_TITLE": "Unable to connect to some members",
   "CONNECTION_WARNING_DESC": "Your network may be blocking peer-to-peer connections. Try refreshing the page, switching to a different network, or disabling your VPN/firewall.",

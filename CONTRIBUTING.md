@@ -171,6 +171,21 @@ cd client/ios && xcodebuild build \
 make dev
 ```
 
+## Adding a Dependency
+
+Both clients ship their dependencies' licenses, from committed artifacts. After
+adding, removing, or upgrading a dependency, regenerate and commit them:
+
+```bash
+# Web
+cd client/web && npm run acknowledgements
+
+# iOS (build in Xcode once first, so the SPM checkouts exist)
+python3 scripts/acknowledgements/generate_ios_acknowledgements.py
+```
+
+CI fails when these are stale.
+
 ## Need Help?
 
 - Check [existing issues](https://github.com/SloMR/pastepoint/issues)

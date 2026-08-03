@@ -249,6 +249,37 @@ export class MetaService {
     });
   }
 
+  /**
+   * Update metadata for Acknowledgements component
+   */
+  public updateAcknowledgementsMetadata(): void {
+    const title = 'Acknowledgements – Secure File Sharing & Encrypted Chat App';
+    const description = 'Open source packages used to build PastePoint, and their licenses.';
+
+    this.update({
+      title,
+      description,
+      robots: 'index, follow',
+      canonical: 'https://pastepoint.com/acknowledgements',
+      og: {
+        title,
+        description,
+        type: 'website',
+        url: 'https://pastepoint.com/acknowledgements',
+        image: 'https://pastepoint.com/assets/pastepoint-og-image.png',
+        siteName: 'PastePoint',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        site: '@pastepoint',
+        creator: '@pastepoint',
+        title,
+        description,
+        image: 'https://pastepoint.com/assets/pastepoint-og-image.png',
+      },
+    });
+  }
+
   //=============================================================================
   // INDIVIDUAL META ELEMENT SETTERS
   // Methods for updating specific meta elements

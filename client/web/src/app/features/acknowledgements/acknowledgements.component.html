@@ -1,0 +1,124 @@
+<!-- MARK: - Main Container -->
+<div
+  [attr.dir]="isRTL ? 'rtl' : 'ltr'"
+  class="flex min-h-screen flex-col bg-pageBackground dark:bg-baseDark"
+>
+  <!-- MARK: - Frosted Top Bar -->
+  <app-page-header
+    class="sticky top-0 z-40"
+    [isDarkMode]="isDarkMode"
+    [currentLanguage]="currentLanguage"
+    (toggleTheme)="toggleTheme()"
+    (switchLanguage)="switchLanguage($event)"
+  />
+
+  <!-- MARK: - Main Content Area -->
+  <main class="flex-1 p-4 bg-pageBackground dark:bg-baseDark md:p-8">
+    <div
+      class="mx-auto max-w-4xl text-content dark:text-contentMuted"
+      [ngClass]="isRTL ? 'text-right' : 'text-left'"
+    >
+      <h1
+        class="mb-4 flex items-center gap-2 text-3xl font-expoArabicBold text-text-primary dark:text-white"
+      >
+        <img src="/icons/code.svg" alt="" class="h-10 w-10" loading="lazy" width="40" height="40" />
+        {{ 'ACKNOWLEDGEMENTS' | translate }}
+      </h1>
+      <p class="mb-8 text-sm font-expoArabicMedium text-text-secondary dark:text-textMuted">
+        {{ 'ACKNOWLEDGEMENTS_INTRO' | translate }}
+      </p>
+
+      <!-- MARK: - States -->
+      @if (isLoading) {
+        <p class="text-base font-expoArabicLight">{{ 'ACKNOWLEDGEMENTS_LOADING' | translate }}</p>
+      } @else if (loadFailed) {
+        <p class="text-base font-expoArabicLight">
+          {{ 'ACKNOWLEDGEMENTS_UNAVAILABLE' | translate }}
+        </p>
+      } @else {
+        <!-- MARK: - Package List -->
+        <ul class="space-y-2">
+          @for (entry of acknowledgements; track entry.name) {
+            <li
+              class="overflow-hidden rounded-lg border bg-white dark:border-surfaceDark dark:bg-baseDark"
+            >
+              <button
+                type="button"
+                class="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
+                [ngClass]="
+                  entry.text
+                    ? 'hover:bg-pageBackground dark:hover:bg-surfaceDark'
+                    : 'cursor-default'
+                "
+                [disabled]="!entry.text"
+                [attr.aria-expanded]="entry.text ? expanded.has(entry.name) : null"
+                (click)="toggle(entry.name)"
+              >
+                <span class="min-w-0 flex-1 truncate font-expoArabicMedium">
+                  {{ entry.name }}
+                  <span class="text-textMuted dark:text-textVeryMuted">{{ entry.version }}</span>
+                </span>
+                <span
+                  class="shrink-0 rounded px-2 py-0.5 text-[11px] font-expoArabicLight text-textMuted bg-pageBackground dark:bg-surfaceDark dark:text-textVeryMuted"
+                >
+                  {{ entry.license }}
+                </span>
+                <!-- Some packages ship an SPDX id but no license file -->
+                @if (entry.text) {
+                  <!-- Inline so currentColor keeps it legible in both themes -->
+                  <svg
+                    class="h-4 w-4 shrink-0 transition-transform text-textMuted dark:text-textVeryMuted"
+                    [ngClass]="expanded.has(entry.name) ? 'rotate-90' : isRTL ? 'rotate-180' : ''"
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M7 4l6 6-6 6" />
+                  </svg>
+                }
+              </button>
+
+              @if (expanded.has(entry.name)) {
+                <pre
+                  dir="ltr"
+                  class="overflow-x-auto border-t px-4 py-3 text-left text-xs leading-relaxed whitespace-pre-wrap text-textMuted dark:border-surfaceDark dark:text-textVeryMuted"
+                  >{{ entry.text }}</pre
+                >
+              }
+            </li>
+          }
+        </ul>
+      }
+
+      <!-- MARK: - Go Back Button -->
+      @if (!isEmbedded) {
+        <div class="mt-8 flex items-center justify-center">
+          <button
+            class="flex items-center justify-center gap-2 rounded-md px-4 py-2 text-white font-expoArabicMedium bg-brand hover:bg-brand/80 dark:bg-brandDark dark:hover:bg-brandDark/80"
+            routerLink="/"
+            [title]="'GO_BACK' | translate"
+          >
+            <img
+              src="/icons/back-arrow.svg"
+              alt="arrow-right"
+              [title]="'GO_BACK' | translate"
+              [ngClass]="isRTL ? 'rotate-0' : 'rotate-180'"
+            />
+            {{ 'GO_BACK_HOME' | translate }}
+          </button>
+        </div>
+      }
+    </div>
+  </main>
+
+  <!-- MARK: - Footer -->
+  <app-page-footer
+    [appVersion]="appVersion"
+    [showPrivacyLink]="true"
+    [showAcknowledgementsLink]="false"
+  />
+</div>
