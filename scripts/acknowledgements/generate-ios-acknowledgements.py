@@ -36,7 +36,7 @@ def find_checkouts() -> Path:
     derived = Path.home() / "Library/Developer/Xcode/DerivedData"
     candidates = sorted(derived.glob("PastePoint-*/SourcePackages/checkouts"))
     if not candidates:
-        sys.exit("No SPM checkouts found. Build in Xcode first, or pass --checkouts <path>.")
+        sys.exit("No SPM checkouts found. Build the app in Xcode first.")
     return candidates[-1]
 
 
