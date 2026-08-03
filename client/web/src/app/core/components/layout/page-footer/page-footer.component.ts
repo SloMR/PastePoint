@@ -13,4 +13,5 @@ import { SocialLinksComponent } from '../social-links/social-links.component';
 export class PageFooterComponent {
   @Input() appVersion = '';
   @Input() showPrivacyLink = false;
+  @Input() showAcknowledgementsLink = true;
 }
