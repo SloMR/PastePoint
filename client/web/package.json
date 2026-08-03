@@ -15,6 +15,8 @@
     "lint:fix": "ng lint --fix",
     "format": "prettier --write .",
     "test:coverage": "ng test --code-coverage",
+    "acknowledgements": "node ../../scripts/acknowledgements/generate-web-acknowledgements.mjs",
+    "acknowledgements:check": "node ../../scripts/acknowledgements/generate-web-acknowledgements.mjs --check",
     "test:ci": "ng test --no-watch --code-coverage --browsers=ChromeHeadless"
   },
   "private": true,
