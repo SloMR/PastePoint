@@ -18,6 +18,18 @@ extension Bundle {
   }
 }
 
+// MARK: - Settings Bundle
+
+enum SettingsBundle {
+  /// Must match the `Key` of the `PSTitleValueSpecifier` in `Settings.bundle/Root.plist`.
+  private static let versionKey = "version_preference"
+
+  /// Settings.app reads the row from `NSUserDefaults`, not `Info.plist`, so publish it each launch.
+  static func syncVersion() {
+    UserDefaults.standard.set(Bundle.main.appVersion, forKey: versionKey)
+  }
+}
+
 // MARK: - Build Environment
 
 enum AppBuildInfo {
