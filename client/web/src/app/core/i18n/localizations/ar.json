@@ -161,6 +161,12 @@
   "TERMS_TERMINATION": "يجوز لنا تعليق وصولك إلى الخدمة أو إنهاؤه في أي وقت، مع أو بدون إخطار، إذا اعتقدنا بشكل معقول أنك خالفت هذه الشروط.",
   "TERMS_GOVERNING_LAW": "تُفسَّر هذه الشروط وتُطبَّق وفقاً لقوانين الولاية القضائية التي توجد فيها جهة تشغيل الخدمة، دون اعتبار لتنازع القوانين.",
 
+  "_ACKNOWLEDGEMENTS_SECTION": "==== ACKNOWLEDGEMENTS ====",
+  "ACKNOWLEDGEMENTS": "البرمجيات مفتوحة المصدر",
+  "ACKNOWLEDGEMENTS_INTRO": "تم بناء PastePoint باستخدام الحزم مفتوحة المصدر التالية. كل حزمة تخضع لترخيصها الخاص.",
+  "ACKNOWLEDGEMENTS_LOADING": "جارٍ التحميل…",
+  "ACKNOWLEDGEMENTS_UNAVAILABLE": "القائمة غير متوفرة في هذه النسخة.",
+
   "_CONNECTION_WARNING_SECTION": "==== CONNECTION WARNING ====",
   "CONNECTION_WARNING_TITLE": "تعذّر الاتصال ببعض الأعضاء",
   "CONNECTION_WARNING_DESC": "قد تمنع شبكتك الاتصال المباشر بين الأجهزة. جرّب تحديث الصفحة، أو التبديل إلى شبكة أخرى، أو تعطيل VPN أو جدار الحماية.",

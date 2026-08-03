@@ -161,6 +161,12 @@
   "TERMS_TERMINATION": "Podemos suspender o terminar tu acceso al Servicio en cualquier momento, con o sin previo aviso, si consideramos razonablemente que has violado estos Términos.",
   "TERMS_GOVERNING_LAW": "Estos Términos se regirán e interpretarán de acuerdo con las leyes de la jurisdicción donde esté establecido el operador del Servicio, sin tener en cuenta sus disposiciones sobre conflicto de leyes.",
 
+  "_ACKNOWLEDGEMENTS_SECTION": "==== ACKNOWLEDGEMENTS ====",
+  "ACKNOWLEDGEMENTS": "Agradecimientos",
+  "ACKNOWLEDGEMENTS_INTRO": "PastePoint utiliza los siguientes paquetes de código abierto. Cada uno se ofrece bajo su propia licencia.",
+  "ACKNOWLEDGEMENTS_LOADING": "Cargando agradecimientos…",
+  "ACKNOWLEDGEMENTS_UNAVAILABLE": "La lista no está disponible en esta versión.",
+
   "_CONNECTION_WARNING_SECTION": "==== CONNECTION WARNING ====",
   "CONNECTION_WARNING_TITLE": "No se puede conectar con algunos miembros",
   "CONNECTION_WARNING_DESC": "Tu red podría estar bloqueando las conexiones entre pares. Prueba a recargar la página, cambiar de red o desactivar tu VPN o cortafuegos.",

@@ -161,6 +161,12 @@
   "TERMS_TERMINATION": "Nous pouvons suspendre ou résilier votre accès au Service à tout moment, avec ou sans préavis, si nous estimons raisonnablement que vous avez enfreint ces Conditions.",
   "TERMS_GOVERNING_LAW": "Ces Conditions sont régies et interprétées conformément aux lois de la juridiction où l'opérateur du Service est établi, sans tenir compte de ses dispositions sur les conflits de lois.",
 
+  "_ACKNOWLEDGEMENTS_SECTION": "==== ACKNOWLEDGEMENTS ====",
+  "ACKNOWLEDGEMENTS": "Remerciements",
+  "ACKNOWLEDGEMENTS_INTRO": "PastePoint utilise les paquets open source suivants. Chacun est fourni sous sa propre licence.",
+  "ACKNOWLEDGEMENTS_LOADING": "Chargement des remerciements…",
+  "ACKNOWLEDGEMENTS_UNAVAILABLE": "La liste n'est pas disponible dans cette version.",
+
   "_CONNECTION_WARNING_SECTION": "==== CONNECTION WARNING ====",
   "CONNECTION_WARNING_TITLE": "Impossible de se connecter à certains membres",
   "CONNECTION_WARNING_DESC": "Votre réseau bloque peut-être les connexions pair-à-pair. Essayez de recharger la page, de changer de réseau ou de désactiver votre VPN/pare-feu.",

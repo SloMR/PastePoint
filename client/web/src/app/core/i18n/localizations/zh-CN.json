@@ -161,6 +161,12 @@
   "TERMS_TERMINATION": "如果我们有合理理由认为您违反了本条款,我们可以随时(无论是否事先通知)暂停或终止您对本服务的访问。",
   "TERMS_GOVERNING_LAW": "本条款应根据服务运营方所在司法管辖区的法律解释和适用,不考虑其法律冲突规定。",
 
+  "_ACKNOWLEDGEMENTS_SECTION": "==== ACKNOWLEDGEMENTS ====",
+  "ACKNOWLEDGEMENTS": "致谢",
+  "ACKNOWLEDGEMENTS_INTRO": "PastePoint 使用了以下开源软件包。每个软件包均按其各自的许可证提供。",
+  "ACKNOWLEDGEMENTS_LOADING": "正在加载…",
+  "ACKNOWLEDGEMENTS_UNAVAILABLE": "此版本中没有可用的列表。",
+
   "_CONNECTION_WARNING_SECTION": "==== CONNECTION WARNING ====",
   "CONNECTION_WARNING_TITLE": "无法连接到部分成员",
   "CONNECTION_WARNING_DESC": "您的网络可能阻止了点对点连接。请尝试刷新页面、切换到其他网络或停用 VPN/防火墙。",
