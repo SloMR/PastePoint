@@ -20,10 +20,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 IOS = ROOT / "client/ios"
-RESOLVED = (
-    IOS
-    / "PastePoint.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved"
-)
+SWIFTPM = "PastePoint.xcodeproj/project.xcworkspace/xcshareddata/swiftpm"
+RESOLVED = IOS / SWIFTPM / "Package.resolved"
 OUTPUT = IOS / "PastePoint/Resources/Settings.bundle/Acknowledgements.plist"
 
 # LICENSE, LICENSE.md, LICENCE.txt, LICENSE-MIT, COPYING, NOTICE.txt.
@@ -55,13 +53,10 @@ def checkout_for(checkouts: Path, identity: str) -> Path:
 
 def license_text(package: Path) -> str:
     """Every LICENSE/NOTICE file the package ships, concatenated."""
-    files = sorted(
-        f for f in package.iterdir() if f.is_file() and LICENSE_FILE.match(f.name)
-    )
+    entries = (f for f in package.iterdir() if f.is_file())
+    files = sorted(f for f in entries if LICENSE_FILE.match(f.name))
     if not files:
-        sys.exit(
-            f"'{package.name}' ships no LICENSE/NOTICE file — attribute it by hand."
-        )
+        sys.exit(f"'{package.name}' ships no LICENSE or NOTICE file")
 
     return "\n\n".join(f.read_text(encoding="utf-8").strip() for f in files).strip()
 
@@ -86,23 +81,18 @@ def generate(checkouts: Path) -> bytes:
             }
         )
 
-    return plistlib.dumps(
-        {"StringsTable": "Root", "PreferenceSpecifiers": specifiers}, sort_keys=False
-    )
+    pane = {"StringsTable": "Root", "PreferenceSpecifiers": specifiers}
+    return plistlib.dumps(pane, sort_keys=False)
 
 
 def check() -> None:
     """Exits non-zero when a pinned package has no section in the committed pane."""
     with OUTPUT.open("rb") as f:
-        titles = {
-            s.get("Title", "").lower() for s in plistlib.load(f)["PreferenceSpecifiers"]
-        }
+        specifiers = plistlib.load(f)["PreferenceSpecifiers"]
+    titles = {s.get("Title", "").lower() for s in specifiers}
 
-    missing = [
-        f"{identity} {version}"
-        for identity, version in pins().items()
-        if f"{identity} {version}".lower() not in titles
-    ]
+    wanted = (f"{identity} {version}" for identity, version in pins().items())
+    missing = [w for w in wanted if w.lower() not in titles]
 
     if missing:
         print("Acknowledgements.plist is out of date. Regenerate it with:")
