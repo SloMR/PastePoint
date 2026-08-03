@@ -17,6 +17,11 @@ export const routes: Routes = [
       import('./features/not-found/not-found.component').then((m) => m.NotFoundComponent),
   },
   {
+    path: 'acknowledgements',
+    loadComponent: () =>
+      import('./features/acknowledgements/acknowledgements.component').then((m) => m.AcknowledgementsComponent),
+  },
+  {
     path: 'privacy',
     loadComponent: () =>
       import('./features/privacy-and-terms/privacy-and-terms.component').then(
