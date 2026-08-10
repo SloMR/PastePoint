@@ -14,6 +14,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
+import { NGXLogger } from 'ngx-logger';
 import { extractSessionCodeFromUrl } from '../../../../../utils/session-link.util';
 
 type JsQrFn = typeof import('jsqr').default;
@@ -35,6 +36,7 @@ export class QrScannerPopupComponent implements OnChanges, OnDestroy {
 
   private ngZone = inject(NgZone);
   private cdr = inject(ChangeDetectorRef);
+  private logger = inject(NGXLogger);
 
   isScannerOpen = false;
   scannerError = '';
@@ -101,6 +103,12 @@ export class QrScannerPopupComponent implements OnChanges, OnDestroy {
   }
 
   private async startCamera(): Promise<void> {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      this.logger.error('Camera unavailable: getUserMedia missing (insecure origin?)');
+      this.failCamera();
+      return;
+    }
+
     try {
       this.stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'environment' },
@@ -116,11 +124,19 @@ export class QrScannerPopupComponent implements OnChanges, OnDestroy {
       await video.play();
 
       this.ngZone.runOutsideAngular(() => this.scanFrame());
-    } catch {
-      this.ngZone.run(() => {
-        this.scannerError = 'CAMERA_NOT_AVAILABLE';
-      });
+    } catch (err) {
+      this.logger.error(
+        `Camera unavailable: ${err instanceof Error ? err.name : 'UnknownError'}`,
+        err
+      );
+      this.failCamera();
     }
+  }
+
+  private failCamera(): void {
+    this.ngZone.run(() => {
+      this.scannerError = 'CAMERA_NOT_AVAILABLE';
+    });
   }
 
   private scanFrame(): void {
