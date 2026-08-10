@@ -60,6 +60,10 @@ export function app(): express.Express {
     })
   );
 
+  server.get('*.*', (req, res) => {
+    res.sendStatus(404);
+  });
+
   // All regular routes use the Universal engine
   server.get('*', (req, res, next) => {
     const { protocol, originalUrl, baseUrl, headers } = req;

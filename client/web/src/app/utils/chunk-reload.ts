@@ -1,5 +1,5 @@
 const CHUNK_LOAD_ERROR =
-  /Failed to fetch dynamically imported module|Loading chunk \d+ failed|ChunkLoadError/i;
+  /Failed to fetch dynamically imported module|Loading chunk \d+ failed|ChunkLoadError|Importing a module script failed|is not a valid JavaScript MIME type|error loading dynamically imported module/i;
 
 export function isChunkLoadError(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error);
