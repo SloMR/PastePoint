@@ -35,7 +35,7 @@ enum ToastStyle {
 // MARK: - Toast Item
 
 struct ToastItem: Identifiable, Equatable {
-  let id = UUID()
+  var id = UUID()
   let message: LocalizedStringResource
   let style: ToastStyle
 
@@ -92,8 +92,12 @@ private struct ToastRowView: View {
     }
     .frame(maxWidth: 400)
     .onTapGesture { onDismiss() }
+    .accessibilityElement(children: .combine)
+    .accessibilityAddTraits(.isButton)
+    .accessibilityAction { onDismiss() }
     .task {
-      try? await Task.sleep(for: .seconds(2))
+      try? await Task.sleep(for: .seconds(ToastCenter.displayDuration))
+      guard !Task.isCancelled else { return }
       onDismiss()
     }
   }
@@ -101,33 +105,55 @@ private struct ToastRowView: View {
 
 // MARK: - Toast Overlay
 
-/// Renders the active toasts at the top edge of its container. Hosted in the
-/// global overlay window (see `ToastWindow`) bound to the shared `ToastCenter`,
-/// so toasts float above every view — including sheets.
+/// Draws the toast queue in the global overlay window (see `ToastWindow`), above sheets and
+/// everything else. The first toast docks to the Island or notch if the device has one.
 struct ToastOverlayView: View {
   @ObservedObject var center: ToastCenter
 
   var onFrameChange: (CGRect) -> Void = { _ in }
 
+  var onDockedChange: (Bool) -> Void = { _ in }
+
   var body: some View {
-    VStack(spacing: 8) {
-      ForEach(center.items) { item in
-        ToastRowView(toast: item) {
-          withAnimation(.spring(response: 0.4)) {
-            center.dismiss(item.id)
-          }
+    Group {
+      if let cutout = center.cutout, let head = center.items.first {
+        stack(top: cutout.top) {
+          DockedToastView(toast: head, cutout: cutout) { dismiss(head.id) }
+            .id(head.id)
+            .transition(.identity)
+
+          capsules(Array(center.items.dropFirst()))
         }
-        .transition(.asymmetric(
-          insertion: .move(edge: .top).combined(with: .opacity),
-          removal: .move(edge: .top).combined(with: .opacity),
-        ))
+        .ignoresSafeArea(edges: .top)
+      } else {
+        stack(top: 8) { capsules(center.items) }
       }
     }
-    .padding(.horizontal, 20)
-    .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { onFrameChange($0) }
-    .padding(.top, 8)
-    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-    .animation(.spring(response: 0.4), value: center.items)
+    .onChange(of: center.isDocked, initial: true) { _, docked in onDockedChange(docked) }
+  }
+
+  private func stack(top: CGFloat, @ViewBuilder _ content: () -> some View) -> some View {
+    VStack(spacing: 8, content: content)
+      .animation(.spring(response: 0.4), value: center.items)
+      .padding(.horizontal, 20)
+      .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { onFrameChange($0) }
+      .padding(.top, top)
+      .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+      .transition(.identity)
+  }
+
+  @ViewBuilder
+  private func capsules(_ items: [ToastItem]) -> some View {
+    ForEach(items) { item in
+      ToastRowView(toast: item) { dismiss(item.id) }
+        .transition(.move(edge: .top).combined(with: .opacity))
+    }
+  }
+
+  private func dismiss(_ id: ToastItem.ID) {
+    withAnimation(.spring(response: 0.4)) {
+      center.dismiss(id)
+    }
   }
 }
 
@@ -138,27 +164,20 @@ struct ToastOverlayView: View {
 private struct ToastPreview: View {
   @StateObject private var center = ToastCenter()
 
+  private let samples: [(label: String, item: ToastItem)] = [
+    ("Success", .success(.codeCopied)),
+    ("Error", .error(.startPrivateFailed)),
+    ("Warning", .warning(.connectionLost)),
+    ("Info", .info(.roomJoined("General"))),
+  ]
+
   var body: some View {
     VStack(spacing: 16) {
-      Spacer()
-
-      Button { center.show(.success(.codeCopied)) } label: { Text(verbatim: "Success") }
-        .buttonStyle(.borderedProminent)
-        .tint(AppColors.Status.success)
-
-      Button { center.show(.error(.startPrivateFailed)) } label: { Text(verbatim: "Error") }
-        .buttonStyle(.borderedProminent)
-        .tint(AppColors.Status.danger)
-
-      Button { center.show(.warning(.connectionLost)) } label: { Text(verbatim: "Warning") }
-        .buttonStyle(.borderedProminent)
-        .tint(AppColors.Status.warning)
-
-      Button { center.show(.info(.roomJoined("General"))) } label: { Text(verbatim: "Info") }
-        .buttonStyle(.borderedProminent)
-        .tint(AppColors.Status.info)
-
-      Spacer()
+      ForEach(samples, id: \.label) { sample in
+        Button { center.show(sample.item) } label: { Text(verbatim: sample.label) }
+          .buttonStyle(.borderedProminent)
+          .tint(sample.item.style.color)
+      }
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
     .background(AppColors.Background.background)
