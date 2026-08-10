@@ -8,8 +8,7 @@ import UIKit
 
 // MARK: - Pass-through Window
 
-/// A transparent window that sits above the sheet/alert layer and lets touches
-/// fall through to the app below — except where they land on a toast row.
+/// Sits above the sheet/alert layer and lets touches fall through, except on a toast.
 final class PassthroughWindow: UIWindow {
   var interactiveRect: CGRect = .zero
 
@@ -17,6 +16,19 @@ final class PassthroughWindow: UIWindow {
     guard interactiveRect.contains(point) else { return nil }
     return super.hitTest(point, with: event)
   }
+}
+
+// MARK: - Host
+
+private final class ToastHostingController: UIHostingController<ToastOverlayView> {
+  var hidesStatusBar = false {
+    didSet {
+      guard hidesStatusBar != oldValue else { return }
+      setNeedsStatusBarAppearanceUpdate()
+    }
+  }
+
+  override var prefersStatusBarHidden: Bool { hidesStatusBar }
 }
 
 // MARK: - Presenter
@@ -30,11 +42,9 @@ final class ToastPresenter {
     guard window == nil else { return }
 
     let window = PassthroughWindow(windowScene: scene)
-    let host = UIHostingController(
-      rootView: ToastOverlayView(center: center) { [weak window] rect in
-        window?.interactiveRect = rect
-      },
-    )
+    let host = ToastHostingController(rootView: ToastOverlayView(center: center))
+    host.rootView.onFrameChange = { [weak window] rect in window?.interactiveRect = rect }
+    host.rootView.onDockedChange = { [weak host] docked in host?.hidesStatusBar = docked }
     host.view.backgroundColor = .clear
 
     window.rootViewController = host
@@ -50,8 +60,7 @@ final class ToastPresenter {
 
 // MARK: - Scene Finder
 
-/// Reports the `UIWindowScene` once the view is in the hierarchy so the overlay
-/// window can be attached to the active scene.
+/// Reports the `UIWindowScene` once the view is in the hierarchy.
 private struct WindowSceneFinder: UIViewRepresentable {
   let onScene: (UIWindowScene) -> Void
 
@@ -89,8 +98,7 @@ private struct ToastWindowModifier: ViewModifier {
 }
 
 extension View {
-  /// Installs the global toast overlay window (above sheets) bound to `center`,
-  /// matching the app's resolved light/dark `style`.
+  /// Installs the global toast overlay window (above sheets) bound to `center`.
   func toastWindow(center: ToastCenter, style: UIUserInterfaceStyle) -> some View {
     modifier(ToastWindowModifier(center: center, style: style))
   }
