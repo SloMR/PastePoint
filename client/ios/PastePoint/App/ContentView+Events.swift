@@ -131,6 +131,7 @@ private struct ChatEventHandlers: ViewModifier {
       return
     }
     guard !owner.showSettings else { return }
+    guard !owner.toast.items.contains(where: { $0.style == .success || $0.style == .info }) else { return }
 
     if wasPrivateJoin {
       owner.toast.show(.success(.privateSessionJoined))
