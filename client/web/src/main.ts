@@ -25,6 +25,7 @@ if (typeof window !== 'undefined' && environment.sentry?.enabled && environment.
     release: `${pkgName}@${pkgVersion}`,
     sendDefaultPii: false,
     maxBreadcrumbs: 50,
+    ignoreErrors: ['translation engine failed to load'],
     tracesSampleRate: environment.sentry.tracesSampleRate ?? 0,
     enableLogs: environment.sentry.enableLogs ?? false,
     replaysSessionSampleRate: 0,
