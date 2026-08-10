@@ -35,7 +35,7 @@ enum ToastStyle {
 // MARK: - Toast Item
 
 struct ToastItem: Identifiable, Equatable {
-  let id = UUID()
+  var id = UUID()
   let message: LocalizedStringResource
   let style: ToastStyle
 

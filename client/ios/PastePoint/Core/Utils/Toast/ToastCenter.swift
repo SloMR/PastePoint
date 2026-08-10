@@ -26,6 +26,9 @@ final class ToastCenter: ObservableObject {
   }
 
   func show(_ item: ToastItem) {
+    var item = item
+    item.id = UUID()
+
     cutout = ToastCutout.current()
     items.append(item)
     if items.count > Self.maxVisible {
