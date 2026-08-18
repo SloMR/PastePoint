@@ -163,11 +163,21 @@ export class WebRTCService implements IWebRTCService {
   }
 
   /**
-   * Checks if there is an active or connecting connection with a target user
-   * @param targetUser The user to check connection with
+   * Checks if an attempt with a target user is in flight. Needs no data channel,
+   * so unlike the channel state it also holds while we are the callee.
+   * @param targetUser The user to check
    */
-  public isConnectedOrConnecting(targetUser: string): boolean {
-    return this.communicationService.isConnectedOrConnecting(targetUser);
+  public isConnecting(targetUser: string): boolean {
+    return this.signalingService.isConnecting(targetUser);
+  }
+
+  /**
+   * Checks if a target user is connected or being connected to, i.e. whether a
+   * new attempt would be redundant
+   * @param targetUser The user to check
+   */
+  public isReachable(targetUser: string): boolean {
+    return this.isConnected(targetUser) || this.isConnecting(targetUser);
   }
 
   /**

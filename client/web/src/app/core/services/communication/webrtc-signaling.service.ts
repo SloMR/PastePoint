@@ -44,6 +44,7 @@ export class WebRTCSignalingService {
   private peerConnections = new Map<string, RTCPeerConnection>();
   private reconnectAttempts = new Map<string, number>();
   private connectionLocks = new Set<string>();
+  private connectingPeers = new Set<string>();
   private outboundSequences = new Map<string, number>();
   private inboundSequences = new Map<string, number>();
   private pendingSignals: SignalMessage[] = [];
@@ -65,6 +66,10 @@ export class WebRTCSignalingService {
 
     // Refresh TURN credentials on every connect so peers created afterwards
     this.wsService.connected$.subscribe(() => void this.turnCredentials.refresh());
+
+    this.communicationService.dataChannelOpened$.subscribe((targetUser) => {
+      this.handlePeerConnected(targetUser);
+    });
 
     this.userService.user$.subscribe((user) => {
       if (user && this.pendingSignals.length > 0) {
@@ -111,6 +116,14 @@ export class WebRTCSignalingService {
       span.setAttribute('attempts', next);
     }
     this.initiateConnectionInner(targetUser, span!);
+  }
+
+  /**
+   * Checks whether an attempt with a target user is in flight
+   * @param targetUser The user to check
+   */
+  public isConnecting(targetUser: string): boolean {
+    return this.connectingPeers.has(targetUser);
   }
 
   /**
@@ -235,6 +248,7 @@ export class WebRTCSignalingService {
         'initiateConnection',
         `Requesting ${targetUser} to initiate connection (role: callee)`
       );
+      this.connectingPeers.add(targetUser);
       this.sendConnectionRequest(targetUser);
       return;
     }
@@ -251,6 +265,7 @@ export class WebRTCSignalingService {
     }
 
     this.connectionLocks.add(targetUser);
+    this.connectingPeers.add(targetUser);
 
     this.logger.info(
       'initiateConnection',
@@ -269,23 +284,6 @@ export class WebRTCSignalingService {
 
       const dataChannel = peerConnection.createDataChannel('data', DATA_CHANNEL_OPTIONS);
       this.communicationService.setupDataChannel(dataChannel, targetUser);
-
-      const handleDataChannelOpen = () => {
-        this.clearEstablishmentWatchdog(targetUser);
-        this.connectionLocks.delete(targetUser);
-        this.communicationService.sendQueuedMessages(targetUser);
-        if (peerConnection.connectionState === 'connected') {
-          this.reconnectAttempts.delete(targetUser);
-          this.finishConnectSpanAsSuccess(targetUser);
-          this.peerConnected$.next(targetUser);
-        }
-      };
-
-      if (dataChannel.readyState === 'open') {
-        handleDataChannelOpen();
-      } else {
-        dataChannel.onopen = handleDataChannelOpen;
-      }
 
       dataChannel.onerror = () => {
         this.connectionLocks.delete(targetUser);
@@ -381,6 +379,7 @@ export class WebRTCSignalingService {
     this.closePeerConnection(targetUser, true);
 
     this.connectionLocks.delete(targetUser);
+    this.connectingPeers.delete(targetUser);
     this.reconnectAttempts.delete(targetUser);
     this.inboundSequences.delete(targetUser);
     this.outboundSequences.delete(targetUser);
@@ -428,6 +427,7 @@ export class WebRTCSignalingService {
     }
 
     this.clearEstablishmentWatchdog(targetUser);
+    this.connectingPeers.delete(targetUser);
 
     if (force) {
       this.candidateQueues.delete(targetUser);
@@ -453,6 +453,7 @@ export class WebRTCSignalingService {
     });
     this.peerConnections.clear();
     this.connectionLocks.clear();
+    this.connectingPeers.clear();
     this.reconnectAttempts.clear();
     this.inboundSequences.clear();
     this.outboundSequences.clear();
@@ -652,11 +653,7 @@ export class WebRTCSignalingService {
         }
         // Only clear retry counter and emit connected when data channel is also open
         if (this.communicationService.isConnected(targetUser)) {
-          this.clearEstablishmentWatchdog(targetUser);
-          this.reconnectAttempts.delete(targetUser);
-          this.logger.info('createPeerConnection', `Successfully connected to ${targetUser}`);
-          this.finishConnectSpanAsSuccess(targetUser);
-          this.peerConnected$.next(targetUser);
+          this.handlePeerConnected(targetUser);
         } else {
           this.logger.info(
             'createPeerConnection',
@@ -708,6 +705,24 @@ export class WebRTCSignalingService {
   }
 
   /**
+   * Marks a peer usable once its data channel is open, whichever side created it
+   * @param targetUser The user that is now reachable
+   */
+  private handlePeerConnected(targetUser: string): void {
+    if (!this.communicationService.isConnected(targetUser)) return;
+    if (!this.activeConnectSpans.has(targetUser) && !this.connectingPeers.has(targetUser)) return;
+
+    this.logger.info('handlePeerConnected', `Successfully connected to ${targetUser}`);
+    this.clearEstablishmentWatchdog(targetUser);
+    this.connectionLocks.delete(targetUser);
+    this.connectingPeers.delete(targetUser);
+    this.reconnectAttempts.delete(targetUser);
+    this.communicationService.sendQueuedMessages(targetUser);
+    this.finishConnectSpanAsSuccess(targetUser);
+    this.peerConnected$.next(targetUser);
+  }
+
+  /**
    * Handles disconnection events and attempts reconnection
    * @param targetUser The user to handle disconnection for
    */
@@ -726,6 +741,7 @@ export class WebRTCSignalingService {
 
     if (attempts < MAX_RECONNECT_ATTEMPTS) {
       this.reconnectAttempts.set(targetUser, attempts + 1);
+      this.connectingPeers.add(targetUser);
 
       // Use exponential backoff (starts at 2s, max 10s)
       const baseDelay = RECONNECT_DELAY;
@@ -781,6 +797,7 @@ export class WebRTCSignalingService {
         );
       }
       this.closePeerConnection(targetUser, true);
+      this.connectingPeers.delete(targetUser);
       this.peerDisconnected$.next(targetUser);
     }
   }
@@ -970,6 +987,7 @@ export class WebRTCSignalingService {
 
     // Set lock while processing offer to prevent concurrent connection attempts
     this.connectionLocks.add(targetUser);
+    this.connectingPeers.add(targetUser);
 
     const peerConnection = this.createPeerConnection(targetUser);
 
@@ -1296,6 +1314,7 @@ export class WebRTCSignalingService {
 
     // Temporarily bypass role checking and initiate connection
     this.connectionLocks.add(targetUser);
+    this.connectingPeers.add(targetUser);
 
     try {
       const peerConnection = this.createPeerConnection(targetUser);
@@ -1306,23 +1325,6 @@ export class WebRTCSignalingService {
 
       const dataChannel = peerConnection.createDataChannel('data', DATA_CHANNEL_OPTIONS);
       this.communicationService.setupDataChannel(dataChannel, targetUser);
-
-      const handleDataChannelOpen = () => {
-        this.clearEstablishmentWatchdog(targetUser);
-        this.connectionLocks.delete(targetUser);
-        this.communicationService.sendQueuedMessages(targetUser);
-        if (peerConnection.connectionState === 'connected') {
-          this.reconnectAttempts.delete(targetUser);
-          this.finishConnectSpanAsSuccess(targetUser);
-          this.peerConnected$.next(targetUser);
-        }
-      };
-
-      if (dataChannel.readyState === 'open') {
-        handleDataChannelOpen();
-      } else {
-        dataChannel.onopen = handleDataChannelOpen;
-      }
 
       dataChannel.onerror = () => {
         this.connectionLocks.delete(targetUser);

@@ -28,6 +28,7 @@ export class WebRTCCommunicationService {
 
   // Public Subjects
   public dataChannelOpen$ = new BehaviorSubject<boolean>(false);
+  public dataChannelOpened$ = new Subject<string>();
   public dataChannelClosed$ = new Subject<string>();
   public chatMessages$ = new Subject<ChatMessage>();
   public fileOffers$ = new Subject<{
@@ -128,6 +129,8 @@ export class WebRTCCommunicationService {
       } else {
         this.logger.info('setupDataChannel', `No queued messages for ${targetUser}`);
       }
+
+      this.dataChannelOpened$.next(targetUser);
     };
 
     if (channel.readyState === 'open') {

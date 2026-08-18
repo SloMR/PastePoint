@@ -773,7 +773,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
           this.memberConnectionStatus.set(member, false);
           this.memberConnectionState.set(
             member,
-            this.webrtcService.isConnectedOrConnecting(member) ? 'connecting' : 'disconnected'
+            this.webrtcService.isConnecting(member) ? 'connecting' : 'disconnected'
           );
           this.scheduleConnectionWarning(member);
           this.cdr.detectChanges();
@@ -1357,7 +1357,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
           member,
           groupIds.get(fileToSend)!
         );
-        if (!this.webrtcService.isConnectedOrConnecting(member)) {
+        if (!this.webrtcService.isReachable(member)) {
           this.logger.info(
             'sendFilesToRecipients',
             `Initiating connection to ${member} for file transfer`
@@ -1799,7 +1799,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
         return true;
       }
 
-      if (!this.webrtcService.isConnectedOrConnecting(member)) {
+      if (!this.webrtcService.isReachable(member)) {
         this.webrtcService.initiateConnection(member);
       }
 
@@ -1849,14 +1849,14 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
       }
 
       // Skip if already connected or connecting
-      const isConnectedOrConnecting = this.webrtcService.isConnectedOrConnecting(m);
-      if (isConnectedOrConnecting) {
+      if (this.webrtcService.isReachable(m)) {
         this.logger.debug(
           'initiateConnectionsWithMembers',
           `Skipping ${m} - already connected/connecting`
         );
+        return false;
       }
-      return !isConnectedOrConnecting;
+      return true;
     });
 
     if (otherMembers.length === 0) {
@@ -1923,7 +1923,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
             member,
             connected
               ? 'connected'
-              : this.webrtcService.isConnectedOrConnecting(member)
+              : this.webrtcService.isConnecting(member)
                 ? 'connecting'
                 : 'disconnected'
           );
