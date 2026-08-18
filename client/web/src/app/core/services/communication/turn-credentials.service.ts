@@ -4,7 +4,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { NGXLogger } from 'ngx-logger';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { ICE_SERVERS } from '../../../utils/constants';
+import { ICE_SERVERS, TURN_READY_TIMEOUT, TURN_RETRY_COOLDOWN } from '../../../utils/constants';
 
 interface TurnCredentialsResponse {
   username: string;
@@ -26,7 +26,9 @@ export class TurnCredentialsService {
   private platformId = inject(PLATFORM_ID);
 
   private servers: RTCIceServer[] = [...ICE_SERVERS];
-  private fetching = false;
+  private inflight: Promise<void> | null = null;
+  private hasServerAnswered = false;
+  private nextRetryAt = 0;
 
   constructor() {
     // Warm the cache at construction
@@ -37,10 +39,31 @@ export class TurnCredentialsService {
     return this.servers;
   }
 
-  async refresh(): Promise<void> {
-    if (!isPlatformBrowser(this.platformId) || this.fetching) return;
-    this.fetching = true;
+  /**
+   * Resolves once the server has answered, so a peer connection is never built
+   * STUN-only while the first fetch is in flight. A failure is retried, but only
+   * after `TURN_RETRY_COOLDOWN` — an unreachable endpoint would otherwise be hit
+   * again on every peer. `TURN_READY_TIMEOUT` caps how long a peer waits.
+   */
+  async ready(): Promise<void> {
+    if (!isPlatformBrowser(this.platformId) || this.hasServerAnswered) return;
+    if (Date.now() < this.nextRetryAt) return;
 
+    await Promise.race([
+      this.refresh(),
+      new Promise<void>((resolve) => setTimeout(resolve, TURN_READY_TIMEOUT)),
+    ]);
+  }
+
+  /** Fetches credentials, sharing a single in-flight request between callers. */
+  refresh(): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) return Promise.resolve();
+
+    this.inflight ??= this.load().finally(() => (this.inflight = null));
+    return this.inflight;
+  }
+
+  private async load(): Promise<void> {
     try {
       const url = `https://${environment.apiUrl}/turn-credentials`;
       const res = await firstValueFrom(this.http.get<TurnCredentialsResponse>(url));
@@ -61,10 +84,10 @@ export class TurnCredentialsService {
           'No TURN relay configured on server — STUN-only'
         );
       }
+      this.hasServerAnswered = true;
     } catch (error) {
+      this.nextRetryAt = Date.now() + TURN_RETRY_COOLDOWN;
       this.logger.debug('TurnCredentialsService', 'TURN fetch failed, STUN-only', error);
-    } finally {
-      this.fetching = false;
     }
   }
 }

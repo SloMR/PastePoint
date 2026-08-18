@@ -1864,34 +1864,17 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
 
-    // Stagger connection initiation to prevent race conditions
-    // Callers initiate immediately, callees wait to give callers time to send offers
+    // Connect to the first peer right away; space the rest out so a busy room
+    // does not fire every offer in the same tick.
     otherMembers.forEach((member, index) => {
-      // Determine if we should be the caller for this member
-      const shouldInitiate = this.userService.user < member;
+      if (index === 0) {
+        this.webrtcService.initiateConnection(member);
+        return;
+      }
 
-      // Callers start at 1000ms, callees wait an additional 500ms
-      const baseDelay = 1000;
-      const staggerDelay = shouldInitiate ? 0 : 500;
-      const indexDelay = index * 100; // Small delay between multiple members
-
-      const timeoutId = setTimeout(
-        () => {
-          this.webrtcService.initiateConnection(member);
-
-          // Check connection status after a delay
-          const statusCheckTimeoutId = setTimeout(() => {
-            const isConnected = this.webrtcService.isConnected(member);
-            this.ngZone.run(() => {
-              this.memberConnectionStatus.set(member, isConnected);
-              this.cdr.detectChanges();
-            });
-          }, 2000); // Check after 2 seconds (connection usually establishes within 1-2s)
-
-          this.connectionInitTimeouts.push(statusCheckTimeoutId);
-        },
-        baseDelay + staggerDelay + indexDelay
-      );
+      const timeoutId = setTimeout(() => {
+        this.webrtcService.initiateConnection(member);
+      }, index * 100);
 
       this.connectionInitTimeouts.push(timeoutId);
     });
