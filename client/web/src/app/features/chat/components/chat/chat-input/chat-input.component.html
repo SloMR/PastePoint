@@ -73,13 +73,13 @@
       <div class="flex items-center gap-0.5 md:gap-1">
         <button
           type="button"
-          [disabled]="hasNoConnectedPeers"
+          [disabled]="hasNoReachablePeers"
           (click)="fileInput.click()"
           class="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-inputBackground disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed dark:hover:bg-borderDark md:h-9 md:w-9"
           [attr.aria-label]="
-            (hasNoConnectedPeers ? 'NO_PEERS_CONNECTED' : 'ATTACH_FILES') | translate
+            (hasNoReachablePeers ? 'NO_PEERS_CONNECTED' : 'ATTACH_FILES') | translate
           "
-          [title]="(hasNoConnectedPeers ? 'NO_PEERS_CONNECTED' : 'ATTACH_FILES') | translate"
+          [title]="(hasNoReachablePeers ? 'NO_PEERS_CONNECTED' : 'ATTACH_FILES') | translate"
         >
           <img
             [src]="'/icons/photo.svg'"

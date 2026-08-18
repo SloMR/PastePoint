@@ -39,7 +39,7 @@ export class ChatInputComponent implements OnDestroy {
   @Input() message = '';
   @Input() isRTL = false;
   @Input() isDarkMode = false;
-  @Input() hasNoConnectedPeers = false;
+  @Input() hasNoReachablePeers = false;
   @Input() isSendDisabled = false;
   @Input() stagedFiles: StagedAttachment[] = [];
 

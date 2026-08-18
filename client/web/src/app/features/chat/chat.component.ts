@@ -40,6 +40,8 @@ import {
   MB,
   NAVIGATION_DELAY_MS,
   CONNECTION_WARNING_DELAY_MS,
+  CONNECTION_ESTABLISH_TIMEOUT,
+  RECONNECT_DELAY,
   SESSION_CODE_KEY,
   THEME_PREFERENCE_KEY,
   PREVIEW_MIME_TYPE,
@@ -1139,14 +1141,16 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
 
     this.isSending = true;
     try {
-      // 1) Staged attachments first. Clear the chips up front — the echo bubble
-      //    now represents the send, and hashing/offer prep can take a while for
-      //    large files, so leaving the chips up looks like a stuck duplicate.
+      // 1) Attachments first. Chips clear immediately so a slow hash doesn't look
+      //    stuck, and the send isn't awaited — it would hold the composer disabled.
       if (hasFiles) {
         const filesToSend = this.stagedFiles.map((s) => s.file);
         this.stagedFiles = [];
         this.cdr.detectChanges();
-        await this.sendFilesToRecipients(filesToSend, otherMembers);
+        void this.sendFilesToRecipients(filesToSend, otherMembers).catch((error: unknown) => {
+          this.logger.error('sendMessage', `Failed to send attachments: ${error}`);
+          this.toaster.error(this.translate.instant('FAILED_TO_SEND_FILES'));
+        });
       }
 
       // 2) Send the text message, if any.
@@ -1373,6 +1377,8 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
       if (connectionReady) {
         await this.fileTransferService.sendAllFileOffers(member);
         this.logger.debug('sendFilesToRecipients', `Sent ${filesToSend.length} files to ${member}`);
+      } else {
+        this.toaster.error(this.translate.instant('CANNOT_CONNECT_TO_USER', { userName: member }));
       }
     }
   }
@@ -1791,10 +1797,10 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
    * ==========================================================
    */
   private async waitForFileTransferConnection(member: string): Promise<boolean> {
-    const maxRetries = 50; // 5 seconds total (50 * 100ms)
-    let retryCount = 0;
+    // One full establish-and-retry cycle: a file can be sent to a connecting peer.
+    const deadline = Date.now() + CONNECTION_ESTABLISH_TIMEOUT + RECONNECT_DELAY;
 
-    while (retryCount < maxRetries) {
+    while (Date.now() < deadline) {
       if (this.webrtcService.isReadyForFileTransfer(member)) {
         return true;
       }
@@ -1803,13 +1809,12 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
         this.webrtcService.initiateConnection(member);
       }
 
-      retryCount++;
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
     this.logger.warn(
       'waitForFileTransferConnection',
-      `File transfer connection timeout with user: ${member} after ${retryCount} retries`
+      `File transfer connection timeout with user: ${member}`
     );
     return false;
   }
@@ -1945,10 +1950,10 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     return otherMembers.length > 0 && !otherMembers.some((m) => this.isConnectedToMember(m));
   }
 
-  protected get hasNoConnectedPeers(): boolean {
+  protected get hasNoReachablePeers(): boolean {
     const otherMembers = this.members.filter((m) => m !== this.userService.user);
     if (otherMembers.length === 0) return true;
-    return !otherMembers.some((m) => this.isConnectedToMember(m));
+    return !otherMembers.some((m) => this.webrtcService.isReachable(m));
   }
 
   protected get isSendDisabled(): boolean {
@@ -1956,7 +1961,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
       this.isSending ||
       (!this.message.trim() && this.stagedFiles.length === 0) ||
       this.hasStagedFilesVerifying ||
-      this.hasNoConnectedPeers
+      this.hasNoReachablePeers
     );
   }
 

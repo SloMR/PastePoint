@@ -114,20 +114,23 @@ export class WebRTCService implements IWebRTCService {
    * @param targetUser The user to send the message to
    */
   public sendData(message: DataChannelMessage, targetUser: string): void {
-    const isConnectedOrConnecting = this.communicationService.isConnectedOrConnecting(targetUser);
-    const dataChannel = this.communicationService.getDataChannel(targetUser);
-    const peerConnection = this.signalingService.getPeerConnection(targetUser);
+    // When the other device started the connection we have no channel yet;
+    // restarting here would throw away the setup this message is waiting for.
+    if (!this.isReachable(targetUser)) {
+      const dataChannel = this.communicationService.getDataChannel(targetUser);
+      const peerConnection = this.signalingService.getPeerConnection(targetUser);
 
-    if (peerConnection && !dataChannel) {
-      this.logger.warn(
-        'sendData',
-        `State mismatch for ${targetUser}: peer connection exists but no data channel`
-      );
+      if (peerConnection && !dataChannel) {
+        this.logger.warn(
+          'sendData',
+          `State mismatch for ${targetUser}: peer connection exists but no data channel`
+        );
 
-      this.signalingService.closePeerConnection(targetUser, true);
-      this.signalingService.initiateConnection(targetUser);
-    } else if (!isConnectedOrConnecting) {
-      this.logger.info('sendData', `Initiating connection to ${targetUser}`);
+        this.signalingService.closePeerConnection(targetUser, true);
+      } else {
+        this.logger.info('sendData', `Initiating connection to ${targetUser}`);
+      }
+
       this.signalingService.initiateConnection(targetUser);
     }
 
@@ -140,7 +143,7 @@ export class WebRTCService implements IWebRTCService {
    * @param targetUser The user to send the data to
    */
   public sendRawData(data: ArrayBuffer, targetUser: string): boolean {
-    if (!this.communicationService.isConnectedOrConnecting(targetUser)) {
+    if (!this.isReachable(targetUser)) {
       this.signalingService.initiateConnection(targetUser);
     }
     return this.communicationService.sendRawData(data, targetUser);

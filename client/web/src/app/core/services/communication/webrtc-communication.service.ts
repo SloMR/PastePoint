@@ -270,15 +270,6 @@ export class WebRTCCommunicationService {
   }
 
   /**
-   * Checks if a data channel is connecting or connected
-   * @param targetUser The user to check connection for
-   */
-  public isConnectedOrConnecting(targetUser: string): boolean {
-    const channel = this.dataChannels.get(targetUser);
-    return channel?.readyState === 'open' || channel?.readyState === 'connecting';
-  }
-
-  /**
    * Closes all data channel connections
    */
   public closeAllConnections(): void {
