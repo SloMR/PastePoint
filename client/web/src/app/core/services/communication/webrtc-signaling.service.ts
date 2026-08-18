@@ -16,6 +16,7 @@ import {
   ICE_GATHERING_TIMEOUT,
   CONNECTION_REQUEST_TIMEOUT,
   CONNECTION_ESTABLISH_TIMEOUT,
+  CONNECT_SPAN_CEILING,
 } from '../../../utils/constants';
 import { TranslateService } from '@ngx-translate/core';
 import { NGXLogger } from 'ngx-logger';
@@ -58,6 +59,7 @@ export class WebRTCSignalingService {
 
   private activeConnectSpans = new Map<string, Sentry.Span>();
   private connectAttemptCounts = new Map<string, number>();
+  private connectSpanCeilings = new Map<string, ReturnType<typeof setTimeout>>();
 
   private unsupportedNotified = false;
 
@@ -103,19 +105,53 @@ export class WebRTCSignalingService {
    * @param targetUser The user to connect with
    */
   public initiateConnection(targetUser: string): void {
-    let span = this.activeConnectSpans.get(targetUser);
-    if (!span) {
-      startNewTrace(() => {
-        span = Sentry.startInactiveSpan({ name: 'webrtc.connect', op: 'webrtc.connect' });
-        this.activeConnectSpans.set(targetUser, span);
-      });
-      this.connectAttemptCounts.set(targetUser, 1);
-    } else {
+    const activeSpan = this.activeConnectSpans.get(targetUser);
+    if (activeSpan) {
       const next = (this.connectAttemptCounts.get(targetUser) ?? 1) + 1;
       this.connectAttemptCounts.set(targetUser, next);
-      span.setAttribute('attempts', next);
+      activeSpan.setAttribute('attempts', next);
+      void this.initiateConnectionInner(targetUser, activeSpan);
+      return;
     }
-    void this.initiateConnectionInner(targetUser, span!);
+
+    const span = startNewTrace(() =>
+      Sentry.startInactiveSpan({ name: 'webrtc.connect', op: 'webrtc.connect' })
+    );
+    this.activeConnectSpans.set(targetUser, span);
+    this.connectAttemptCounts.set(targetUser, 1);
+    // Set on the first attempt too, so the attribute is always comparable.
+    span.setAttribute('attempts', 1);
+    span.setAttribute('role', this.shouldInitiateConnection(targetUser) ? 'caller' : 'callee');
+    this.startConnectSpanCeiling(targetUser);
+
+    void this.initiateConnectionInner(targetUser, span);
+  }
+
+  /**
+   * Force-ends a span that neither connected nor failed, so it can't run for hours
+   * @param targetUser The user whose span to bound
+   */
+  private startConnectSpanCeiling(targetUser: string): void {
+    const timeoutId = setTimeout(() => {
+      this.connectSpanCeilings.delete(targetUser);
+      this.finishConnectSpanAsFailed(targetUser, 'abandoned');
+    }, CONNECT_SPAN_CEILING);
+
+    this.connectSpanCeilings.set(targetUser, timeoutId);
+  }
+
+  /**
+   * Drops all bookkeeping for a peer's span once it has been ended
+   * @param targetUser The user whose span ended
+   */
+  private clearConnectSpan(targetUser: string): void {
+    const timeoutId = this.connectSpanCeilings.get(targetUser);
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      this.connectSpanCeilings.delete(targetUser);
+    }
+    this.activeConnectSpans.delete(targetUser);
+    this.connectAttemptCounts.delete(targetUser);
   }
 
   /**
@@ -136,8 +172,7 @@ export class WebRTCSignalingService {
     span.setAttribute('outcome', 'connected');
     span.setStatus({ code: 1, message: 'ok' });
     span.end();
-    this.activeConnectSpans.delete(targetUser);
-    this.connectAttemptCounts.delete(targetUser);
+    this.clearConnectSpan(targetUser);
   }
 
   /**
@@ -174,8 +209,7 @@ export class WebRTCSignalingService {
     }
     span.setStatus({ code: 2, message: reason });
     span.end();
-    this.activeConnectSpans.delete(targetUser);
-    this.connectAttemptCounts.delete(targetUser);
+    this.clearConnectSpan(targetUser);
   }
 
   private async initiateConnectionInner(targetUser: string, span: Sentry.Span): Promise<void> {
@@ -186,8 +220,7 @@ export class WebRTCSignalingService {
       );
       span.setAttribute('outcome', 'self_connection_skipped');
       span.end();
-      this.activeConnectSpans.delete(targetUser);
-      this.connectAttemptCounts.delete(targetUser);
+      this.clearConnectSpan(targetUser);
       return;
     }
 
@@ -197,8 +230,7 @@ export class WebRTCSignalingService {
         span.setAttribute('outcome', 'skipped_lock');
         span.setStatus({ code: 1, message: 'already_in_progress' });
         span.end();
-        this.activeConnectSpans.delete(targetUser);
-        this.connectAttemptCounts.delete(targetUser);
+        this.clearConnectSpan(targetUser);
       }
       return;
     }
@@ -216,8 +248,7 @@ export class WebRTCSignalingService {
         span.setAttribute('outcome', `skipped_${connectionState}`);
         span.setStatus({ code: 1, message: connectionState });
         span.end();
-        this.activeConnectSpans.delete(targetUser);
-        this.connectAttemptCounts.delete(targetUser);
+        this.clearConnectSpan(targetUser);
         return;
       }
 
@@ -237,8 +268,7 @@ export class WebRTCSignalingService {
         span.setAttribute('outcome', `skipped_${connectionState}_${iceState}`);
         span.setStatus({ code: 1, message: 'unexpected_state' });
         span.end();
-        this.activeConnectSpans.delete(targetUser);
-        this.connectAttemptCounts.delete(targetUser);
+        this.clearConnectSpan(targetUser);
         return;
       }
     }
@@ -380,8 +410,7 @@ export class WebRTCSignalingService {
       span.setAttribute('outcome', 'cancelled');
       span.setStatus({ code: 2, message: 'cancelled' });
       span.end();
-      this.activeConnectSpans.delete(targetUser);
-      this.connectAttemptCounts.delete(targetUser);
+      this.clearConnectSpan(targetUser);
     }
 
     this.closePeerConnection(targetUser, true);
@@ -449,6 +478,10 @@ export class WebRTCSignalingService {
     });
     this.activeConnectSpans.clear();
     this.connectAttemptCounts.clear();
+    this.connectSpanCeilings.forEach((timeout) => {
+      clearTimeout(timeout);
+    });
+    this.connectSpanCeilings.clear();
 
     this.peerConnections.forEach((peerConnection) => {
       peerConnection.close();
