@@ -158,12 +158,27 @@ cargo build --release
    ```
 
 4. **Build Issues**:
+
    ```bash
    # Clean build artifacts
    cargo clean
    # Rebuild
    cargo build
    ```
+
+5. **VS Code warns the toolchain is too old for rust-analyzer**:
+
+   Install the matching component for the pinned toolchain, then restart VS Code:
+
+   ```bash
+   # run from the repo root so ../rust-toolchain selects the version
+   rustup component add rust-analyzer
+   ```
+
+   Do **not** follow the dialog's advice to add `components = ["rust-analyzer"]` to
+   `../rust-toolchain`. That file is copied into `server/Dockerfile`, so every Docker
+   build and CI run would download a component only the editor uses. It is a per-machine
+   setup step.
 
 ## Contributing
 
