@@ -39,7 +39,7 @@ server/
 
 ### Prerequisites
 
-- **Rust**: 1.93.1 (specified in `../rust-toolchain`, edition 2024)
+- **Rust**: 1.98.0 (specified in `../rust-toolchain`, edition 2024)
 - **OpenSSL**: Required for SSL/TLS support
   - Linux: `sudo apt-get install libssl-dev pkg-config`
   - macOS: `brew install openssl pkg-config`

@@ -84,7 +84,7 @@ Closes #123"
 
 ### Rust (Server)
 
-Toolchain version **1.93.1** (see `rust-toolchain`), edition 2024.
+Toolchain version **1.98.0** (see `rust-toolchain`), edition 2024.
 
 ```bash
 cd server

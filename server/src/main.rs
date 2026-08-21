@@ -141,8 +141,8 @@ async fn main() -> Result<()> {
         .map_err(|e| log::error!(target: "Websocket","Failed to load certificate chain file: {e}"))
         .expect("Cannot find certificate chain file");
 
-    log::debug!(target: "Websocket","Using key file: {}", &config.key_file_path);
-    log::debug!(target: "Websocket","Using cert file: {}", &config.cert_file_path);
+    log::debug!(target: "Websocket","Using key file: {}", config.key_file_path);
+    log::debug!(target: "Websocket","Using cert file: {}", config.cert_file_path);
 
     let session_manager = Data::new(SessionStore::default());
     session_manager.spawn_cleanup_task();
