@@ -166,9 +166,9 @@ cargo build --release
    cargo build
    ```
 
-5. **VS Code warns the toolchain is too old for rust-analyzer**:
+5. **Visual Studio Code warns the toolchain is too old for rust-analyzer**:
 
-   Install the matching component for the pinned toolchain, then restart VS Code:
+   Install the matching component for the pinned toolchain, then restart Visual Studio Code:
 
    ```bash
    # run from the repo root so ../rust-toolchain selects the version
