@@ -108,9 +108,6 @@ export class WebRTCSignalingService {
   public initiateConnection(targetUser: string): void {
     const activeSpan = this.activeConnectSpans.get(targetUser);
     if (activeSpan) {
-      const next = (this.connectAttemptCounts.get(targetUser) ?? 1) + 1;
-      this.connectAttemptCounts.set(targetUser, next);
-      activeSpan.setAttribute('attempts', next);
       void this.initiateConnectionInner(targetUser, activeSpan);
       return;
     }
@@ -119,9 +116,6 @@ export class WebRTCSignalingService {
       Sentry.startInactiveSpan({ name: 'webrtc.connect', op: 'webrtc.connect' })
     );
     this.activeConnectSpans.set(targetUser, span);
-    this.connectAttemptCounts.set(targetUser, 1);
-    // Set on the first attempt too, so the attribute is always comparable.
-    span.setAttribute('attempts', 1);
     span.setAttribute('role', this.shouldInitiateConnection(targetUser) ? 'caller' : 'callee');
     this.startConnectSpanCeiling(targetUser);
 
@@ -280,6 +274,7 @@ export class WebRTCSignalingService {
         `Requesting ${targetUser} to initiate connection (role: callee)`
       );
       this.connectingPeers.add(targetUser);
+      this.recordAttempt(targetUser, span);
       this.sendConnectionRequest(targetUser);
       return;
     }
@@ -297,6 +292,7 @@ export class WebRTCSignalingService {
 
     this.connectionLocks.add(targetUser);
     this.connectingPeers.add(targetUser);
+    this.recordAttempt(targetUser, span);
     const attemptId = this.startAttempt(targetUser);
 
     this.logger.info(
@@ -1353,6 +1349,8 @@ export class WebRTCSignalingService {
     // Temporarily bypass role checking and initiate connection
     this.connectionLocks.add(targetUser);
     this.connectingPeers.add(targetUser);
+    const span = this.activeConnectSpans.get(targetUser);
+    if (span) this.recordAttempt(targetUser, span);
     const attemptId = this.startAttempt(targetUser);
 
     await this.turnCredentials.ready();
@@ -1427,6 +1425,19 @@ export class WebRTCSignalingService {
     if (sequence <= lastSeq) return true;
     this.inboundSequences.set(targetUser, sequence);
     return false;
+  }
+
+  /**
+   * Counts an attempt that is actually starting. Called from the two role
+   * branches rather than the entry point, which both sides now reach for the
+   * same connection once the pre-send delays are gone.
+   * @param targetUser The user the attempt is for
+   * @param span The span tracking this connection
+   */
+  private recordAttempt(targetUser: string, span: Sentry.Span): void {
+    const next = (this.connectAttemptCounts.get(targetUser) ?? 0) + 1;
+    this.connectAttemptCounts.set(targetUser, next);
+    span.setAttribute('attempts', next);
   }
 
   /**
