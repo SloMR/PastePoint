@@ -134,6 +134,14 @@ final class SignalingService: NSObject, ObservableObject {
     }
 
     await userService.waitForUsername()
+
+    // The guards above ran before that suspension; another caller may have
+    // started an attempt for this peer while we waited.
+    guard !connectionLocks.contains(peer), peerConnections[peer] == nil else {
+      log.debug("attempt for \(peer) already started while waiting for a username")
+      return
+    }
+
     if !force, !shouldInitiateConnection(to: peer) {
       log.info("not the designated caller for \(peer), sending connection request")
       let request = SignalMessage(
@@ -153,7 +161,16 @@ final class SignalingService: NSObject, ObservableObject {
     connectingPeers.insert(peer)
     startConnectionTimeout(for: peer)
 
-    guard let pc = PeerConnectionFactory.shared.makePeerConnection(iceServers: await turnCredentials.iceServers(), delegate: self) else {
+    let iceServers = await turnCredentials.iceServers()
+
+    // Another path may have taken over while we waited; it owns the lock now,
+    // so leave it alone and let its connection stand.
+    guard peerConnections[peer] == nil else {
+      log.debug("connection to \(peer) appeared while waiting for credentials")
+      return
+    }
+
+    guard let pc = PeerConnectionFactory.shared.makePeerConnection(iceServers: iceServers, delegate: self) else {
       log.error("factory returned nil for \(peer)")
       connectionLocks.remove(peer)
       return
