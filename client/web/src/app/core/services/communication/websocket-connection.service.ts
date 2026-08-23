@@ -1,4 +1,4 @@
-import { Injectable, PLATFORM_ID, OnDestroy, inject } from '@angular/core';
+import { Injectable, PLATFORM_ID, OnDestroy, effect, inject } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
 import * as Sentry from '@sentry/angular';
 import { startNewTrace } from '@sentry/core';
@@ -12,6 +12,7 @@ import {
   WS_KEEP_ALIVE_INTERVAL_MS,
 } from '../../../utils/constants';
 import { HotToastService } from '@ngxpert/hot-toast';
+import { AppUpdateService } from '../update/app-update.service';
 @Injectable({
   providedIn: 'root',
 })
@@ -20,6 +21,7 @@ export class WebSocketConnectionService implements OnDestroy {
   private toaster = inject(HotToastService);
   private translate = inject<TranslateService>(TranslateService);
   private platformId = inject(PLATFORM_ID);
+  private updateService = inject(AppUpdateService);
 
   /**
    * ==========================================================
@@ -39,6 +41,7 @@ export class WebSocketConnectionService implements OnDestroy {
   private keepAliveTimer: ReturnType<typeof setInterval> | null = null;
   private manualDisconnect = false;
   private isConnecting = false;
+  private isDisconnectedForUpdate = false;
 
   // For bfcache support
   private pageHideListener: (() => void) | undefined;
@@ -77,7 +80,29 @@ export class WebSocketConnectionService implements OnDestroy {
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
       this.setupBFCacheHandlers();
+      this.setupUpdateGate();
     }
+  }
+
+  /** Tears down the connection while a required update is pending; resumes when it clears. */
+  private setupUpdateGate(): void {
+    effect(() => {
+      const required = this.updateRequired();
+      if (required && (this.isConnected() || this.isConnecting || this.reconnectTimer !== null)) {
+        this.logger.warn('updateGate', 'Update required, disconnecting until the app is updated');
+        this.isDisconnectedForUpdate = true;
+        this.disconnect(false);
+      } else if (!required && this.isDisconnectedForUpdate) {
+        this.isDisconnectedForUpdate = false;
+        this.connect(this.sessionCode).catch((err: unknown) => {
+          this.logger.error('updateGate', `Reconnect after update gate cleared failed: ${err}`);
+        });
+      }
+    });
+  }
+
+  private updateRequired(): boolean {
+    return this.updateService.recommendation()?.kind === 'required';
   }
 
   /**
@@ -148,6 +173,11 @@ export class WebSocketConnectionService implements OnDestroy {
    * ==========================================================
    */
   public connect(code?: string): Promise<void> {
+    if (this.updateRequired()) {
+      this.logger.warn('connect', 'Update required, refusing to connect');
+      return Promise.resolve();
+    }
+
     if (this.isConnecting) {
       this.logger.warn('connect', 'Connection already in progress, ignoring duplicate request');
       return Promise.resolve();
@@ -304,6 +334,11 @@ export class WebSocketConnectionService implements OnDestroy {
   }
 
   private scheduleReconnect(): void {
+    if (this.updateRequired()) {
+      this.reconnectState$.next(null);
+      return;
+    }
+
     this.stopKeepAlive();
 
     if (this.reconnectTimer) {
