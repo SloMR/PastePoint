@@ -1,9 +1,10 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, effect, inject } from '@angular/core';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { ChatMessage, DataChannelMessage } from '../../../utils/constants';
 import { IWebRTCService } from '../../interfaces/webrtc.interface';
 import { WebRTCSignalingService } from './webrtc-signaling.service';
 import { WebRTCCommunicationService } from './webrtc-communication.service';
+import { AppUpdateService } from '../update/app-update.service';
 import { NGXLogger } from 'ngx-logger';
 
 @Injectable({
@@ -12,7 +13,17 @@ import { NGXLogger } from 'ngx-logger';
 export class WebRTCService implements IWebRTCService {
   private signalingService = inject(WebRTCSignalingService);
   private communicationService = inject(WebRTCCommunicationService);
+  private updateService = inject(AppUpdateService);
   private logger = inject(NGXLogger);
+
+  constructor() {
+    effect(() => {
+      if (this.updateService.recommendation()?.kind === 'required') {
+        this.logger.warn('updateGate', 'Update required, closing all peer connections');
+        this.closeAllConnections();
+      }
+    });
+  }
 
   // =============== Public Properties ===============
   public get peerDisconnected$(): Observable<string> {
