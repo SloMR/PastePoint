@@ -56,6 +56,7 @@ export class WebRTCSignalingService {
   private establishmentTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
   private collectedCandidates = new Map<string, RTCIceCandidate[]>();
   private latestAttemptId = new Map<string, number>();
+  private meshEpoch = 0;
 
   private activeConnectSpans = new Map<string, Sentry.Span>();
   private connectAttemptCounts = new Map<string, number>();
@@ -305,7 +306,7 @@ export class WebRTCSignalingService {
 
     // Without the relay credential a peer on another network has no usable route.
     await this.turnCredentials.ready();
-    if (this.latestAttemptId.get(targetUser) !== attemptId) {
+    if (!this.isCurrentAttempt(targetUser, attemptId)) {
       this.logger.debug('initiateConnection', `Attempt for ${targetUser} superseded while waiting`);
       return;
     }
@@ -416,6 +417,7 @@ export class WebRTCSignalingService {
 
     this.closePeerConnection(targetUser, true);
 
+    this.meshEpoch += 1;
     this.connectionLocks.delete(targetUser);
     this.connectingPeers.delete(targetUser);
     this.latestAttemptId.delete(targetUser);
@@ -489,6 +491,7 @@ export class WebRTCSignalingService {
     });
     this.peerConnections.clear();
     this.connectionLocks.clear();
+    this.meshEpoch += 1;
     this.connectingPeers.clear();
     this.latestAttemptId.clear();
     this.reconnectAttempts.clear();
@@ -1025,7 +1028,7 @@ export class WebRTCSignalingService {
     const attemptId = this.startAttempt(targetUser);
 
     await this.turnCredentials.ready();
-    if (this.latestAttemptId.get(targetUser) !== attemptId) {
+    if (!this.isCurrentAttempt(targetUser, attemptId)) {
       this.logger.debug('handleOffer', `Offer from ${targetUser} superseded while waiting`);
       return;
     }
@@ -1353,7 +1356,7 @@ export class WebRTCSignalingService {
     const attemptId = this.startAttempt(targetUser);
 
     await this.turnCredentials.ready();
-    if (this.latestAttemptId.get(targetUser) !== attemptId) {
+    if (!this.isCurrentAttempt(targetUser, attemptId)) {
       this.logger.debug(
         'forceInitiateConnection',
         `Attempt for ${targetUser} superseded while waiting`
@@ -1430,10 +1433,19 @@ export class WebRTCSignalingService {
    * Starts a new connection attempt for a target user and returns its token
    * @param targetUser The user the attempt is for
    */
-  private startAttempt(targetUser: string): number {
+  private startAttempt(targetUser: string): string {
     const next = (this.latestAttemptId.get(targetUser) ?? 0) + 1;
     this.latestAttemptId.set(targetUser, next);
-    return next;
+    return `${this.meshEpoch}:${next}`;
+  }
+
+  /**
+   * Whether the attempt holding this token is still the current one
+   * @param targetUser The user the attempt is for
+   * @param attemptId The token returned by startAttempt
+   */
+  private isCurrentAttempt(targetUser: string, attemptId: string): boolean {
+    return `${this.meshEpoch}:${this.latestAttemptId.get(targetUser) ?? 0}` === attemptId;
   }
 
   /**
