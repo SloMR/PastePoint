@@ -362,6 +362,7 @@ export class WebRTCSignalingService {
       this.logger.error('initiateConnection', `Connection initiation failed: ${error}`);
       this.toaster.error(this.translate.instant('CONNECTION_LOST'));
       this.connectionLocks.delete(targetUser);
+      this.connectingPeers.delete(targetUser);
       this.finishConnectSpanAsFailed(targetUser, 'initiation_failed');
     }
   }
@@ -1034,6 +1035,7 @@ export class WebRTCSignalingService {
     if (!peerConnection) {
       this.logger.error('handleOffer', `PeerConnection missing for ${targetUser}`);
       this.connectionLocks.delete(targetUser);
+      this.connectingPeers.delete(targetUser);
       return;
     }
 
@@ -1405,6 +1407,7 @@ export class WebRTCSignalingService {
     } catch (error: unknown) {
       this.logger.error('forceInitiateConnection', `Connection initiation failed: ${error}`);
       this.connectionLocks.delete(targetUser);
+      this.connectingPeers.delete(targetUser);
     }
   }
 
