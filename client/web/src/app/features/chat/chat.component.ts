@@ -1379,6 +1379,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
         this.logger.debug('sendFilesToRecipients', `Sent ${filesToSend.length} files to ${member}`);
       } else {
         this.toaster.error(this.translate.instant('CANNOT_CONNECT_TO_USER', { userName: member }));
+        await this.fileTransferService.handlePeerLeft(member);
       }
     }
   }
