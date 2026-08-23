@@ -84,7 +84,7 @@ Closes #123"
 
 ### Rust (Server)
 
-Toolchain version **1.93.1** (see `rust-toolchain`), edition 2024.
+Toolchain version **1.98.0** (see `rust-toolchain`), edition 2024.
 
 ```bash
 cd server
@@ -118,7 +118,7 @@ npm run test:ci    # Run tests
 
 ### iOS (SwiftUI)
 
-Requires macOS Tahoe 26.2+ and Xcode **26.5** (see `client/ios/.xcode-version`). Deployment target iOS 17.6+, Swift 6 language mode.
+Requires macOS Tahoe 26.2+ and Xcode **26.6** (see `client/ios/.xcode-version`). Deployment target iOS 17.6+, Swift 6 language mode.
 
 ```bash
 cd client/ios

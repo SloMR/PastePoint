@@ -60,6 +60,14 @@ final class FileTransferService: ObservableObject {
         }
       }
       .store(in: &cancellables)
+
+    signalingService.peerUnreachable
+      .sink { [weak self] peer in
+        Task { @MainActor in
+          self?.purgeTransfers(for: peer)
+        }
+      }
+      .store(in: &cancellables)
   }
 
   @discardableResult

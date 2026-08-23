@@ -4,7 +4,7 @@ The PastePoint iOS client is a native SwiftUI application for peer-to-peer file 
 
 [![Swift](https://img.shields.io/badge/Swift-6.0-orange)](https://swift.org/)
 [![iOS](https://img.shields.io/badge/iOS-17.6%2B-black)](https://developer.apple.com/ios/)
-[![Xcode](https://img.shields.io/badge/Xcode-26.5-blue)](https://developer.apple.com/xcode/)
+[![Xcode](https://img.shields.io/badge/Xcode-26.6-blue)](https://developer.apple.com/xcode/)
 [![WebRTC](https://img.shields.io/badge/WebRTC-147.0-green)](https://github.com/stasel/WebRTC)
 
 ## Tech Stack
@@ -24,7 +24,7 @@ The PastePoint iOS client is a native SwiftUI application for peer-to-peer file 
 
 ### Development Tools
 
-- **Build Tool**: Xcode 26.5 (pinned in `.xcode-version`), synchronized folder groups
+- **Build Tool**: Xcode 26.6 (pinned in `.xcode-version`), synchronized folder groups
 - **Dependencies**: Swift Package Manager (pinned in `Package.resolved`)
 - **Testing**: XCTest via the `PastePointTests.xctestplan` test plan
 - **Linting**: SwiftLint 0.65.0 (`.swiftlint.yml`, `--strict` in CI)
@@ -75,7 +75,7 @@ ios/
 ### Prerequisites
 
 - **macOS**: Tahoe 26.2 or later
-- **Xcode**: 26.5 (specified in `.xcode-version`)
+- **Xcode**: 26.6 (specified in `.xcode-version`)
 - **iOS Deployment Target**: 17.6+ (iPhone and iPad)
 - **Backend**: A running PastePoint server (see the [server readme](../../server/README.md) or `make dev` at the repository root)
 

@@ -41,7 +41,7 @@ extension ContentView {
   }
 
   func handleSendFiles(_ files: [StagedFile]) -> Bool {
-    let peers = Array(services.signalingService.connectedPeers)
+    let peers = Array(services.signalingService.reachablePeers)
 
     guard !peers.isEmpty else {
       toast.show(peerWarning())

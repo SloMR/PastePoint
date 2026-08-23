@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.5
 # Stage 1: Build the Rust app (Alpine for musl-linked binary)
-FROM rust:1.93.1-alpine AS builder
+FROM rust:1.98.0-alpine AS builder
 WORKDIR /usr/src/app
 
 ARG RUST_BUILD_MODE=release

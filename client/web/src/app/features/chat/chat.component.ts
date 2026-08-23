@@ -40,6 +40,8 @@ import {
   MB,
   NAVIGATION_DELAY_MS,
   CONNECTION_WARNING_DELAY_MS,
+  CONNECTION_ESTABLISH_TIMEOUT,
+  RECONNECT_DELAY,
   SESSION_CODE_KEY,
   THEME_PREFERENCE_KEY,
   PREVIEW_MIME_TYPE,
@@ -773,7 +775,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
           this.memberConnectionStatus.set(member, false);
           this.memberConnectionState.set(
             member,
-            this.webrtcService.isConnectedOrConnecting(member) ? 'connecting' : 'disconnected'
+            this.webrtcService.isConnecting(member) ? 'connecting' : 'disconnected'
           );
           this.scheduleConnectionWarning(member);
           this.cdr.detectChanges();
@@ -1139,14 +1141,16 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
 
     this.isSending = true;
     try {
-      // 1) Staged attachments first. Clear the chips up front — the echo bubble
-      //    now represents the send, and hashing/offer prep can take a while for
-      //    large files, so leaving the chips up looks like a stuck duplicate.
+      // 1) Attachments first. Chips clear immediately so a slow hash doesn't look
+      //    stuck, and the send isn't awaited — it would hold the composer disabled.
       if (hasFiles) {
         const filesToSend = this.stagedFiles.map((s) => s.file);
         this.stagedFiles = [];
         this.cdr.detectChanges();
-        await this.sendFilesToRecipients(filesToSend, otherMembers);
+        void this.sendFilesToRecipients(filesToSend, otherMembers).catch((error: unknown) => {
+          this.logger.error('sendMessage', `Failed to send attachments: ${error}`);
+          this.toaster.error(this.translate.instant('FAILED_TO_SEND_FILES'));
+        });
       }
 
       // 2) Send the text message, if any.
@@ -1357,7 +1361,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
           member,
           groupIds.get(fileToSend)!
         );
-        if (!this.webrtcService.isConnectedOrConnecting(member)) {
+        if (!this.webrtcService.isReachable(member)) {
           this.logger.info(
             'sendFilesToRecipients',
             `Initiating connection to ${member} for file transfer`
@@ -1373,6 +1377,9 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
       if (connectionReady) {
         await this.fileTransferService.sendAllFileOffers(member);
         this.logger.debug('sendFilesToRecipients', `Sent ${filesToSend.length} files to ${member}`);
+      } else {
+        this.toaster.error(this.translate.instant('CANNOT_CONNECT_TO_USER', { userName: member }));
+        await this.fileTransferService.handlePeerLeft(member);
       }
     }
   }
@@ -1791,25 +1798,24 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
    * ==========================================================
    */
   private async waitForFileTransferConnection(member: string): Promise<boolean> {
-    const maxRetries = 50; // 5 seconds total (50 * 100ms)
-    let retryCount = 0;
+    // One full establish-and-retry cycle: a file can be sent to a connecting peer.
+    const deadline = Date.now() + CONNECTION_ESTABLISH_TIMEOUT + RECONNECT_DELAY;
 
-    while (retryCount < maxRetries) {
+    while (Date.now() < deadline) {
       if (this.webrtcService.isReadyForFileTransfer(member)) {
         return true;
       }
 
-      if (!this.webrtcService.isConnectedOrConnecting(member)) {
+      if (!this.webrtcService.isReachable(member)) {
         this.webrtcService.initiateConnection(member);
       }
 
-      retryCount++;
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
     this.logger.warn(
       'waitForFileTransferConnection',
-      `File transfer connection timeout with user: ${member} after ${retryCount} retries`
+      `File transfer connection timeout with user: ${member}`
     );
     return false;
   }
@@ -1849,14 +1855,14 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
       }
 
       // Skip if already connected or connecting
-      const isConnectedOrConnecting = this.webrtcService.isConnectedOrConnecting(m);
-      if (isConnectedOrConnecting) {
+      if (this.webrtcService.isReachable(m)) {
         this.logger.debug(
           'initiateConnectionsWithMembers',
           `Skipping ${m} - already connected/connecting`
         );
+        return false;
       }
-      return !isConnectedOrConnecting;
+      return true;
     });
 
     if (otherMembers.length === 0) {
@@ -1864,34 +1870,12 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
 
-    // Stagger connection initiation to prevent race conditions
-    // Callers initiate immediately, callees wait to give callers time to send offers
+    // Connect to the first peer right away; space the rest out so a busy room
+    // does not fire every offer in the same tick.
     otherMembers.forEach((member, index) => {
-      // Determine if we should be the caller for this member
-      const shouldInitiate = this.userService.user < member;
-
-      // Callers start at 1000ms, callees wait an additional 500ms
-      const baseDelay = 1000;
-      const staggerDelay = shouldInitiate ? 0 : 500;
-      const indexDelay = index * 100; // Small delay between multiple members
-
-      const timeoutId = setTimeout(
-        () => {
-          this.webrtcService.initiateConnection(member);
-
-          // Check connection status after a delay
-          const statusCheckTimeoutId = setTimeout(() => {
-            const isConnected = this.webrtcService.isConnected(member);
-            this.ngZone.run(() => {
-              this.memberConnectionStatus.set(member, isConnected);
-              this.cdr.detectChanges();
-            });
-          }, 2000); // Check after 2 seconds (connection usually establishes within 1-2s)
-
-          this.connectionInitTimeouts.push(statusCheckTimeoutId);
-        },
-        baseDelay + staggerDelay + indexDelay
-      );
+      const timeoutId = setTimeout(() => {
+        this.webrtcService.initiateConnection(member);
+      }, index * 100);
 
       this.connectionInitTimeouts.push(timeoutId);
     });
@@ -1923,7 +1907,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
             member,
             connected
               ? 'connected'
-              : this.webrtcService.isConnectedOrConnecting(member)
+              : this.webrtcService.isConnecting(member)
                 ? 'connecting'
                 : 'disconnected'
           );
@@ -1962,10 +1946,10 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     return otherMembers.length > 0 && !otherMembers.some((m) => this.isConnectedToMember(m));
   }
 
-  protected get hasNoConnectedPeers(): boolean {
+  protected get hasNoReachablePeers(): boolean {
     const otherMembers = this.members.filter((m) => m !== this.userService.user);
     if (otherMembers.length === 0) return true;
-    return !otherMembers.some((m) => this.isConnectedToMember(m));
+    return !otherMembers.some((m) => this.memberConnectionState.get(m) !== 'disconnected');
   }
 
   protected get isSendDisabled(): boolean {
@@ -1973,7 +1957,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
       this.isSending ||
       (!this.message.trim() && this.stagedFiles.length === 0) ||
       this.hasStagedFilesVerifying ||
-      this.hasNoConnectedPeers
+      this.hasNoReachablePeers
     );
   }
 

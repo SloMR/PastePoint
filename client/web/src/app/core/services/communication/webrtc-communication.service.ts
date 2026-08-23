@@ -6,6 +6,7 @@ import {
   DATA_CHANNEL_MESSAGE_TYPES,
   FILE_TRANSFER_MESSAGE_TYPES,
   MAX_BUFFERED_AMOUNT,
+  MAX_QUEUED_MESSAGES,
   ChatMessage,
   DataChannelMessage,
 } from '../../../utils/constants';
@@ -28,6 +29,7 @@ export class WebRTCCommunicationService {
 
   // Public Subjects
   public dataChannelOpen$ = new BehaviorSubject<boolean>(false);
+  public dataChannelOpened$ = new Subject<string>();
   public dataChannelClosed$ = new Subject<string>();
   public chatMessages$ = new Subject<ChatMessage>();
   public fileOffers$ = new Subject<{
@@ -55,7 +57,7 @@ export class WebRTCCommunicationService {
 
   // Private Collections
   private dataChannels = new Map<string, RTCDataChannel>();
-  private messageQueues = new Map<string, (DataChannelMessage | ArrayBuffer)[]>();
+  private messageQueues = new Map<string, DataChannelMessage[]>();
   private connectionTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
 
   // =============== Public Methods ===============
@@ -117,17 +119,13 @@ export class WebRTCCommunicationService {
           'setupDataChannel',
           `Sending ${queuedMessages.length} queued messages to ${targetUser}`
         );
-        queuedMessages.forEach((msg) => {
-          if (typeof msg === 'object' && !(msg instanceof ArrayBuffer)) {
-            channel.send(JSON.stringify(msg));
-          } else {
-            channel.send(msg);
-          }
-        });
+        queuedMessages.forEach((msg) => channel.send(JSON.stringify(msg)));
         this.messageQueues.set(targetUser, []);
       } else {
         this.logger.info('setupDataChannel', `No queued messages for ${targetUser}`);
       }
+
+      this.dataChannelOpened$.next(targetUser);
     };
 
     if (channel.readyState === 'open') {
@@ -209,8 +207,7 @@ export class WebRTCCommunicationService {
         `Data channel with ${targetUser} is connecting. Message will be queued.`
       );
 
-      this.ensureMessageQueue(targetUser);
-      this.messageQueues.get(targetUser)?.push(message);
+      this.queueMessage(message, targetUser);
     } else {
       this.logger.error('sendData', `Data channel with ${targetUser} is not open`);
 
@@ -218,9 +215,27 @@ export class WebRTCCommunicationService {
         this.dataChannels.delete(targetUser);
       }
 
-      this.ensureMessageQueue(targetUser);
-      this.messageQueues.get(targetUser)?.push(message);
+      this.queueMessage(message, targetUser);
     }
+  }
+
+  /**
+   * Holds a message until the channel opens, so a peer that never connects
+   * cannot grow the queue without bound
+   * @param message The message to hold
+   * @param targetUser The user it is addressed to
+   */
+  private queueMessage(message: DataChannelMessage, targetUser: string): void {
+    this.ensureMessageQueue(targetUser);
+    const queue = this.messageQueues.get(targetUser);
+    if (!queue) return;
+
+    if (queue.length >= MAX_QUEUED_MESSAGES) {
+      this.logger.warn('queueMessage', `Queue for ${targetUser} is full, dropping message`);
+      return;
+    }
+
+    queue.push(message);
   }
 
   /**
@@ -229,9 +244,10 @@ export class WebRTCCommunicationService {
    * @param targetUser The user to send the data to
    */
   public sendRawData(data: ArrayBuffer, targetUser: string): boolean {
+    // Chunks are never queued. The caller resends the same chunk on a false
+    // return, so holding a copy here sends it twice and pins 192KB per chunk
+    // in memory on top of the buffer we are already waiting to drain.
     if (!this.isDataChannelReadyToSend(targetUser)) {
-      this.ensureMessageQueue(targetUser);
-      this.messageQueues.get(targetUser)?.push(data);
       return false;
     }
 
@@ -241,10 +257,6 @@ export class WebRTCCommunicationService {
       return true;
     } catch (error) {
       this.logger.error('sendRawData', `Error sending raw data: ${error}`);
-
-      this.ensureMessageQueue(targetUser);
-      this.messageQueues.get(targetUser)?.push(data);
-
       return false;
     }
   }
@@ -264,15 +276,6 @@ export class WebRTCCommunicationService {
   public isConnected(targetUser: string): boolean {
     const channel = this.dataChannels.get(targetUser);
     return channel?.readyState === 'open';
-  }
-
-  /**
-   * Checks if a data channel is connecting or connected
-   * @param targetUser The user to check connection for
-   */
-  public isConnectedOrConnecting(targetUser: string): boolean {
-    const channel = this.dataChannels.get(targetUser);
-    return channel?.readyState === 'open' || channel?.readyState === 'connecting';
   }
 
   /**
@@ -331,13 +334,7 @@ export class WebRTCCommunicationService {
         'sendQueuedMessages',
         `Sending ${queuedMessages.length} queued messages to ${targetUser}`
       );
-      queuedMessages.forEach((msg) => {
-        if (typeof msg === 'object' && !(msg instanceof ArrayBuffer)) {
-          channel.send(JSON.stringify(msg));
-        } else {
-          channel.send(msg);
-        }
-      });
+      queuedMessages.forEach((msg) => channel.send(JSON.stringify(msg)));
       this.messageQueues.set(targetUser, []);
     }
   }

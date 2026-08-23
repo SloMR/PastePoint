@@ -16,6 +16,7 @@ import {
   ICE_GATHERING_TIMEOUT,
   CONNECTION_REQUEST_TIMEOUT,
   CONNECTION_ESTABLISH_TIMEOUT,
+  CONNECT_SPAN_CEILING,
 } from '../../../utils/constants';
 import { TranslateService } from '@ngx-translate/core';
 import { NGXLogger } from 'ngx-logger';
@@ -44,19 +45,22 @@ export class WebRTCSignalingService {
   private peerConnections = new Map<string, RTCPeerConnection>();
   private reconnectAttempts = new Map<string, number>();
   private connectionLocks = new Set<string>();
+  private connectingPeers = new Set<string>();
   private outboundSequences = new Map<string, number>();
   private inboundSequences = new Map<string, number>();
   private pendingSignals: SignalMessage[] = [];
   private candidateQueues = new Map<string, RTCIceCandidateInit[]>();
   private connectionRequests = new Map<string, ReturnType<typeof setTimeout>>();
-  private connectionRequestDelays = new Map<string, ReturnType<typeof setTimeout>>();
   private reconnectionTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
   private stateMismatchTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
   private establishmentTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
   private collectedCandidates = new Map<string, RTCIceCandidate[]>();
+  private latestAttemptId = new Map<string, number>();
+  private meshEpoch = 0;
 
   private activeConnectSpans = new Map<string, Sentry.Span>();
   private connectAttemptCounts = new Map<string, number>();
+  private connectSpanCeilings = new Map<string, ReturnType<typeof setTimeout>>();
 
   private unsupportedNotified = false;
 
@@ -65,6 +69,10 @@ export class WebRTCSignalingService {
 
     // Refresh TURN credentials on every connect so peers created afterwards
     this.wsService.connected$.subscribe(() => void this.turnCredentials.refresh());
+
+    this.communicationService.dataChannelOpened$.subscribe((targetUser) => {
+      this.handlePeerConnected(targetUser);
+    });
 
     this.userService.user$.subscribe((user) => {
       if (user && this.pendingSignals.length > 0) {
@@ -98,19 +106,55 @@ export class WebRTCSignalingService {
    * @param targetUser The user to connect with
    */
   public initiateConnection(targetUser: string): void {
-    let span = this.activeConnectSpans.get(targetUser);
-    if (!span) {
-      startNewTrace(() => {
-        span = Sentry.startInactiveSpan({ name: 'webrtc.connect', op: 'webrtc.connect' });
-        this.activeConnectSpans.set(targetUser, span);
-      });
-      this.connectAttemptCounts.set(targetUser, 1);
-    } else {
-      const next = (this.connectAttemptCounts.get(targetUser) ?? 1) + 1;
-      this.connectAttemptCounts.set(targetUser, next);
-      span.setAttribute('attempts', next);
+    const activeSpan = this.activeConnectSpans.get(targetUser);
+    if (activeSpan) {
+      void this.initiateConnectionInner(targetUser, activeSpan);
+      return;
     }
-    this.initiateConnectionInner(targetUser, span!);
+
+    const span = startNewTrace(() =>
+      Sentry.startInactiveSpan({ name: 'webrtc.connect', op: 'webrtc.connect' })
+    );
+    this.activeConnectSpans.set(targetUser, span);
+    span.setAttribute('role', this.shouldInitiateConnection(targetUser) ? 'caller' : 'callee');
+    this.startConnectSpanCeiling(targetUser);
+
+    void this.initiateConnectionInner(targetUser, span);
+  }
+
+  /**
+   * Force-ends a span that neither connected nor failed, so it can't run for hours
+   * @param targetUser The user whose span to bound
+   */
+  private startConnectSpanCeiling(targetUser: string): void {
+    const timeoutId = setTimeout(() => {
+      this.connectSpanCeilings.delete(targetUser);
+      this.finishConnectSpanAsFailed(targetUser, 'abandoned');
+    }, CONNECT_SPAN_CEILING);
+
+    this.connectSpanCeilings.set(targetUser, timeoutId);
+  }
+
+  /**
+   * Drops all bookkeeping for a peer's span once it has been ended
+   * @param targetUser The user whose span ended
+   */
+  private clearConnectSpan(targetUser: string): void {
+    const timeoutId = this.connectSpanCeilings.get(targetUser);
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      this.connectSpanCeilings.delete(targetUser);
+    }
+    this.activeConnectSpans.delete(targetUser);
+    this.connectAttemptCounts.delete(targetUser);
+  }
+
+  /**
+   * Checks whether an attempt with a target user is in flight
+   * @param targetUser The user to check
+   */
+  public isConnecting(targetUser: string): boolean {
+    return this.connectingPeers.has(targetUser);
   }
 
   /**
@@ -123,8 +167,7 @@ export class WebRTCSignalingService {
     span.setAttribute('outcome', 'connected');
     span.setStatus({ code: 1, message: 'ok' });
     span.end();
-    this.activeConnectSpans.delete(targetUser);
-    this.connectAttemptCounts.delete(targetUser);
+    this.clearConnectSpan(targetUser);
   }
 
   /**
@@ -161,11 +204,10 @@ export class WebRTCSignalingService {
     }
     span.setStatus({ code: 2, message: reason });
     span.end();
-    this.activeConnectSpans.delete(targetUser);
-    this.connectAttemptCounts.delete(targetUser);
+    this.clearConnectSpan(targetUser);
   }
 
-  private initiateConnectionInner(targetUser: string, span: Sentry.Span): void {
+  private async initiateConnectionInner(targetUser: string, span: Sentry.Span): Promise<void> {
     if (targetUser === this.userService.user) {
       this.logger.warn(
         'initiateConnection',
@@ -173,8 +215,7 @@ export class WebRTCSignalingService {
       );
       span.setAttribute('outcome', 'self_connection_skipped');
       span.end();
-      this.activeConnectSpans.delete(targetUser);
-      this.connectAttemptCounts.delete(targetUser);
+      this.clearConnectSpan(targetUser);
       return;
     }
 
@@ -184,8 +225,7 @@ export class WebRTCSignalingService {
         span.setAttribute('outcome', 'skipped_lock');
         span.setStatus({ code: 1, message: 'already_in_progress' });
         span.end();
-        this.activeConnectSpans.delete(targetUser);
-        this.connectAttemptCounts.delete(targetUser);
+        this.clearConnectSpan(targetUser);
       }
       return;
     }
@@ -203,8 +243,7 @@ export class WebRTCSignalingService {
         span.setAttribute('outcome', `skipped_${connectionState}`);
         span.setStatus({ code: 1, message: connectionState });
         span.end();
-        this.activeConnectSpans.delete(targetUser);
-        this.connectAttemptCounts.delete(targetUser);
+        this.clearConnectSpan(targetUser);
         return;
       }
 
@@ -224,8 +263,7 @@ export class WebRTCSignalingService {
         span.setAttribute('outcome', `skipped_${connectionState}_${iceState}`);
         span.setStatus({ code: 1, message: 'unexpected_state' });
         span.end();
-        this.activeConnectSpans.delete(targetUser);
-        this.connectAttemptCounts.delete(targetUser);
+        this.clearConnectSpan(targetUser);
         return;
       }
     }
@@ -235,6 +273,8 @@ export class WebRTCSignalingService {
         'initiateConnection',
         `Requesting ${targetUser} to initiate connection (role: callee)`
       );
+      this.connectingPeers.add(targetUser);
+      this.recordAttempt(targetUser, span);
       this.sendConnectionRequest(targetUser);
       return;
     }
@@ -251,11 +291,21 @@ export class WebRTCSignalingService {
     }
 
     this.connectionLocks.add(targetUser);
+    this.connectingPeers.add(targetUser);
+    this.recordAttempt(targetUser, span);
+    const attemptId = this.startAttempt(targetUser);
 
     this.logger.info(
       'initiateConnection',
       `Initiating connection with ${targetUser} (role: caller)`
     );
+
+    // Without the relay credential a peer on another network has no usable route.
+    await this.turnCredentials.ready();
+    if (!this.isCurrentAttempt(targetUser, attemptId)) {
+      this.logger.debug('initiateConnection', `Attempt for ${targetUser} superseded while waiting`);
+      return;
+    }
 
     try {
       const peerConnection = this.createPeerConnection(targetUser);
@@ -269,23 +319,6 @@ export class WebRTCSignalingService {
 
       const dataChannel = peerConnection.createDataChannel('data', DATA_CHANNEL_OPTIONS);
       this.communicationService.setupDataChannel(dataChannel, targetUser);
-
-      const handleDataChannelOpen = () => {
-        this.clearEstablishmentWatchdog(targetUser);
-        this.connectionLocks.delete(targetUser);
-        this.communicationService.sendQueuedMessages(targetUser);
-        if (peerConnection.connectionState === 'connected') {
-          this.reconnectAttempts.delete(targetUser);
-          this.finishConnectSpanAsSuccess(targetUser);
-          this.peerConnected$.next(targetUser);
-        }
-      };
-
-      if (dataChannel.readyState === 'open') {
-        handleDataChannelOpen();
-      } else {
-        dataChannel.onopen = handleDataChannelOpen;
-      }
 
       dataChannel.onerror = () => {
         this.connectionLocks.delete(targetUser);
@@ -326,6 +359,7 @@ export class WebRTCSignalingService {
       this.logger.error('initiateConnection', `Connection initiation failed: ${error}`);
       this.toaster.error(this.translate.instant('CONNECTION_LOST'));
       this.connectionLocks.delete(targetUser);
+      this.connectingPeers.delete(targetUser);
       this.finishConnectSpanAsFailed(targetUser, 'initiation_failed');
     }
   }
@@ -374,13 +408,15 @@ export class WebRTCSignalingService {
       span.setAttribute('outcome', 'cancelled');
       span.setStatus({ code: 2, message: 'cancelled' });
       span.end();
-      this.activeConnectSpans.delete(targetUser);
-      this.connectAttemptCounts.delete(targetUser);
+      this.clearConnectSpan(targetUser);
     }
 
     this.closePeerConnection(targetUser, true);
 
+    this.meshEpoch += 1;
     this.connectionLocks.delete(targetUser);
+    this.connectingPeers.delete(targetUser);
+    this.latestAttemptId.delete(targetUser);
     this.reconnectAttempts.delete(targetUser);
     this.inboundSequences.delete(targetUser);
     this.outboundSequences.delete(targetUser);
@@ -413,13 +449,6 @@ export class WebRTCSignalingService {
       this.connectionRequests.delete(targetUser);
     }
 
-    // Clear connection request delay timeout
-    const requestDelayTimeout = this.connectionRequestDelays.get(targetUser);
-    if (requestDelayTimeout) {
-      clearTimeout(requestDelayTimeout);
-      this.connectionRequestDelays.delete(targetUser);
-    }
-
     // Clear state mismatch timeout
     const stateMismatchTimeout = this.stateMismatchTimeouts.get(targetUser);
     if (stateMismatchTimeout) {
@@ -428,6 +457,7 @@ export class WebRTCSignalingService {
     }
 
     this.clearEstablishmentWatchdog(targetUser);
+    this.connectingPeers.delete(targetUser);
 
     if (force) {
       this.candidateQueues.delete(targetUser);
@@ -447,12 +477,19 @@ export class WebRTCSignalingService {
     });
     this.activeConnectSpans.clear();
     this.connectAttemptCounts.clear();
+    this.connectSpanCeilings.forEach((timeout) => {
+      clearTimeout(timeout);
+    });
+    this.connectSpanCeilings.clear();
 
     this.peerConnections.forEach((peerConnection) => {
       peerConnection.close();
     });
     this.peerConnections.clear();
     this.connectionLocks.clear();
+    this.meshEpoch += 1;
+    this.connectingPeers.clear();
+    this.latestAttemptId.clear();
     this.reconnectAttempts.clear();
     this.inboundSequences.clear();
     this.outboundSequences.clear();
@@ -465,12 +502,6 @@ export class WebRTCSignalingService {
       clearTimeout(timeout);
     });
     this.connectionRequests.clear();
-
-    // Clear all connection request delay timeouts
-    this.connectionRequestDelays.forEach((timeout) => {
-      clearTimeout(timeout);
-    });
-    this.connectionRequestDelays.clear();
 
     // Clear all reconnection timeouts
     this.reconnectionTimeouts.forEach((timeout) => {
@@ -652,11 +683,7 @@ export class WebRTCSignalingService {
         }
         // Only clear retry counter and emit connected when data channel is also open
         if (this.communicationService.isConnected(targetUser)) {
-          this.clearEstablishmentWatchdog(targetUser);
-          this.reconnectAttempts.delete(targetUser);
-          this.logger.info('createPeerConnection', `Successfully connected to ${targetUser}`);
-          this.finishConnectSpanAsSuccess(targetUser);
-          this.peerConnected$.next(targetUser);
+          this.handlePeerConnected(targetUser);
         } else {
           this.logger.info(
             'createPeerConnection',
@@ -701,10 +728,31 @@ export class WebRTCSignalingService {
     };
 
     this.peerConnections.set(targetUser, peerConnection);
-    this.candidateQueues.set(targetUser, []);
+    // Keep anything queued before this connection existed.
+    if (!this.candidateQueues.has(targetUser)) {
+      this.candidateQueues.set(targetUser, []);
+    }
     this.startEstablishmentWatchdog(targetUser);
 
     return peerConnection;
+  }
+
+  /**
+   * Marks a peer usable once its data channel is open, whichever side created it
+   * @param targetUser The user that is now reachable
+   */
+  private handlePeerConnected(targetUser: string): void {
+    if (!this.communicationService.isConnected(targetUser)) return;
+    if (!this.activeConnectSpans.has(targetUser) && !this.connectingPeers.has(targetUser)) return;
+
+    this.logger.info('handlePeerConnected', `Successfully connected to ${targetUser}`);
+    this.clearEstablishmentWatchdog(targetUser);
+    this.connectionLocks.delete(targetUser);
+    this.connectingPeers.delete(targetUser);
+    this.reconnectAttempts.delete(targetUser);
+    this.communicationService.sendQueuedMessages(targetUser);
+    this.finishConnectSpanAsSuccess(targetUser);
+    this.peerConnected$.next(targetUser);
   }
 
   /**
@@ -726,6 +774,7 @@ export class WebRTCSignalingService {
 
     if (attempts < MAX_RECONNECT_ATTEMPTS) {
       this.reconnectAttempts.set(targetUser, attempts + 1);
+      this.connectingPeers.add(targetUser);
 
       // Use exponential backoff (starts at 2s, max 10s)
       const baseDelay = RECONNECT_DELAY;
@@ -781,6 +830,7 @@ export class WebRTCSignalingService {
         );
       }
       this.closePeerConnection(targetUser, true);
+      this.connectingPeers.delete(targetUser);
       this.peerDisconnected$.next(targetUser);
     }
   }
@@ -882,7 +932,7 @@ export class WebRTCSignalingService {
 
     switch (message.type) {
       case SignalMessageType.OFFER:
-        this.handleOffer(message);
+        void this.handleOffer(message);
         break;
       case SignalMessageType.ANSWER:
         this.handleAnswer(message);
@@ -931,7 +981,7 @@ export class WebRTCSignalingService {
    * Handles incoming offer messages with collision detection
    * @param message The offer message to handle
    */
-  private handleOffer(message: SignalMessage): void {
+  private async handleOffer(message: SignalMessage): Promise<void> {
     const targetUser = message.from;
 
     if (this.userService.user === targetUser) {
@@ -970,12 +1020,21 @@ export class WebRTCSignalingService {
 
     // Set lock while processing offer to prevent concurrent connection attempts
     this.connectionLocks.add(targetUser);
+    this.connectingPeers.add(targetUser);
+    const attemptId = this.startAttempt(targetUser);
+
+    await this.turnCredentials.ready();
+    if (!this.isCurrentAttempt(targetUser, attemptId)) {
+      this.logger.debug('handleOffer', `Offer from ${targetUser} superseded while waiting`);
+      return;
+    }
 
     const peerConnection = this.createPeerConnection(targetUser);
 
     if (!peerConnection) {
       this.logger.error('handleOffer', `PeerConnection missing for ${targetUser}`);
       this.connectionLocks.delete(targetUser);
+      this.connectingPeers.delete(targetUser);
       return;
     }
 
@@ -1110,10 +1169,11 @@ export class WebRTCSignalingService {
     const peerConnection = this.peerConnections.get(targetUser);
 
     if (!peerConnection) {
-      this.logger.warn(
+      this.logger.debug(
         'handleCandidate',
-        `No peer connection for ${targetUser}, ignoring candidate`
+        `Queueing ICE candidate from ${targetUser} (no peer connection yet)`
       );
+      this.queueCandidate(targetUser, message.data as RTCIceCandidateInit);
       return;
     }
 
@@ -1143,12 +1203,21 @@ export class WebRTCSignalingService {
         'handleCandidate',
         `Queueing ICE candidate from ${targetUser} (no remote description yet)`
       );
-      let queue = this.candidateQueues.get(targetUser);
-      if (queue) {
-        queue.push(message.data as RTCIceCandidateInit);
-      } else {
-        this.candidateQueues.set(targetUser, [message.data as RTCIceCandidateInit]);
-      }
+      this.queueCandidate(targetUser, message.data as RTCIceCandidateInit);
+    }
+  }
+
+  /**
+   * Holds a candidate until processCandidateQueue drains it
+   * @param targetUser The user the candidate came from
+   * @param candidate The candidate to hold
+   */
+  private queueCandidate(targetUser: string, candidate: RTCIceCandidateInit): void {
+    const queue = this.candidateQueues.get(targetUser);
+    if (queue) {
+      queue.push(candidate);
+    } else {
+      this.candidateQueues.set(targetUser, [candidate]);
     }
   }
 
@@ -1224,63 +1293,46 @@ export class WebRTCSignalingService {
       return;
     }
 
-    // Clear any existing delay timeout for this user
-    const existingDelayTimeout = this.connectionRequestDelays.get(targetUser);
-    if (existingDelayTimeout) {
-      clearTimeout(existingDelayTimeout);
-      this.connectionRequestDelays.delete(targetUser);
+    if (this.peerConnections.has(targetUser) || this.connectionLocks.has(targetUser)) {
+      this.logger.debug(
+        'sendConnectionRequest',
+        `Connection already in progress with ${targetUser}, skipping request`
+      );
+      return;
     }
 
-    // Add a small delay before sending the request to prevent race conditions
-    // This gives the other peer time to send their offer if they're the designated caller
-    const delayTimeout = setTimeout(() => {
-      // Remove from tracking once executed
-      this.connectionRequestDelays.delete(targetUser);
+    const message: SignalMessage = {
+      type: SignalMessageType.CONNECTION_REQUEST,
+      data: null,
+      from: this.userService.user,
+      to: targetUser,
+      sequence: this.getNextSequence(targetUser),
+    };
+    this.wsService.sendSignalMessage(message);
+    this.logger.info('sendConnectionRequest', `Sent connection request to ${targetUser}`);
 
-      // Check again if we already have a connection in progress
-      if (this.peerConnections.has(targetUser) || this.connectionLocks.has(targetUser)) {
+    const timeout = setTimeout(() => {
+      this.logger.warn('sendConnectionRequest', `Connection request timeout for ${targetUser}`);
+      this.connectionRequests.delete(targetUser);
+
+      // Fallback: try to initiate connection ourselves if no response
+      if (!this.peerConnections.has(targetUser)) {
         this.logger.debug(
           'sendConnectionRequest',
-          `Connection already in progress with ${targetUser}, skipping request`
+          `Fallback: initiating connection with ${targetUser} after timeout`
         );
-        return;
+        void this.forceInitiateConnection(targetUser);
       }
+    }, CONNECTION_REQUEST_TIMEOUT);
 
-      const message: SignalMessage = {
-        type: SignalMessageType.CONNECTION_REQUEST,
-        data: null,
-        from: this.userService.user,
-        to: targetUser,
-        sequence: this.getNextSequence(targetUser),
-      };
-      this.wsService.sendSignalMessage(message);
-      this.logger.info('sendConnectionRequest', `Sent connection request to ${targetUser}`);
-
-      const timeout = setTimeout(() => {
-        this.logger.warn('sendConnectionRequest', `Connection request timeout for ${targetUser}`);
-        this.connectionRequests.delete(targetUser);
-
-        // Fallback: try to initiate connection ourselves if no response
-        if (!this.peerConnections.has(targetUser)) {
-          this.logger.debug(
-            'sendConnectionRequest',
-            `Fallback: initiating connection with ${targetUser} after timeout`
-          );
-          this.forceInitiateConnection(targetUser);
-        }
-      }, CONNECTION_REQUEST_TIMEOUT);
-
-      this.connectionRequests.set(targetUser, timeout);
-    }, 500); // 500ms delay to prevent race conditions
-
-    this.connectionRequestDelays.set(targetUser, delayTimeout);
+    this.connectionRequests.set(targetUser, timeout);
   }
 
   /**
    * Forces connection initiation (bypasses role checking)
    * @param targetUser The user to connect with
    */
-  private forceInitiateConnection(targetUser: string): void {
+  private async forceInitiateConnection(targetUser: string): Promise<void> {
     this.logger.info('forceInitiateConnection', `Forcing connection initiation with ${targetUser}`);
 
     if (this.userService.user === targetUser) {
@@ -1296,6 +1348,19 @@ export class WebRTCSignalingService {
 
     // Temporarily bypass role checking and initiate connection
     this.connectionLocks.add(targetUser);
+    this.connectingPeers.add(targetUser);
+    const span = this.activeConnectSpans.get(targetUser);
+    if (span) this.recordAttempt(targetUser, span);
+    const attemptId = this.startAttempt(targetUser);
+
+    await this.turnCredentials.ready();
+    if (!this.isCurrentAttempt(targetUser, attemptId)) {
+      this.logger.debug(
+        'forceInitiateConnection',
+        `Attempt for ${targetUser} superseded while waiting`
+      );
+      return;
+    }
 
     try {
       const peerConnection = this.createPeerConnection(targetUser);
@@ -1306,23 +1371,6 @@ export class WebRTCSignalingService {
 
       const dataChannel = peerConnection.createDataChannel('data', DATA_CHANNEL_OPTIONS);
       this.communicationService.setupDataChannel(dataChannel, targetUser);
-
-      const handleDataChannelOpen = () => {
-        this.clearEstablishmentWatchdog(targetUser);
-        this.connectionLocks.delete(targetUser);
-        this.communicationService.sendQueuedMessages(targetUser);
-        if (peerConnection.connectionState === 'connected') {
-          this.reconnectAttempts.delete(targetUser);
-          this.finishConnectSpanAsSuccess(targetUser);
-          this.peerConnected$.next(targetUser);
-        }
-      };
-
-      if (dataChannel.readyState === 'open') {
-        handleDataChannelOpen();
-      } else {
-        dataChannel.onopen = handleDataChannelOpen;
-      }
 
       dataChannel.onerror = () => {
         this.connectionLocks.delete(targetUser);
@@ -1360,6 +1408,7 @@ export class WebRTCSignalingService {
     } catch (error: unknown) {
       this.logger.error('forceInitiateConnection', `Connection initiation failed: ${error}`);
       this.connectionLocks.delete(targetUser);
+      this.connectingPeers.delete(targetUser);
     }
   }
 
@@ -1376,6 +1425,38 @@ export class WebRTCSignalingService {
     if (sequence <= lastSeq) return true;
     this.inboundSequences.set(targetUser, sequence);
     return false;
+  }
+
+  /**
+   * Counts an attempt that is actually starting. Called from the two role
+   * branches rather than the entry point, which both sides now reach for the
+   * same connection once the pre-send delays are gone.
+   * @param targetUser The user the attempt is for
+   * @param span The span tracking this connection
+   */
+  private recordAttempt(targetUser: string, span: Sentry.Span): void {
+    const next = (this.connectAttemptCounts.get(targetUser) ?? 0) + 1;
+    this.connectAttemptCounts.set(targetUser, next);
+    span.setAttribute('attempts', next);
+  }
+
+  /**
+   * Starts a new connection attempt for a target user and returns its token
+   * @param targetUser The user the attempt is for
+   */
+  private startAttempt(targetUser: string): string {
+    const next = (this.latestAttemptId.get(targetUser) ?? 0) + 1;
+    this.latestAttemptId.set(targetUser, next);
+    return `${this.meshEpoch}:${next}`;
+  }
+
+  /**
+   * Whether the attempt holding this token is still the current one
+   * @param targetUser The user the attempt is for
+   * @param attemptId The token returned by startAttempt
+   */
+  private isCurrentAttempt(targetUser: string, attemptId: string): boolean {
+    return `${this.meshEpoch}:${this.latestAttemptId.get(targetUser) ?? 0}` === attemptId;
   }
 
   /**
