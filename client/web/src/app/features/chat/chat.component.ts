@@ -1949,7 +1949,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   protected get hasNoReachablePeers(): boolean {
     const otherMembers = this.members.filter((m) => m !== this.userService.user);
     if (otherMembers.length === 0) return true;
-    return !otherMembers.some((m) => this.webrtcService.isReachable(m));
+    return !otherMembers.some((m) => this.memberConnectionState.get(m) !== 'disconnected');
   }
 
   protected get isSendDisabled(): boolean {
