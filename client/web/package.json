@@ -58,7 +58,7 @@
     "@angular-eslint/eslint-plugin-template": "^21.3.1",
     "@angular-eslint/schematics": "^21.3.1",
     "@angular-eslint/template-parser": "^21.3.1",
-    "@angular/cli": "^21.2.20",
+    "@angular/cli": "^21.2.21",
     "@eslint/js": "^10.0.1",
     "@types/compression": "^1.8.1",
     "@types/express": "^4.17.25",
