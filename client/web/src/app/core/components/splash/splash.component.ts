@@ -7,11 +7,13 @@ import {
   OnInit,
   Output,
   PLATFORM_ID,
+  effect,
   inject,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { WebSocketConnectionService } from '../../services/communication/websocket-connection.service';
+import { AppUpdateService } from '../../services/update/app-update.service';
 
 @Component({
   selector: 'app-splash',
@@ -27,6 +29,14 @@ export class SplashComponent implements OnInit, OnDestroy {
   private platformId = inject(PLATFORM_ID);
   private cdr = inject(ChangeDetectorRef);
   private ws = inject(WebSocketConnectionService);
+  private updateService = inject(AppUpdateService);
+
+  // A required update blocks connecting, so connected$ never fires.
+  private readonly updateGateEffect = effect(() => {
+    if (this.updateService.recommendation()?.kind === 'required') {
+      this.dismiss();
+    }
+  });
 
   private timers: ReturnType<typeof setTimeout>[] = [];
   private sub?: Subscription;
