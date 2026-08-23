@@ -90,6 +90,15 @@ private extension AppUpdateService {
   func evaluate(_ policy: PlatformVersion) -> UpdateRecommendation? {
     let installed = Bundle.main.appVersion
 
+    // Defensive: floor above latest is a config typo — treat as no-policy.
+    if
+      !policy.minimum.isEmpty, !policy.latest.isEmpty,
+      compareVersions(policy.minimum, policy.latest) > 0
+    {
+      log.warning("Version policy misconfigured (minimum > latest); ignoring")
+      return recommendation
+    }
+
     guard !policy.url.isEmpty, let url = URL(string: policy.url) else {
       if !policy.minimum.isEmpty || !policy.latest.isEmpty {
         log.warning("Version policy has no valid url; ignoring")
