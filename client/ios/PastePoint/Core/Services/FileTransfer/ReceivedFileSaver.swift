@@ -38,11 +38,9 @@ enum ReceivedFileSaver {
 
     return await withCheckedContinuation { continuation in
       PHPhotoLibrary.shared().performChanges {
-        if isVideo {
-          PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: url)
-        } else {
-          PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: url)
-        }
+        let request = PHAssetCreationRequest.forAsset()
+        request.creationDate = Date()
+        request.addResource(with: isVideo ? .video : .photo, fileURL: url, options: nil)
       } completionHandler: { success, error in
         if success {
           try? FileManager.default.removeItem(at: url)
