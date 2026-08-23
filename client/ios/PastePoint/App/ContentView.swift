@@ -77,6 +77,9 @@ struct ContentView: View {
           .transition(.opacity)
           .zIndex(1)
           .onReceive(services.wsService.didConnect) { dismissSplash() }
+          .onReceive(services.updateService.$recommendation) { recommendation in
+            if case .required = recommendation { dismissSplash() }
+          }
           .task {
             if services.wsService.isConnected || needsLegalConsent { dismissSplash() }
           }
