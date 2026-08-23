@@ -16,8 +16,8 @@ latest = "0.14.2"
 url = "https://apps.apple.com/app/id6788860511"
 
 [client_version.web]
-minimum = "0.25.0"
-latest = "0.25.0"
+minimum = "0.25.1"
+latest = "0.25.1"
 url = "https://127.0.0.1"
 
 [sentry]
