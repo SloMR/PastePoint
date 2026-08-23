@@ -33,6 +33,7 @@ final class AppServices: ObservableObject {
 
   private var isInBackground = false
   private var isForegroundHandling = false
+  private var isDisconnectedForUpdate = false
 
   private let networkMonitor = NWPathMonitor()
   private var lastPathStatus: NWPath.Status = .satisfied
@@ -81,6 +82,7 @@ final class AppServices: ObservableObject {
 
     startNetworkMonitoring()
     startTerminationObserver()
+    startUpdateGateObserver()
     forwardServiceChanges()
   }
 
@@ -167,6 +169,11 @@ final class AppServices: ObservableObject {
     }
 #endif
 
+    if case .required = updateService.recommendation {
+      log.warning("connectIfPermitted — update required, skipping connect")
+      return false
+    }
+
     let denied = await LocalNetworkPermission.isDenied()
     localNetworkDenied = denied
     guard !denied else {
@@ -240,6 +247,26 @@ final class AppServices: ObservableObject {
       }
     }
     networkMonitor.start(queue: DispatchQueue(label: "com.pastepoint.NetworkMonitor"))
+  }
+
+  // MARK: - Update Gate
+
+  /// Tears down the connection while a required update is pending; resumes when it clears.
+  private func startUpdateGateObserver() {
+    updateService.$recommendation
+      .sink { [weak self] recommendation in
+        guard let self else { return }
+        if case .required = recommendation {
+          guard self.wsService.isConnected || self.wsService.isConnecting else { return }
+          log.warning("Update required — disconnecting until the app is updated")
+          self.isDisconnectedForUpdate = true
+          self.wsService.disconnect(manual: false)
+        } else if self.isDisconnectedForUpdate {
+          self.isDisconnectedForUpdate = false
+          Task { await self.handleForeground() }
+        }
+      }
+      .store(in: &cancellables)
   }
 
   // MARK: - Termination
