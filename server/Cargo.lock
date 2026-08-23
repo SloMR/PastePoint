@@ -2758,7 +2758,7 @@ dependencies = [
 
 [[package]]
 name = "server"
-version = "0.12.0"
+version = "0.12.1"
 dependencies = [
  "actix-cors",
  "actix-governor",
