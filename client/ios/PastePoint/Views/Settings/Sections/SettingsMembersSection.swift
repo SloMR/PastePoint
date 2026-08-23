@@ -88,8 +88,8 @@ struct SettingsMembersSection: View {
                     .padding(.trailing, 5)
                     .foregroundStyle(.textSecondary)
                 }
-                .disabled(!isConnected)
-                .opacity(isConnected ? 1 : 0.3)
+                .disabled(!isConnected && !isConnecting)
+                .opacity(isConnected || isConnecting ? 1 : 0.3)
                 .accessibilityLabel(Text(.sendFileToUser))
               }
               .animation(.easeInOut(duration: 0.2), value: dotColor)

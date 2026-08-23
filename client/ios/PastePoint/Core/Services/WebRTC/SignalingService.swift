@@ -26,7 +26,14 @@ final class SignalingService: NSObject, ObservableObject {
   @Published private(set) var connectedPeers: Set<String> = []
   @Published private(set) var connectingPeers: Set<String> = []
 
+  var reachablePeers: Set<String> {
+    connectedPeers.union(connectingPeers)
+  }
+
   let bufferedAmountLow = PassthroughSubject<String, Never>()
+  /// A peer we have given up on while it is still in the room. Nothing queued for
+  /// it will ever be delivered, so transfers waiting on it have to be failed.
+  let peerUnreachable = PassthroughSubject<String, Never>()
   let chatMessages = PassthroughSubject<ChatMessage, Never>()
   let fileEvent = PassthroughSubject<FileChannelEvent, Never>()
   let chunkReceived = PassthroughSubject<(ParsedChunk, from: String), Never>()
@@ -42,6 +49,7 @@ final class SignalingService: NSObject, ObservableObject {
   private static let maxReconnectAttempts = 5
   private static let baseReconnectDelay: TimeInterval = 2.0 // Seconds
   private static let maxReconnectDelay: TimeInterval = 10.0 // Seconds
+  private static let maxPendingMessages = 64
 
   private var peerConnections: [String: RTCPeerConnection] = [:]
   private var dataChannels: [String: RTCDataChannel] = [:]
@@ -56,6 +64,7 @@ final class SignalingService: NSObject, ObservableObject {
   private var connectionTimeouts: [String: Task<Void, Never>] = [:]
   private var connectionRequestTimeouts: [String: Task<Void, Never>] = [:]
   private var pendingOpens: Set<String> = []
+  private var pendingMessages: [String: [Data]] = [:]
 
   private let turnCredentials = TurnCredentialsService()
 
@@ -431,6 +440,7 @@ extension SignalingService {
       log.info("\(peer) is no longer a peer, skipping")
       reconnectAttempts[peer] = nil
       connectingPeers.remove(peer)
+      discardPending(for: peer)
       return
     }
 
@@ -439,6 +449,7 @@ extension SignalingService {
       log.error("max attempts reached for \(peer)")
       reconnectAttempts[peer] = nil
       connectingPeers.remove(peer)
+      discardPending(for: peer)
       return
     }
 
@@ -459,6 +470,7 @@ extension SignalingService {
         log.info("\(peer) left during backoff, skipping")
         self.reconnectAttempts[peer] = nil
         connectingPeers.remove(peer)
+        self.discardPending(for: peer)
         return
       }
 
@@ -530,6 +542,7 @@ extension SignalingService {
       reconnectAttempts[peer] = nil
       outboundSequences[peer] = nil
       inboundSequences[peer] = nil
+      pendingMessages[peer] = nil
     }
 
     let dataChannel = dataChannels.removeValue(forKey: peer)
@@ -546,7 +559,9 @@ extension SignalingService {
     collectedCandidates[peer] = nil
     connectionLocks.remove(peer)
     connectedPeers.remove(peer)
-    connectingPeers.remove(peer)
+    if resetReconnectState {
+      connectingPeers.remove(peer)
+    }
   }
 
   // MARK: - Diagnostics
@@ -597,7 +612,7 @@ extension SignalingService {
       .filter { $0.value.readyState == .open }
       .map { $0.key }
 
-    return openPeers.filter {
+    return Array(Set(openPeers).union(connectingPeers)).filter {
       send(data, to: $0)
     }
   }
@@ -606,7 +621,17 @@ extension SignalingService {
   /// Returns false if the channel is closed or back-pressured.
   /// Called by services that build their own envelopes (e.g. `FileTransferService`).
   func send(_ data: Data, to peer: String, isBinary: Bool = false) -> Bool {
+    // The channel can open before the flush runs. Keep queueing until the queue is
+    // drained, or a frame sent in that window arrives ahead of older ones.
+    if !isBinary, pendingMessages[peer] != nil {
+      return enqueue(data, for: peer)
+    }
+
     guard let channel = dataChannels[peer], channel.readyState == .open else {
+      // Chunks are never queued; they only flow after an accept on an open channel.
+      if !isBinary, connectingPeers.contains(peer) {
+        return enqueue(data, for: peer)
+      }
       log.warning("no open channel to \(peer)")
       return false
     }
@@ -617,6 +642,42 @@ extension SignalingService {
     }
 
     return channel.sendData(RTCDataBuffer(data: data, isBinary: isBinary))
+  }
+
+  /// Holds a frame for a connecting peer; false once full, so a peer that never
+  /// opens reports failure instead of swallowing everything silently.
+  private func enqueue(_ data: Data, for peer: String) -> Bool {
+    var queued = pendingMessages[peer] ?? []
+    guard queued.count < Self.maxPendingMessages else {
+      log.warning("pending queue full for \(peer), dropping frame")
+      return false
+    }
+
+    queued.append(data)
+    pendingMessages[peer] = queued
+    log.info("queued frame for \(peer) (pending: \(queued.count))")
+    return true
+  }
+
+  /// Abandons anything queued for a peer we will not reach. Announced so services
+  /// holding state on those frames (a file offer waiting to go out) can fail it,
+  /// and so frames can never flush to a later peer that reuses the random name.
+  private func discardPending(for peer: String) {
+    let dropped = pendingMessages.removeValue(forKey: peer)?.count ?? 0
+    if dropped > 0 {
+      log.warning("discarded \(dropped) queued frames for unreachable \(peer)")
+    }
+    peerUnreachable.send(peer)
+  }
+
+  /// Drains the queue in order; removed first so a closed channel re-queues.
+  private func flushPendingMessages(to peer: String) {
+    guard let queued = pendingMessages.removeValue(forKey: peer), !queued.isEmpty else { return }
+
+    for data in queued {
+      _ = send(data, to: peer)
+    }
+    log.info("flushed \(queued.count) queued frames to \(peer)")
   }
 
   private func encodeChatForWire(_ chat: ChatMessage) -> Data? {
@@ -785,6 +846,7 @@ extension SignalingService: RTCDataChannelDelegate {
     connectionLocks.remove(peer)
     reconnectAttempts[peer] = nil
     clearConnectionTimeout(for: peer)
+    flushPendingMessages(to: peer)
     log.info("connected to \(peer)")
   }
 

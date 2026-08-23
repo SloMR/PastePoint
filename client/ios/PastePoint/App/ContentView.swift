@@ -189,7 +189,7 @@ struct ContentView: View {
           ChatInputBar(
             onSend: handleSend,
             onSendFiles: handleSendFiles,
-            hasConnectedPeers: !services.signalingService.connectedPeers.isEmpty,
+            hasConnectedPeers: !services.signalingService.reachablePeers.isEmpty,
           ) { staged in
             _ = await services.fileTransferService.prewarmFileHash(forFileAt: staged.url).value
           }
