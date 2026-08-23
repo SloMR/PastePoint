@@ -1872,11 +1872,6 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     // Connect to the first peer right away; space the rest out so a busy room
     // does not fire every offer in the same tick.
     otherMembers.forEach((member, index) => {
-      if (index === 0) {
-        this.webrtcService.initiateConnection(member);
-        return;
-      }
-
       const timeoutId = setTimeout(() => {
         this.webrtcService.initiateConnection(member);
       }, index * 100);
