@@ -25,7 +25,7 @@ enabled = false
 dsn = ""
 environment = "development"
 sample_rate = 1.0
-traces_sample_rate = 0.1
+traces_sample_rate = 1.0
 
 # TURN relay for GET /turn-credentials. urls are the fixed public relay (same in
 # every env); the shared secret comes from the TURN_SECRET env var, never here.

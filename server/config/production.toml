@@ -25,7 +25,7 @@ enabled = true
 dsn = "https://00ffd0bf7c24fb3eb38318cefb4607c3@o4510159565160448.ingest.de.sentry.io/4511350203088976"
 environment = "production"
 sample_rate = 1.0
-traces_sample_rate = 0.1
+traces_sample_rate = 1.0
 
 # TURN relay for GET /turn-credentials. urls are the fixed public relay (same in
 # every env); the shared secret comes from the TURN_SECRET env var, never here.
