@@ -10,9 +10,9 @@ export const environment = {
   disableConsoleLogging: true,
   sentry: {
     enabled: true,
-    dsn: '',
+    dsn: 'https://00ffd0bf7c24fb3eb38318cefb4607c3@o4510159565160448.ingest.de.sentry.io/4511350203088976',
     environment: 'production',
-    tracesSampleRate: 0.25,
+    tracesSampleRate: 1.0,
     enableLogs: true,
   },
 };

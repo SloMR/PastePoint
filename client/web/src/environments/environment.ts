@@ -12,7 +12,7 @@ export const environment = {
     enabled: false,
     dsn: '',
     environment: 'development',
-    tracesSampleRate: 0.25,
+    tracesSampleRate: 1.0,
     enableLogs: true,
   },
 };
