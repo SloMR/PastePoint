@@ -71,6 +71,10 @@ export class WebSocketConnectionService implements OnDestroy {
     null
   );
 
+  /** Fires when a private session code is dropped after repeated failed
+   *  reconnects so the UI can leave the /private/:code route. */
+  public sessionFallback$ = new Subject<void>();
+
   /**
    * ==========================================================
    * CONSTRUCTOR
@@ -342,6 +346,21 @@ export class WebSocketConnectionService implements OnDestroy {
     }
 
     this.reconnectAttempts++;
+
+    if (
+      this.reconnectAttempts > this.maxReconnectAttempts &&
+      this.sessionCode &&
+      navigator.onLine
+    ) {
+      this.logger.warn(
+        'scheduleReconnect',
+        'Private session unreachable after max attempts, falling back to the public session'
+      );
+      this.telemetry.warnEvent('session.fallback_public', { attempts: this.reconnectAttempts });
+      this.clearSessionCode();
+      this.sessionFallback$.next();
+    }
+
     const currentDelay =
       this.reconnectAttempts <= this.maxReconnectAttempts
         ? Math.min(
@@ -388,6 +407,9 @@ export class WebSocketConnectionService implements OnDestroy {
     if (isManual) {
       this.manualDisconnect = true;
       this.clearSessionCode();
+
+      this.reconnectAttempts = 0;
+      this.reconnectDelay = 1000;
     }
 
     if (this.reconnectTimer) {

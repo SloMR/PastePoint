@@ -281,6 +281,14 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
       })
     );
 
+    this.subscriptions.push(
+      this.wsConnectionService.sessionFallback$.subscribe(() => {
+        this.ngZone.run(() => {
+          this.fallbackToPublic();
+        });
+      })
+    );
+
     // Check if route has a session code in URL but don't connect yet.
     // First emission seeds SessionCode for ngAfterViewInit's initial connect();
     // subsequent emissions (from in-app navigation) trigger a full session
