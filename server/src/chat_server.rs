@@ -206,10 +206,7 @@ impl WsChatServer {
         let status = if self.relay_to_shared_room(session_id, from_user, to_user, relay_msg) {
             sentry::protocol::SpanStatus::Ok
         } else {
-            log::warn!(
-                target: "Websocket",
-                "Attempted signal to user not in same room: {from_user} -> {to_user}"
-            );
+            log::warn!(target: "Websocket", "Attempted signal to user not in same room");
             sentry::protocol::SpanStatus::PermissionDenied
         };
         if let Some(tx) = tx {

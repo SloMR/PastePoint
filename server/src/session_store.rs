@@ -64,6 +64,7 @@ impl SessionStore {
     ) -> Option<Uuid> {
         // For private sessions, check if the code is expired.
         if is_private && self.is_code_expired(key) {
+            log::warn!(target: "Websocket", "Rejected private join: session code expired");
             log::debug!(target: "Websocket", "Private session code {key} is expired");
             return None;
         }
@@ -87,6 +88,9 @@ impl SessionStore {
         }
 
         if strict_mode {
+            log::warn!(target: "Websocket", "Rejected private join: unknown session code");
+            log::debug!(target: "Websocket", "Key '{key}' not found in strict mode");
+
             return None;
         }
 
@@ -138,15 +142,9 @@ impl SessionStore {
                     Err(e)
                 }
             },
-            None => {
-                log::warn!(
-                    target: "Websocket",
-                    "Key '{key}' not found in strict mode, returning 404"
-                );
-                Ok(HttpResponse::NotFound()
-                    .content_type(CONTENT_TYPE_TEXT_PLAIN)
-                    .body("Unknown session code"))
-            }
+            None => Ok(HttpResponse::NotFound()
+                .content_type(CONTENT_TYPE_TEXT_PLAIN)
+                .body("Unknown session code")),
         }
     }
 

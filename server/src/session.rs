@@ -297,7 +297,7 @@ impl WsChatSession {
         let value = match serde_json::from_str::<Value>(payload) {
             Ok(v) => v,
             Err(e) => {
-                log::warn!(target: "Websocket", "Invalid signal JSON from {}: {}", self.name, e);
+                log::warn!(target: "Websocket", "Invalid signal JSON: {e}");
                 Self::deliver(
                     tx,
                     format!("{WS_PREFIX_SYSTEM_ERROR} Invalid signaling message format"),
@@ -310,7 +310,7 @@ impl WsChatSession {
         let to_user = match value.get("to").and_then(|v| v.as_str()) {
             Some(user) => user,
             None => {
-                log::warn!(target: "Websocket", "Signal missing 'to' field from {}", self.name);
+                log::warn!(target: "Websocket", "Signal missing 'to' field");
                 Self::deliver(
                     tx,
                     format!("{WS_PREFIX_SYSTEM_ERROR} Signaling message missing 'to' field"),
@@ -336,11 +336,7 @@ impl WsChatSession {
         }
         self.message_count += 1;
         if self.message_count > MAX_WS_MESSAGES_PER_SEC {
-            log::warn!(
-                target: "Websocket",
-                "Rate limit exceeded for user {}, dropping message",
-                self.name
-            );
+            log::warn!(target: "Websocket", "Rate limit exceeded, dropping message");
             return;
         }
 

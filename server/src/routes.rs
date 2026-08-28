@@ -227,7 +227,9 @@ fn check_suspicious_connection(req: &HttpRequest, ip_str: &str) -> bool {
         .unwrap_or("unknown");
 
     if user_agent.len() < MIN_USER_AGENT_LENGTH || user_agent.to_lowercase().contains("bot") {
-        log::warn!(target: "Websocket", "Suspicious connection rejected - IP: {ip_str}, UA: {user_agent}");
+        log::warn!(target: "Websocket", "Suspicious connection rejected");
+        log::debug!(target: "Websocket", "Suspicious connection - IP: {ip_str}, UA: {user_agent}");
+
         return true;
     }
     false
