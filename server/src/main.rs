@@ -25,7 +25,7 @@ fn init_sentry(cfg: &SentryConfig) -> Option<sentry::ClientInitGuard> {
     if !cfg.enabled {
         return None;
     }
-    let dsn = std::env::var("SENTRY_DSN").ok().filter(|s| !s.is_empty())?;
+    let dsn = cfg.dsn.clone().filter(|s| !s.is_empty())?;
 
     let global_traces_rate = cfg.traces_sample_rate;
     let options = sentry::ClientOptions {

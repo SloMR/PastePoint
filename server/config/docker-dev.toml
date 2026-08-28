@@ -21,9 +21,8 @@ latest = "0.25.1"
 url = "https://127.0.0.1"
 
 [sentry]
-# DSN is read from the SENTRY_DSN env var, never committed.
-# SENTRY_ENABLED env var overrides `enabled` below.
 enabled = false
+dsn = ""
 environment = "docker-dev"
 sample_rate = 1.0
 traces_sample_rate = 0.1

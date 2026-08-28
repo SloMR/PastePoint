@@ -21,9 +21,8 @@ latest = "0.25.1"
 url = "https://pastepoint.com"
 
 [sentry]
-# DSN is read from the SENTRY_DSN env var, never committed.
-# SENTRY_ENABLED env var overrides `enabled` below.
 enabled = true
+dsn = "https://00ffd0bf7c24fb3eb38318cefb4607c3@o4510159565160448.ingest.de.sentry.io/4511350203088976"
 environment = "production"
 sample_rate = 1.0
 traces_sample_rate = 0.1
