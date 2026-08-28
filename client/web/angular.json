@@ -67,7 +67,7 @@
                 "styles": true,
                 "fonts": true
               },
-              "outputHashing": "media",
+              "outputHashing": "all",
               "sourceMap": false,
               "namedChunks": false,
               "aot": true,
@@ -102,7 +102,7 @@
                 "styles": true,
                 "fonts": true
               },
-              "outputHashing": "media",
+              "outputHashing": "all",
               "sourceMap": false,
               "aot": true,
               "namedChunks": false,
