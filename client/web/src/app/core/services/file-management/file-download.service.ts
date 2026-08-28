@@ -1,6 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import * as Sentry from '@sentry/angular';
-import { startNewTrace } from '@sentry/core';
+import { TelemetryService, TelemetrySpan } from '../monitoring/telemetry.service';
 import { Subject } from 'rxjs';
 import {
   FILE_TRANSFER_MESSAGE_TYPES,
@@ -22,11 +21,12 @@ import {
 })
 export class FileDownloadService extends FileTransferBaseService {
   private previewService = inject(PreviewService);
+  private telemetry = inject(TelemetryService);
 
   private static readonly DOWNLOAD_STALL_TIMEOUT_MS = 30_000;
   private static readonly STALL_SCAN_INTERVAL_MS = 5_000;
 
-  private activeReceiveSpans = new Map<string, Sentry.Span>();
+  private activeReceiveSpans = new Map<string, TelemetrySpan>();
   private stallWatchdog: ReturnType<typeof setInterval> | null = null;
   public downloadStatus$ = new Subject<{ fileId: string; status: FileTransferStatus }>();
 
@@ -39,17 +39,19 @@ export class FileDownloadService extends FileTransferBaseService {
     return `${fromUser}:${fileId}`;
   }
 
-  private startReceiveSpan(fromUser: string, fileId: string, fileSize: number): void {
+  private startReceiveSpan(
+    fromUser: string,
+    fileId: string,
+    fileSize: number,
+    totalChunks: number
+  ): void {
     const key = this.receiveSpanKey(fromUser, fileId);
     if (this.activeReceiveSpans.has(key)) return;
-    startNewTrace(() => {
-      const span = Sentry.startInactiveSpan({
-        name: 'file.transfer.receive',
-        op: 'file.transfer.receive',
-      });
-      span.setAttribute('file_size_bytes', fileSize);
-      this.activeReceiveSpans.set(key, span);
+    const span = this.telemetry.startSpan('file.transfer.receive', {
+      file_size_bytes: fileSize,
+      total_chunks: totalChunks,
     });
+    this.activeReceiveSpans.set(key, span);
   }
 
   private finishReceiveSpan(
@@ -70,16 +72,11 @@ export class FileDownloadService extends FileTransferBaseService {
     const key = this.receiveSpanKey(fromUser, fileId);
     const span = this.activeReceiveSpans.get(key);
     if (!span) return;
-    span.setAttribute('outcome', outcome);
-    if (extra) {
-      for (const [k, v] of Object.entries(extra)) {
-        span.setAttribute(k, v);
-      }
-    }
-    span.setStatus(
-      outcome === 'completed' ? { code: 1, message: 'ok' } : { code: 2, message: outcome }
-    );
-    span.end();
+    this.telemetry.endSpan(span, {
+      ok: outcome === 'completed',
+      outcome,
+      attributes: extra,
+    });
     this.activeReceiveSpans.delete(key);
   }
 
@@ -181,7 +178,7 @@ export class FileDownloadService extends FileTransferBaseService {
     // Initialize totalChunks
     if (fileDownload.totalChunks === 0) {
       fileDownload.totalChunks = totalChunks;
-      this.startReceiveSpan(fromUser, fileId, fileDownload.fileSize);
+      this.startReceiveSpan(fromUser, fileId, fileDownload.fileSize, totalChunks);
     }
 
     // Check for duplicate chunk

@@ -1,7 +1,6 @@
 import { Injectable, PLATFORM_ID, OnDestroy, effect, inject } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
-import * as Sentry from '@sentry/angular';
-import { startNewTrace } from '@sentry/core';
+import { TelemetryService, TelemetrySpan } from '../monitoring/telemetry.service';
 import { environment } from '../../../../environments/environment';
 import { NGXLogger } from 'ngx-logger';
 import { isPlatformBrowser } from '@angular/common';
@@ -22,6 +21,7 @@ export class WebSocketConnectionService implements OnDestroy {
   private translate = inject<TranslateService>(TranslateService);
   private platformId = inject(PLATFORM_ID);
   private updateService = inject(AppUpdateService);
+  private telemetry = inject(TelemetryService);
 
   /**
    * ==========================================================
@@ -214,13 +214,8 @@ export class WebSocketConnectionService implements OnDestroy {
 
     const wsUri = `${this.webSocketProto}://${this.host}/ws${code ? `/${code}` : ''}`;
 
-    let connectSpan: Sentry.Span | undefined;
-    startNewTrace(() => {
-      connectSpan = Sentry.startInactiveSpan({
-        name: 'ws.connect',
-        op: 'ws.connect',
-        attributes: { 'ws.has_session_code': code != null },
-      });
+    const connectSpan: TelemetrySpan = this.telemetry.startSpan('ws.connect', {
+      'ws.has_session_code': code != null,
     });
 
     return new Promise<void>((resolve, reject) => {
@@ -235,16 +230,14 @@ export class WebSocketConnectionService implements OnDestroy {
       const settleResolve = () => {
         if (settled) return;
         settled = true;
-        connectSpan?.setStatus({ code: 1, message: 'ok' });
-        connectSpan?.end();
+        this.telemetry.endSpan(connectSpan, { ok: true });
         resolve();
       };
       const settleReject = (err: unknown) => {
         if (settled) return;
         settled = true;
         const msg = err instanceof Error ? err.message : String(err);
-        connectSpan?.setStatus({ code: 2, message: msg });
-        connectSpan?.end();
+        this.telemetry.endSpan(connectSpan, { ok: false, message: msg });
         reject(err);
       };
 

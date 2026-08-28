@@ -1,6 +1,9 @@
 import { Injectable, inject } from '@angular/core';
-import * as Sentry from '@sentry/angular';
-import { startNewTrace } from '@sentry/core';
+import {
+  TelemetryService,
+  TelemetrySpan,
+  TelemetryAttributes,
+} from '../monitoring/telemetry.service';
 import { WebSocketConnectionService } from './websocket-connection.service';
 import { UserService } from '../user-management/user.service';
 import { BlockService } from './block.service';
@@ -37,6 +40,7 @@ export class WebRTCSignalingService {
   private logger = inject(NGXLogger);
   private communicationService = inject(WebRTCCommunicationService);
   private turnCredentials = inject(TurnCredentialsService);
+  private telemetry = inject(TelemetryService);
 
   // =============== Properties ===============
   public peerDisconnected$ = new Subject<string>();
@@ -58,7 +62,7 @@ export class WebRTCSignalingService {
   private latestAttemptId = new Map<string, number>();
   private meshEpoch = 0;
 
-  private activeConnectSpans = new Map<string, Sentry.Span>();
+  private activeConnectSpans = new Map<string, TelemetrySpan>();
   private connectAttemptCounts = new Map<string, number>();
   private connectSpanCeilings = new Map<string, ReturnType<typeof setTimeout>>();
 
@@ -112,11 +116,10 @@ export class WebRTCSignalingService {
       return;
     }
 
-    const span = startNewTrace(() =>
-      Sentry.startInactiveSpan({ name: 'webrtc.connect', op: 'webrtc.connect' })
-    );
+    const span = this.telemetry.startSpan('webrtc.connect', {
+      role: this.shouldInitiateConnection(targetUser) ? 'caller' : 'callee',
+    });
     this.activeConnectSpans.set(targetUser, span);
-    span.setAttribute('role', this.shouldInitiateConnection(targetUser) ? 'caller' : 'callee');
     this.startConnectSpanCeiling(targetUser);
 
     void this.initiateConnectionInner(targetUser, span);
@@ -186,35 +189,33 @@ export class WebRTCSignalingService {
       return acc;
     }, {});
 
-    span.setAttribute('outcome', 'failed');
-    span.setAttribute('failure_reason', reason);
-    span.setAttribute('webrtc.peer_state', peerConnection?.connectionState ?? 'unknown');
-    span.setAttribute('webrtc.ice_state', peerConnection?.iceConnectionState ?? 'unknown');
-    span.setAttribute(
-      'webrtc.has_relay',
-      candidates.some((c) => c.type === 'relay')
-    );
-    span.setAttribute(
-      'webrtc.has_srflx',
-      candidates.some((c) => c.type === 'srflx')
-    );
-    span.setAttribute('webrtc.candidate_total', candidates.length);
+    const diagnostics: TelemetryAttributes = {
+      failure_reason: reason,
+      'webrtc.peer_state': peerConnection?.connectionState ?? 'unknown',
+      'webrtc.ice_state': peerConnection?.iceConnectionState ?? 'unknown',
+      'webrtc.has_relay': candidates.some((c) => c.type === 'relay'),
+      'webrtc.has_srflx': candidates.some((c) => c.type === 'srflx'),
+      'webrtc.candidate_total': candidates.length,
+    };
     for (const [type, count] of Object.entries(candidateTypeCounts)) {
-      span.setAttribute(`webrtc.candidate.${type}`, count);
+      diagnostics[`webrtc.candidate.${type}`] = count;
     }
-    span.setStatus({ code: 2, message: reason });
-    span.end();
+    this.telemetry.endSpan(span, {
+      ok: false,
+      outcome: 'failed',
+      message: reason,
+      attributes: diagnostics,
+    });
     this.clearConnectSpan(targetUser);
   }
 
-  private async initiateConnectionInner(targetUser: string, span: Sentry.Span): Promise<void> {
+  private async initiateConnectionInner(targetUser: string, span: TelemetrySpan): Promise<void> {
     if (targetUser === this.userService.user) {
       this.logger.warn(
         'initiateConnection',
         `Preventing self-connection attempt to: "${targetUser}"`
       );
-      span.setAttribute('outcome', 'self_connection_skipped');
-      span.end();
+      this.telemetry.endSpan(span, { ok: true, outcome: 'self_connection_skipped' });
       this.clearConnectSpan(targetUser);
       return;
     }
@@ -222,9 +223,11 @@ export class WebRTCSignalingService {
     if (this.connectionLocks.has(targetUser)) {
       this.logger.debug('initiateConnection', `Connection already in progress for ${targetUser}`);
       if ((this.connectAttemptCounts.get(targetUser) ?? 0) === 1) {
-        span.setAttribute('outcome', 'skipped_lock');
-        span.setStatus({ code: 1, message: 'already_in_progress' });
-        span.end();
+        this.telemetry.endSpan(span, {
+          ok: true,
+          outcome: 'skipped_lock',
+          message: 'already_in_progress',
+        });
         this.clearConnectSpan(targetUser);
       }
       return;
@@ -240,9 +243,11 @@ export class WebRTCSignalingService {
           'initiateConnection',
           `PeerConnection with ${targetUser} is ${connectionState}`
         );
-        span.setAttribute('outcome', `skipped_${connectionState}`);
-        span.setStatus({ code: 1, message: connectionState });
-        span.end();
+        this.telemetry.endSpan(span, {
+          ok: true,
+          outcome: `skipped_${connectionState}`,
+          message: connectionState,
+        });
         this.clearConnectSpan(targetUser);
         return;
       }
@@ -260,9 +265,11 @@ export class WebRTCSignalingService {
           'initiateConnection',
           `PeerConnection with ${targetUser} exists in state ${connectionState}/${iceState}`
         );
-        span.setAttribute('outcome', `skipped_${connectionState}_${iceState}`);
-        span.setStatus({ code: 1, message: 'unexpected_state' });
-        span.end();
+        this.telemetry.endSpan(span, {
+          ok: true,
+          outcome: `skipped_${connectionState}_${iceState}`,
+          message: 'unexpected_state',
+        });
         this.clearConnectSpan(targetUser);
         return;
       }
@@ -405,9 +412,7 @@ export class WebRTCSignalingService {
   public closeConnection(targetUser: string): void {
     const span = this.activeConnectSpans.get(targetUser);
     if (span) {
-      span.setAttribute('outcome', 'cancelled');
-      span.setStatus({ code: 2, message: 'cancelled' });
-      span.end();
+      this.telemetry.endSpan(span, { ok: false, outcome: 'cancelled' });
       this.clearConnectSpan(targetUser);
     }
 
@@ -471,9 +476,7 @@ export class WebRTCSignalingService {
    */
   public closeAllConnections(): void {
     this.activeConnectSpans.forEach((span) => {
-      span.setAttribute('outcome', 'cancelled');
-      span.setStatus({ code: 2, message: 'closeAll' });
-      span.end();
+      this.telemetry.endSpan(span, { ok: false, outcome: 'cancelled', message: 'closeAll' });
     });
     this.activeConnectSpans.clear();
     this.connectAttemptCounts.clear();
@@ -638,11 +641,8 @@ export class WebRTCSignalingService {
         );
 
         const hasRelay = candidates.some((c) => c.type === 'relay');
-        Sentry.addBreadcrumb({
-          category: 'webrtc.ice',
-          level: 'info',
-          message: 'ice gathering complete',
-          data: { types: candidateTypes },
+        this.telemetry.breadcrumb('webrtc.ice', 'ice gathering complete', 'info', {
+          types: candidateTypes,
         });
         if (!hasRelay && candidates.length > 0) {
           this.logger.warn(
@@ -669,11 +669,11 @@ export class WebRTCSignalingService {
       if (this.peerConnections.get(targetUser) !== peerConnection) return;
 
       const state = peerConnection.connectionState;
-      Sentry.addBreadcrumb({
-        category: 'webrtc.peer',
-        level: state === 'failed' ? 'error' : 'info',
-        message: `peer connection state: ${state}`,
-      });
+      this.telemetry.breadcrumb(
+        'webrtc.peer',
+        `peer connection state: ${state}`,
+        state === 'failed' ? 'error' : 'info'
+      );
 
       if (state === 'connected') {
         // Clear ICE gathering timeout when connection is established
@@ -705,11 +705,11 @@ export class WebRTCSignalingService {
       if (this.peerConnections.get(targetUser) !== peerConnection) return;
 
       const iceState = peerConnection.iceConnectionState;
-      Sentry.addBreadcrumb({
-        category: 'webrtc.ice',
-        level: iceState === 'failed' ? 'error' : 'info',
-        message: `ice connection state: ${iceState}`,
-      });
+      this.telemetry.breadcrumb(
+        'webrtc.ice',
+        `ice connection state: ${iceState}`,
+        iceState === 'failed' ? 'error' : 'info'
+      );
 
       if (iceState === 'connected' || iceState === 'completed') {
         // Clear ICE gathering timeout when ICE connection is established
@@ -1434,10 +1434,10 @@ export class WebRTCSignalingService {
    * @param targetUser The user the attempt is for
    * @param span The span tracking this connection
    */
-  private recordAttempt(targetUser: string, span: Sentry.Span): void {
+  private recordAttempt(targetUser: string, span: TelemetrySpan): void {
     const next = (this.connectAttemptCounts.get(targetUser) ?? 0) + 1;
     this.connectAttemptCounts.set(targetUser, next);
-    span.setAttribute('attempts', next);
+    this.telemetry.setAttributes(span, { attempts: next });
   }
 
   /**

@@ -1,5 +1,5 @@
 import { Injectable, NgZone, PLATFORM_ID, inject } from '@angular/core';
-import * as Sentry from '@sentry/angular';
+import { TelemetryService } from '../monitoring/telemetry.service';
 import { BehaviorSubject, Subject } from 'rxjs';
 import {
   BUFFERED_AMOUNT_LOW_THRESHOLD,
@@ -24,6 +24,7 @@ export class WebRTCCommunicationService {
   private toaster = inject(HotToastService);
   private platformId = inject(PLATFORM_ID);
   private blockService = inject(BlockService);
+  private telemetry = inject(TelemetryService);
 
   // =============== Properties ===============
 
@@ -158,11 +159,9 @@ export class WebRTCCommunicationService {
           `Data Channel Error with ${targetUser}: ${JSON.stringify(ev)}`
         );
       }
-      Sentry.addBreadcrumb({
-        category: 'webrtc.datachannel',
-        level: 'error',
-        message: 'data channel error',
-        data: { ready_state: channel.readyState, error: errorDetail },
+      this.telemetry.breadcrumb('webrtc.datachannel', 'data channel error', 'error', {
+        ready_state: channel.readyState,
+        error: errorDetail,
       });
       this.dataChannelClosed$.next(targetUser);
     };
@@ -488,11 +487,7 @@ export class WebRTCCommunicationService {
             'handleDataChannelMessage',
             `Failed to decode chunk from ${targetUser}, size: ${data.byteLength}`
           );
-          Sentry.addBreadcrumb({
-            category: 'webrtc.datachannel',
-            level: 'error',
-            message: 'chunk decode failed',
-          });
+          this.telemetry.breadcrumb('webrtc.datachannel', 'chunk decode failed', 'error');
         }
       } else {
         this.logger.warn(
