@@ -75,7 +75,7 @@ export class FileUploadService extends FileTransferBaseService {
     groupId: string
   ): Promise<void> {
     if (file.size === 0) {
-      this.logger.warn('prepareFileForSending', `Skipping empty file ${file.name}`);
+      this.logger.warn('prepareFileForSending', 'Skipping empty file');
       this.toaster.error(this.translate.instant('FILE_EMPTY_ERROR', { fileName: file.name }));
       return;
     }
@@ -597,7 +597,7 @@ export class FileUploadService extends FileTransferBaseService {
 
     this.logger.info(
       'sendFileChunks',
-      `Starting: ${fileTransfer.file.name}, size=${fileTransfer.file.size}, chunks=${totalChunks}`
+      `Starting: size=${fileTransfer.file.size}, chunks=${totalChunks}`
     );
 
     try {

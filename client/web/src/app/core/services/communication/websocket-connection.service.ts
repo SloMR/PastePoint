@@ -189,7 +189,7 @@ export class WebSocketConnectionService implements OnDestroy {
     }
 
     if (this.isConnected() && this.sessionCode === code) {
-      this.logger.info('connect', `Already connected to session ${code}, skipping connection`);
+      this.logger.info('connect', 'Already connected to this session, skipping connection');
       return Promise.resolve();
     }
 
@@ -225,7 +225,7 @@ export class WebSocketConnectionService implements OnDestroy {
     });
 
     return new Promise<void>((resolve, reject) => {
-      this.logger.info('connect', `Connecting to WebSocket at ${wsUri}`);
+      this.logger.info('connect', `Connecting to WebSocket (private: ${code != null})`);
       const socket = new WebSocket(wsUri);
       this.socket = socket;
 

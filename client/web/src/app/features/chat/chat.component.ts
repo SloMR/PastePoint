@@ -998,7 +998,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     return this.wsConnectionService
       .connect(code)
       .then(() => {
-        this.logger.info('connect', `Connected to session: ${code ?? 'No code provided'}`);
+        this.logger.info('connect', `Connected to session (private: ${code != null})`);
         this.roomService.listRooms();
         this.chatService.getUsername();
         if (code) {
@@ -1026,7 +1026,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     if (!isPlatformBrowser(this.platformId)) return;
 
     const transitionId = ++this.currentTransitionId;
-    this.logger.info('enterSession', `Switching to session: ${code ?? 'public'}`);
+    this.logger.info('enterSession', `Switching to session (private: ${code != null})`);
 
     // ---- Tear down previous session ----
     this.webrtcService.closeAllConnections();

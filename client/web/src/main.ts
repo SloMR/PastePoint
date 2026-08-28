@@ -7,6 +7,7 @@ import { LANGUAGE_PREFERENCE_KEY } from './app/utils/constants';
 import { environment } from './environments/environment';
 import { name as pkgName, version as pkgVersion } from '../package.json';
 import { reloadOnceForChunkError } from './app/utils/chunk-reload';
+import { scrubBreadcrumb, scrubSessionCodes } from './app/core/services/monitoring/sentry-scrubber';
 
 // Background chunk preloads that fail after a deploy reject as unhandled
 // promise rejections, which bypass Angular's ErrorHandler — reload here too.
@@ -79,6 +80,9 @@ if (typeof window !== 'undefined' && environment.sentry?.enabled && environment.
       }
       return event;
     },
+    beforeBreadcrumb(breadcrumb) {
+      return scrubBreadcrumb(breadcrumb);
+    },
     beforeSend(event) {
       // Strip user-identifying data before the event leaves the browser.
       event.user = { ip_address: '127.0.0.1' };
@@ -88,6 +92,9 @@ if (typeof window !== 'undefined' && environment.sentry?.enabled && environment.
         delete event.request.headers;
         delete event.request.data;
         delete event.request.query_string;
+        if (event.request.url) {
+          event.request.url = scrubSessionCodes(event.request.url);
+        }
       }
       // Strip browser-derived locale signals from the device / culture contexts
       if (event.contexts?.['device']) {
