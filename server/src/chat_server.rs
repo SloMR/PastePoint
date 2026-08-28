@@ -76,9 +76,10 @@ impl ChatServerHandle {
         from_user: &str,
         to_user: &str,
         payload: &str,
+        signal_type: &str,
     ) {
         self.lock()
-            .validate_and_relay_signal(session_id, from_user, to_user, payload);
+            .validate_and_relay_signal(session_id, from_user, to_user, payload, signal_type);
     }
 
     /// Prune sessions whose rooms are all empty.
@@ -185,12 +186,15 @@ impl WsChatServer {
         from_user: &str,
         to_user: &str,
         payload: &str,
+        signal_type: &str,
     ) {
         let tx = sentry::Hub::current().client().map(|_| {
-            sentry::start_transaction(sentry::TransactionContext::new(
+            let tx = sentry::start_transaction(sentry::TransactionContext::new(
                 "signaling.relay",
                 "websocket.signal",
-            ))
+            ));
+            tx.set_tag("signal.type", signal_type);
+            tx
         });
 
         if from_user == to_user {

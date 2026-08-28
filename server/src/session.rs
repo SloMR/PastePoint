@@ -320,7 +320,19 @@ impl WsChatSession {
         };
 
         // 4. Validate room membership and relay through the shared server.
-        server.validate_and_relay_signal(&self.session_id, &self.name, to_user, payload);
+        let signal_type = match value.get("type").and_then(|v| v.as_str()) {
+            Some(t @ ("offer" | "answer" | "candidate" | "connection_request")) => t,
+            Some(_) => "other",
+            None => "unknown",
+        };
+
+        server.validate_and_relay_signal(
+            &self.session_id,
+            &self.name,
+            to_user,
+            payload,
+            signal_type,
+        );
     }
 
     fn handle_user_disconnect(&self, server: &ChatServerHandle) {
