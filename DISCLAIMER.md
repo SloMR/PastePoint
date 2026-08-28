@@ -113,6 +113,6 @@ The reports do **not** contain:
 - User accounts, names, or email addresses
 - IP addresses or geolocation (the SDK and server-side scrubbing both strip these)
 
-Error reports help us identify and fix bugs. They are retained for a limited time and then deleted automatically. Operators of self-hosted PastePoint instances may disable error reporting entirely by setting `SENTRY_ENABLED=false` in their environment configuration.
+Error reports help us identify and fix bugs. They are retained for a limited time and then deleted automatically. Operators of self-hosted PastePoint instances may disable error reporting entirely by setting `enabled = false` (or leaving the `dsn` empty) under `[sentry]` in the server configuration and in the web client's environment files.
 
 PastePoint is a tool. Please use it wisely, lawfully, and responsibly.
