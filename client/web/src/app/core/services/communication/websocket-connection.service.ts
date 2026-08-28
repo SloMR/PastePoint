@@ -90,6 +90,7 @@ export class WebSocketConnectionService implements OnDestroy {
       const required = this.updateRequired();
       if (required && (this.isConnected() || this.isConnecting || this.reconnectTimer !== null)) {
         this.logger.warn('updateGate', 'Update required, disconnecting until the app is updated');
+        this.telemetry.warnEvent('update.gate_blocked');
         this.isDisconnectedForUpdate = true;
         this.disconnect(false);
       } else if (!required && this.isDisconnectedForUpdate) {
@@ -247,6 +248,7 @@ export class WebSocketConnectionService implements OnDestroy {
         this.logger.info('connect', 'WebSocket connected');
         this.connected$.next();
         if (this.reconnectAttempts > 0) {
+          this.telemetry.event('ws.reconnected', { attempts: this.reconnectAttempts });
           this.reconnected$.next();
         }
         this.reconnectAttempts = 0;

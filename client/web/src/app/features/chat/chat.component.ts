@@ -13,6 +13,7 @@ import {
   inject,
 } from '@angular/core';
 import { combineLatest, Subscription } from 'rxjs';
+import { TelemetryService } from '../../core/services/monitoring/telemetry.service';
 import { distinctUntilChanged, filter, map } from 'rxjs/operators';
 import { isPlatformBrowser } from '@angular/common';
 
@@ -114,6 +115,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   private fileTransferService = inject(FileTransferService);
   private webrtcService = inject(WebRTCService);
   private wsConnectionService = inject(WebSocketConnectionService);
+  private telemetry = inject(TelemetryService);
   private themeService = inject(ThemeService);
   private languageService = inject(LanguageService);
   private cdr = inject(ChangeDetectorRef);
@@ -791,6 +793,11 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
           this.memberConnectionStatus.set(member, true);
           this.memberConnectionState.set(member, 'connected');
           this.clearConnectionWarning(member);
+
+          this.telemetry.event('mesh.peer_connected', {
+            room_size: this.members.length + 1,
+            is_private: !!this.SessionCode,
+          });
           this.cdr.detectChanges();
         });
       })
@@ -1173,6 +1180,8 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
 
         // Only add to local chat if at least one send was successful
         if (hasSuccessfulSend) {
+          this.telemetry.event('chat.message_sent', { recipients: otherMembers.length });
+
           this.chatService.addMessageToLocal(messageText, ChatMessageType.TEXT);
         }
       }
@@ -1624,6 +1633,8 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   createPrivateSession(): void {
     this.sessionService.createNewSessionCode().subscribe({
       next: (res) => {
+        this.telemetry.event('session.invite_created');
+
         this.ngZone.run(() => {
           const code = res.code;
           this.openChatSession(code);

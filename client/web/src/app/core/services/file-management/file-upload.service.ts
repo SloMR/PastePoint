@@ -373,6 +373,11 @@ export class FileUploadService extends FileTransferBaseService {
     await this.setFileTransferStatus(key, FileTransferStatus.COMPLETED);
     this.markGroupOutcome(fileTransfer.groupId, true);
 
+    this.telemetry.event('file.delivered', {
+      file_size_bytes: fileTransfer.file.size,
+      mime: fileTransfer.file.type || 'unknown',
+    });
+
     this.toaster.success(
       this.translate.instant('FILE_UPLOAD_COMPLETED', { fileName: fileTransfer.file.name })
     );
@@ -457,6 +462,10 @@ export class FileUploadService extends FileTransferBaseService {
       };
       this.sendData(basicMessage, targetUser);
       this.logger.debug('sendFileOffer', `Sent basic offer for ${fileId} to ${targetUser}`);
+      this.telemetry.event('file.offer_sent', {
+        file_size_bytes: fileTransfer.file.size,
+        mime: fileTransfer.file.type || 'unknown',
+      });
 
       // Phase 2: Calculate hash and generate preview, then send complete offer
       let previewDataUrl: string | undefined;
