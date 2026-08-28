@@ -104,6 +104,14 @@ impl WsChatServer {
             client_name.to_owned(),
         ) {
             Some(id) => {
+                let room_size = self
+                    .rooms
+                    .get(session_id)
+                    .and_then(|rooms| rooms.get(room_name))
+                    .map_or(0, |room| room.len());
+
+                sentry::logger_info!(room_size = room_size as u64, "room.joined");
+
                 let join_msg = format!("{client_name} {WS_PREFIX_SYSTEM_JOIN} {room_name}");
                 self.send_join_message(session_id, room_name, &join_msg);
                 self.broadcast_room_members(session_id, room_name);
@@ -404,5 +412,6 @@ impl WsChatServer {
             "Current server state: {} active sessions",
             self.rooms.len()
         );
+        sentry::logger_info!(count = self.rooms.len() as u64, "sessions.active");
     }
 }

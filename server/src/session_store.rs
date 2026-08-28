@@ -104,6 +104,11 @@ impl SessionStore {
             map.insert(key.to_string(), new_data);
         }
         self.increment_client_count(new_uuid);
+
+        sentry::logger_info!(
+            kind = if is_private { "private" } else { "public" },
+            "session.created"
+        );
         Some(new_uuid)
     }
 

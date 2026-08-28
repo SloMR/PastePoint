@@ -39,7 +39,23 @@ pub async fn health() -> impl Responder {
 // Client version policy route
 // -----------------------------------------------------
 #[get("/version")]
-pub async fn version(config: web::Data<ClientVersionConfig>) -> impl Responder {
+pub async fn version(req: HttpRequest, config: web::Data<ClientVersionConfig>) -> impl Responder {
+    let platform = req
+        .headers()
+        .get(header::USER_AGENT)
+        .and_then(|v| v.to_str().ok())
+        .map_or("other", |ua| {
+            let ua = ua.to_ascii_lowercase();
+            if ua.contains("pastepoint") || ua.contains("cfnetwork") {
+                "ios"
+            } else if ua.contains("mozilla") {
+                "web"
+            } else {
+                "other"
+            }
+        });
+    sentry::logger_info!(platform = platform, "version.check");
+
     HttpResponse::Ok()
         .insert_header((header::CACHE_CONTROL, "public, max-age=300"))
         .json(config.get_ref())
@@ -110,6 +126,8 @@ pub async fn create_session(store: web::Data<SessionStore>) -> Result<HttpRespon
             },
         );
     }
+
+    sentry::logger_info!(kind = "private", "session.created");
     Ok(HttpResponse::Ok()
         .content_type(header::ContentType::json())
         .json(json!({ "code": code })))
