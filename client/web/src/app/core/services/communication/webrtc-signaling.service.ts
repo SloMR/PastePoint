@@ -167,10 +167,65 @@ export class WebRTCSignalingService {
   private finishConnectSpanAsSuccess(targetUser: string): void {
     const span = this.activeConnectSpans.get(targetUser);
     if (!span) return;
-    span.setAttribute('outcome', 'connected');
-    span.setStatus({ code: 1, message: 'ok' });
-    span.end();
+    const peerConnection = this.peerConnections.get(targetUser);
+
     this.clearConnectSpan(targetUser);
+    void this.readSelectedCandidateTypes(peerConnection).then((selected) => {
+      if (selected) {
+        this.telemetry.setAttributes(span, {
+          'webrtc.selected_path': selected.local,
+          'webrtc.selected_remote_path': selected.remote,
+          'webrtc.via_relay': selected.local === 'relay' || selected.remote === 'relay',
+        });
+      }
+      this.telemetry.endSpan(span, { ok: true, outcome: 'connected' });
+    });
+  }
+
+  /**
+   * Reads the ICE candidate types of the selected pair (host/srflx/prflx/relay)
+   * so successful connects record whether they went direct or via TURN.
+   */
+  private async readSelectedCandidateTypes(
+    peerConnection: RTCPeerConnection | undefined
+  ): Promise<{ local: string; remote: string } | null> {
+    if (!peerConnection) return null;
+    try {
+      const stats = await peerConnection.getStats();
+      let selectedPairId: string | undefined;
+      const pairs: {
+        id: string;
+        state?: string;
+        nominated?: boolean;
+        localCandidateId?: string;
+        remoteCandidateId?: string;
+      }[] = [];
+      const candidateTypes = new Map<string, string>();
+
+      stats.forEach((report) => {
+        if (report.type === 'transport') {
+          const transport = report as { selectedCandidatePairId?: string };
+          selectedPairId = transport.selectedCandidatePairId ?? selectedPairId;
+        } else if (report.type === 'candidate-pair') {
+          pairs.push(report as (typeof pairs)[number]);
+        } else if (report.type === 'local-candidate' || report.type === 'remote-candidate') {
+          const candidate = report as { id: string; candidateType?: string };
+          candidateTypes.set(candidate.id, candidate.candidateType ?? 'unknown');
+        }
+      });
+
+      const pair = selectedPairId
+        ? pairs.find((p) => p.id === selectedPairId)
+        : pairs.find((p) => p.state === 'succeeded' && p.nominated);
+      if (!pair?.localCandidateId || !pair.remoteCandidateId) return null;
+
+      return {
+        local: candidateTypes.get(pair.localCandidateId) ?? 'unknown',
+        remote: candidateTypes.get(pair.remoteCandidateId) ?? 'unknown',
+      };
+    } catch {
+      return null;
+    }
   }
 
   /**

@@ -561,6 +561,7 @@ export class FileUploadService extends FileTransferBaseService {
     return this.telemetry.withSpan('file.transfer.send', (span) => {
       this.telemetry.setAttributes(span, {
         file_size_bytes: fileTransfer.file.size,
+        mime: fileTransfer.file.type || 'unknown',
       });
       return this.sendFileChunksInner(fileTransfer, span);
     });
@@ -578,6 +579,8 @@ export class FileUploadService extends FileTransferBaseService {
 
     this.processingQueues.set(transferId, true);
     const totalChunks = calculateTotalChunks(fileTransfer.file.size, CHUNK_SIZE);
+
+    this.telemetry.setAttributes(span, { total_chunks: totalChunks });
     let chunkIndex = Math.floor(fileTransfer.currentOffset / CHUNK_SIZE);
 
     const PROGRESS_FLUSH_INTERVAL_MS = 250;
@@ -596,6 +599,7 @@ export class FileUploadService extends FileTransferBaseService {
             'sendFileChunks',
             `File transfer cancelled for fileId=${fileTransfer.fileId}`
           );
+          this.telemetry.markSpan(span, { ok: false, outcome: 'cancelled' });
           break;
         }
 

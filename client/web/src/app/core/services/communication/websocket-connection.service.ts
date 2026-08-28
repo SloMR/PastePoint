@@ -216,6 +216,7 @@ export class WebSocketConnectionService implements OnDestroy {
 
     const connectSpan: TelemetrySpan = this.telemetry.startSpan('ws.connect', {
       'ws.has_session_code': code != null,
+      attempt: this.reconnectAttempts,
     });
 
     return new Promise<void>((resolve, reject) => {
