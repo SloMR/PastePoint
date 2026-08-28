@@ -22,7 +22,7 @@ url = "https://pastepoint.com"
 
 [sentry]
 enabled = true
-dsn = "https://00ffd0bf7c24fb3eb38318cefb4607c3@o4510159565160448.ingest.de.sentry.io/4511350203088976"
+dsn = "https://729b743e1e24e4049f33b35d19313544@o4510159565160448.ingest.de.sentry.io/4511350190702672"
 environment = "production"
 sample_rate = 1.0
 traces_sample_rate = 1.0
