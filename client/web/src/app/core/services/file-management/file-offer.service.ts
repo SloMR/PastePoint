@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { TelemetryService } from '../monitoring/telemetry.service';
 import { FileDownload, FILE_TRANSFER_MESSAGE_TYPES } from '../../../utils/constants';
 import { FileTransferBaseService } from './file-transfer-base.service';
 
@@ -6,6 +7,8 @@ import { FileTransferBaseService } from './file-transfer-base.service';
   providedIn: 'root',
 })
 export class FileOfferService extends FileTransferBaseService {
+  private telemetry = inject(TelemetryService);
+
   // =============== Constructor ===============
   constructor() {
     super();
@@ -107,6 +110,7 @@ export class FileOfferService extends FileTransferBaseService {
       `Sending file acceptance to ${fromUser} for fileId=${fileId}`
     );
     this.sendData(message, fromUser);
+    this.telemetry.event('file.offer_accepted', { file_size_bytes: fileDownload.fileSize });
     await this.updateActiveDownloads();
   }
 
@@ -130,6 +134,7 @@ export class FileOfferService extends FileTransferBaseService {
       },
     };
     this.sendData(message, fromUser);
+    this.telemetry.event('file.offer_declined');
     this.toaster.info(this.translate.instant('FILE_TRANSFER_DECLINED'));
   }
 }

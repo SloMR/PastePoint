@@ -67,7 +67,7 @@
                 "styles": true,
                 "fonts": true
               },
-              "outputHashing": "media",
+              "outputHashing": "all",
               "sourceMap": false,
               "namedChunks": false,
               "aot": true,
@@ -82,7 +82,8 @@
             "development": {
               "optimization": false,
               "extractLicenses": false,
-              "sourceMap": true
+              "sourceMap": true,
+              "outputHashing": "all"
             },
             "docker": {
               "budgets": [
@@ -102,7 +103,7 @@
                 "styles": true,
                 "fonts": true
               },
-              "outputHashing": "media",
+              "outputHashing": "all",
               "sourceMap": false,
               "aot": true,
               "namedChunks": false,
@@ -118,6 +119,7 @@
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true,
+              "outputHashing": "all",
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",

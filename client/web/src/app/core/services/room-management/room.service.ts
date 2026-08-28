@@ -1,7 +1,6 @@
 import { Injectable, NgZone, inject } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import * as Sentry from '@sentry/angular';
-import { startNewTrace } from '@sentry/core';
+import { TelemetryService, TelemetrySpan } from '../monitoring/telemetry.service';
 import { WebSocketConnectionService } from '../communication/websocket-connection.service';
 import { NGXLogger } from 'ngx-logger';
 import { IRoomService } from '../../interfaces/room.interface';
@@ -13,6 +12,7 @@ export class RoomService implements IRoomService {
   private wsService = inject(WebSocketConnectionService);
   private logger = inject(NGXLogger);
   private ngZone = inject(NgZone);
+  private telemetry = inject(TelemetryService);
 
   /**
    * ==========================================================
@@ -24,7 +24,7 @@ export class RoomService implements IRoomService {
   public members$ = new BehaviorSubject<string[]>([]);
   public currentRoom = 'main';
 
-  private pendingJoinSpan: Sentry.Span | null = null;
+  private pendingJoinSpan: TelemetrySpan | null = null;
   private pendingJoinTimeout: ReturnType<typeof setTimeout> | null = null;
   private static readonly JOIN_SPAN_TIMEOUT_MS = 10_000;
 
@@ -37,12 +37,7 @@ export class RoomService implements IRoomService {
       this.pendingJoinTimeout = null;
     }
     if (this.pendingJoinSpan) {
-      this.pendingJoinSpan.setAttribute('outcome', outcome);
-      this.pendingJoinSpan.setStatus({
-        code: statusCode,
-        message: statusCode === 1 ? 'ok' : outcome,
-      });
-      this.pendingJoinSpan.end();
+      this.telemetry.endSpan(this.pendingJoinSpan, { ok: statusCode === 1, outcome });
       this.pendingJoinSpan = null;
     }
   }
@@ -101,12 +96,7 @@ export class RoomService implements IRoomService {
 
     this.clearPendingJoinSpan('superseded', 2);
 
-    startNewTrace(() => {
-      this.pendingJoinSpan = Sentry.startInactiveSpan({
-        name: 'room.join',
-        op: 'session.join',
-      });
-    });
+    this.pendingJoinSpan = this.telemetry.startSpan('session.join', undefined, 'room.join');
     this.pendingJoinTimeout = setTimeout(() => {
       this.logger.warn('joinRoom', `Join timed out for room: ${sanitizedRoom}`);
       this.clearPendingJoinSpan('timeout', 2);

@@ -16,17 +16,16 @@ latest = "0.14.2"
 url = "https://apps.apple.com/app/id6788860511"
 
 [client_version.web]
-minimum = "0.25.1"
-latest = "0.25.1"
+minimum = "0.25.2"
+latest = "0.25.2"
 url = "https://127.0.0.1"
 
 [sentry]
-# DSN is read from the SENTRY_DSN env var, never committed.
-# SENTRY_ENABLED env var overrides `enabled` below.
 enabled = false
+dsn = ""
 environment = "development"
 sample_rate = 1.0
-traces_sample_rate = 0.1
+traces_sample_rate = 1.0
 
 # TURN relay for GET /turn-credentials. urls are the fixed public relay (same in
 # every env); the shared secret comes from the TURN_SECRET env var, never here.

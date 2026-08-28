@@ -1,7 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Subject } from 'rxjs';
-import * as Sentry from '@sentry/angular';
-import { startNewTrace } from '@sentry/core';
+import { TelemetryService, TelemetrySpan } from '../monitoring/telemetry.service';
 import {
   FileUpload,
   CHUNK_SIZE,
@@ -27,6 +26,7 @@ import { UserService } from '../user-management/user.service';
 export class FileUploadService extends FileTransferBaseService {
   private previewService = inject(PreviewService);
   private userService = inject(UserService);
+  private telemetry = inject(TelemetryService);
 
   // =============== Private Properties ===============
   private processingQueues = new Map<string, boolean>();
@@ -75,7 +75,7 @@ export class FileUploadService extends FileTransferBaseService {
     groupId: string
   ): Promise<void> {
     if (file.size === 0) {
-      this.logger.warn('prepareFileForSending', `Skipping empty file ${file.name}`);
+      this.logger.warn('prepareFileForSending', 'Skipping empty file');
       this.toaster.error(this.translate.instant('FILE_EMPTY_ERROR', { fileName: file.name }));
       return;
     }
@@ -373,6 +373,11 @@ export class FileUploadService extends FileTransferBaseService {
     await this.setFileTransferStatus(key, FileTransferStatus.COMPLETED);
     this.markGroupOutcome(fileTransfer.groupId, true);
 
+    this.telemetry.event('file.delivered', {
+      file_size_bytes: fileTransfer.file.size,
+      mime: fileTransfer.file.type || 'unknown',
+    });
+
     this.toaster.success(
       this.translate.instant('FILE_UPLOAD_COMPLETED', { fileName: fileTransfer.file.name })
     );
@@ -457,6 +462,10 @@ export class FileUploadService extends FileTransferBaseService {
       };
       this.sendData(basicMessage, targetUser);
       this.logger.debug('sendFileOffer', `Sent basic offer for ${fileId} to ${targetUser}`);
+      this.telemetry.event('file.offer_sent', {
+        file_size_bytes: fileTransfer.file.size,
+        mime: fileTransfer.file.type || 'unknown',
+      });
 
       // Phase 2: Calculate hash and generate preview, then send complete offer
       let previewDataUrl: string | undefined;
@@ -558,15 +567,16 @@ export class FileUploadService extends FileTransferBaseService {
    * Each chunk contains embedded fileId, eliminating chunk mismatching.
    */
   private async sendFileChunks(fileTransfer: FileUpload): Promise<void> {
-    return startNewTrace(() =>
-      Sentry.startSpan({ name: 'file.transfer.send', op: 'file.transfer.send' }, async (span) => {
-        span.setAttribute('file_size_bytes', fileTransfer.file.size);
-        return this.sendFileChunksInner(fileTransfer, span);
-      })
-    );
+    return this.telemetry.withSpan('file.transfer.send', (span) => {
+      this.telemetry.setAttributes(span, {
+        file_size_bytes: fileTransfer.file.size,
+        mime: fileTransfer.file.type || 'unknown',
+      });
+      return this.sendFileChunksInner(fileTransfer, span);
+    });
   }
 
-  private async sendFileChunksInner(fileTransfer: FileUpload, span: Sentry.Span): Promise<void> {
+  private async sendFileChunksInner(fileTransfer: FileUpload, span: TelemetrySpan): Promise<void> {
     const transferId = this.getOrCreateStatusKey(fileTransfer.targetUser, fileTransfer.fileId);
     if (this.processingQueues.get(transferId)) {
       this.logger.warn(
@@ -578,6 +588,8 @@ export class FileUploadService extends FileTransferBaseService {
 
     this.processingQueues.set(transferId, true);
     const totalChunks = calculateTotalChunks(fileTransfer.file.size, CHUNK_SIZE);
+
+    this.telemetry.setAttributes(span, { total_chunks: totalChunks });
     let chunkIndex = Math.floor(fileTransfer.currentOffset / CHUNK_SIZE);
 
     const PROGRESS_FLUSH_INTERVAL_MS = 250;
@@ -585,7 +597,7 @@ export class FileUploadService extends FileTransferBaseService {
 
     this.logger.info(
       'sendFileChunks',
-      `Starting: ${fileTransfer.file.name}, size=${fileTransfer.file.size}, chunks=${totalChunks}`
+      `Starting: size=${fileTransfer.file.size}, chunks=${totalChunks}`
     );
 
     try {
@@ -596,6 +608,7 @@ export class FileUploadService extends FileTransferBaseService {
             'sendFileChunks',
             `File transfer cancelled for fileId=${fileTransfer.fileId}`
           );
+          this.telemetry.markSpan(span, { ok: false, outcome: 'cancelled' });
           break;
         }
 
@@ -616,8 +629,11 @@ export class FileUploadService extends FileTransferBaseService {
           const errorCount = this.consecutiveErrorCounts.get(transferId) ?? 0;
           this.consecutiveErrorCounts.set(transferId, errorCount + 1);
           if (errorCount > this.maxConsecutiveErrors) {
-            span.setAttribute('outcome', 'aborted_channel_unavailable');
-            span.setStatus({ code: 2, message: 'channel_unavailable' });
+            this.telemetry.markSpan(span, {
+              ok: false,
+              outcome: 'aborted_channel_unavailable',
+              message: 'channel_unavailable',
+            });
             await this.stopFileUpload(fileTransfer.targetUser, fileTransfer.fileId);
             break;
           }
@@ -692,8 +708,11 @@ export class FileUploadService extends FileTransferBaseService {
           this.consecutiveErrorCounts.set(transferId, errorCount + 1);
 
           if (errorCount >= this.maxConsecutiveErrors) {
-            span.setAttribute('outcome', 'aborted_max_errors');
-            span.setStatus({ code: 2, message: 'max_consecutive_errors' });
+            this.telemetry.markSpan(span, {
+              ok: false,
+              outcome: 'aborted_max_errors',
+              message: 'max_consecutive_errors',
+            });
             await this.stopFileUpload(fileTransfer.targetUser, fileTransfer.fileId);
             break;
           }
@@ -707,8 +726,7 @@ export class FileUploadService extends FileTransferBaseService {
           'sendFileChunks',
           `Queued all chunks for ${fileTransfer.fileId} to ${fileTransfer.targetUser}`
         );
-        span.setAttribute('outcome', 'queued_all_chunks');
-        span.setStatus({ code: 1, message: 'ok' });
+        this.telemetry.markSpan(span, { ok: true, outcome: 'queued_all_chunks' });
         fileTransfer.progress = 100;
         fileTransfer.phase = 'finalizing';
 

@@ -1,7 +1,6 @@
 import { Injectable, PLATFORM_ID, OnDestroy, effect, inject } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
-import * as Sentry from '@sentry/angular';
-import { startNewTrace } from '@sentry/core';
+import { TelemetryService, TelemetrySpan } from '../monitoring/telemetry.service';
 import { environment } from '../../../../environments/environment';
 import { NGXLogger } from 'ngx-logger';
 import { isPlatformBrowser } from '@angular/common';
@@ -22,6 +21,7 @@ export class WebSocketConnectionService implements OnDestroy {
   private translate = inject<TranslateService>(TranslateService);
   private platformId = inject(PLATFORM_ID);
   private updateService = inject(AppUpdateService);
+  private telemetry = inject(TelemetryService);
 
   /**
    * ==========================================================
@@ -71,6 +71,10 @@ export class WebSocketConnectionService implements OnDestroy {
     null
   );
 
+  /** Fires when a private session code is dropped after repeated failed
+   *  reconnects so the UI can leave the /private/:code route. */
+  public sessionFallback$ = new Subject<void>();
+
   /**
    * ==========================================================
    * CONSTRUCTOR
@@ -90,6 +94,7 @@ export class WebSocketConnectionService implements OnDestroy {
       const required = this.updateRequired();
       if (required && (this.isConnected() || this.isConnecting || this.reconnectTimer !== null)) {
         this.logger.warn('updateGate', 'Update required, disconnecting until the app is updated');
+        this.telemetry.warnEvent('update.gate_blocked');
         this.isDisconnectedForUpdate = true;
         this.disconnect(false);
       } else if (!required && this.isDisconnectedForUpdate) {
@@ -184,7 +189,7 @@ export class WebSocketConnectionService implements OnDestroy {
     }
 
     if (this.isConnected() && this.sessionCode === code) {
-      this.logger.info('connect', `Already connected to session ${code}, skipping connection`);
+      this.logger.info('connect', 'Already connected to this session, skipping connection');
       return Promise.resolve();
     }
 
@@ -214,17 +219,13 @@ export class WebSocketConnectionService implements OnDestroy {
 
     const wsUri = `${this.webSocketProto}://${this.host}/ws${code ? `/${code}` : ''}`;
 
-    let connectSpan: Sentry.Span | undefined;
-    startNewTrace(() => {
-      connectSpan = Sentry.startInactiveSpan({
-        name: 'ws.connect',
-        op: 'ws.connect',
-        attributes: { 'ws.has_session_code': code != null },
-      });
+    const connectSpan: TelemetrySpan = this.telemetry.startSpan('ws.connect', {
+      'ws.has_session_code': code != null,
+      attempt: this.reconnectAttempts,
     });
 
     return new Promise<void>((resolve, reject) => {
-      this.logger.info('connect', `Connecting to WebSocket at ${wsUri}`);
+      this.logger.info('connect', `Connecting to WebSocket (private: ${code != null})`);
       const socket = new WebSocket(wsUri);
       this.socket = socket;
 
@@ -235,16 +236,14 @@ export class WebSocketConnectionService implements OnDestroy {
       const settleResolve = () => {
         if (settled) return;
         settled = true;
-        connectSpan?.setStatus({ code: 1, message: 'ok' });
-        connectSpan?.end();
+        this.telemetry.endSpan(connectSpan, { ok: true });
         resolve();
       };
       const settleReject = (err: unknown) => {
         if (settled) return;
         settled = true;
         const msg = err instanceof Error ? err.message : String(err);
-        connectSpan?.setStatus({ code: 2, message: msg });
-        connectSpan?.end();
+        this.telemetry.endSpan(connectSpan, { ok: false, message: msg });
         reject(err);
       };
 
@@ -253,6 +252,7 @@ export class WebSocketConnectionService implements OnDestroy {
         this.logger.info('connect', 'WebSocket connected');
         this.connected$.next();
         if (this.reconnectAttempts > 0) {
+          this.telemetry.event('ws.reconnected', { attempts: this.reconnectAttempts });
           this.reconnected$.next();
         }
         this.reconnectAttempts = 0;
@@ -346,6 +346,21 @@ export class WebSocketConnectionService implements OnDestroy {
     }
 
     this.reconnectAttempts++;
+
+    if (
+      this.reconnectAttempts > this.maxReconnectAttempts &&
+      this.sessionCode &&
+      navigator.onLine
+    ) {
+      this.logger.warn(
+        'scheduleReconnect',
+        'Private session unreachable after max attempts, falling back to the public session'
+      );
+      this.telemetry.warnEvent('session.fallback_public', { attempts: this.reconnectAttempts });
+      this.clearSessionCode();
+      this.sessionFallback$.next();
+    }
+
     const currentDelay =
       this.reconnectAttempts <= this.maxReconnectAttempts
         ? Math.min(
@@ -392,6 +407,9 @@ export class WebSocketConnectionService implements OnDestroy {
     if (isManual) {
       this.manualDisconnect = true;
       this.clearSessionCode();
+
+      this.reconnectAttempts = 0;
+      this.reconnectDelay = 1000;
     }
 
     if (this.reconnectTimer) {

@@ -1,5 +1,6 @@
 import { Injectable, NgZone, inject } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
+import { TelemetryService } from '../monitoring/telemetry.service';
 import { WebRTCService } from './webrtc.service';
 import { UserService } from '../user-management/user.service';
 import { ChatMessage, ChatMessageType, DATA_CHANNEL_MESSAGE_TYPES } from '../../../utils/constants';
@@ -16,6 +17,7 @@ export class ChatService implements IChatService {
   private userService = inject(UserService);
   private logger = inject(NGXLogger);
   private ngZone = inject(NgZone);
+  private telemetry = inject(TelemetryService);
 
   /**
    * ==========================================================
@@ -93,7 +95,7 @@ export class ChatService implements IChatService {
         payload: chatMsg,
       };
       this.webrtcService.sendData(dataChannelMsg, targetUser);
-      this.logger.info('sendMessage', `Message sent to ${targetUser}: ${chatMsg.text}`);
+      this.logger.info('sendMessage', 'Message sent');
     } else {
       this.logger.warn('sendMessage', 'Empty message content');
     }
@@ -123,7 +125,7 @@ export class ChatService implements IChatService {
         this.messages.push(chatMsg);
         this.messages$.next(this.messages);
       });
-      this.logger.info('addMessageToLocal', `Message added to local chat: ${chatMsg.text}`);
+      this.logger.info('addMessageToLocal', 'Message added to local chat');
     }
   }
 
@@ -166,6 +168,7 @@ export class ChatService implements IChatService {
    * ==========================================================
    */
   private handleUserMessage(incoming: ChatMessage): void {
+    this.telemetry.event('chat.message_received');
     this.ngZone.run(() => {
       this.messages.push(incoming);
       this.messages$.next(this.messages);

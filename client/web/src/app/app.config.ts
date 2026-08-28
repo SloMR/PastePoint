@@ -6,7 +6,7 @@ import {
   provideAppInitializer,
   provideZoneChangeDetection,
 } from '@angular/core';
-import { provideRouter, withPreloading } from '@angular/router';
+import { provideRouter, withNavigationErrorHandler, withPreloading } from '@angular/router';
 import { Router } from '@angular/router';
 import * as Sentry from '@sentry/angular';
 
@@ -69,7 +69,13 @@ export const appConfig: ApplicationConfig = {
     provideAppInitializer(() => void inject(Sentry.TraceService)),
     provideHttpClient(withFetch()),
     provideZoneChangeDetection({ eventCoalescing: true, runCoalescing: true }),
-    provideRouter(routes, withPreloading(SelectivePreloadingStrategy)),
+    provideRouter(
+      routes,
+      withPreloading(SelectivePreloadingStrategy),
+      withNavigationErrorHandler((e) => {
+        reloadOnceForChunkError(e.error);
+      })
+    ),
     provideClientHydration(withEventReplay()),
     provideHotToastConfig({
       position: 'top-center',

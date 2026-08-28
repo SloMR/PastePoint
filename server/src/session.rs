@@ -109,18 +109,18 @@ impl WsChatSession {
         // Don't replay missed ticks back-to-back after a stall; keep the cadence.
         heartbeat.set_missed_tick_behavior(MissedTickBehavior::Delay);
 
-        let close_reason = loop {
+        let (close_reason, disconnect_reason) = loop {
             tokio::select! {
                 // Outbound: messages the server pushed for this client.
                 outgoing = outbound.recv() => {
                     match outgoing {
                         Some(text) => {
                             if session.text(text).await.is_err() {
-                                break None;
+                                break (None, "send_failed");
                             }
                         }
                         // All senders dropped; nothing more to deliver.
-                        None => break None,
+                        None => break (None, "channel_closed"),
                     }
                 }
 
@@ -134,7 +134,7 @@ impl WsChatSession {
                             log::debug!(target: "Websocket", "Received ping message");
                             self.last_heartbeat = Some(Instant::now());
                             if session.pong(&bytes).await.is_err() {
-                                break None;
+                                break (None, "send_failed");
                             }
                         }
                         Some(Ok(AggregatedMessage::Pong(_))) => {
@@ -143,7 +143,7 @@ impl WsChatSession {
                         }
                         Some(Ok(AggregatedMessage::Close(reason))) => {
                             log::debug!(target: "Websocket", "Closing connection: {reason:?}");
-                            break reason;
+                            break (reason, "client_close");
                         }
                         // Binary frames are unused by the signaling protocol.
                         Some(Ok(_)) => {}
@@ -154,9 +154,9 @@ impl WsChatSession {
                                 WS_PREFIX_SYSTEM_ERROR,
                                 ServerError::InternalServerError
                             ));
-                            break None;
+                            break (None, "protocol_error");
                         }
-                        None => break None,
+                        None => break (None, "stream_ended"),
                     }
                 }
 
@@ -170,15 +170,16 @@ impl WsChatSession {
                             "Heartbeat failed for user {}, disconnecting!",
                             self.name
                         );
-                        break None;
+                        break (None, "heartbeat_timeout");
                     }
                     log::debug!(target: "Websocket", "Sending heartbeat to user {}", self.name);
                     if session.ping(b"").await.is_err() {
-                        break None;
+                        break (None, "ping_failed");
                     }
                 }
             }
         };
+        sentry::logger_info!(reason = disconnect_reason, "ws.disconnected");
 
         // Flush any frames still queued for this client before closing the connection.
         while let Ok(text) = outbound.try_recv() {
@@ -297,7 +298,7 @@ impl WsChatSession {
         let value = match serde_json::from_str::<Value>(payload) {
             Ok(v) => v,
             Err(e) => {
-                log::warn!(target: "Websocket", "Invalid signal JSON from {}: {}", self.name, e);
+                log::warn!(target: "Websocket", "Invalid signal JSON: {e}");
                 Self::deliver(
                     tx,
                     format!("{WS_PREFIX_SYSTEM_ERROR} Invalid signaling message format"),
@@ -310,7 +311,7 @@ impl WsChatSession {
         let to_user = match value.get("to").and_then(|v| v.as_str()) {
             Some(user) => user,
             None => {
-                log::warn!(target: "Websocket", "Signal missing 'to' field from {}", self.name);
+                log::warn!(target: "Websocket", "Signal missing 'to' field");
                 Self::deliver(
                     tx,
                     format!("{WS_PREFIX_SYSTEM_ERROR} Signaling message missing 'to' field"),
@@ -320,7 +321,19 @@ impl WsChatSession {
         };
 
         // 4. Validate room membership and relay through the shared server.
-        server.validate_and_relay_signal(&self.session_id, &self.name, to_user, payload);
+        let signal_type = match value.get("type").and_then(|v| v.as_str()) {
+            Some(t @ ("offer" | "answer" | "candidate" | "connection_request")) => t,
+            Some(_) => "other",
+            None => "unknown",
+        };
+
+        server.validate_and_relay_signal(
+            &self.session_id,
+            &self.name,
+            to_user,
+            payload,
+            signal_type,
+        );
     }
 
     fn handle_user_disconnect(&self, server: &ChatServerHandle) {
@@ -336,11 +349,7 @@ impl WsChatSession {
         }
         self.message_count += 1;
         if self.message_count > MAX_WS_MESSAGES_PER_SEC {
-            log::warn!(
-                target: "Websocket",
-                "Rate limit exceeded for user {}, dropping message",
-                self.name
-            );
+            log::warn!(target: "Websocket", "Rate limit exceeded, dropping message");
             return;
         }
 

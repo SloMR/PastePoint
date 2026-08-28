@@ -16,6 +16,7 @@ import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 import { NGXLogger } from 'ngx-logger';
 import { extractSessionCodeFromUrl } from '../../../../../utils/session-link.util';
+import { reloadOnceForChunkError } from '../../../../../utils/chunk-reload';
 
 type JsQrFn = typeof import('jsqr').default;
 
@@ -67,7 +68,11 @@ export class QrScannerPopupComponent implements OnChanges, OnDestroy {
         .then((m) => {
           this.jsQR = m.default;
         })
-        .catch(() => {
+        .catch((err: unknown) => {
+          if (reloadOnceForChunkError(err)) {
+            return;
+          }
+
           this.ngZone.run(() => {
             this.scannerError = 'CAMERA_NOT_AVAILABLE';
             this.closeScanner();

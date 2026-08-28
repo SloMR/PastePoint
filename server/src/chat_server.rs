@@ -76,9 +76,10 @@ impl ChatServerHandle {
         from_user: &str,
         to_user: &str,
         payload: &str,
+        signal_type: &str,
     ) {
         self.lock()
-            .validate_and_relay_signal(session_id, from_user, to_user, payload);
+            .validate_and_relay_signal(session_id, from_user, to_user, payload, signal_type);
     }
 
     /// Prune sessions whose rooms are all empty.
@@ -103,6 +104,14 @@ impl WsChatServer {
             client_name.to_owned(),
         ) {
             Some(id) => {
+                let room_size = self
+                    .rooms
+                    .get(session_id)
+                    .and_then(|rooms| rooms.get(room_name))
+                    .map_or(0, |room| room.len());
+
+                sentry::logger_info!(room_size = room_size as u64, "room.joined");
+
                 let join_msg = format!("{client_name} {WS_PREFIX_SYSTEM_JOIN} {room_name}");
                 self.send_join_message(session_id, room_name, &join_msg);
                 self.broadcast_room_members(session_id, room_name);
@@ -185,12 +194,15 @@ impl WsChatServer {
         from_user: &str,
         to_user: &str,
         payload: &str,
+        signal_type: &str,
     ) {
         let tx = sentry::Hub::current().client().map(|_| {
-            sentry::start_transaction(sentry::TransactionContext::new(
+            let tx = sentry::start_transaction(sentry::TransactionContext::new(
                 "signaling.relay",
                 "websocket.signal",
-            ))
+            ));
+            tx.set_tag("signal.type", signal_type);
+            tx
         });
 
         if from_user == to_user {
@@ -206,10 +218,7 @@ impl WsChatServer {
         let status = if self.relay_to_shared_room(session_id, from_user, to_user, relay_msg) {
             sentry::protocol::SpanStatus::Ok
         } else {
-            log::warn!(
-                target: "Websocket",
-                "Attempted signal to user not in same room: {from_user} -> {to_user}"
-            );
+            log::warn!(target: "Websocket", "Attempted signal to user not in same room");
             sentry::protocol::SpanStatus::PermissionDenied
         };
         if let Some(tx) = tx {
@@ -403,5 +412,6 @@ impl WsChatServer {
             "Current server state: {} active sessions",
             self.rooms.len()
         );
+        sentry::logger_info!(count = self.rooms.len() as u64, "sessions.active");
     }
 }
