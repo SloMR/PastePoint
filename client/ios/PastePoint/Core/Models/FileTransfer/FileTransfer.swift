@@ -65,7 +65,7 @@ struct FileTransferData: Codable, Sendable, Equatable {
   var fileURL: URL?
   var previewDataUrl: String?
   var previewMime: String?
-  var groupId: String?
+  var batchId: String?
   var deliveredCount: Int?
   var recipientCount: Int?
 }
@@ -79,7 +79,7 @@ struct FileUpload: Identifiable, Sendable {
   }
 
   let id: String
-  let groupId: String
+  let batchId: String
   let fileURL: URL
   let kind: FileSourceKind
   let displayName: String

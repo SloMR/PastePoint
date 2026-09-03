@@ -18,7 +18,7 @@ final class FileTransferService: ObservableObject {
   let attachmentMessages = PassthroughSubject<ChatMessage, Never>()
   let outgoingAttachment = PassthroughSubject<ChatMessage, Never>()
   let downloadCompleted = PassthroughSubject<(fileId: String, fileURL: URL?), Never>()
-  let outgoingGroupStatus = PassthroughSubject<OutgoingGroupStatus, Never>()
+  let uploadBatchStatus = PassthroughSubject<UploadBatchStatus, Never>()
   let attachmentPreviewUpdated = PassthroughSubject<(fileId: String, previewDataUrl: String, previewMime: String?), Never>()
   let fileTransferCancelled = PassthroughSubject<String, Never>()
   let fileTransferFailed = PassthroughSubject<(fileId: String, reason: FileTransferFailureReason), Never>()
@@ -26,7 +26,7 @@ final class FileTransferService: ObservableObject {
   private let downloadStallTimeout: TimeInterval = 30
   private var pendingChunkIndices: [String: Set<Int>] = [:]
   private var uploadTasks: [String: Task<Void, Never>] = [:]
-  var outgoingGroups: [String: UploadGroup] = [:]
+  var uploadBatches: [String: UploadBatch] = [:]
   private var offerTasks: [String: Task<Void, Never>] = [:]
   private var stallWatchdog: Task<Void, Never>?
   private var knownPeers: Set<String> = []
@@ -75,7 +75,7 @@ final class FileTransferService: ObservableObject {
   func prepareFileForSending(
     stagedFile: StagedFile,
     targetUser: String,
-    groupId: String,
+    batchId: String,
     hashTask: Task<String?, Never>? = nil,
     preview: PreviewGenerator.Preview? = nil,
   ) async -> Bool {
@@ -114,7 +114,7 @@ final class FileTransferService: ObservableObject {
     activeUploads.append(
       FileUpload(
         id: fileId,
-        groupId: groupId,
+        batchId: batchId,
         fileURL: stagedFile.url,
         kind: stagedFile.kind,
         displayName: stagedFile.name,
@@ -153,8 +153,8 @@ final class FileTransferService: ObservableObject {
 
     await userService.waitForUsername()
     let sender = userService.user
-    let groupId = UUID().uuidString
-    outgoingGroups[groupId] = UploadGroup(total: peers.count)
+    let batchId = UUID().uuidString
+    uploadBatches[batchId] = UploadBatch(total: peers.count)
     let preview = await PreviewGenerator.make(forFileAt: stagedFile.url)
 
     outgoingAttachment.send(
@@ -170,7 +170,7 @@ final class FileTransferService: ObservableObject {
           status: .pending,
           previewDataUrl: preview?.dataUrl,
           previewMime: preview?.mime,
-          groupId: groupId,
+          batchId: batchId,
           deliveredCount: 0,
           recipientCount: peers.count,
         ),
@@ -183,7 +183,7 @@ final class FileTransferService: ObservableObject {
       await prepareFileForSending(
         stagedFile: stagedFile,
         targetUser: peer,
-        groupId: groupId,
+        batchId: batchId,
         hashTask: hashTask,
         preview: preview,
       )
@@ -222,7 +222,7 @@ final class FileTransferService: ObservableObject {
       return false
     }
     let removed = activeUploads.remove(at: idx)
-    markGroupOutcome(removed.groupId, success: false)
+    markBatchOutcome(removed.batchId, success: false)
     releaseSourceFile(of: removed)
 
     if notifyRecipient {
@@ -861,7 +861,7 @@ extension FileTransferService {
     }
 
     let removed = activeUploads.remove(at: idx)
-    markGroupOutcome(removed.groupId, success: true)
+    markBatchOutcome(removed.batchId, success: true)
     log.info("file-received ack: \(payload.fileId)")
     telemetry.event("file.delivered", attributes: [
       "file_size_bytes": Int(removed.fileSize),
