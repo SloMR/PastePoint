@@ -26,12 +26,13 @@ final class FileTransferService: ObservableObject {
   private let downloadStallTimeout: TimeInterval = 30
   private var pendingChunkIndices: [String: Set<Int>] = [:]
   private var uploadTasks: [String: Task<Void, Never>] = [:]
-  private var outgoingGroups: [String: UploadGroup] = [:]
+  var outgoingGroups: [String: UploadGroup] = [:]
   private var offerTasks: [String: Task<Void, Never>] = [:]
   private var stallWatchdog: Task<Void, Never>?
   private var knownPeers: Set<String> = []
   private var cancellables: Set<AnyCancellable> = []
   private var fileHashTasks: [URL: Task<String?, Never>] = [:]
+  var receiveSpans: [String: TelemetrySpan] = [:]
 
   init(signalingService: SignalingService, userService: UserService, peerDirectory: PeerDirectory) {
     self.signalingService = signalingService
@@ -125,6 +126,10 @@ final class FileTransferService: ObservableObject {
       ),
     )
     log.info("file-offer sent: \(fileId)")
+    telemetry.event("file.offer_sent", attributes: [
+      "file_size_bytes": Int(stagedFile.size),
+      "mime": Self.mime(forFileName: stagedFile.name),
+    ])
 
     offerTasks[fileId] = Task { [weak self] in
       await self?.sendEnrichOffer(
@@ -243,7 +248,7 @@ final class FileTransferService: ObservableObject {
       return false
     }
 
-    cleanupDownload(fileId: fileId, fromUser: fromUser)
+    cleanupDownload(fileId: fileId, fromUser: fromUser, outcome: .cancelled, attributes: ["cancelled_by": CancelledBy.receiver.rawValue])
     fileTransferCancelled.send(fileId)
 
     let uploader = fromUser
@@ -286,6 +291,7 @@ final class FileTransferService: ObservableObject {
     startStallWatchdog()
 
     log.info("file-accept sent: \(fileId)")
+    telemetry.event("file.offer_accepted", attributes: ["file_size_bytes": Int(download.fileSize)])
     return true
   }
 
@@ -312,6 +318,7 @@ final class FileTransferService: ObservableObject {
 
     incomingFileOffers.remove(at: idx)
     log.info("file-decline sent: \(fileId)")
+    telemetry.event("file.offer_declined")
     return true
   }
 
@@ -327,7 +334,7 @@ final class FileTransferService: ObservableObject {
     }
   }
 
-  private func purgeTransfers(for peer: String) {
+  private func purgeTransfers(for peer: String, cancelledBy: CancelledBy = .peerLeft) {
     // Uploads to this peer — stop send loops, no notify (peer is gone).
     let uploadIds = activeUploads.filter { $0.targetUser == peer }.map(\.id)
     for fileId in uploadIds {
@@ -337,7 +344,7 @@ final class FileTransferService: ObservableObject {
     // Downloads from this peer — drop in-flight state + scratch, flip bubble.
     let downloadIds = activeDownloads.filter { $0.fromUser == peer }.map(\.id)
     for fileId in downloadIds {
-      cleanupDownload(fileId: fileId, fromUser: peer)
+      cleanupDownload(fileId: fileId, fromUser: peer, outcome: .cancelled, attributes: ["cancelled_by": cancelledBy.rawValue])
       fileTransferCancelled.send(fileId)
     }
 
@@ -354,7 +361,7 @@ final class FileTransferService: ObservableObject {
       .union(activeDownloads.map(\.fromUser))
       .union(incomingFileOffers.map(\.fromUser))
     for peer in peers {
-      purgeTransfers(for: peer)
+      purgeTransfers(for: peer, cancelledBy: .receiver)
     }
   }
 }
@@ -386,17 +393,24 @@ extension FileTransferService {
 
   nonisolated func runChunkSendLoop(uploadId: String, targetUser: String) async {
     defer { Task { @MainActor [weak self] in self?.uploadTasks[uploadId] = nil } }
+    await telemetry.withSpan(op: "file.transfer.send") { span in
+      await runChunkSendLoopInner(uploadId: uploadId, targetUser: targetUser, span: span)
+    }
+  }
 
+  private nonisolated func runChunkSendLoopInner(uploadId: String, targetUser: String, span: TelemetrySpan) async {
     // 1. Snapshot upload metadata from the MainActor.
-    let snapshot: (fileURL: URL, fileSize: Int64)? = await MainActor.run {
+    let snapshot: (fileURL: URL, fileSize: Int64, mime: String)? = await MainActor.run {
       guard let upload = activeUploads.first(where: { $0.id == uploadId }) else { return nil }
-      return (upload.fileURL, upload.fileSize)
+      return (upload.fileURL, upload.fileSize, Self.mime(forFileName: upload.displayName))
     }
 
     guard let snapshot else {
       log.warning("chunk loop: upload \(uploadId) not found")
+      markSendSpan(span, .cancelled)
       return
     }
+    telemetry.setAttributes(["file_size_bytes": Int(snapshot.fileSize), "mime": snapshot.mime], on: span)
 
     // 2. Open the file once.
     let handle: FileHandle
@@ -404,11 +418,13 @@ extension FileTransferService {
       handle = try FileHandle(forReadingFrom: snapshot.fileURL)
     } catch {
       log.error("chunk loop: cannot open source file: \(error.codeDescription)")
+      markSendSpan(span, .abortedMaxErrors, message: "max_consecutive_errors")
       return
     }
     defer { try? handle.close() }
 
     let totalChunks = BinaryChunk.totalChunks(forFileSize: snapshot.fileSize)
+    telemetry.setAttributes(["total_chunks": Int(totalChunks)], on: span)
     var chunkIndex: UInt32 = 0
     var bytesSent: Int64 = 0
 
@@ -419,6 +435,7 @@ extension FileTransferService {
     while true {
       if Task.isCancelled {
         log.info("chunk loop cancelled for \(uploadId)")
+        markSendSpan(span, .cancelled)
         return
       }
 
@@ -434,6 +451,7 @@ extension FileTransferService {
         chunkData = data
       } catch {
         log.error("chunk loop: read error: \(error.codeDescription)")
+        markSendSpan(span, .abortedMaxErrors, message: "max_consecutive_errors")
         return
       }
 
@@ -448,6 +466,7 @@ extension FileTransferService {
       // above maxBufferedAmount — we sleep briefly and retry until it accepts.
       guard await sendEncodedChunk(encoded, to: targetUser) else {
         log.info("chunk loop cancelled (back-pressure wait) for \(uploadId)")
+        markSendSpan(span, .cancelled)
         return
       }
 
@@ -464,6 +483,7 @@ extension FileTransferService {
     // 4. Final flush + flip phase to .finalizing — bytes shipped, awaiting
     //    receiver ack. The flush guarantees the bar hits 100% even if the last
     //    periodic update was throttled out.
+    markSendSpan(span, .queuedAllChunks)
     await applyUploadProgress(
       uploadId: uploadId,
       bytesSent: bytesSent,
@@ -658,13 +678,17 @@ extension FileTransferService {
 
     guard parsed.isValid else {
       log.warning("invalid chunk \(parsed.chunkIndex) for \(parsed.fileId), failing transfer")
-      failDownload(fileId: parsed.fileId, from: peer, reason: .integrity)
+      failDownload(fileId: parsed.fileId, from: peer, reason: .integrity, outcome: .crcFailed, attributes: [
+        "chunk_index": Int(parsed.chunkIndex),
+        "total_chunks": Int(parsed.totalChunks),
+        "bytes_received": Int(activeDownloads[idx].receivedSize),
+      ])
       return
     }
 
     if activeDownloads[idx].expectedHash == nil {
       log.warning("no hash for \(parsed.fileId); rejecting early")
-      failDownload(fileId: parsed.fileId, from: peer, reason: .noHash)
+      failDownload(fileId: parsed.fileId, from: peer, reason: .noHash, outcome: .noHash)
       return
     }
 
@@ -712,6 +736,7 @@ extension FileTransferService {
     // Update download state.
     if activeDownloads[i].totalChunks == 0 {
       activeDownloads[i].totalChunks = Int(parsed.totalChunks)
+      startReceiveSpan(for: activeDownloads[i])
     }
     activeDownloads[i].receivedChunkURLs[chunkIndex] = chunkURL
     activeDownloads[i].receivedSize += Int64(data.count)
@@ -782,11 +807,18 @@ extension FileTransferService {
         log.error("finalize failed for \(download.id), reason: \(result.reason ?? .assembly)")
 
         try? FileManager.default.removeItem(at: completedDir)
-        failDownload(fileId: download.id, from: peer, reason: result.reason ?? .assembly)
+        failDownload(
+          fileId: download.id,
+          from: peer,
+          reason: result.reason ?? .assembly,
+          outcome: Self.finalizeOutcome(result.reason),
+          attributes: ["total_chunks": download.totalChunks],
+        )
         return
       }
 
       sendFileReceived(fileId: download.id, to: peer)
+      endReceiveSpan(fileId: download.id, outcome: .completed)
       activeDownloads.removeAll { $0.id == download.id && $0.fromUser == peer }
       stopStallWatchdogIfIdle()
 
@@ -831,6 +863,10 @@ extension FileTransferService {
     let removed = activeUploads.remove(at: idx)
     markGroupOutcome(removed.groupId, success: true)
     log.info("file-received ack: \(payload.fileId)")
+    telemetry.event("file.delivered", attributes: [
+      "file_size_bytes": Int(removed.fileSize),
+      "mime": Self.mime(forFileName: removed.displayName),
+    ])
 
     // Delete the tmp file only if no other in-flight upload references it.
     // Multiple peer-specific FileUploads share the same source `fileURL` when the
@@ -851,7 +887,7 @@ extension FileTransferService {
   }
 
   private func handleFileUploadCancellation(fileId: String, from peer: String) {
-    cleanupDownload(fileId: fileId, fromUser: peer)
+    cleanupDownload(fileId: fileId, fromUser: peer, outcome: .cancelled, attributes: ["cancelled_by": CancelledBy.sender.rawValue])
     incomingFileOffers.removeAll { file in
       file.id == fileId && file.fromUser == peer
     }
@@ -860,7 +896,9 @@ extension FileTransferService {
     log.info("upload cancelled by sender: \(fileId)")
   }
 
-  func cleanupDownload(fileId: String, fromUser: String) {
+  /// Every non-completed download leaves through here, so the receive span is closed exactly once.
+  func cleanupDownload(fileId: String, fromUser: String, outcome: ReceiveOutcome, attributes: Telemetry.Attributes = [:]) {
+    endReceiveSpan(fileId: fileId, outcome: outcome, attributes: attributes)
     activeDownloads.removeAll { file in
       file.id == fileId && file.fromUser == fromUser
     }
@@ -881,8 +919,14 @@ extension FileTransferService {
     log.info("released source (\(upload.kind))")
   }
 
-  private func failDownload(fileId: String, from peer: String, reason: FileTransferFailureReason) {
-    cleanupDownload(fileId: fileId, fromUser: peer)
+  private func failDownload(
+    fileId: String,
+    from peer: String,
+    reason: FileTransferFailureReason,
+    outcome: ReceiveOutcome,
+    attributes: Telemetry.Attributes = [:],
+  ) {
+    cleanupDownload(fileId: fileId, fromUser: peer, outcome: outcome, attributes: attributes)
 
     do {
       let data = try DataChannelMessage.encodeFileCancelDownload(FileCancelPayload(fileId: fileId))
@@ -925,7 +969,9 @@ extension FileTransferService {
     }
     for download in stalled {
       log.warning("download \(download.id) stalled (\(downloadStallTimeout)s no chunk) — failing")
-      failDownload(fileId: download.id, from: download.fromUser, reason: .stalled)
+      failDownload(fileId: download.id, from: download.fromUser, reason: .stalled, outcome: .stalled, attributes: [
+        "bytes_received": Int(download.receivedSize),
+      ])
     }
   }
 
@@ -937,47 +983,5 @@ extension FileTransferService {
     FileManager.default.temporaryDirectory
       .appendingPathComponent("incoming", isDirectory: true)
       .appendingPathComponent(fileId, isDirectory: true)
-  }
-}
-
-// MARK: - Outgoing Group Aggregation
-
-extension FileTransferService {
-  struct OutgoingGroupStatus: Sendable {
-    let groupId: String
-    let status: FileTransferStatus
-    let delivered: Int
-    let total: Int
-  }
-
-  private struct UploadGroup {
-    let total: Int
-    var completed = 0
-    var failed = 0
-  }
-
-  private func markGroupOutcome(_ groupId: String, success: Bool) {
-    guard outgoingGroups[groupId] != nil else { return }
-    if success {
-      outgoingGroups[groupId]?.completed += 1
-    } else {
-      outgoingGroups[groupId]?.failed += 1
-    }
-
-    recomputeGroup(groupId)
-  }
-
-  private func recomputeGroup(_ groupId: String) {
-    guard let group = outgoingGroups[groupId] else { return }
-    let resolved = group.completed + group.failed >= group.total
-    let status: FileTransferStatus =
-      group.completed > 0 ? .completed // Sent
-      : resolved ? .failed // Not delivered
-      : .pending
-
-    outgoingGroupStatus.send(OutgoingGroupStatus(groupId: groupId, status: status, delivered: group.completed, total: group.total))
-    if resolved {
-      outgoingGroups[groupId] = nil
-    }
   }
 }
