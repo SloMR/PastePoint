@@ -17,6 +17,7 @@ struct PastePointApp: App {
 
   init() {
     AppLogging.bootstrap()
+    SentryBootstrap.start()
     SettingsBundle.syncVersion()
   }
 

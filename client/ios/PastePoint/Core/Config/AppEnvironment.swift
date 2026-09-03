@@ -58,6 +58,18 @@ enum AppEnvironment {
     "https://\(webUrl)/\(privateSessionPath)/\(sessionCode)"
   }
 
+  // MARK: - Telemetry
+
+#if DEBUG
+  static let sentryEnabled = false
+  nonisolated static let sentryEnvironment = "development"
+  nonisolated static let sentryDSN = ""
+#else
+  static let sentryEnabled = true
+  nonisolated static let sentryEnvironment = "production"
+  nonisolated static let sentryDSN = "https://7a0841b0ad807f23d076079895027048@o4510159565160448.ingest.de.sentry.io/4511989822718032"
+#endif
+
   // MARK: - Support
 
   /// Destination for user-submitted reports of objectionable content.
