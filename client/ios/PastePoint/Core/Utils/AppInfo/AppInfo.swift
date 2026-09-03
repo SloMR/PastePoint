@@ -9,11 +9,11 @@ import Logging
 // MARK: - Version
 
 extension Bundle {
-  var appVersion: String {
+  nonisolated var appVersion: String {
     infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
   }
 
-  var appBuild: String {
+  nonisolated var appBuild: String {
     infoDictionary?["CFBundleVersion"] as? String ?? "0"
   }
 }
@@ -41,11 +41,7 @@ enum AppBuildInfo {
 
 enum AppLogging {
   private static let once: Void = {
-#if DEBUG
     LoggingSystem.bootstrap(AppLogHandler.init)
-#else
-    LoggingSystem.bootstrap(SwiftLogNoOpLogHandler.init)
-#endif
   }()
 
   /// Bootstraps the logging system exactly once per process. Thread-safe.

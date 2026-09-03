@@ -25,12 +25,12 @@ final class BlockService: ObservableObject {
   func block(_ peer: String) {
     guard !peer.isEmpty else { return }
 
-    log.info("blocking peer \(peer)")
+    log.info("blocking peer")
     blockedPeers.insert(peer)
   }
 
   func unblock(_ peer: String) {
-    log.info("unblocking peer \(peer)")
+    log.info("unblocking peer")
     blockedPeers.remove(peer)
   }
 

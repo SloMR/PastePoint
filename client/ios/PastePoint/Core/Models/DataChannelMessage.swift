@@ -21,6 +21,7 @@ private extension JSONDecoder {
   }()
 }
 
+/// Wire format; do not change raw values.
 enum DataChannelMessageType: String {
   case chat
   case fileOffer = "file-offer"

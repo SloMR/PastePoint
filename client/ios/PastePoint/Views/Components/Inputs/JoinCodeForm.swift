@@ -77,7 +77,7 @@ struct JoinCodeForm: View {
       return
     }
 
-    log.info("Joining private session with code: \(resolved)")
+    log.info("Joining private session with code")
     isJoining = true
     defer { isJoining = false }
 

@@ -12,12 +12,12 @@ cors_allowed_origins = "https://127.0.0.1"
 # Raise these only AFTER the build is live on the store/web, or you soft-brick users.
 [client_version.ios]
 minimum = "0.14.2"
-latest = "0.14.2"
+latest = "0.14.3"
 url = "https://apps.apple.com/app/id6788860511"
 
 [client_version.web]
 minimum = "0.25.2"
-latest = "0.25.2"
+latest = "0.25.3"
 url = "https://127.0.0.1"
 
 [sentry]

@@ -277,14 +277,6 @@ export class WebRTCSignalingService {
 
     if (this.connectionLocks.has(targetUser)) {
       this.logger.debug('initiateConnection', `Connection already in progress for ${targetUser}`);
-      if ((this.connectAttemptCounts.get(targetUser) ?? 0) === 1) {
-        this.telemetry.endSpan(span, {
-          ok: true,
-          outcome: 'skipped_lock',
-          message: 'already_in_progress',
-        });
-        this.clearConnectSpan(targetUser);
-      }
       return;
     }
 

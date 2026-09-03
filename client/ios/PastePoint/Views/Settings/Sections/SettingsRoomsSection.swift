@@ -36,7 +36,7 @@ struct SettingsRoomsSection: View {
         HStack(alignment: .center, spacing: 0) {
           Button {
             Task {
-              log.info("Joining room \(room)")
+              log.info("Joining room")
               await services.roomService.joinOrCreateRoom(room)
               toast.show(.info(.roomJoined(room)))
             }

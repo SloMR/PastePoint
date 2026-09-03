@@ -12,6 +12,7 @@ import WebRTC
 /// and a 204 (no relay configured) fall back to STUN-only.
 @MainActor
 final class TurnCredentialsService {
+  /// Server response; do not rename fields.
   private struct Response: Decodable {
     let username: String
     let credential: String

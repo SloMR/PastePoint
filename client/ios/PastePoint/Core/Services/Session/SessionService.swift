@@ -6,6 +6,7 @@
 import Combine
 import Foundation
 
+/// Server response; do not rename fields.
 struct CreateSessionResponse: Decodable {
   let code: String
 }
@@ -20,6 +21,7 @@ final class SessionService: ObservableObject {
 
   func preparePrivateSession() async throws {
     let code = try await getNewSessionCode()
+    telemetry.event("session.invite_created")
     await wsService.setupPrivateSession(code)
   }
 

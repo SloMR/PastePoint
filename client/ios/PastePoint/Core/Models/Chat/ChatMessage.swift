@@ -5,11 +5,13 @@
 
 import Foundation
 
+/// Wire format; do not rename fields.
 enum ChatMessageType: String, Codable, Sendable {
   case text
   case attachment
 }
 
+/// Wire format; only `CodingKeys` are encoded, `isMine` and `fileTransfer` stay local.
 struct ChatMessage: Codable, Sendable, Identifiable {
   let id: UUID
   let from: String

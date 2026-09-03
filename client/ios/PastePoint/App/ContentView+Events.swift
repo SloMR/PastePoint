@@ -42,7 +42,7 @@ private struct ChatEventHandlers: ViewModifier {
   private func messageHandlers(_ content: some View) -> some View {
     content
       .onReceive(owner.services.wsService.message) { msg in
-        log.info("User message: \(msg)")
+        log.debug("User message: \(msg)")
       }
       .onReceive(owner.services.wsService.signalMessage) { sig in
         log.debug("Signal: \(sig.payload.typeString) | from: \(sig.from) → to: \(sig.to)")
@@ -66,8 +66,8 @@ private struct ChatEventHandlers: ViewModifier {
         owner.updateFileStatus(fileId: fileId, fileURL: fileURL, status: .completed)
         owner.haptic(.success)
       }
-      .onReceive(owner.services.fileTransferService.outgoingGroupStatus) { update in
-        owner.updateOutgoingGroup(groupId: update.groupId, status: update.status, delivered: update.delivered, total: update.total)
+      .onReceive(owner.services.fileTransferService.uploadBatchStatus) { update in
+        owner.updateUploadBatch(batchId: update.batchId, status: update.status, delivered: update.delivered, total: update.total)
       }
       .onReceive(owner.services.fileTransferService.attachmentPreviewUpdated) { update in
         owner.updatePreview(fileId: update.fileId, previewDataUrl: update.previewDataUrl, previewMime: update.previewMime)

@@ -1,6 +1,6 @@
 {
   "name": "web",
-  "version": "0.25.2",
+  "version": "0.25.3",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -83,6 +83,7 @@
     "typescript": "~5.9.3"
   },
   "overrides": {
+    "qs": "^6.16.0",
     "sockjs": {
       "uuid": "^14.0.0"
     },

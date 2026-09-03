@@ -18,11 +18,14 @@ import { InMemoryTranslateLoader } from './core/i18n/translate-loader';
 import { ThemeService } from './core/services/ui/theme.service';
 import { LanguageService } from './core/services/ui/language.service';
 import { provideHttpClient, withFetch } from '@angular/common/http';
-import { LoggerModule, NGXLogger } from 'ngx-logger';
+import { LoggerModule, NGXLogger, TOKEN_LOGGER_RULES_SERVICE } from 'ngx-logger';
 import { environment } from '../environments/environment';
 import { DatePipe } from '@angular/common';
 import { provideHotToastConfig } from '@ngxpert/hot-toast';
-import { SentryLoggerMonitor } from './core/services/monitoring/sentry-logger-monitor';
+import {
+  SentryLoggerMonitor,
+  SentryLoggerRulesService,
+} from './core/services/monitoring/sentry-logger-monitor';
 import { reloadOnceForChunkError } from './utils/chunk-reload';
 
 // Reload once on a stale-chunk load error (after a deploy); otherwise report.
@@ -101,13 +104,18 @@ export const appConfig: ApplicationConfig = {
           useClass: InMemoryTranslateLoader,
         },
       }),
-      LoggerModule.forRoot({
-        level: environment.logLevel,
-        timestampFormat: 'yyyy-MM-dd HH:mm:ss',
-        enableSourceMaps: typeof window !== 'undefined' && environment.enableSourceMaps,
-        disableFileDetails: environment.disableFileDetails,
-        disableConsoleLogging: environment.disableConsoleLogging,
-      })
+      LoggerModule.forRoot(
+        {
+          level: environment.logLevel,
+          timestampFormat: 'yyyy-MM-dd HH:mm:ss',
+          enableSourceMaps: typeof window !== 'undefined' && environment.enableSourceMaps,
+          disableFileDetails: environment.disableFileDetails,
+          disableConsoleLogging: environment.disableConsoleLogging,
+        },
+        {
+          ruleProvider: { provide: TOKEN_LOGGER_RULES_SERVICE, useClass: SentryLoggerRulesService },
+        }
+      )
     ),
     DatePipe,
     // Forward ngx-logger output to Sentry (when Sentry is initialized).

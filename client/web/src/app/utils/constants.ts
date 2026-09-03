@@ -85,7 +85,7 @@ export const DATA_CHANNEL_OPTIONS = {
   ordered: true,
 };
 
-// WebRTC signaling message types
+// WebRTC signaling message types. Wire format; do not change values.
 export const SIGNAL_MESSAGE_TYPES = {
   OFFER: 'offer',
   ANSWER: 'answer',
@@ -94,6 +94,7 @@ export const SIGNAL_MESSAGE_TYPES = {
   FILE_RESPONSE: 'file-response',
 };
 
+// Wire format; do not change values.
 export enum SignalMessageType {
   OFFER = 'offer',
   ANSWER = 'answer',
@@ -101,6 +102,7 @@ export enum SignalMessageType {
   CONNECTION_REQUEST = 'connection_request',
 }
 
+// Wire format; do not rename fields.
 export interface SignalMessage {
   type: SignalMessageType;
   data: unknown;
@@ -109,12 +111,13 @@ export interface SignalMessage {
   sequence?: number;
 }
 
+// Wire format; do not rename fields.
 export interface DataChannelMessage {
   type: string;
   payload: unknown;
 }
 
-// WebRTC file transfer message types
+// WebRTC file transfer message types. Wire format; do not change values.
 export const FILE_TRANSFER_MESSAGE_TYPES = {
   FILE_CHUNK: 'file-chunk',
   FILE_ACCEPT: 'file-accept',
@@ -125,13 +128,13 @@ export const FILE_TRANSFER_MESSAGE_TYPES = {
   FILE_RECEIVED: 'file-received',
 };
 
-// WebRTC data channel message types
+// WebRTC data channel message types. Wire format; do not change values.
 export const DATA_CHANNEL_MESSAGE_TYPES = {
   CHAT: 'chat',
   FILE: 'file',
 };
 
-// Chat message interface
+// Wire format; do not change values.
 export enum ChatMessageType {
   TEXT = 'text',
   ATTACHMENT = 'attachment',
@@ -140,17 +143,19 @@ export enum ChatMessageType {
 // Per-peer connection state for the member dot (green / yellow / red).
 export type MemberConnectionState = 'connected' | 'connecting' | 'disconnected';
 
+// Local only; never on the wire.
 export interface FileTransferData {
   fileId: string;
   fileName: string;
   fileSize: number;
   fromUser: string;
   status: FileTransferStatus;
-  groupId?: string;
+  batchId?: string;
   deliveredCount?: number;
   recipientCount?: number;
 }
 
+// Wire format; peers read from/text/type/timestamp, the rest stays local.
 export interface ChatMessage {
   from: string;
   text: string;
@@ -163,6 +168,7 @@ export interface ChatMessage {
 }
 
 // File transfer interfaces
+// Local only; never on the wire.
 export enum FileTransferStatus {
   PENDING = 'pending',
   ACCEPTED = 'accepted',
@@ -180,7 +186,7 @@ export interface FileUpload {
   targetUser: string;
   progress: number;
   phase: 'sending' | 'finalizing';
-  groupId: string;
+  batchId: string;
 }
 
 export interface FileDownload {

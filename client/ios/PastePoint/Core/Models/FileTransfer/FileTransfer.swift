@@ -7,6 +7,7 @@ import Foundation
 
 // MARK: Payloads
 
+/// Wire format; do not rename fields.
 struct FileOfferPayload: Codable, Sendable {
   let fileId: String
   let fileName: String
@@ -17,24 +18,29 @@ struct FileOfferPayload: Codable, Sendable {
   let previewMime: String?
 }
 
+/// Wire format; do not rename fields.
 struct FileAcceptPayload: Codable, Sendable {
   let fileId: String
 }
 
+/// Wire format; do not rename fields.
 struct FileDeclinePayload: Codable, Sendable {
   let fileId: String
 }
 
+/// Wire format; do not rename fields.
 struct FileCancelPayload: Codable, Sendable {
   let fileId: String
 }
 
+/// Wire format; do not rename fields.
 struct FileReceivedPayload: Codable, Sendable {
   let fileId: String
 }
 
 // MARK: Status
 
+/// Local only; never on the wire.
 enum FileTransferStatus: String, Codable, Sendable {
   case pending
   case accepted
@@ -56,6 +62,7 @@ enum FileTransferFailureReason: Sendable {
 
 // MARK: Attachment Bubble Data
 
+/// Local only; never on the wire.
 struct FileTransferData: Codable, Sendable, Equatable {
   let fileId: String
   let fileName: String
@@ -65,7 +72,7 @@ struct FileTransferData: Codable, Sendable, Equatable {
   var fileURL: URL?
   var previewDataUrl: String?
   var previewMime: String?
-  var groupId: String?
+  var batchId: String?
   var deliveredCount: Int?
   var recipientCount: Int?
 }
@@ -79,7 +86,7 @@ struct FileUpload: Identifiable, Sendable {
   }
 
   let id: String
-  let groupId: String
+  let batchId: String
   let fileURL: URL
   let kind: FileSourceKind
   let displayName: String

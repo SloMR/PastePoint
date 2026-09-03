@@ -702,13 +702,13 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
 
     // Aggregate status for the sender's own outgoing files (echo bubble).
     this.subscriptions.push(
-      this.fileTransferService.outgoingGroupStatus$.subscribe(
-        ({ groupId, delivered, total, resolved }) => {
+      this.fileTransferService.uploadBatchStatus$.subscribe(
+        ({ batchId, delivered, total, resolved }) => {
           this.ngZone.run(() => {
             const updated = this.chatService.messages$.value.map((msg) => {
               if (
                 msg.type === ChatMessageType.ATTACHMENT &&
-                msg.fileTransfer?.groupId === groupId
+                msg.fileTransfer?.batchId === batchId
               ) {
                 const status =
                   delivered > 0
@@ -1232,7 +1232,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
    */
   private async createLocalFileMessages(
     files: File[],
-    groupIds: Map<File, string>,
+    batchIds: Map<File, string>,
     recipientCount: number
   ): Promise<void> {
     for (const file of files) {
@@ -1264,17 +1264,17 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
         }
       }
 
-      const groupId = groupIds.get(file)!;
+      const batchId = batchIds.get(file)!;
       this.chatService.addMessageToLocal(fileMessageText, ChatMessageType.ATTACHMENT, {
         previewUrl,
         previewMime,
         fileTransfer: {
-          fileId: groupId,
+          fileId: batchId,
           fileName: file.name,
           fileSize: file.size,
           fromUser: this.userService.user,
           status: FileTransferStatus.ACCEPTED,
-          groupId,
+          batchId,
           deliveredCount: 0,
           recipientCount,
         },
@@ -1349,7 +1349,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   /**
    * ==========================================================
    * SEND FILES TO RECIPIENTS
-   * Shared upload path: one group id per file (links the echo bubble to
+   * Shared upload path: one batch id per file (links the echo bubble to
    * its per-peer uploads), prepare + connect, then send offers per peer.
    * ==========================================================
    */
@@ -1359,16 +1359,16 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
 
-    // One group id per file links its echo bubble to its per-peer uploads.
-    const groupIds = new Map<File, string>();
+    // One batch id per file links its echo bubble to its per-peer uploads.
+    const batchIds = new Map<File, string>();
     for (const file of filesToSend) {
-      const groupId = crypto.randomUUID();
-      groupIds.set(file, groupId);
-      this.fileTransferService.beginUploadGroup(groupId, recipients.length);
+      const batchId = crypto.randomUUID();
+      batchIds.set(file, batchId);
+      this.fileTransferService.beginUploadBatch(batchId, recipients.length);
     }
 
     // Create local chat messages for each file being sent
-    await this.createLocalFileMessages(filesToSend, groupIds, recipients.length);
+    await this.createLocalFileMessages(filesToSend, batchIds, recipients.length);
 
     // First prepare all files for all recipients
     for (const fileToSend of filesToSend) {
@@ -1376,7 +1376,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
         await this.fileTransferService.prepareFileForSending(
           fileToSend,
           member,
-          groupIds.get(fileToSend)!
+          batchIds.get(fileToSend)!
         );
         if (!this.webrtcService.isReachable(member)) {
           this.logger.info(

@@ -6,6 +6,7 @@ import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { ICE_SERVERS, TURN_READY_TIMEOUT, TURN_RETRY_COOLDOWN } from '../../../utils/constants';
 
+// Server response; do not rename fields.
 interface TurnCredentialsResponse {
   username: string;
   credential: string;

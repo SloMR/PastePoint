@@ -43,7 +43,7 @@ PastePoint is a secure, feature-rich file-sharing service designed for local net
 - **Observability**:
   - Optional Sentry-based error tracking (EU-hosted, off by default in dev)
   - Privacy-tight defaults: no IPs, no geo, no request bodies, no user identifiers
-  - Configured per-environment in committed files: server `config/*.toml` `[sentry]` (`enabled` + `dsn`), web `client/web/src/environments/environment.*.ts` (DSNs are public ingest addresses, not secrets)
+  - Configured per-environment in committed files: server `config/*.toml` `[sentry]` (`enabled` + `dsn`), web `client/web/src/environments/environment.*.ts`, iOS `AppEnvironment.swift` (DSNs are public ingest addresses, not secrets)
 
 - **Cross-Platform Compatibility**:
   - Runs seamlessly on Linux, macOS, and Windows with Dockerized support
@@ -107,6 +107,7 @@ PastePoint is a secure, feature-rich file-sharing service designed for local net
 - **QR Sharing**: AVFoundation scanning, Core Image generation
 - **Universal Links**: Invite URLs open the app when installed
 - **Integrity**: BLAKE3 file hashing with per-chunk CRC32
+- **Error Tracking**: `sentry-cocoa` with privacy-tight redaction, Release builds only
 
 ### Infrastructure
 
@@ -275,8 +276,9 @@ pastepoint/
   - Session data is cleared on server restart or leaving the session
 
 - **Error Diagnostics (Sentry)**:
-  - Server and web SDKs scrub: user identifiers, IP addresses, geo,
+  - Server, web and iOS SDKs scrub: user identifiers, IP addresses, geo,
     request bodies, headers, cookies, query strings, locale, timezone
+  - iOS declares the collected diagnostics in `PrivacyInfo.xcprivacy` (not linked, not tracking)
 
 ## License
 

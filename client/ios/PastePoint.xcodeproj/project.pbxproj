@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		4C099FD52F4CE70800E71A3D /* Logging in Frameworks */ = {isa = PBXBuildFile; productRef = 4C099FD42F4CE70800E71A3D /* Logging */; };
 		5C2FC06C300FC91E003CF5C9 /* BlakeHash in Frameworks */ = {isa = PBXBuildFile; productRef = 5C2FC06B300FC91E003CF5C9 /* BlakeHash */; };
+		5C3DEB383042070B005BA42C /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = 5C3DEB373042070B005BA42C /* Sentry */; };
+		5C3DEB3A3042070B005BA42C /* SentrySwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = 5C3DEB393042070B005BA42C /* SentrySwiftUI */; };
 		5C44B07D2FB11C120080A2A7 /* WebRTC in Frameworks */ = {isa = PBXBuildFile; productRef = 5C44B07C2FB11C120080A2A7 /* WebRTC */; };
 /* End PBXBuildFile section */
 
@@ -73,8 +75,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				5C2FC06C300FC91E003CF5C9 /* BlakeHash in Frameworks */,
+				5C3DEB3A3042070B005BA42C /* SentrySwiftUI in Frameworks */,
 				4C099FD52F4CE70800E71A3D /* Logging in Frameworks */,
 				5C44B07D2FB11C120080A2A7 /* WebRTC in Frameworks */,
+				5C3DEB383042070B005BA42C /* Sentry in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -138,6 +142,8 @@
 				4C099FD42F4CE70800E71A3D /* Logging */,
 				5C44B07C2FB11C120080A2A7 /* WebRTC */,
 				5C2FC06B300FC91E003CF5C9 /* BlakeHash */,
+				5C3DEB373042070B005BA42C /* Sentry */,
+				5C3DEB393042070B005BA42C /* SentrySwiftUI */,
 			);
 			productName = PastePoint;
 			productReference = 4C2327002F1ECB1B005FED3A /* PastePoint.app */;
@@ -230,6 +236,7 @@
 				4C099FD32F4CE70800E71A3D /* XCRemoteSwiftPackageReference "swift-log" */,
 				5C44B07B2FB11C120080A2A7 /* XCRemoteSwiftPackageReference "WebRTC" */,
 				5C2FC06A300FC91E003CF5C9 /* XCRemoteSwiftPackageReference "blake-hash" */,
+				5C3DEB363042070B005BA42C /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 4C2327012F1ECB1B005FED3A /* Products */;
@@ -456,7 +463,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.14.2;
+				MARKETING_VERSION = 0.14.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.pastepoint.ios;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -495,7 +502,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.14.2;
+				MARKETING_VERSION = 0.14.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.pastepoint.ios;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -673,6 +680,14 @@
 				minimumVersion = 1.0.0;
 			};
 		};
+		5C3DEB363042070B005BA42C /* XCRemoteSwiftPackageReference "sentry-cocoa" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/getsentry/sentry-cocoa.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 9.26.1;
+			};
+		};
 		5C44B07B2FB11C120080A2A7 /* XCRemoteSwiftPackageReference "WebRTC" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/stasel/WebRTC.git";
@@ -693,6 +708,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 5C2FC06A300FC91E003CF5C9 /* XCRemoteSwiftPackageReference "blake-hash" */;
 			productName = BlakeHash;
+		};
+		5C3DEB373042070B005BA42C /* Sentry */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5C3DEB363042070B005BA42C /* XCRemoteSwiftPackageReference "sentry-cocoa" */;
+			productName = Sentry;
+		};
+		5C3DEB393042070B005BA42C /* SentrySwiftUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5C3DEB363042070B005BA42C /* XCRemoteSwiftPackageReference "sentry-cocoa" */;
+			productName = SentrySwiftUI;
 		};
 		5C44B07C2FB11C120080A2A7 /* WebRTC */ = {
 			isa = XCSwiftPackageProductDependency;

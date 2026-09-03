@@ -7,10 +7,6 @@ import Combine
 import Foundation
 import WebRTC
 
-private struct UnsafeSendable<T>: @unchecked Sendable {
-  nonisolated(unsafe) let value: T
-}
-
 enum FileChannelEvent {
   case offer(FileOfferPayload, from: String)
   case accept(FileAcceptPayload, from: String)
@@ -50,11 +46,12 @@ final class SignalingService: NSObject, ObservableObject {
   private static let baseReconnectDelay: TimeInterval = 2.0 // Seconds
   private static let maxReconnectDelay: TimeInterval = 10.0 // Seconds
   private static let maxPendingMessages = 64
+  static let connectSpanAbandonAfter: TimeInterval = 120.0 // Seconds
 
-  private var peerConnections: [String: RTCPeerConnection] = [:]
+  var peerConnections: [String: RTCPeerConnection] = [:]
   private var dataChannels: [String: RTCDataChannel] = [:]
   private var candidateQueues: [String: [RTCIceCandidate]] = [:]
-  private var collectedCandidates: [String: [String]] = [:]
+  var collectedCandidates: [String: [String]] = [:]
   private var connectionLocks: Set<String> = []
   private var outboundSequences: [String: Int] = [:]
   private var inboundSequences: [String: Int] = [:]
@@ -65,6 +62,10 @@ final class SignalingService: NSObject, ObservableObject {
   private var connectionRequestTimeouts: [String: Task<Void, Never>] = [:]
   private var pendingOpens: Set<String> = []
   private var pendingMessages: [String: [Data]] = [:]
+
+  var connectSpans: [String: TelemetrySpan] = [:]
+  var connectAttemptCounts: [String: Int] = [:]
+  var connectSpanAbandonTasks: [String: Task<Void, Never>] = [:]
 
   private let turnCredentials = TurnCredentialsService()
 
@@ -118,22 +119,14 @@ final class SignalingService: NSObject, ObservableObject {
   // MARK: - Public API
 
   func initiateConnection(to peer: String, force: Bool = false) async {
-    guard !connectionLocks.contains(peer) else {
-      log.debug("already locked for \(peer)")
-      return
+    if connectSpans[peer] == nil {
+      startConnectSpan(for: peer)
     }
-
-    guard peerConnections[peer] == nil else {
-      log.warning("already have a connection to \(peer)")
-      return
-    }
-
-    if !force, connectionRequestTimeouts[peer] != nil {
-      log.debug("connection request already outstanding for \(peer)")
-      return
-    }
+    guard !isAlreadyHandled(peer, force: force) else { return }
 
     await userService.waitForUsername()
+    // The role can only be known once we have a name.
+    telemetry.setAttributes(["role": connectRole(for: peer)], on: connectSpans[peer])
 
     // The guards above ran before that suspension; another caller may have
     // started an attempt for this peer while we waited.
@@ -143,7 +136,7 @@ final class SignalingService: NSObject, ObservableObject {
     }
 
     if !force, !shouldInitiateConnection(to: peer) {
-      log.info("not the designated caller for \(peer), sending connection request")
+      log.info("not the designated caller, sending connection request")
       let request = SignalMessage(
         payload: .connectionRequest,
         from: userService.user,
@@ -152,6 +145,7 @@ final class SignalingService: NSObject, ObservableObject {
       )
       await wsService.sendSignal(request)
       connectingPeers.insert(peer)
+      recordConnectAttempt(peer)
       // If the designated caller never re-offers, take over and initiate ourselves
       startConnectionRequestTimeout(for: peer)
       return
@@ -159,6 +153,7 @@ final class SignalingService: NSObject, ObservableObject {
 
     connectionLocks.insert(peer)
     connectingPeers.insert(peer)
+    recordConnectAttempt(peer)
     startConnectionTimeout(for: peer)
 
     let iceServers = await turnCredentials.iceServers()
@@ -171,14 +166,14 @@ final class SignalingService: NSObject, ObservableObject {
     }
 
     guard let pc = PeerConnectionFactory.shared.makePeerConnection(iceServers: iceServers, delegate: self) else {
-      log.error("factory returned nil for \(peer)")
+      log.error("factory returned nil")
       connectionLocks.remove(peer)
       return
     }
     peerConnections[peer] = pc
 
     guard let channel = pc.dataChannel(forLabel: "data", configuration: WebRTCConfig.dataChannelConfig) else {
-      log.error("failed to create data channel for \(peer)")
+      log.error("failed to create data channel")
       peerConnections[peer] = nil
       connectionLocks.remove(peer)
       return
@@ -205,23 +200,45 @@ final class SignalingService: NSObject, ObservableObject {
       sequence: nextSequence(for: peer),
     )
     await wsService.sendSignal(offerMessage)
-    log.info("offer sent to \(peer)")
+    log.info("offer sent")
+  }
+
+  /// The guards that run before the first suspension; ends the span as skipped where web does.
+  private func isAlreadyHandled(_ peer: String, force: Bool) -> Bool {
+    if connectionLocks.contains(peer) {
+      log.debug("already locked for \(peer)")
+      return true
+    }
+
+    if let existing = peerConnections[peer] {
+      log.warning("already have a connection to this peer")
+      if !force {
+        finishConnectSpanAsSkipped(peer, existing: existing)
+      }
+      return true
+    }
+
+    if !force, connectionRequestTimeouts[peer] != nil {
+      log.debug("connection request already outstanding for \(peer)")
+      return true
+    }
+    return false
   }
 
   func send(_ text: String, to peer: String) {
     guard let channel = dataChannels[peer] else {
-      log.warning("no data channel for \(peer)")
+      log.warning("no data channel for this peer")
       return
     }
 
     guard channel.readyState == .open else {
-      log.warning("channel to \(peer) not open (state: \(channel.readyState.rawValue))")
+      log.warning("channel not open (state: \(channel.readyState.rawValue))")
       return
     }
 
     let buffer = RTCDataBuffer(data: Data(text.utf8), isBinary: false)
     channel.sendData(buffer)
-    log.info("sent \(text) to \(peer)")
+    log.info("sent frame")
   }
 
   func isReadyToSend(to peer: String) -> Bool {
@@ -249,12 +266,13 @@ final class SignalingService: NSObject, ObservableObject {
     let toClose = tracked.subtracting(target)
 
     for peer in toClose {
-      log.info("closing connection to \(peer) (left room)")
+      log.info("closing connection to peer (left room)")
+      finishConnectSpan(peer, ok: false, outcome: .cancelled)
       closePeerConnection(peer)
     }
 
     for peer in toOpen {
-      log.info("opening connection to \(peer) (joined room)")
+      log.info("opening connection to peer (joined room)")
       pendingOpens.insert(peer)
       Task {
         await initiateConnection(to: peer)
@@ -264,6 +282,9 @@ final class SignalingService: NSObject, ObservableObject {
   }
 
   private func resetMesh() {
+    for peer in Array(connectSpans.keys) {
+      finishConnectSpan(peer, ok: false, outcome: .cancelled, message: "closeAll")
+    }
     for peer in Set(peerConnections.keys).union(connectionLocks) {
       closePeerConnection(peer)
     }
@@ -284,11 +305,11 @@ extension SignalingService {
     }
 
     guard !blockService.isBlocked(message.from) else {
-      log.info("ignoring \(message.payload.typeString) from blocked peer \(message.from)")
+      log.info("ignoring \(message.payload.typeString) from blocked peer")
       return
     }
 
-    log.info("received \(message.payload.typeString) from \(message.from)")
+    log.debug("received \(message.payload.typeString) from \(message.from)")
     switch message.payload {
     case .offer:
       Task {
@@ -318,7 +339,7 @@ extension SignalingService {
     }
 
     if connectionLocks.contains(message.from) {
-      log.warning("collision with \(message.from), resolving by role")
+      log.warning("offer collision, resolving by role")
       if shouldInitiateConnection(to: message.from) {
         log.debug("ignoring offer from \(message.from) (we are the designated caller)")
         return
@@ -339,7 +360,7 @@ extension SignalingService {
     let remoteSdp = RTCSessionDescription(type: .offer, sdp: sdpString)
 
     guard let pc = PeerConnectionFactory.shared.makePeerConnection(iceServers: await turnCredentials.iceServers(), delegate: self) else {
-      log.error("factory returned nil for \(message.from)")
+      log.error("factory returned nil")
       connectionLocks.remove(message.from)
       return
     }
@@ -365,7 +386,7 @@ extension SignalingService {
       sequence: nextSequence(for: message.from),
     )
     await wsService.sendSignal(response)
-    log.info("answer sent to \(message.from)")
+    log.info("answer sent")
   }
 
   private func handleAnswer(_ message: SignalMessage) async {
@@ -375,7 +396,7 @@ extension SignalingService {
     }
 
     guard let pc = peerConnections[message.from] else {
-      log.warning("no peer connection for \(message.from)")
+      log.warning("no peer connection for this peer")
       return
     }
 
@@ -388,7 +409,7 @@ extension SignalingService {
     do {
       try await pc.setRemoteDescription(remoteSdp)
       await drainCandidateQueue(for: message.from)
-      log.info("remote description set for \(message.from)")
+      log.info("remote description set")
     } catch {
       log.error("setRemoteDescription failed: \(error.localizedDescription)")
     }
@@ -403,13 +424,13 @@ extension SignalingService {
 
     guard let pc = peerConnections[message.from], pc.remoteDescription != nil else {
       candidateQueues[message.from, default: []].append(candidate)
-      log.info("queued candidate for \(message.from) (queue size: \(candidateQueues[message.from]?.count ?? 0))")
+      log.debug("queued candidate for \(message.from) (queue size: \(candidateQueues[message.from]?.count ?? 0))")
       return
     }
 
     do {
       try await pc.add(candidate)
-      log.info("candidate added for \(message.from)")
+      log.debug("candidate added for \(message.from)")
     } catch {
       log.error("add failed: \(error.localizedDescription)")
     }
@@ -421,7 +442,7 @@ extension SignalingService {
       return
     }
 
-    log.info("\(message.from) is asking us to initiate")
+    log.info("peer is asking us to initiate")
     await initiateConnection(to: message.from)
   }
 
@@ -435,10 +456,10 @@ extension SignalingService {
       do {
         try await pc.add(candidate)
       } catch {
-        log.error("add failed for \(peer)")
+        log.error("queued candidate add failed")
       }
     }
-    log.info("drained \(queued.count) candidates for \(peer)")
+    log.info("drained \(queued.count) candidates")
   }
 }
 
@@ -454,7 +475,8 @@ extension SignalingService {
 
     // Only connect if the peer is still expected to be in the room
     guard peerDirectory.peers.contains(peer) else {
-      log.info("\(peer) is no longer a peer, skipping")
+      log.info("no longer a peer, skipping reconnect")
+      finishConnectSpan(peer, ok: false, outcome: .cancelled)
       reconnectAttempts[peer] = nil
       connectingPeers.remove(peer)
       discardPending(for: peer)
@@ -463,7 +485,8 @@ extension SignalingService {
 
     let attempts = reconnectAttempts[peer] ?? 0
     guard attempts < Self.maxReconnectAttempts else {
-      log.error("max attempts reached for \(peer)")
+      log.error("max reconnect attempts reached")
+      finishConnectSpanAsFailed(peer, reason: .maxReconnectsExceeded)
       reconnectAttempts[peer] = nil
       connectingPeers.remove(peer)
       discardPending(for: peer)
@@ -475,7 +498,7 @@ extension SignalingService {
 
     // Exponential backoff: 2s, 3s, 4.5s, ...
     let delay = min(Self.baseReconnectDelay * pow(1.5, Double(attempts)), Self.maxReconnectDelay)
-    log.warning("attempt \(attempts + 1) for \(peer) in \(delay)s")
+    log.warning("reconnect attempt \(attempts + 1) in \(delay)s")
 
     reconnectTasks[peer] = Task { [weak self] in
       try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
@@ -484,7 +507,8 @@ extension SignalingService {
       self.reconnectTasks[peer] = nil
 
       guard self.peerDirectory.peers.contains(peer) else {
-        log.info("\(peer) left during backoff, skipping")
+        log.info("peer left during backoff, skipping")
+        self.finishConnectSpan(peer, ok: false, outcome: .cancelled)
         self.reconnectAttempts[peer] = nil
         connectingPeers.remove(peer)
         self.discardPending(for: peer)
@@ -499,7 +523,7 @@ extension SignalingService {
         return
       }
 
-      log.info("reconnecting to \(peer)")
+      log.info("reconnecting to peer")
       self.closePeerConnection(peer, resetReconnectState: false)
       await self.initiateConnection(to: peer)
     }
@@ -520,7 +544,7 @@ extension SignalingService {
       // Check if we already connected then don't do anything
       if self.connectedPeers.contains(peer) { return }
 
-      log.warning("connectionTimeout: \(peer) did not reach connected in \(Self.connectionTimeout)s, treating as failure")
+      log.warning("connectionTimeout: peer did not reach connected in \(Self.connectionTimeout)s, treating as failure")
       self.logConnectionDiagnostics(for: peer)
       self.scheduleReconnect(to: peer)
     }
@@ -543,8 +567,13 @@ extension SignalingService {
       guard !Task.isCancelled, let self else { return }
       self.connectionRequestTimeouts[peer] = nil
 
-      guard self.peerConnections[peer] == nil, self.peerDirectory.peers.contains(peer) else { return }
-      log.warning("no offer from \(peer) within \(Self.connectionRequestTimeout)s — force-initiating")
+      guard self.peerConnections[peer] == nil, self.peerDirectory.peers.contains(peer) else {
+        if !self.peerDirectory.peers.contains(peer) {
+          self.finishConnectSpan(peer, ok: false, outcome: .cancelled)
+        }
+        return
+      }
+      log.warning("no offer within \(Self.connectionRequestTimeout)s — force-initiating")
       await self.initiateConnection(to: peer, force: true)
     }
   }
@@ -581,32 +610,6 @@ extension SignalingService {
     }
   }
 
-  // MARK: - Diagnostics
-
-  /// Extracts the ICE candidate type (`host` / `srflx` / `relay` / `prflx`) from
-  /// a candidate SDP line, which carries a `typ <type>` token.
-  private func candidateType(from sdp: String) -> String {
-    let parts = sdp.split(separator: " ")
-    if let i = parts.firstIndex(of: "typ"), i + 1 < parts.count {
-      return String(parts[i + 1])
-    }
-    return "unknown"
-  }
-
-  private func logConnectionDiagnostics(for peer: String) {
-    guard let pc = peerConnections[peer] else { return }
-    let candidates = collectedCandidates[peer] ?? []
-    let hasRelay = candidates.contains("relay")
-    let hasSrflx = candidates.contains("srflx")
-
-    var report = "Connection FAILED with \(peer):\n"
-    report += "  State: \(pc.connectionState.rawValue) / ICE: \(pc.iceConnectionState.rawValue)\n"
-    report += "  Candidates: \(candidates.count) total (relay: \(hasRelay ? "✓" : "✗"), srflx: \(hasSrflx ? "✓" : "✗"))"
-    if !hasRelay {
-      report += "\n  ISSUE: No TURN relay candidates — connection will fail behind symmetric NAT"
-    }
-    log.error("\(report)")
-  }
 }
 
 // MARK: - Data Channel Send
@@ -649,7 +652,7 @@ extension SignalingService {
       if !isBinary, connectingPeers.contains(peer) {
         return enqueue(data, for: peer)
       }
-      log.warning("no open channel to \(peer)")
+      log.warning("no open channel to peer")
       return false
     }
 
@@ -666,13 +669,13 @@ extension SignalingService {
   private func enqueue(_ data: Data, for peer: String) -> Bool {
     var queued = pendingMessages[peer] ?? []
     guard queued.count < Self.maxPendingMessages else {
-      log.warning("pending queue full for \(peer), dropping frame")
+      log.warning("pending queue full, dropping frame")
       return false
     }
 
     queued.append(data)
     pendingMessages[peer] = queued
-    log.info("queued frame for \(peer) (pending: \(queued.count))")
+    log.info("queued frame (pending: \(queued.count))")
     return true
   }
 
@@ -682,7 +685,7 @@ extension SignalingService {
   private func discardPending(for peer: String) {
     let dropped = pendingMessages.removeValue(forKey: peer)?.count ?? 0
     if dropped > 0 {
-      log.warning("discarded \(dropped) queued frames for unreachable \(peer)")
+      log.warning("discarded \(dropped) queued frames for unreachable peer")
     }
     peerUnreachable.send(peer)
   }
@@ -694,7 +697,7 @@ extension SignalingService {
     for data in queued {
       _ = send(data, to: peer)
     }
-    log.info("flushed \(queued.count) queued frames to \(peer)")
+    log.info("flushed \(queued.count) queued frames")
   }
 
   private func encodeChatForWire(_ chat: ChatMessage) -> Data? {
@@ -728,7 +731,7 @@ extension SignalingService {
   // Glare resolution: the lexicographically smaller username is the caller.
   // Plain `<` is byte/code-unit comparison — locale-independent, so iOS and web
   // agree on roles regardless of either device's system locale.
-  private func shouldInitiateConnection(to peer: String) -> Bool {
+  func shouldInitiateConnection(to peer: String) -> Bool {
     return userService.user < peer
   }
 
@@ -749,8 +752,35 @@ extension SignalingService: RTCPeerConnectionDelegate {
   nonisolated func peerConnection(_ peerConnection: RTCPeerConnection, didAdd stream: RTCMediaStream) {}
   nonisolated func peerConnection(_ peerConnection: RTCPeerConnection, didRemove stream: RTCMediaStream) {}
   nonisolated func peerConnection(_ peerConnection: RTCPeerConnection, didRemove candidates: [RTCIceCandidate]) {}
-  nonisolated func peerConnection(_ peerConnection: RTCPeerConnection, didChange newState: RTCIceGatheringState) {}
   nonisolated func peerConnectionShouldNegotiate(_ peerConnection: RTCPeerConnection) {}
+
+  nonisolated func peerConnection(_ peerConnection: RTCPeerConnection, didChange newState: RTCIceGatheringState) {
+    guard newState == .complete else { return }
+    let peerConnectionID = ObjectIdentifier(peerConnection)
+
+    Task { @MainActor [weak self] in
+      guard let self, let peer = self.peer(forConnectionID: peerConnectionID) else { return }
+      telemetry.breadcrumb(
+        category: "webrtc.ice",
+        message: "ice gathering complete",
+        data: ["types": self.candidateTypeCounts(for: peer)],
+      )
+    }
+  }
+
+  nonisolated func peerConnection(_ peerConnection: RTCPeerConnection, didChange newState: RTCPeerConnectionState) {
+    let peerConnectionID = ObjectIdentifier(peerConnection)
+    let state = newState
+
+    Task { @MainActor [weak self] in
+      guard let self, self.peer(forConnectionID: peerConnectionID) != nil else { return }
+      telemetry.breadcrumb(
+        category: "webrtc.peer",
+        message: "peer connection state: \(Self.name(state))",
+        level: state == .failed ? .error : .info,
+      )
+    }
+  }
 
   nonisolated func peerConnection(_ peerConnection: RTCPeerConnection, didChange newState: RTCIceConnectionState) {
     let peerConnectionID = ObjectIdentifier(peerConnection)
@@ -761,6 +791,11 @@ extension SignalingService: RTCPeerConnectionDelegate {
       guard let peer = self.peer(forConnectionID: peerConnectionID) else { return }
 
       log.debug("iceConnectionState: \(peer) → \(state.rawValue)")
+      telemetry.breadcrumb(
+        category: "webrtc.ice",
+        message: "ice connection state: \(Self.name(state))",
+        level: state == .failed ? .error : .info,
+      )
       switch state {
       case .failed, .disconnected:
         self.scheduleReconnect(to: peer)
@@ -813,7 +848,7 @@ extension SignalingService: RTCPeerConnectionDelegate {
 
       box.value.delegate = self
       self.dataChannels[peer] = box.value
-      log.info("data channel attached to peer: \(peer)")
+      log.info("data channel attached")
       if box.value.readyState == .open {
         self.handleChannelOpened(peer)
       }
@@ -843,12 +878,12 @@ extension SignalingService: RTCDataChannelDelegate {
       case .closed:
         self.connectedPeers.remove(peer)
         self.connectionLocks.remove(peer)
-        log.info("disconnected from \(peer)")
+        log.info("disconnected from peer")
         self.scheduleReconnect(to: peer)
       case .connecting:
-        log.info("connecting to \(peer)")
+        log.info("connecting to peer")
       case .closing:
-        log.info("closing connection to \(peer)")
+        log.info("closing connection to peer")
       @unknown default:
         break
       }
@@ -858,13 +893,22 @@ extension SignalingService: RTCDataChannelDelegate {
 
   private func handleChannelOpened(_ peer: String) {
     guard !connectedPeers.contains(peer) else { return }
+
     connectedPeers.insert(peer)
     connectingPeers.remove(peer)
     connectionLocks.remove(peer)
     reconnectAttempts[peer] = nil
+
     clearConnectionTimeout(for: peer)
     flushPendingMessages(to: peer)
-    log.info("connected to \(peer)")
+
+    finishConnectSpanAsSuccess(peer)
+    telemetry.event("mesh.peer_connected", attributes: [
+      "room_size": peerDirectory.peers.count + 1,
+      "is_private": wsService.currentSessionCode != nil,
+    ])
+
+    log.info("connected to peer")
   }
 
   nonisolated func dataChannel(_ dataChannel: RTCDataChannel, didReceiveMessageWith buffer: RTCDataBuffer) {
@@ -882,7 +926,8 @@ extension SignalingService: RTCDataChannelDelegate {
 
       if isBinary {
         guard let parsed = BinaryChunk.decode(bytes) else {
-          log.warning("dropped malformed binary chunk from \(peer)")
+          log.warning("dropped malformed binary chunk")
+          telemetry.breadcrumb(category: "webrtc.datachannel", message: "chunk decode failed", level: .error)
           return
         }
 
@@ -894,26 +939,28 @@ extension SignalingService: RTCDataChannelDelegate {
         let decoded = try DataChannelMessage.decode(bytes)
         self.route(decoded, from: peer)
       } catch {
-        log.error("failed to decode data-channel message from \(peer): \(error)")
+        log.error("failed to decode data-channel message: \(error)")
       }
     }
   }
 
   private func route(_ decoded: DataChannelMessage.Decoded, from peer: String) {
     guard !blockService.isBlocked(peer) else {
-      log.info("dropping data-channel message from blocked peer \(peer)")
+      log.info("dropping data-channel message from blocked peer")
       return
     }
 
     switch decoded {
-    case .chat(let msg): chatMessages.send(msg)
+    case .chat(let msg):
+      telemetry.event("chat.message_received")
+      chatMessages.send(msg)
     case .fileOffer(let payload): fileEvent.send(.offer(payload, from: peer))
     case .fileAccept(let payload): fileEvent.send(.accept(payload, from: peer))
     case .fileDecline(let payload): fileEvent.send(.decline(payload, from: peer))
     case .fileCancelUpload(let payload): fileEvent.send(.cancelUpload(payload, from: peer))
     case .fileCancelDownload(let payload): fileEvent.send(.cancelDownload(payload, from: peer))
     case .fileReceived(let payload): fileEvent.send(.received(payload, from: peer))
-    case .unknown(let type): log.warning("unknown data-channel type \(type) from \(peer)")
+    case .unknown(let type): log.warning("unknown data-channel type \(type)")
     }
   }
 

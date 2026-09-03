@@ -36,6 +36,7 @@ extension ContentView {
       return false
     }
 
+    telemetry.event("chat.message_sent", attributes: ["recipients": services.peerDirectory.peers.count])
     messages.append(message)
     return true
   }
@@ -127,8 +128,8 @@ extension ContentView {
     }
   }
 
-  func updateOutgoingGroup(groupId: String, status: FileTransferStatus, delivered: Int, total: Int) {
-    guard let idx = messages.firstIndex(where: { $0.fileTransfer?.groupId == groupId }) else {
+  func updateUploadBatch(batchId: String, status: FileTransferStatus, delivered: Int, total: Int) {
+    guard let idx = messages.firstIndex(where: { $0.fileTransfer?.batchId == batchId }) else {
       return
     }
 
