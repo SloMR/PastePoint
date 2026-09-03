@@ -37,11 +37,11 @@ export class FileUploadService extends FileTransferBaseService {
   private offerReady = new Map<string, Promise<void>>();
   private fileHashCache = new WeakMap<File, Promise<string>>();
 
-  // Outgoing group aggregation: one logical send (a file fanned out to N peers)
+  // Upload batch aggregation: one logical send (a file fanned out to N peers)
   // so the sender's echo bubble can show "Sent / Sent to X of N / Not delivered".
-  private outgoingGroups = new Map<string, { total: number; completed: number; failed: number }>();
-  public outgoingGroupStatus$ = new Subject<{
-    groupId: string;
+  private uploadBatches = new Map<string, { total: number; completed: number; failed: number }>();
+  public uploadBatchStatus$ = new Subject<{
+    batchId: string;
     delivered: number;
     total: number;
     resolved: boolean;
@@ -72,7 +72,7 @@ export class FileUploadService extends FileTransferBaseService {
   public async prepareFileForSending(
     file: File,
     targetUser: string,
-    groupId: string
+    batchId: string
   ): Promise<void> {
     if (file.size === 0) {
       this.logger.warn('prepareFileForSending', 'Skipping empty file');
@@ -95,7 +95,7 @@ export class FileUploadService extends FileTransferBaseService {
       targetUser,
       progress: 0,
       phase: 'sending',
-      groupId,
+      batchId,
     };
 
     userMap.set(fileId, fileTransfer);
@@ -267,7 +267,7 @@ export class FileUploadService extends FileTransferBaseService {
 
     const userMap = await this.getFileTransfers(targetUser);
     if (userMap) {
-      this.markGroupOutcome(userMap.get(fileId)?.groupId, false);
+      this.markBatchOutcome(userMap.get(fileId)?.batchId, false);
       userMap.delete(fileId);
       await this.setFileTransfers(targetUser, userMap);
     }
@@ -295,7 +295,7 @@ export class FileUploadService extends FileTransferBaseService {
         await this.setFileTransfers(targetUser, userMap);
       }
 
-      this.markGroupOutcome(fileTransfer?.groupId, false);
+      this.markBatchOutcome(fileTransfer?.batchId, false);
       userMap.delete(fileId);
       const key = this.getOrCreateStatusKey(targetUser, fileId);
       await this.deleteFileTransferStatus(key);
@@ -371,7 +371,7 @@ export class FileUploadService extends FileTransferBaseService {
 
     const key = this.getOrCreateStatusKey(targetUser, fileId);
     await this.setFileTransferStatus(key, FileTransferStatus.COMPLETED);
-    this.markGroupOutcome(fileTransfer.groupId, true);
+    this.markBatchOutcome(fileTransfer.batchId, true);
 
     this.telemetry.event('file.delivered', {
       file_size_bytes: fileTransfer.file.size,
@@ -752,32 +752,32 @@ export class FileUploadService extends FileTransferBaseService {
     }
   }
 
-  // =============== Outgoing Group Aggregation ===============
+  // =============== Upload Batch Aggregation ===============
   /** Registers a logical send to `total` recipients before per-peer prep. */
-  public beginUploadGroup(groupId: string, total: number): void {
-    this.outgoingGroups.set(groupId, { total, completed: 0, failed: 0 });
+  public beginUploadBatch(batchId: string, total: number): void {
+    this.uploadBatches.set(batchId, { total, completed: 0, failed: 0 });
   }
 
   /** Records a per-peer terminal outcome and re-derives the bubble status. */
-  private markGroupOutcome(groupId: string | undefined, success: boolean): void {
-    if (!groupId) return;
-    const group = this.outgoingGroups.get(groupId);
-    if (!group) return;
-    if (success) group.completed++;
-    else group.failed++;
-    this.recomputeGroup(groupId);
+  private markBatchOutcome(batchId: string | undefined, success: boolean): void {
+    if (!batchId) return;
+    const batch = this.uploadBatches.get(batchId);
+    if (!batch) return;
+    if (success) batch.completed++;
+    else batch.failed++;
+    this.recomputeBatch(batchId);
   }
 
-  private recomputeGroup(groupId: string): void {
-    const group = this.outgoingGroups.get(groupId);
-    if (!group) return;
-    const resolved = group.completed + group.failed >= group.total;
-    this.outgoingGroupStatus$.next({
-      groupId,
-      delivered: group.completed,
-      total: group.total,
+  private recomputeBatch(batchId: string): void {
+    const batch = this.uploadBatches.get(batchId);
+    if (!batch) return;
+    const resolved = batch.completed + batch.failed >= batch.total;
+    this.uploadBatchStatus$.next({
+      batchId,
+      delivered: batch.completed,
+      total: batch.total,
       resolved,
     });
-    if (resolved) this.outgoingGroups.delete(groupId);
+    if (resolved) this.uploadBatches.delete(batchId);
   }
 }

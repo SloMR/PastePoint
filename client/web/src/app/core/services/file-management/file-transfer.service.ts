@@ -120,8 +120,8 @@ export class FileTransferService implements IFileTransferService {
   /**
    * Aggregate status of an outgoing send (drives the sender's echo bubble).
    */
-  public get outgoingGroupStatus$() {
-    return this.fileUploadService.outgoingGroupStatus$;
+  public get uploadBatchStatus$() {
+    return this.fileUploadService.uploadBatchStatus$;
   }
 
   /**
@@ -142,8 +142,8 @@ export class FileTransferService implements IFileTransferService {
   }
 
   /** Registers a logical send to `total` recipients before per-peer prep. */
-  public beginUploadGroup(groupId: string, total: number): void {
-    this.fileUploadService.beginUploadGroup(groupId, total);
+  public beginUploadBatch(batchId: string, total: number): void {
+    this.fileUploadService.beginUploadBatch(batchId, total);
   }
 
   /**
@@ -152,9 +152,9 @@ export class FileTransferService implements IFileTransferService {
   public async prepareFileForSending(
     file: File,
     targetUser: string,
-    groupId: string
+    batchId: string
   ): Promise<void> {
-    await this.fileUploadService.prepareFileForSending(file, targetUser, groupId);
+    await this.fileUploadService.prepareFileForSending(file, targetUser, batchId);
     this.logger.debug('FileTransferService', `File upload prepared for sending to ${targetUser}`);
   }
 
