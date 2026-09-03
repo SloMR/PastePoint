@@ -36,6 +36,7 @@ extension ContentView {
       return false
     }
 
+    telemetry.event("chat.message_sent", attributes: ["recipients": services.peerDirectory.peers.count])
     messages.append(message)
     return true
   }

@@ -34,6 +34,7 @@ final class AppServices: ObservableObject {
   private var isInBackground = false
   private var isForegroundHandling = false
   private var isDisconnectedForUpdate = false
+  private var didReportUpdateGate = false
 
   private let networkMonitor = NWPathMonitor()
   private var lastPathStatus: NWPath.Status = .satisfied
@@ -171,6 +172,7 @@ final class AppServices: ObservableObject {
 
     if case .required = updateService.recommendation {
       log.warning("connectIfPermitted — update required, skipping connect")
+      reportUpdateGate()
       return false
     }
 
@@ -259,14 +261,25 @@ final class AppServices: ObservableObject {
         if case .required = recommendation {
           guard self.wsService.isConnected || self.wsService.isConnecting else { return }
           log.warning("Update required — disconnecting until the app is updated")
+          self.reportUpdateGate()
           self.isDisconnectedForUpdate = true
           self.wsService.disconnect(manual: false)
-        } else if self.isDisconnectedForUpdate {
-          self.isDisconnectedForUpdate = false
-          Task { await self.handleForeground() }
+        } else {
+          self.didReportUpdateGate = false
+          if self.isDisconnectedForUpdate {
+            self.isDisconnectedForUpdate = false
+            Task { await self.handleForeground() }
+          }
         }
       }
       .store(in: &cancellables)
+  }
+
+  /// Counts a required-update gate once per episode; foreground retries while gated must not re-count it.
+  private func reportUpdateGate() {
+    guard !didReportUpdateGate else { return }
+    didReportUpdateGate = true
+    telemetry.warnEvent("update.gate_blocked")
   }
 
   // MARK: - Termination

@@ -20,6 +20,7 @@ final class SessionService: ObservableObject {
 
   func preparePrivateSession() async throws {
     let code = try await getNewSessionCode()
+    telemetry.event("session.invite_created")
     await wsService.setupPrivateSession(code)
   }
 
