@@ -58,7 +58,7 @@ final class WebSocketConnectionService: ObservableObject {
 
   func setupPrivateSession(_ code: String) async {
     guard SessionService.isValidSessionCode(code) else {
-      log.warning("Private session code is not valid: \(code)")
+      log.warning("Private session code is not valid")
       return
     }
     disconnect(manual: true)
@@ -103,12 +103,12 @@ final class WebSocketConnectionService: ObservableObject {
 
     let urlString = AppEnvironment.webSocketUrl(sessionCode: effectiveCode)
     guard let url = URL(string: urlString) else {
-      log.error("Invalid WS URL: \(urlString)")
+      log.error("Invalid WS URL")
       isConnecting = false
       return
     }
 
-    log.info("Connecting to \(urlString)")
+    log.info("Connecting (private: \(effectiveCode != nil))")
 
 #if DEBUG
     let session = URLSession(
@@ -219,7 +219,7 @@ final class WebSocketConnectionService: ObservableObject {
           return
         }
         guard let sig = SignalMessage(from: dict) else {
-          log.warning("malformed SignalMessage — missing required fields in: \(json)")
+          log.warning("malformed SignalMessage — missing required fields")
           return
         }
         signalMessage.send(sig)

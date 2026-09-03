@@ -32,10 +32,10 @@ struct SettingsCreateRoomView: View {
       // Buttons
       HStack(spacing: 12) {
         Button {
-          log.info("User joining room with name: \(sanitizedRoomName)")
+          log.info("User joining room")
           Task {
             await services.roomService.joinOrCreateRoom(sanitizedRoomName)
-            log.info("Successfully joined room: \(sanitizedRoomName)")
+            log.info("Successfully joined room")
             dismiss()
             onRoomCreate?()
           }

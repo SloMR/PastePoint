@@ -41,7 +41,7 @@ enum FileStaging {
     var staged: [StagedFile] = []
     for url in urls {
       guard url.startAccessingSecurityScopedResource() else {
-        log.error("couldn't access security-scoped \(url.lastPathComponent)")
+        log.error("couldn't access security-scoped file")
         continue
       }
 
@@ -49,10 +49,10 @@ enum FileStaging {
       do {
         let size = Int64(try url.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0)
         staged.append(StagedFile(id: UUID(), name: fileName, size: size, url: url, kind: .securityScoped))
-        log.info("staged file: \(fileName) (\(size) bytes)")
+        log.info("staged file (\(size) bytes)")
       } catch {
         url.stopAccessingSecurityScopedResource()
-        log.error("failed to stat \(fileName): \(String(describing: error))")
+        log.error("failed to stat file: \(error.codeDescription)")
       }
     }
     return staged
@@ -73,9 +73,9 @@ enum FileStaging {
         let size = Int64((try? picked.url.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0)
 
         staged.append(StagedFile(id: UUID(), name: displayName, size: size, url: picked.url, kind: .ownedTemp))
-        log.info("staged photo: \(displayName) (\(size) bytes)")
+        log.info("staged photo (\(size) bytes)")
       } catch {
-        log.error("failed to stage photo: \(String(describing: error))")
+        log.error("failed to stage photo: \(error.codeDescription)")
       }
     }
 
@@ -108,7 +108,7 @@ enum FileStaging {
         return [StagedFile(id: UUID(), name: name, size: size, url: dest, kind: .ownedTemp)]
       }
     } catch {
-      log.error("failed to stage camera capture: \(String(describing: error))")
+      log.error("failed to stage camera capture: \(error.codeDescription)")
       return []
     }
   }

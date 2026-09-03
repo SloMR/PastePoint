@@ -63,11 +63,11 @@ final class UserService: ObservableObject {
       return
     }
     guard let match = regex.firstMatch(in: message, range: NSRange(message.startIndex..., in: message)) else {
-      log.warning("no [SystemName] match in: \(message)")
+      log.warning("no [SystemName] match")
       return
     }
     guard let range = Range(match.range(at: 1), in: message) else {
-      log.warning("capture group out of range in: \(message)")
+      log.warning("capture group out of range")
       return
     }
     user = String(message[range]).trimmingCharacters(in: .whitespaces)

@@ -3,6 +3,7 @@
 //  SPDX-License-Identifier: GPL-3.0-only
 //
 
+import Foundation
 import Logging
 import os
 
@@ -49,5 +50,13 @@ struct AppLog: Sendable {
 
   nonisolated func critical(_ msg: @autoclosure () -> String, file: String = #fileID, function: String = #function, line: UInt = #line) {
     logger(for: file).critical("\(msg())", file: file, function: function, line: line)
+  }
+}
+
+extension Error {
+  /// Domain and code only; localized descriptions can embed file names.
+  nonisolated var codeDescription: String {
+    let error = self as NSError
+    return "\(error.domain)#\(error.code)"
   }
 }

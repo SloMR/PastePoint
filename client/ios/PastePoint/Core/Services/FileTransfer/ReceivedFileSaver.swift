@@ -44,10 +44,10 @@ enum ReceivedFileSaver {
       } completionHandler: { success, error in
         if success {
           try? FileManager.default.removeItem(at: url)
-          log.info("saved to Photos: \(url.lastPathComponent)")
+          log.info("saved to Photos")
           continuation.resume(returning: .photos)
         } else {
-          log.error("Photos save failed: \(String(describing: error))")
+          log.error("Photos save failed: \(error?.codeDescription ?? "unknown")")
           continuation.resume(returning: .failed)
         }
       }
@@ -67,10 +67,10 @@ enum ReceivedFileSaver {
 
       let dest = uniqueURL(in: docs, fileName: fileName)
       try FileManager.default.moveItem(at: url, to: dest)
-      log.info("saved to Documents: \(dest.lastPathComponent)")
+      log.info("saved to Documents")
       return .documents(dest)
     } catch {
-      log.error("Documents save failed: \(String(describing: error))")
+      log.error("Documents save failed: \(error.codeDescription)")
       return .failed
     }
   }

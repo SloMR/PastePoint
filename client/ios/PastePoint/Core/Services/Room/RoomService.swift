@@ -56,7 +56,7 @@ final class RoomService: ObservableObject {
       log.debug("already in room '\(room)' — skipped")
       return
     }
-    log.info("Joining room: \(room)")
+    log.info("Joining room")
     await wsService.send("[UserCommand] /join \(room)")
     currentRoom = room
 
@@ -73,7 +73,7 @@ final class RoomService: ObservableObject {
   private func handleSystemMessage(_ message: String) {
     if message.contains("[SystemRooms]") {
       guard let range = message.range(of: "\\[SystemRooms]\\s*(.*)$", options: .regularExpression) else {
-        log.warning("failed to parse [SystemRooms] message: \(message)")
+        log.warning("failed to parse [SystemRooms] message")
         return
       }
       let rest = String(message[range])
@@ -83,7 +83,7 @@ final class RoomService: ObservableObject {
       log.debug("Rooms updated: \(rooms)")
     } else if message.contains("[SystemMembers]") {
       guard let range = message.range(of: "\\[SystemMembers]\\s*(.*)$", options: .regularExpression) else {
-        log.warning("failed to parse [SystemMembers] message: \(message)")
+        log.warning("failed to parse [SystemMembers] message")
         return
       }
       let rest = String(message[range])
@@ -93,16 +93,16 @@ final class RoomService: ObservableObject {
       log.debug("Members updated: \(members)")
     } else if message.contains("[SystemJoin]") {
       guard let range = message.range(of: "\\[SystemJoin]\\s*(\\S+)\\s*$", options: .regularExpression) else {
-        log.warning("failed to parse [SystemJoin] message: \(message)")
+        log.warning("failed to parse [SystemJoin] message")
         return
       }
       let parts = String(message[range]).split(separator: " ")
       guard let last = parts.last else {
-        log.warning("[SystemJoin] had no room name in: \(message)")
+        log.warning("[SystemJoin] had no room name")
         return
       }
       currentRoom = String(last)
-      log.info("Joined room: \(currentRoom)")
+      log.info("Joined room")
       Task { await self.listRooms() }
     }
   }
