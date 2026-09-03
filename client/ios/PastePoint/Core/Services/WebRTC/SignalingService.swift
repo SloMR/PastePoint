@@ -7,10 +7,6 @@ import Combine
 import Foundation
 import WebRTC
 
-private struct UnsafeSendable<T>: @unchecked Sendable {
-  nonisolated(unsafe) let value: T
-}
-
 enum FileChannelEvent {
   case offer(FileOfferPayload, from: String)
   case accept(FileAcceptPayload, from: String)
