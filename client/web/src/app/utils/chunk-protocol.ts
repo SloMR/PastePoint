@@ -90,6 +90,7 @@ export async function calculateFileHashStreaming(file: File): Promise<string> {
 }
 
 // =============== Chunk Metadata ===============
+// Wire frame; the layout is the protocol.
 export interface ChunkMetadata {
   fileId: string;
   chunkIndex: number;

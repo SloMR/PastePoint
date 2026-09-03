@@ -8,13 +8,14 @@ import Foundation
 
 // MARK: - Wire model
 
-/// One platform's policy from `GET /version`; we decode only `ios`.
+/// One platform's policy from `GET /version`; we decode only `ios`. Do not rename fields.
 private struct PlatformVersion: Decodable {
   let minimum: String
   let latest: String
   let url: String
 }
 
+/// Server response; do not rename fields.
 private struct VersionResponse: Decodable {
   let ios: PlatformVersion
 }

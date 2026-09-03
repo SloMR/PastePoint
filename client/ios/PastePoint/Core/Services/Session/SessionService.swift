@@ -6,6 +6,7 @@
 import Combine
 import Foundation
 
+/// Server response; do not rename fields.
 struct CreateSessionResponse: Decodable {
   let code: String
 }

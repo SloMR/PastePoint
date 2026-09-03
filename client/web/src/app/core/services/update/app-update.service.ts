@@ -7,6 +7,7 @@ import { environment } from '../../../../environments/environment';
 import packageJson from '../../../../../package.json';
 import { UPDATE_LAST_PROMPT_KEY, UPDATE_OPTIONAL_THROTTLE_MS } from '../../../utils/constants';
 
+// Server response; do not rename fields.
 interface PlatformVersion {
   minimum: string;
   latest: string;

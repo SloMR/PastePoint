@@ -15,7 +15,7 @@ struct ParsedChunk: Sendable {
 }
 
 /// Binary chunk codec for file transfers byte layout exactly so iOS and web interoperate on the wire.
-/// Layout (all little-endian):
+/// Wire frame; the layout is the protocol. Layout (all little-endian):
 /// `[u16 fileId byte length][fileId UTF-8 bytes][u32 chunkIndex][u32 totalChunks][u32 CRC32][data]`
 enum BinaryChunk {
   // SCTP caps messages at ~256KB; chunk data + header (~64 bytes) must stay

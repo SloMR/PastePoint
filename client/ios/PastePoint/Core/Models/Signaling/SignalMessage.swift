@@ -5,6 +5,7 @@
 
 import Foundation
 
+/// Wire format; do not rename fields.
 enum SignalPayload {
   case offer(sdp: String)
   case answer(sdp: String)
@@ -62,6 +63,7 @@ enum SignalPayload {
   }
 }
 
+/// Wire format; do not rename fields.
 struct SignalMessage {
   let payload: SignalPayload
   let from: String
