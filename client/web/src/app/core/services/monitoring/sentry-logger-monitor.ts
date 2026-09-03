@@ -1,5 +1,26 @@
+import { Injectable } from '@angular/core';
 import * as Sentry from '@sentry/angular';
-import { INGXLoggerMetadata, INGXLoggerMonitor, NgxLoggerLevel } from 'ngx-logger';
+import {
+  INGXLoggerConfig,
+  INGXLoggerMetadata,
+  INGXLoggerMonitor,
+  NGXLoggerRulesService,
+  NgxLoggerLevel,
+} from 'ngx-logger';
+
+@Injectable()
+export class SentryLoggerRulesService extends NGXLoggerRulesService {
+  public override shouldCallMonitor(
+    level: NgxLoggerLevel,
+    config: INGXLoggerConfig,
+    message?: unknown,
+    additional?: unknown[]
+  ): boolean {
+    return (
+      level >= NgxLoggerLevel.INFO || super.shouldCallMonitor(level, config, message, additional)
+    );
+  }
+}
 
 export class SentryLoggerMonitor implements INGXLoggerMonitor {
   onLog(log: INGXLoggerMetadata): void {
