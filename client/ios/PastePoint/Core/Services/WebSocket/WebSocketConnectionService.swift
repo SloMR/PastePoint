@@ -49,6 +49,7 @@ final class WebSocketConnectionService: ObservableObject {
   private let maxReconnectAttempts = 5
   private let baseReconnectDelaySec: Double = 1
   private let maxReconnectDelaySec: Double = 30
+  private var connectSpan: TelemetrySpan?
 
   // MARK: - Session Code
 
@@ -97,6 +98,7 @@ final class WebSocketConnectionService: ObservableObject {
 
     // Reset the retry counter on every intentional (non-reconnect) connect so
     // that NWPathMonitor / foreground transitions always get a fresh 5-attempt window.
+    let priorAttempts = reconnectAttempts
     if !isReconnectAttempt {
       reconnectAttempts = 0
     }
@@ -109,6 +111,11 @@ final class WebSocketConnectionService: ObservableObject {
     }
 
     log.info("Connecting (private: \(effectiveCode != nil))")
+
+    connectSpan = telemetry.startSpan(op: "ws.connect", attributes: [
+      "ws.has_session_code": effectiveCode != nil,
+      "attempt": priorAttempts,
+    ])
 
 #if DEBUG
     let session = URLSession(
@@ -132,30 +139,44 @@ final class WebSocketConnectionService: ObservableObject {
     capturedTask?.sendPing { [weak self] error in
       Task { @MainActor [weak self] in
         guard let self, self.task === capturedTask else { return }
-        self.isConnecting = false
-        self.isLeavingSession = false
-        if let error {
-          log.warning("Connection handshake ping failed: \(error.localizedDescription)")
-          self.teardownConnection()
-          if self.isPermanentError(error) {
-            log.warning("Session code invalid or expired — falling back to public session")
-            self.sessionRejected.send()
-            self.clearSessionCode()
-            await self.connect(sessionCode: nil, isReconnectAttempt: false)
-            return
-          }
-          self.scheduleReconnect()
-        } else {
-          self.isConnected = true
-          self.reconnectState = nil
-          self.didConnect.send()
-          if self.hasConnectedOnce {
-            self.didReconnect.send()
-          }
-          self.hasConnectedOnce = true
-        }
+        await self.handleHandshake(error: error, priorAttempts: priorAttempts)
       }
     }
+  }
+
+  /// Settles a connect attempt once the handshake ping returns.
+  private func handleHandshake(error: (any Error)?, priorAttempts: Int) async {
+    isConnecting = false
+    isLeavingSession = false
+
+    guard let error else {
+      endConnectSpan(.opened)
+      isConnected = true
+      reconnectState = nil
+      didConnect.send()
+      if priorAttempts > 0 {
+        telemetry.event("ws.reconnected", attributes: ["attempts": priorAttempts])
+      }
+      if hasConnectedOnce {
+        didReconnect.send()
+      }
+      hasConnectedOnce = true
+      return
+    }
+
+    log.warning("Connection handshake ping failed: \(error.localizedDescription)")
+    let rejected = isPermanentError(error)
+    endConnectSpan(rejected ? .sessionRejected : .handshakeFailed)
+    teardownConnection()
+    if rejected {
+      log.warning("Session code invalid or expired — falling back to public session")
+      telemetry.warnEvent("session.fallback_public", attributes: ["attempts": reconnectAttempts])
+      sessionRejected.send()
+      clearSessionCode()
+      await connect(sessionCode: nil, isReconnectAttempt: false)
+      return
+    }
+    scheduleReconnect()
   }
 
   // MARK: - Receive Loop
@@ -184,6 +205,8 @@ final class WebSocketConnectionService: ObservableObject {
 
           if isPermanentError(error) {
             log.warning("Session code invalid or expired — falling back to public session")
+            endConnectSpan(.sessionRejected)
+            telemetry.warnEvent("session.fallback_public", attributes: ["attempts": reconnectAttempts])
             sessionRejected.send()
             clearSessionCode()
             teardownConnection()
@@ -311,6 +334,9 @@ final class WebSocketConnectionService: ObservableObject {
     isConnected = false
     isConnecting = false
 
+    // A span still open here is an attempt that never settled (disconnect / superseding connect).
+    endConnectSpan(.cancelled)
+
     reconnectTask?.cancel()
     reconnectTask = nil
 
@@ -322,6 +348,25 @@ final class WebSocketConnectionService: ObservableObject {
 
     task?.cancel(with: .goingAway, reason: nil)
     task = nil
+  }
+
+  /// How a `ws.connect` attempt settled.
+  private enum ConnectSpanEnd {
+    case opened
+    case sessionRejected
+    case handshakeFailed
+    case cancelled
+  }
+
+  /// Ends the open connect span (if any); later calls for the same attempt are no-ops.
+  private func endConnectSpan(_ end: ConnectSpanEnd) {
+    switch end {
+    case .opened: telemetry.endSpan(connectSpan, ok: true)
+    case .sessionRejected: telemetry.endSpan(connectSpan, ok: false, message: "session_rejected")
+    case .handshakeFailed: telemetry.endSpan(connectSpan, ok: false, message: "handshake_failed")
+    case .cancelled: telemetry.endSpan(connectSpan, ok: false, outcome: "cancelled")
+    }
+    connectSpan = nil
   }
 
   // MARK: - Reconnect
@@ -351,6 +396,7 @@ final class WebSocketConnectionService: ObservableObject {
     log.info("Disconnecting (manual: \(manual))")
     manualDisconnect = manual
     reconnectState = nil
+    reconnectAttempts = 0
     if manual {
       isLeavingSession = true
       clearSessionCode()
