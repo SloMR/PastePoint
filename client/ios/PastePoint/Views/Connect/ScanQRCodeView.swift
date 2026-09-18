@@ -103,7 +103,7 @@ private struct ScannerDimmingOverlay: View {
 
 // MARK: - Corner Brackets Shape
 
-private struct ViewfinderBracketsShape: Shape {
+private nonisolated struct ViewfinderBracketsShape: Shape {
   let bracketLength: CGFloat = 28
   let cornerRadius: CGFloat = 4
 

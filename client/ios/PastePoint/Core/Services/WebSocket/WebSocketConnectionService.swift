@@ -307,8 +307,7 @@ final class WebSocketConnectionService: ObservableObject {
           try await Task.sleep(for: pingInterval)
           guard !Task.isCancelled, isConnected else { break }
 
-          task?.sendPing { [weak self] error in
-            guard let self else { return }
+          task?.sendPing { error in
             if let error {
               log.warning("Ping failed: \(error.localizedDescription) — triggering reconnect")
 
