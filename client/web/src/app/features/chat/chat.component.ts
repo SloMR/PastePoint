@@ -177,6 +177,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   private currentTransitionId = 0;
   private lastMessagesLength: number = 0;
   private connectionInitTimeouts: ReturnType<typeof setTimeout>[] = [];
+  private meshSyncDeferred = false;
   private navigationTimeout: ReturnType<typeof setTimeout> | null = null;
   private statusCheckIntervalId: ReturnType<typeof setInterval> | null = null;
   private connectionWarningDismissed = false;
@@ -625,6 +626,15 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
           this.rooms = rooms;
           this.cdr.detectChanges();
         });
+      })
+    );
+
+    // A sync skipped while the socket was down runs once it reopens
+    this.subscriptions.push(
+      this.wsConnectionService.connected$.subscribe(() => {
+        if (!this.meshSyncDeferred) return;
+        this.meshSyncDeferred = false;
+        this.initiateConnectionsWithMembers();
       })
     );
 
@@ -1851,6 +1861,12 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     // to the latest membership snapshot.
     this.connectionInitTimeouts.forEach((timeout) => clearTimeout(timeout));
     this.connectionInitTimeouts = [];
+
+    // Signals sent into a closed socket are lost; redo the sync once it reopens
+    if (!this.wsConnectionService.isConnected()) {
+      this.meshSyncDeferred = true;
+      return;
+    }
 
     if (!this.members || this.members.length === 0) {
       this.logger.info(
