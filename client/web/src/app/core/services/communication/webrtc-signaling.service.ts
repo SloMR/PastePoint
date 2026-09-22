@@ -958,7 +958,7 @@ export class WebRTCSignalingService {
     if (message.from === message.to) {
       this.logger.warn(
         'handleSignalMessage',
-        'Skipping self-loop signal: ' + JSON.stringify(message)
+        `Skipping self-loop ${message.type} from ${message.from}`
       );
       return;
     }

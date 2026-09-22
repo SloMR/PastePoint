@@ -85,12 +85,12 @@ export class RoomService implements IRoomService {
       .substring(0, 64);
 
     if (!sanitizedRoom) {
-      this.logger.warn('joinRoom', `Room name is empty after sanitization: ${room}`);
+      this.logger.warn('joinRoom', 'Room name is empty after sanitization');
       return;
     }
 
     if (sanitizedRoom === this.currentRoom) {
-      this.logger.warn('joinRoom', `Already in room: ${room}`);
+      this.logger.warn('joinRoom', 'Already in room');
       return;
     }
 
@@ -98,7 +98,7 @@ export class RoomService implements IRoomService {
 
     this.pendingJoinSpan = this.telemetry.startSpan('session.join', undefined, 'room.join');
     this.pendingJoinTimeout = setTimeout(() => {
-      this.logger.warn('joinRoom', `Join timed out for room: ${sanitizedRoom}`);
+      this.logger.warn('joinRoom', 'Join timed out');
       this.clearPendingJoinSpan('timeout', 2);
     }, RoomService.JOIN_SPAN_TIMEOUT_MS);
     this.wsService.send(`[UserCommand] /join ${sanitizedRoom}`);

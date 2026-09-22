@@ -248,7 +248,7 @@ export class FileUploadService extends FileTransferBaseService {
     this.activeFilePerUser.set(targetUser, nextFileId);
     this.logger.info(
       'processNextFileInQueue',
-      `Starting file transfer: ${fileTransfer.file.name} (${nextFileId.substring(0, 8)}...) to ${targetUser}`
+      `Starting file transfer ${nextFileId.substring(0, 8)}... to ${targetUser}`
     );
 
     try {
@@ -673,7 +673,7 @@ export class FileUploadService extends FileTransferBaseService {
           if (chunkIndex === 0) {
             this.logger.info(
               'sendFileChunks',
-              `First chunk sent for ${fileTransfer.file.name} (encoded size: ${encodedChunk.byteLength})`
+              `First chunk sent for ${fileTransfer.fileId.substring(0, 8)}... (encoded size: ${encodedChunk.byteLength})`
             );
           }
 
