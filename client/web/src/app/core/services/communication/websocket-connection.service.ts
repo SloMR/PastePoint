@@ -236,14 +236,14 @@ export class WebSocketConnectionService implements OnDestroy {
       const settleResolve = () => {
         if (settled) return;
         settled = true;
-        this.telemetry.endSpan(connectSpan, { ok: true });
+        this.telemetry.endSpan(connectSpan, { ok: true, outcome: 'connected' });
         resolve();
       };
       const settleReject = (err: unknown) => {
         if (settled) return;
         settled = true;
         const msg = err instanceof Error ? err.message : String(err);
-        this.telemetry.endSpan(connectSpan, { ok: false, message: msg });
+        this.telemetry.endSpan(connectSpan, { ok: false, outcome: 'failed', message: msg });
         reject(err);
       };
 
