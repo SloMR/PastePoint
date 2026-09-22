@@ -148,7 +148,7 @@ impl WsChatSession {
                         // Binary frames are unused by the signaling protocol.
                         Some(Ok(_)) => {}
                         Some(Err(e)) => {
-                            log::warn!(target: "Websocket", "WebSocket protocol error: {e}");
+                            log::debug!(target: "Websocket", "WebSocket protocol error: {e}");
                             Self::deliver(&tx, format!(
                                 "{} Invalid message format: {}",
                                 WS_PREFIX_SYSTEM_ERROR,
