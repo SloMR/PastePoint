@@ -132,7 +132,12 @@ export class WebRTCSignalingService {
   private startConnectSpanCeiling(targetUser: string): void {
     const timeoutId = setTimeout(() => {
       this.connectSpanCeilings.delete(targetUser);
-      this.finishConnectSpanAsFailed(targetUser, 'abandoned');
+      const span = this.activeConnectSpans.get(targetUser);
+
+      // Background tabs fire timers late; end at the ceiling regardless of when this ran
+      const endTimeMs = span ? this.telemetry.startTimeMs(span) + CONNECT_SPAN_CEILING : undefined;
+
+      this.finishConnectSpanAsFailed(targetUser, 'abandoned', endTimeMs);
     }, CONNECT_SPAN_CEILING);
 
     this.connectSpanCeilings.set(targetUser, timeoutId);
@@ -233,7 +238,7 @@ export class WebRTCSignalingService {
    * candidate counts so a single trace explains *why* the peer-to-peer
    * connection failed (e.g. no relay candidates → restrictive NAT).
    */
-  private finishConnectSpanAsFailed(targetUser: string, reason: string): void {
+  private finishConnectSpanAsFailed(targetUser: string, reason: string, endTimeMs?: number): void {
     const span = this.activeConnectSpans.get(targetUser);
     if (!span) return;
     const peerConnection = this.peerConnections.get(targetUser);
@@ -260,6 +265,7 @@ export class WebRTCSignalingService {
       outcome: 'failed',
       message: reason,
       attributes: diagnostics,
+      endTimeMs,
     });
     this.clearConnectSpan(targetUser);
   }

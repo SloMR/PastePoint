@@ -10,6 +10,7 @@ export interface TelemetrySpanEnd {
   outcome?: string;
   message?: string;
   attributes?: TelemetryAttributes;
+  endTimeMs?: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -50,7 +51,12 @@ export class TelemetryService {
   public endSpan(span: TelemetrySpan | undefined, end: TelemetrySpanEnd): void {
     if (!span) return;
     this.markSpan(span, end);
-    span.end();
+    span.end(end.endTimeMs);
+  }
+
+  /** Epoch milliseconds at which the span started. */
+  public startTimeMs(span: TelemetrySpan): number {
+    return (Sentry.spanToJSON(span).start_timestamp ?? 0) * 1000;
   }
 
   /** Countable product event — counts/sizes/kinds only, never content. */
