@@ -132,7 +132,12 @@ export class WebRTCSignalingService {
   private startConnectSpanCeiling(targetUser: string): void {
     const timeoutId = setTimeout(() => {
       this.connectSpanCeilings.delete(targetUser);
-      this.finishConnectSpanAsFailed(targetUser, 'abandoned');
+      const span = this.activeConnectSpans.get(targetUser);
+
+      // Background tabs fire timers late; end at the ceiling regardless of when this ran
+      const endTimeMs = span ? this.telemetry.startTimeMs(span) + CONNECT_SPAN_CEILING : undefined;
+
+      this.finishConnectSpanAsFailed(targetUser, 'abandoned', endTimeMs);
     }, CONNECT_SPAN_CEILING);
 
     this.connectSpanCeilings.set(targetUser, timeoutId);
@@ -233,7 +238,7 @@ export class WebRTCSignalingService {
    * candidate counts so a single trace explains *why* the peer-to-peer
    * connection failed (e.g. no relay candidates → restrictive NAT).
    */
-  private finishConnectSpanAsFailed(targetUser: string, reason: string): void {
+  private finishConnectSpanAsFailed(targetUser: string, reason: string, endTimeMs?: number): void {
     const span = this.activeConnectSpans.get(targetUser);
     if (!span) return;
     const peerConnection = this.peerConnections.get(targetUser);
@@ -260,6 +265,7 @@ export class WebRTCSignalingService {
       outcome: 'failed',
       message: reason,
       attributes: diagnostics,
+      endTimeMs,
     });
     this.clearConnectSpan(targetUser);
   }
@@ -862,7 +868,7 @@ export class WebRTCSignalingService {
 
       this.reconnectionTimeouts.set(targetUser, timeoutId);
     } else {
-      this.logger.error(
+      this.logger.warn(
         'handleDisconnection',
         `Max reconnection attempts reached for ${targetUser}. Could not reconnect.`
       );
@@ -933,7 +939,7 @@ export class WebRTCSignalingService {
     const hasRelay = candidates.some((c) => c.type === 'relay');
     const hasSrflx = candidates.some((c) => c.type === 'srflx');
 
-    this.logger.error(
+    this.logger.warn(
       'DIAGNOSTIC',
       `Connection FAILED with ${targetUser}:\n` +
         `  State: ${peerConnection.connectionState} / ICE: ${peerConnection.iceConnectionState}\n` +
@@ -958,7 +964,7 @@ export class WebRTCSignalingService {
     if (message.from === message.to) {
       this.logger.warn(
         'handleSignalMessage',
-        'Skipping self-loop signal: ' + JSON.stringify(message)
+        `Skipping self-loop ${message.type} from ${message.from}`
       );
       return;
     }
@@ -1126,7 +1132,7 @@ export class WebRTCSignalingService {
     const peerConnection = this.peerConnections.get(targetUser);
 
     if (!peerConnection) {
-      this.logger.error('handleAnswer', `PeerConnection missing for ${targetUser}`);
+      this.logger.warn('handleAnswer', `PeerConnection missing for ${targetUser}`);
       this.reconnect(targetUser);
       return;
     }
@@ -1236,7 +1242,7 @@ export class WebRTCSignalingService {
           );
         })
         .catch((error) => {
-          this.logger.error('handleCandidate', `Error adding ICE candidate: ${error}`);
+          this.logger.warn('handleCandidate', `Error adding ICE candidate: ${error}`);
           const attempts = this.reconnectAttempts.get(targetUser) ?? 0;
           if (attempts > 2) {
             this.logger.warn(

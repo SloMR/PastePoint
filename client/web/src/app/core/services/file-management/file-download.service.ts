@@ -337,7 +337,7 @@ export class FileDownloadService extends FileTransferBaseService {
 
     this.logger.info(
       'assembleAndDownloadFile',
-      `File assembled: ${fileName} (${(receivedBlob.size / 1024 / 1024).toFixed(2)}MB)`
+      `File assembled (${(receivedBlob.size / 1024 / 1024).toFixed(2)}MB)`
     );
 
     // Update preview after completion (only for small files to avoid memory issues)

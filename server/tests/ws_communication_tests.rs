@@ -119,3 +119,32 @@ async fn test_ws_join_command() {
 
     framed.close().await.unwrap();
 }
+
+#[actix_rt::test]
+async fn test_ws_name_arrives_before_room_join() {
+    let srv = init_test_server(true);
+
+    let url = srv.url("/ws");
+
+    let (_resp, mut framed) = Client::new()
+        .ws(&url)
+        .connect()
+        .await
+        .expect("Failed to connect");
+
+    let first = timeout(Duration::from_secs(5), framed.next())
+        .await
+        .expect("No frame received");
+    match first {
+        Some(Ok(Frame::Text(text))) => {
+            let text_str = std::str::from_utf8(&text).unwrap();
+            assert!(
+                text_str.starts_with("[SystemName]"),
+                "First frame was: {text_str}"
+            );
+        }
+        other => panic!("Unexpected first frame: {other:?}"),
+    }
+
+    framed.close().await.unwrap();
+}

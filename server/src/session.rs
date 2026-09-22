@@ -98,6 +98,8 @@ impl WsChatSession {
         log::debug!(target: "Websocket", "Auto-join is set to: {}", self.auto_join);
 
         self.last_heartbeat = Some(Instant::now());
+        Self::deliver(&tx, format!("{} {}", WS_PREFIX_SYSTEM_NAME, self.name));
+
         if self.auto_join {
             self.join_room(DEFAULT_ROOM, &server, &tx);
         }
@@ -148,7 +150,7 @@ impl WsChatSession {
                         // Binary frames are unused by the signaling protocol.
                         Some(Ok(_)) => {}
                         Some(Err(e)) => {
-                            log::warn!(target: "Websocket", "WebSocket protocol error: {e}");
+                            log::debug!(target: "Websocket", "WebSocket protocol error: {e}");
                             Self::deliver(&tx, format!(
                                 "{} Invalid message format: {}",
                                 WS_PREFIX_SYSTEM_ERROR,

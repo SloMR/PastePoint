@@ -236,14 +236,14 @@ export class WebSocketConnectionService implements OnDestroy {
       const settleResolve = () => {
         if (settled) return;
         settled = true;
-        this.telemetry.endSpan(connectSpan, { ok: true });
+        this.telemetry.endSpan(connectSpan, { ok: true, outcome: 'connected' });
         resolve();
       };
       const settleReject = (err: unknown) => {
         if (settled) return;
         settled = true;
         const msg = err instanceof Error ? err.message : String(err);
-        this.telemetry.endSpan(connectSpan, { ok: false, message: msg });
+        this.telemetry.endSpan(connectSpan, { ok: false, outcome: 'failed', message: msg });
         reject(err);
       };
 
@@ -390,7 +390,7 @@ export class WebSocketConnectionService implements OnDestroy {
         return;
       }
       this.connect(this.sessionCode).catch((error: unknown) => {
-        this.logger.error('scheduleReconnect', `Reconnect failed: ${error}`);
+        this.logger.warn('scheduleReconnect', `Reconnect failed: ${error}`);
       });
     }, currentDelay);
   }
@@ -452,7 +452,7 @@ export class WebSocketConnectionService implements OnDestroy {
       const signalMessage = `[SignalMessage] ${JSON.stringify(message)}`;
       this.socket.send(signalMessage);
     } else {
-      this.logger.error('sendSignalMessage', 'WebSocket is not open. Message not sent.');
+      this.logger.warn('sendSignalMessage', 'WebSocket is not open. Message not sent.');
     }
   }
 

@@ -57,9 +57,6 @@ export class SentryLoggerMonitor implements INGXLoggerMonitor {
 
 function formatMessage(log: INGXLoggerMetadata): string {
   const parts: string[] = [];
-  if (log.fileName) {
-    parts.push(log.fileName);
-  }
   parts.push(typeof log.message === 'string' ? log.message : JSON.stringify(log.message));
   if (Array.isArray(log.additional)) {
     for (const value of log.additional) {

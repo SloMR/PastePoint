@@ -10,6 +10,7 @@ export interface TelemetrySpanEnd {
   outcome?: string;
   message?: string;
   attributes?: TelemetryAttributes;
+  endTimeMs?: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -43,16 +44,19 @@ export class TelemetryService {
     if (!span) return;
     if (end.attributes) this.setAttributes(span, end.attributes);
     if (end.outcome) span.setAttribute('outcome', end.outcome);
-    span.setStatus({
-      code: end.ok ? 1 : 2,
-      message: end.message ?? (end.ok ? 'ok' : (end.outcome ?? 'error')),
-    });
+    if (end.message) span.setAttribute('message', end.message);
+    span.setStatus({ code: end.ok ? 1 : 2, message: spanStatus(end) });
   }
 
   public endSpan(span: TelemetrySpan | undefined, end: TelemetrySpanEnd): void {
     if (!span) return;
     this.markSpan(span, end);
-    span.end();
+    span.end(end.endTimeMs);
+  }
+
+  /** Epoch milliseconds at which the span started. */
+  public startTimeMs(span: TelemetrySpan): number {
+    return (Sentry.spanToJSON(span).start_timestamp ?? 0) * 1000;
   }
 
   /** Countable product event — counts/sizes/kinds only, never content. */
@@ -73,5 +77,19 @@ export class TelemetryService {
     data?: Record<string, unknown>
   ): void {
     Sentry.addBreadcrumb({ category, message, level, data });
+  }
+}
+
+/** Named Sentry status for an outcome; free-text messages never reach it. */
+function spanStatus(end: TelemetrySpanEnd): string {
+  if (end.ok) return 'ok';
+  switch (end.outcome) {
+    case 'cancelled':
+      return 'cancelled';
+    case 'timeout':
+    case 'stalled':
+      return 'deadline_exceeded';
+    default:
+      return 'unknown_error';
   }
 }

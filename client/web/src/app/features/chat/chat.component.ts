@@ -177,6 +177,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   private currentTransitionId = 0;
   private lastMessagesLength: number = 0;
   private connectionInitTimeouts: ReturnType<typeof setTimeout>[] = [];
+  private meshSyncDeferred = false;
   private navigationTimeout: ReturnType<typeof setTimeout> | null = null;
   private statusCheckIntervalId: ReturnType<typeof setInterval> | null = null;
   private connectionWarningDismissed = false;
@@ -628,6 +629,15 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
       })
     );
 
+    // A sync skipped while the socket was down runs once it reopens
+    this.subscriptions.push(
+      this.wsConnectionService.connected$.subscribe(() => {
+        if (!this.meshSyncDeferred) return;
+        this.meshSyncDeferred = false;
+        this.initiateConnectionsWithMembers();
+      })
+    );
+
     // Listen for current members in the room
     this.subscriptions.push(
       combineLatest([
@@ -1008,7 +1018,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
       .catch((error: unknown) => {
         const err =
           error instanceof Error ? error : new Error(`WebSocket connection failed: ${error}`);
-        this.logger.error('connect', err.message, err);
+        this.logger.warn('connect', err.message, err);
         throw err;
       });
   }
@@ -1078,7 +1088,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
       if (transitionId !== this.currentTransitionId) return;
     } catch (err) {
       if (transitionId !== this.currentTransitionId) return;
-      this.logger.error('enterSession', `Failed to connect to new session: ${err}`);
+      this.logger.warn('enterSession', `Failed to connect to new session: ${err}`);
       if (code) {
         this.fallbackToPublic();
       }
@@ -1754,7 +1764,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     navigator.clipboard.writeText(this.SessionCode).then(
       () => this.toaster.success(this.translate.instant('COPY_SESSION_SUCCESS')),
       (err) => {
-        this.logger.error('copySessionCode', 'Failed to copy session code:', err);
+        this.logger.warn('copySessionCode', 'Failed to copy session code:', err);
         this.toaster.error(this.translate.instant('COPY_SESSION_FAILED'));
       }
     );
@@ -1851,6 +1861,12 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     // to the latest membership snapshot.
     this.connectionInitTimeouts.forEach((timeout) => clearTimeout(timeout));
     this.connectionInitTimeouts = [];
+
+    // Signals sent into a closed socket are lost; redo the sync once it reopens
+    if (!this.wsConnectionService.isConnected()) {
+      this.meshSyncDeferred = true;
+      return;
+    }
 
     if (!this.members || this.members.length === 0) {
       this.logger.info(

@@ -130,7 +130,7 @@ export class QrScannerPopupComponent implements OnChanges, OnDestroy {
 
       this.ngZone.runOutsideAngular(() => this.scanFrame());
     } catch (err) {
-      this.logger.error(
+      this.logger.warn(
         `Camera unavailable: ${err instanceof Error ? err.name : 'UnknownError'}`,
         err
       );

@@ -33,7 +33,7 @@ extension SignalingService {
     if !hasRelay {
       report += "\n  ISSUE: No TURN relay candidates — connection will fail behind symmetric NAT"
     }
-    log.error("\(report)")
+    log.warning("\(report)")
   }
 
   /// Gathered ICE candidates per type, e.g. `["host": 2, "relay": 1]`.

@@ -186,12 +186,17 @@ final class SignalingService: NSObject, ObservableObject {
       let offer = try await pc.offer(for: constraints)
       try await pc.setLocalDescription(offer)
     } catch {
+      guard peerConnections[peer] === pc else {
+        log.debug("offer for \(peer) superseded during SDP setup")
+        return
+      }
       log.error("SDP offer failed: \(error.localizedDescription)")
       peerConnections[peer] = nil
       dataChannels[peer] = nil
       connectionLocks.remove(peer)
       return
     }
+    guard peerConnections[peer] === pc else { return }
 
     let offerMessage = SignalMessage(
       payload: .offer(sdp: pc.localDescription?.sdp ?? ""),
@@ -373,11 +378,16 @@ extension SignalingService {
       let answer = try await pc.answer(for: constraints)
       try await pc.setLocalDescription(answer)
     } catch {
+      guard peerConnections[message.from] === pc else {
+        log.debug("answer for \(message.from) superseded during SDP setup")
+        return
+      }
       log.error("SDP exchange failed: \(error.localizedDescription)")
       peerConnections[message.from] = nil
       connectionLocks.remove(message.from)
       return
     }
+    guard peerConnections[message.from] === pc else { return }
 
     let response = SignalMessage(
       payload: .answer(sdp: pc.localDescription?.sdp ?? ""),
@@ -411,6 +421,10 @@ extension SignalingService {
       await drainCandidateQueue(for: message.from)
       log.info("remote description set")
     } catch {
+      guard peerConnections[message.from] === pc else {
+        log.debug("answer from \(message.from) arrived after teardown")
+        return
+      }
       log.error("setRemoteDescription failed: \(error.localizedDescription)")
     }
   }
@@ -432,7 +446,11 @@ extension SignalingService {
       try await pc.add(candidate)
       log.debug("candidate added for \(message.from)")
     } catch {
-      log.error("add failed: \(error.localizedDescription)")
+      guard peerConnections[message.from] === pc else {
+        log.debug("candidate from \(message.from) arrived after teardown")
+        return
+      }
+      log.warning("add failed: \(error.localizedDescription)")
     }
   }
 
@@ -456,7 +474,7 @@ extension SignalingService {
       do {
         try await pc.add(candidate)
       } catch {
-        log.error("queued candidate add failed")
+        log.warning("queued candidate add failed")
       }
     }
     log.info("drained \(queued.count) candidates")

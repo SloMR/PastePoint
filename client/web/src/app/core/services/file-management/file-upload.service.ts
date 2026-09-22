@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Subject } from 'rxjs';
-import { TelemetryService, TelemetrySpan } from '../monitoring/telemetry.service';
+import { TelemetryService, TelemetrySpan, TelemetrySpanEnd } from '../monitoring/telemetry.service';
 import {
   FileUpload,
   CHUNK_SIZE,
@@ -36,6 +36,7 @@ export class FileUploadService extends FileTransferBaseService {
   private maxConsecutiveErrors = 5;
   private offerReady = new Map<string, Promise<void>>();
   private fileHashCache = new WeakMap<File, Promise<string>>();
+  private sendSpans = new Map<string, TelemetrySpan>(); // One file.transfer.send span per upload, kept open across pause/resume
 
   // Upload batch aggregation: one logical send (a file fanned out to N peers)
   // so the sender's echo bubble can show "Sent / Sent to X of N / Not delivered".
@@ -233,7 +234,7 @@ export class FileUploadService extends FileTransferBaseService {
     const dataChannel = this.getDataChannel(targetUser);
     const channelState = dataChannel?.readyState ?? 'no-channel';
     if (!dataChannel || dataChannel.readyState !== 'open') {
-      this.logger.error(
+      this.logger.warn(
         'processNextFileInQueue',
         `Channel not open for ${targetUser} (state: ${channelState}), initiating connection and retrying`
       );
@@ -248,13 +249,14 @@ export class FileUploadService extends FileTransferBaseService {
     this.activeFilePerUser.set(targetUser, nextFileId);
     this.logger.info(
       'processNextFileInQueue',
-      `Starting file transfer: ${fileTransfer.file.name} (${nextFileId.substring(0, 8)}...) to ${targetUser}`
+      `Starting file transfer ${nextFileId.substring(0, 8)}... to ${targetUser}`
     );
 
     try {
       await this.sendFileChunks(fileTransfer);
     } catch (error) {
       this.logger.error('processNextFileInQueue', `File transfer failed: ${error}`);
+      this.endSendSpan(targetUser, nextFileId, { ok: false, outcome: 'failed' });
     }
   }
 
@@ -296,6 +298,7 @@ export class FileUploadService extends FileTransferBaseService {
       }
 
       this.markBatchOutcome(fileTransfer?.batchId, false);
+      this.endSendSpan(targetUser, fileId, { ok: false, outcome: 'cancelled' });
       userMap.delete(fileId);
       const key = this.getOrCreateStatusKey(targetUser, fileId);
       await this.deleteFileTransferStatus(key);
@@ -567,13 +570,29 @@ export class FileUploadService extends FileTransferBaseService {
    * Each chunk contains embedded fileId, eliminating chunk mismatching.
    */
   private async sendFileChunks(fileTransfer: FileUpload): Promise<void> {
-    return this.telemetry.withSpan('file.transfer.send', (span) => {
-      this.telemetry.setAttributes(span, {
+    const key = this.sendSpanKey(fileTransfer.targetUser, fileTransfer.fileId);
+    let span = this.sendSpans.get(key);
+    if (!span) {
+      span = this.telemetry.startSpan('file.transfer.send', {
         file_size_bytes: fileTransfer.file.size,
         mime: fileTransfer.file.type || 'unknown',
       });
-      return this.sendFileChunksInner(fileTransfer, span);
-    });
+      this.sendSpans.set(key, span);
+    }
+    return this.sendFileChunksInner(fileTransfer, span);
+  }
+
+  private sendSpanKey(targetUser: string, fileId: string): string {
+    return `${targetUser}:${fileId}`;
+  }
+
+  /** Ends the upload's span on a terminal outcome; a paused upload keeps its span open. */
+  private endSendSpan(targetUser: string, fileId: string, end: TelemetrySpanEnd): void {
+    const key = this.sendSpanKey(targetUser, fileId);
+    const span = this.sendSpans.get(key);
+    if (!span) return;
+    this.sendSpans.delete(key);
+    this.telemetry.endSpan(span, end);
   }
 
   private async sendFileChunksInner(fileTransfer: FileUpload, span: TelemetrySpan): Promise<void> {
@@ -608,7 +627,10 @@ export class FileUploadService extends FileTransferBaseService {
             'sendFileChunks',
             `File transfer cancelled for fileId=${fileTransfer.fileId}`
           );
-          this.telemetry.markSpan(span, { ok: false, outcome: 'cancelled' });
+          this.endSendSpan(fileTransfer.targetUser, fileTransfer.fileId, {
+            ok: false,
+            outcome: 'cancelled',
+          });
           break;
         }
 
@@ -619,7 +641,7 @@ export class FileUploadService extends FileTransferBaseService {
 
         const dataChannel = this.getDataChannel(fileTransfer.targetUser);
         if (!dataChannel || dataChannel.readyState !== 'open') {
-          this.logger.error(
+          this.logger.warn(
             'sendFileChunks',
             `Data channel not available for ${fileTransfer.targetUser}`
           );
@@ -629,7 +651,7 @@ export class FileUploadService extends FileTransferBaseService {
           const errorCount = this.consecutiveErrorCounts.get(transferId) ?? 0;
           this.consecutiveErrorCounts.set(transferId, errorCount + 1);
           if (errorCount > this.maxConsecutiveErrors) {
-            this.telemetry.markSpan(span, {
+            this.endSendSpan(fileTransfer.targetUser, fileTransfer.fileId, {
               ok: false,
               outcome: 'aborted_channel_unavailable',
               message: 'channel_unavailable',
@@ -673,7 +695,7 @@ export class FileUploadService extends FileTransferBaseService {
           if (chunkIndex === 0) {
             this.logger.info(
               'sendFileChunks',
-              `First chunk sent for ${fileTransfer.file.name} (encoded size: ${encodedChunk.byteLength})`
+              `First chunk sent for ${fileTransfer.fileId.substring(0, 8)}... (encoded size: ${encodedChunk.byteLength})`
             );
           }
 
@@ -708,7 +730,7 @@ export class FileUploadService extends FileTransferBaseService {
           this.consecutiveErrorCounts.set(transferId, errorCount + 1);
 
           if (errorCount >= this.maxConsecutiveErrors) {
-            this.telemetry.markSpan(span, {
+            this.endSendSpan(fileTransfer.targetUser, fileTransfer.fileId, {
               ok: false,
               outcome: 'aborted_max_errors',
               message: 'max_consecutive_errors',
@@ -726,7 +748,10 @@ export class FileUploadService extends FileTransferBaseService {
           'sendFileChunks',
           `Queued all chunks for ${fileTransfer.fileId} to ${fileTransfer.targetUser}`
         );
-        this.telemetry.markSpan(span, { ok: true, outcome: 'queued_all_chunks' });
+        this.endSendSpan(fileTransfer.targetUser, fileTransfer.fileId, {
+          ok: true,
+          outcome: 'queued_all_chunks',
+        });
         fileTransfer.progress = 100;
         fileTransfer.phase = 'finalizing';
 
