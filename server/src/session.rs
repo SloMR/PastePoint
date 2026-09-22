@@ -98,6 +98,8 @@ impl WsChatSession {
         log::debug!(target: "Websocket", "Auto-join is set to: {}", self.auto_join);
 
         self.last_heartbeat = Some(Instant::now());
+        Self::deliver(&tx, format!("{} {}", WS_PREFIX_SYSTEM_NAME, self.name));
+
         if self.auto_join {
             self.join_room(DEFAULT_ROOM, &server, &tx);
         }
