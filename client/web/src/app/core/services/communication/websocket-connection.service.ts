@@ -390,7 +390,7 @@ export class WebSocketConnectionService implements OnDestroy {
         return;
       }
       this.connect(this.sessionCode).catch((error: unknown) => {
-        this.logger.error('scheduleReconnect', `Reconnect failed: ${error}`);
+        this.logger.warn('scheduleReconnect', `Reconnect failed: ${error}`);
       });
     }, currentDelay);
   }
@@ -452,7 +452,7 @@ export class WebSocketConnectionService implements OnDestroy {
       const signalMessage = `[SignalMessage] ${JSON.stringify(message)}`;
       this.socket.send(signalMessage);
     } else {
-      this.logger.error('sendSignalMessage', 'WebSocket is not open. Message not sent.');
+      this.logger.warn('sendSignalMessage', 'WebSocket is not open. Message not sent.');
     }
   }
 

@@ -233,7 +233,7 @@ export class FileUploadService extends FileTransferBaseService {
     const dataChannel = this.getDataChannel(targetUser);
     const channelState = dataChannel?.readyState ?? 'no-channel';
     if (!dataChannel || dataChannel.readyState !== 'open') {
-      this.logger.error(
+      this.logger.warn(
         'processNextFileInQueue',
         `Channel not open for ${targetUser} (state: ${channelState}), initiating connection and retrying`
       );
@@ -619,7 +619,7 @@ export class FileUploadService extends FileTransferBaseService {
 
         const dataChannel = this.getDataChannel(fileTransfer.targetUser);
         if (!dataChannel || dataChannel.readyState !== 'open') {
-          this.logger.error(
+          this.logger.warn(
             'sendFileChunks',
             `Data channel not available for ${fileTransfer.targetUser}`
           );

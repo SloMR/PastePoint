@@ -862,7 +862,7 @@ export class WebRTCSignalingService {
 
       this.reconnectionTimeouts.set(targetUser, timeoutId);
     } else {
-      this.logger.error(
+      this.logger.warn(
         'handleDisconnection',
         `Max reconnection attempts reached for ${targetUser}. Could not reconnect.`
       );
@@ -933,7 +933,7 @@ export class WebRTCSignalingService {
     const hasRelay = candidates.some((c) => c.type === 'relay');
     const hasSrflx = candidates.some((c) => c.type === 'srflx');
 
-    this.logger.error(
+    this.logger.warn(
       'DIAGNOSTIC',
       `Connection FAILED with ${targetUser}:\n` +
         `  State: ${peerConnection.connectionState} / ICE: ${peerConnection.iceConnectionState}\n` +
@@ -1126,7 +1126,7 @@ export class WebRTCSignalingService {
     const peerConnection = this.peerConnections.get(targetUser);
 
     if (!peerConnection) {
-      this.logger.error('handleAnswer', `PeerConnection missing for ${targetUser}`);
+      this.logger.warn('handleAnswer', `PeerConnection missing for ${targetUser}`);
       this.reconnect(targetUser);
       return;
     }
@@ -1236,7 +1236,7 @@ export class WebRTCSignalingService {
           );
         })
         .catch((error) => {
-          this.logger.error('handleCandidate', `Error adding ICE candidate: ${error}`);
+          this.logger.warn('handleCandidate', `Error adding ICE candidate: ${error}`);
           const attempts = this.reconnectAttempts.get(targetUser) ?? 0;
           if (attempts > 2) {
             this.logger.warn(

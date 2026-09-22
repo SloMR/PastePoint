@@ -1008,7 +1008,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
       .catch((error: unknown) => {
         const err =
           error instanceof Error ? error : new Error(`WebSocket connection failed: ${error}`);
-        this.logger.error('connect', err.message, err);
+        this.logger.warn('connect', err.message, err);
         throw err;
       });
   }
@@ -1078,7 +1078,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
       if (transitionId !== this.currentTransitionId) return;
     } catch (err) {
       if (transitionId !== this.currentTransitionId) return;
-      this.logger.error('enterSession', `Failed to connect to new session: ${err}`);
+      this.logger.warn('enterSession', `Failed to connect to new session: ${err}`);
       if (code) {
         this.fallbackToPublic();
       }
@@ -1754,7 +1754,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     navigator.clipboard.writeText(this.SessionCode).then(
       () => this.toaster.success(this.translate.instant('COPY_SESSION_SUCCESS')),
       (err) => {
-        this.logger.error('copySessionCode', 'Failed to copy session code:', err);
+        this.logger.warn('copySessionCode', 'Failed to copy session code:', err);
         this.toaster.error(this.translate.instant('COPY_SESSION_FAILED'));
       }
     );

@@ -152,9 +152,9 @@ export class WebRTCCommunicationService {
           (typeof error === 'object' ? JSON.stringify(error) : String(error)) ||
           'Unknown RTCErrorEvent';
         errorDetail = errorMsg;
-        this.logger.error('setupDataChannel', `Data Channel Error with ${targetUser}: ${errorMsg}`);
+        this.logger.warn('setupDataChannel', `Data Channel Error with ${targetUser}: ${errorMsg}`);
       } else {
-        this.logger.error(
+        this.logger.warn(
           'setupDataChannel',
           `Data Channel Error with ${targetUser}: ${JSON.stringify(ev)}`
         );
@@ -208,7 +208,7 @@ export class WebRTCCommunicationService {
 
       this.queueMessage(message, targetUser);
     } else {
-      this.logger.error('sendData', `Data channel with ${targetUser} is not open`);
+      this.logger.warn('sendData', `Data channel with ${targetUser} is not open`);
 
       if (channel) {
         this.dataChannels.delete(targetUser);
