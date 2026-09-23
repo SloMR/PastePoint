@@ -4,7 +4,7 @@ The PastePoint iOS client is a native SwiftUI application for peer-to-peer file 
 
 [![Swift](https://img.shields.io/badge/Swift-6.0-orange)](https://swift.org/)
 [![iOS](https://img.shields.io/badge/iOS-17.6%2B-black)](https://developer.apple.com/ios/)
-[![Xcode](https://img.shields.io/badge/Xcode-26.6-blue)](https://developer.apple.com/xcode/)
+[![Xcode](https://img.shields.io/badge/Xcode-27.0-blue)](https://developer.apple.com/xcode/)
 [![WebRTC](https://img.shields.io/badge/WebRTC-153.0-green)](https://github.com/stasel/WebRTC)
 
 ## Tech Stack
@@ -24,7 +24,7 @@ The PastePoint iOS client is a native SwiftUI application for peer-to-peer file 
 
 ### Development Tools
 
-- **Build Tool**: Xcode 26.6 (pinned in `.xcode-version`), synchronized folder groups
+- **Build Tool**: Xcode 27.0 (pinned in `.xcode-version`), synchronized folder groups
 - **Dependencies**: Swift Package Manager (pinned in `Package.resolved`)
 - **Testing**: XCTest via the `PastePointTests.xctestplan` test plan
 - **Linting**: SwiftLint 0.65.1 (`.swiftlint.yml`, `--strict` in CI)
@@ -74,8 +74,8 @@ ios/
 
 ### Prerequisites
 
-- **macOS**: Tahoe 26.2 or later
-- **Xcode**: 26.6 (specified in `.xcode-version`)
+- **macOS**: Tahoe 26.6 or later
+- **Xcode**: 27.0 (specified in `.xcode-version`)
 - **iOS Deployment Target**: 17.6+ (iPhone and iPad)
 - **Backend**: A running PastePoint server (see the [server readme](../../server/README.md) or `make dev` at the repository root)
 
@@ -111,13 +111,13 @@ cd client/ios
 xcodebuild build \
   -project PastePoint.xcodeproj \
   -scheme PastePoint \
-  -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
+  -destination 'platform=iOS Simulator,name=iPhone 17'
 
 # Run tests
 xcodebuild test \
   -project PastePoint.xcodeproj \
   -scheme PastePoint \
-  -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
+  -destination 'platform=iOS Simulator,name=iPhone 17'
 
 # Lint and format
 swiftlint lint --strict
@@ -175,11 +175,11 @@ Tests run through the `PastePointTests.xctestplan` test plan (unit tests enabled
 ```bash
 # All tests
 xcodebuild test -project PastePoint.xcodeproj -scheme PastePoint \
-  -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
+  -destination 'platform=iOS Simulator,name=iPhone 17'
 
 # Single test
 xcodebuild test -project PastePoint.xcodeproj -scheme PastePoint \
-  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+  -destination 'platform=iOS Simulator,name=iPhone 17' \
   -only-testing:PastePointTests/PastePointTests/testExample
 ```
 
@@ -294,7 +294,7 @@ xcrun simctl spawn <UDID> log stream --level debug \
    ```bash
    # Symbols are generated at build time
    xcodebuild build -project PastePoint.xcodeproj -scheme PastePoint \
-     -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
+     -destination 'platform=iOS Simulator,name=iPhone 17'
    ```
 
 4. **Swift package resolution failures**:

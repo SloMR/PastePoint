@@ -118,7 +118,7 @@ npm run test:ci    # Run tests
 
 ### iOS (SwiftUI)
 
-Requires macOS Tahoe 26.2+ and Xcode **26.6** (see `client/ios/.xcode-version`). Deployment target iOS 17.6+, Swift 6 language mode.
+Requires macOS Tahoe 26.6+ and Xcode **27.0** (see `client/ios/.xcode-version`). Deployment target iOS 17.6+, Swift 6 language mode.
 
 ```bash
 cd client/ios
@@ -128,7 +128,7 @@ swiftlint lint --strict  # Lint code (CI runs this)
 xcodebuild test \
   -project PastePoint.xcodeproj \
   -scheme PastePoint \
-  -destination 'platform=iOS Simulator,name=iPhone 17 Pro'  # Run tests
+  -destination 'platform=iOS Simulator,name=iPhone 17'  # Run tests
 ```
 
 **Requirements:**
@@ -165,7 +165,7 @@ cd server && cargo build
 cd client/ios && xcodebuild build \
   -project PastePoint.xcodeproj \
   -scheme PastePoint \
-  -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
+  -destination 'platform=iOS Simulator,name=iPhone 17'
 
 # Full stack via Docker Compose
 make dev
