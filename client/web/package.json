@@ -83,10 +83,8 @@
     "typescript": "~6.0.3"
   },
   "overrides": {
-    "qs": "^6.16.0",
     "sockjs": {
       "uuid": "^14.0.0"
-    },
-    "postcss": "^8.5.18"
+    }
   }
 }
