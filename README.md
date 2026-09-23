@@ -202,13 +202,7 @@ pastepoint/
    cd pastepoint
    ```
 
-2. Generate SSL certificates (required for HTTPS):
-
-   ```bash
-   ./scripts/generate-certs.sh
-   ```
-
-3. Configure for Local Network (Optional):
+2. Configure for Local Network (Optional):
    If you want to run PastePoint on your local network instead of just localhost:
 
    ```bash
@@ -221,6 +215,14 @@ pastepoint/
 
    ```bash
    cp .env.development.example .env.development
+   ```
+
+3. Generate SSL certificates (required for HTTPS). Pass the local IP from step 2,
+   because the certificate must name the address you open in the browser:
+
+   ```bash
+   ./scripts/generate-certs.sh             # localhost only
+   ./scripts/generate-certs.sh <local-ip>  # also valid on your local network
    ```
 
 4. Build and Start Services:
@@ -261,7 +263,7 @@ pastepoint/
 **Common Issues**:
 
 1. **SSL Certificate Errors**
-   Run: `./scripts/generate-certs.sh`
+   Run: `./scripts/generate-certs.sh <local-ip>` with the address you open in the browser
 
 ## Security Considerations
 
