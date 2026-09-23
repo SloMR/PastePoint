@@ -327,7 +327,7 @@ extension SignalingService {
         return
       } else {
         log.debug("canceling our initiation for \(message.from) (we are the designated callee)")
-        closePeerConnection(message.from)
+        closePeerConnection(message.from, resetReconnectState: false)
       }
     }
 
