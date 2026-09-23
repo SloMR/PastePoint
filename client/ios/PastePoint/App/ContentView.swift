@@ -277,10 +277,6 @@ struct ContentView: View {
     .sheet(isPresented: settingsSheetPresented) {
       NavigationStack {
         SettingsView(
-          onSessionJoin: {
-            showSettings = false
-            pendingPrivateJoin = true
-          },
           onBlock: blockPeer,
         )
       }
@@ -309,10 +305,6 @@ struct ContentView: View {
       NavigationStack {
         SettingsView(
           onClose: { setSettingsVisible(false) },
-          onSessionJoin: {
-            setSettingsVisible(false)
-            pendingPrivateJoin = true
-          },
           onBlock: blockPeer,
         )
       }
