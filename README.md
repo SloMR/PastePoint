@@ -21,7 +21,7 @@ PastePoint is a secure, feature-rich file-sharing service designed for local net
 ### Core Features:
 
 - **Local Network Communication**:
-  - Establish WebSocket-based local chat between computers on the same network
+  - Chat peer-to-peer over WebRTC data channels with devices on the same network
   - List available sessions, create new sessions, or join existing ones
   - Multiple rooms within a session — create, list, and switch between rooms
   - QR code session sharing — generate a code from one device and scan it from another to join instantly
@@ -67,7 +67,7 @@ PastePoint is a secure, feature-rich file-sharing service designed for local net
 
 ### Server (Rust)
 
-[![Actix](https://img.shields.io/badge/Actix-4.13-blue)](https://actix.rs/)
+[![Actix](https://img.shields.io/badge/Actix-4.15-blue)](https://actix.rs/)
 [![OpenSSL](https://img.shields.io/badge/OpenSSL-0.10-yellow)](https://www.openssl.org/)
 
 - **Framework**: Actix Web for HTTP/TLS, `actix-ws` for WebSocket signaling (Rust edition 2024, toolchain 1.98.1)
@@ -112,7 +112,7 @@ PastePoint is a secure, feature-rich file-sharing service designed for local net
 
 [![Nginx](https://img.shields.io/badge/Nginx-Reverse_Proxy-green)](https://nginx.org)
 [![Docker](https://img.shields.io/badge/Docker-24.0-blue)](https://www.docker.com)
-[![Express](https://img.shields.io/badge/Express-4.22-purple)](https://expressjs.com/)
+[![Express](https://img.shields.io/badge/Express-5.2-purple)](https://expressjs.com/)
 
 - **Container Orchestration**: Docker Compose with multi-stage builds
 - **Reverse Proxy**: Nginx with enhanced security features

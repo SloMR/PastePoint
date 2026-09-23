@@ -2,9 +2,9 @@
 
 The PastePoint server is a Rust signaling backend built with Actix Web. It manages rooms and ephemeral identities, issues TURN credentials, and relays WebRTC signaling without handling file payloads.
 
-[![Actix](https://img.shields.io/badge/Actix-4.13-blue)](https://actix.rs/)
+[![Actix](https://img.shields.io/badge/Actix-4.15-blue)](https://actix.rs/)
 [![OpenSSL](https://img.shields.io/badge/OpenSSL-0.10-yellow)](https://www.openssl.org/)
-[![Sentry](https://img.shields.io/badge/Sentry-0.48-purple)](https://sentry.io/)
+[![Sentry](https://img.shields.io/badge/Sentry-0.49-purple)](https://sentry.io/)
 [![Rust](https://img.shields.io/badge/Rust-Backend-orange)](https://www.rust-lang.org/)
 
 ## Tech Stack
