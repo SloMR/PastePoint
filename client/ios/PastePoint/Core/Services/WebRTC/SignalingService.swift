@@ -938,7 +938,7 @@ extension SignalingService: RTCDataChannelDelegate {
         let decoded = try DataChannelMessage.decode(bytes)
         self.route(decoded, from: peer)
       } catch {
-        log.error("failed to decode data-channel message: \(error)")
+        log.warning("dropping a data-channel message that failed to decode")
       }
     }
   }
@@ -959,7 +959,7 @@ extension SignalingService: RTCDataChannelDelegate {
     case .fileCancelUpload(let payload): fileEvent.send(.cancelUpload(payload, from: peer))
     case .fileCancelDownload(let payload): fileEvent.send(.cancelDownload(payload, from: peer))
     case .fileReceived(let payload): fileEvent.send(.received(payload, from: peer))
-    case .unknown(let type): log.warning("unknown data-channel type \(type)")
+    case .unknown: log.warning("dropping a data-channel message of unknown type")
     }
   }
 
