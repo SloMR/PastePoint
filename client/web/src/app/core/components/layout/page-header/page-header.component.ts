@@ -1,13 +1,13 @@
 import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { LanguageCode } from '../../../i18n/languages';
 import { LanguageSwitcherComponent } from '../../language-switcher/language-switcher.component';
 
 @Component({
   selector: 'app-page-header',
-  imports: [CommonModule, RouterLink, NgOptimizedImage, TranslateModule, LanguageSwitcherComponent],
+  imports: [CommonModule, RouterLink, NgOptimizedImage, TranslatePipe, LanguageSwitcherComponent],
   templateUrl: './page-header.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './page-header.component.css',

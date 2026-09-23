@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { PageHeaderComponent } from '../../core/components/layout/page-header/page-header.component';
 import { PageFooterComponent } from '../../core/components/layout/page-footer/page-footer.component';
@@ -22,7 +22,7 @@ import { LanguageCode, getLanguage } from '../../core/i18n/languages';
 import { THEME_PREFERENCE_KEY } from '../../utils/constants';
 
 @Component({
-  imports: [CommonModule, RouterLink, TranslateModule, PageHeaderComponent, PageFooterComponent],
+  imports: [CommonModule, RouterLink, TranslatePipe, PageHeaderComponent, PageFooterComponent],
   selector: 'app-not-found',
   templateUrl: './not-found.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,

@@ -30,7 +30,7 @@ import { WebSocketConnectionService } from '../../core/services/communication/we
 import { UserService } from '../../core/services/user-management/user.service';
 import { FormsModule, NgForm } from '@angular/forms';
 import { FlowbiteService } from '../../core/services/ui/flowbite.service';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   ChatMessage,
   ChatMessageType,
@@ -86,7 +86,7 @@ import { ChatSidebarComponent } from './components/chat/chat-sidebar/chat-sideba
   selector: 'app-chat',
   imports: [
     FormsModule,
-    TranslateModule,
+    TranslatePipe,
     RouterLink,
     QrScannerPopupComponent,
     ConnectPanelComponent,

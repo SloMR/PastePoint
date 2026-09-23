@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { FileDownload, FileUpload, MemberConnectionState } from '../../../../../utils/constants';
 import { LanguageCode } from '../../../../../core/i18n/languages';
@@ -11,7 +11,7 @@ import { SELF_AVATAR } from '../../../../../utils/avatar.util';
 
 @Component({
   selector: 'app-chat-sidebar',
-  imports: [CommonModule, RouterLink, TranslateModule, LanguageSwitcherComponent],
+  imports: [CommonModule, RouterLink, TranslatePipe, LanguageSwitcherComponent],
   templateUrl: './chat-sidebar.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './chat-sidebar.component.css',

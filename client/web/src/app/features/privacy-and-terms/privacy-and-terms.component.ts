@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { PageHeaderComponent } from '../../core/components/layout/page-header/page-header.component';
 import { PageFooterComponent } from '../../core/components/layout/page-footer/page-footer.component';
@@ -23,7 +23,7 @@ import { THEME_PREFERENCE_KEY } from '../../utils/constants';
 
 @Component({
   selector: 'app-privacy-and-terms',
-  imports: [CommonModule, RouterLink, TranslateModule, PageHeaderComponent, PageFooterComponent],
+  imports: [CommonModule, RouterLink, TranslatePipe, PageHeaderComponent, PageFooterComponent],
   templateUrl: './privacy-and-terms.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './privacy-and-terms.component.css',

@@ -11,7 +11,7 @@ import {
 } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { DomSanitizer } from '@angular/platform-browser';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import Autolinker from 'autolinker';
 
 import { ChatMessage, ChatMessageType, FileTransferStatus } from '../../../../../utils/constants';
@@ -27,7 +27,7 @@ import { BlurredPreviewComponent } from '../blurred-preview/blurred-preview.comp
     CommonModule,
     DatePipe,
     FileSizePipe,
-    TranslateModule,
+    TranslatePipe,
     MessageActionsComponent,
     BlurredPreviewComponent,
   ],

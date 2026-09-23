@@ -2,17 +2,17 @@ import { provideHttpClientTesting, HttpTestingController } from '@angular/common
 import { provideHttpClient, withXhr } from '@angular/common/http';
 import { LoggerModule, NgxLoggerLevel, TOKEN_LOGGER_CONFIG } from 'ngx-logger';
 import {
-  TranslateModule,
   TranslateLoader,
   TranslateService,
   TranslateStore,
+  provideTranslateService,
 } from '@ngx-translate/core';
 import { MockHotToastService } from './mock-toastr.service';
 import { MockTranslateService } from './mock-translate.service';
 import { of } from 'rxjs';
 import { HotToastService } from '@ngxpert/hot-toast';
 
-// Mock translate loader - This is still used for TranslateModule configuration
+// Mock translate loader - This is still used for the translate service configuration
 export class MockTranslateLoader implements TranslateLoader {
   getTranslation() {
     return of({
@@ -24,9 +24,6 @@ export class MockTranslateLoader implements TranslateLoader {
 }
 
 export const TestImports = [
-  TranslateModule.forRoot({
-    loader: { provide: TranslateLoader, useClass: MockTranslateLoader },
-  }),
   LoggerModule.forRoot({
     level: NgxLoggerLevel.DEBUG,
     disableConsoleLogging: true,
@@ -36,6 +33,9 @@ export const TestImports = [
 export const TestProviders = [
   provideHttpClient(withXhr()),
   provideHttpClientTesting(),
+  provideTranslateService({
+    loader: { provide: TranslateLoader, useClass: MockTranslateLoader },
+  }),
   TranslateStore,
   {
     provide: TOKEN_LOGGER_CONFIG,

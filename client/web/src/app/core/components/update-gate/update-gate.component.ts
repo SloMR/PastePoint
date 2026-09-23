@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { AppUpdateService } from '../../services/update/app-update.service';
 
 @Component({
   selector: 'app-update-gate',
-  imports: [CommonModule, TranslateModule],
+  imports: [CommonModule, TranslatePipe],
   templateUrl: './update-gate.component.html',
   styleUrl: './update-gate.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

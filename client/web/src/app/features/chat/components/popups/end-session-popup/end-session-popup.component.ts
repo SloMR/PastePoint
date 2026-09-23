@@ -1,10 +1,10 @@
 import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-end-session-popup',
-  imports: [CommonModule, TranslateModule],
+  imports: [CommonModule, TranslatePipe],
   templateUrl: './end-session-popup.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './end-session-popup.component.css',

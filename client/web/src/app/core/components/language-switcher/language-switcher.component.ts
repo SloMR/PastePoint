@@ -9,13 +9,13 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { LANGUAGES, LanguageCode } from '../../i18n/languages';
 
 @Component({
   selector: 'app-language-switcher',
   standalone: true,
-  imports: [TranslateModule],
+  imports: [TranslatePipe],
   templateUrl: './language-switcher.component.html',
   styleUrls: ['./language-switcher.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,

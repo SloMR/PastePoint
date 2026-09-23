@@ -45,7 +45,7 @@ export class LanguageService implements ILanguageService {
   initializeLanguage(): void {
     if (!isPlatformBrowser(this.platformId)) {
       this.transferState.set(this.LANGUAGE_STATE_KEY, DEFAULT_LANGUAGE);
-      this.translateService.setDefaultLang(DEFAULT_LANGUAGE);
+      this.translateService.setFallbackLang(DEFAULT_LANGUAGE);
       this.translateService.use(DEFAULT_LANGUAGE);
       this.logger.debug('initializeLanguage', 'Language Service (Server):', DEFAULT_LANGUAGE);
       return;
@@ -84,7 +84,7 @@ export class LanguageService implements ILanguageService {
   }
 
   getCurrentLanguage(): LanguageCode {
-    return this.translateService.currentLang as LanguageCode;
+    return this.translateService.getCurrentLang() as LanguageCode;
   }
 
   /**
@@ -123,7 +123,7 @@ export class LanguageService implements ILanguageService {
 
   private applyLanguage(language: LanguageCode): void {
     this.logger.debug('applyLanguage', 'Applying language:', language);
-    this.translateService.setDefaultLang(language);
+    this.translateService.setFallbackLang(language);
     this.translateService.use(language);
 
     if (isPlatformBrowser(this.platformId)) {
