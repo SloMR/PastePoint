@@ -10,29 +10,29 @@ name = "server_bin"
 path = "src/main.rs"
 
 [dependencies]
-actix-web = { version = "4.13.0", features = ["openssl"] }
+actix-web = { version = "4.15.0", features = ["openssl"] }
 actix-ws = "0.4.0"
-actix-http = "3.12.1"
+actix-http = "3.13.6"
 actix-governor = "0.10.0"
-actix-cors = "0.7.1"
-actix-rt = "2.11.0"
-tokio = { version = "1.52.1", features = ["sync", "macros", "time"] }
-futures-util = { version = "0.3.32", default-features = false, features = ["std"] }
+actix-cors = "0.7.2"
+actix-rt = "2.15.0"
+tokio = { version = "1.53.1", features = ["sync", "macros", "time"] }
+futures-util = { version = "0.3.34", default-features = false, features = ["std"] }
 
-uuid = { version = "1.23.1", features = ["v4"] }
+uuid = { version = "1.26.1", features = ["v4"] }
 fake = "5.1.0"
 derive_more = { version = "2.1.1", features = ["full"] }
-openssl = { version = "0.10.80" }
-serde_json = "1.0.149"
-serde = { version = "1.0.228", features = ["derive"] }
-env_logger = "0.11.10"
-log = "0.4.29"
-rand = "0.10.1"
+openssl = { version = "0.10.81" }
+serde_json = "1.0.151"
+serde = { version = "1.0.229", features = ["derive"] }
+env_logger = "0.11.11"
+log = "0.4.34"
+rand = "0.10.3"
 hmac = "0.12.1"
 sha1 = "0.10.6"
 base64 = "0.22.1"
-bytes = "1.11.1"
-config = "0.15.22"
+bytes = "1.12.1"
+config = "0.15.26"
 dotenvy = "0.15.7"
 url = "2.5.8"
 sentry = { version = "0.48", features = ["log", "logs"] }
