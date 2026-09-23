@@ -32,7 +32,6 @@
     "@angular/router": "^22.1.7",
     "@angular/ssr": "^22.1.8",
     "@ngx-translate/core": "^17.0.0",
-    "@ngx-translate/http-loader": "^17.0.0",
     "@ngxpert/hot-toast": "^7.0.0",
     "@sentry/angular": "^10.75.2",
     "async-mutex": "^0.5.0",
