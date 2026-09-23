@@ -371,9 +371,11 @@ extension FileTransferService {
     guard
       let idx = activeUploads.firstIndex(where: {
         $0.targetUser == peer && $0.id == payload.fileId
-      })
+      }),
+      uploadTasks[payload.fileId] == nil,
+      activeUploads[idx].phase != .finalizing
     else {
-      log.warning("file-accept ignored: no upload for \(payload.fileId)")
+      log.warning("file-accept ignored: no upload waiting for \(payload.fileId)")
       return
     }
 
