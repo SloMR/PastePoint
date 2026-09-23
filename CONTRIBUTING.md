@@ -107,7 +107,7 @@ Node **v24.21.0** (see `.nvmrc`).
 cd client/web
 npm run format     # Format code
 npm run lint:fix   # Lint code
-npm run knip       # Find unused code
+npm run knip       # Find unused code (CI runs this)
 npm run test:ci    # Run tests
 ```
 

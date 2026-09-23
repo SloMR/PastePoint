@@ -49,6 +49,10 @@ jobs:
         working-directory: client/web
         run: npm run lint
 
+      - name: Knip
+        working-directory: client/web
+        run: npm run knip
+
       - name: Prettier
         working-directory: client/web
         run: npm run format
