@@ -48,6 +48,7 @@ export const TURN_READY_TIMEOUT = 1500;
 export const TURN_RETRY_COOLDOWN = 30_000;
 export const CONNECT_SPAN_CEILING = 120_000; // 2 minutes before a webrtc.connect span is reported as abandoned
 export const MAX_PREVIEW_DATA_URL_SIZE = 150 * KB;
+export const MAX_PREVIEW_PIXEL_SIZE = 1024;
 export const PREVIEW_DATA_URL_PATTERN = /^data:image\/(?:png|jpeg);base64,[A-Za-z0-9+/]+={0,2}$/;
 export const MIME_TYPE_PATTERN = /^[\w.+-]{1,64}\/[\w.+-]{1,64}$/;
 export const MAX_FILE_ID_LENGTH = 128;

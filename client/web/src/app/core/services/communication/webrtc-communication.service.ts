@@ -8,6 +8,7 @@ import {
   MAX_BUFFERED_AMOUNT,
   MAX_FILE_ID_LENGTH,
   MAX_PREVIEW_DATA_URL_SIZE,
+  MAX_PREVIEW_PIXEL_SIZE,
   MAX_QUEUED_MESSAGES,
   MIME_TYPE_PATTERN,
   PREVIEW_DATA_URL_PATTERN,
@@ -19,6 +20,7 @@ import {
 import { NGXLogger } from 'ngx-logger';
 import { HotToastService } from '@ngxpert/hot-toast';
 import { decodeChunk } from '../../../utils/chunk-protocol';
+import { dataUrlBytes, imageSize } from '../../../utils/image-size.util';
 import { BlockService } from './block.service';
 
 @Injectable({
@@ -534,6 +536,7 @@ export class WebRTCCommunicationService {
       typeof previewDataUrl === 'string' &&
       previewDataUrl.length <= MAX_PREVIEW_DATA_URL_SIZE &&
       PREVIEW_DATA_URL_PATTERN.test(previewDataUrl) &&
+      this.previewFits(previewDataUrl) &&
       typeof previewMime === 'string' &&
       MIME_TYPE_PATTERN.test(previewMime);
     return {
@@ -545,6 +548,14 @@ export class WebRTCCommunicationService {
       previewDataUrl: hasPreview ? previewDataUrl : undefined,
       previewMime: hasPreview ? previewMime : undefined,
     };
+  }
+
+  /** True when a preview's header declares a size small enough to decode safely. */
+  private previewFits(dataUrl: string): boolean {
+    const size = imageSize(dataUrlBytes(dataUrl));
+    return (
+      size !== null && size.width <= MAX_PREVIEW_PIXEL_SIZE && size.height <= MAX_PREVIEW_PIXEL_SIZE
+    );
   }
 
   /**
