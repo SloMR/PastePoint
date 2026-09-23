@@ -23,12 +23,12 @@ final class FileTransferService: ObservableObject {
   let fileTransferCancelled = PassthroughSubject<String, Never>()
   let fileTransferFailed = PassthroughSubject<(fileId: String, reason: FileTransferFailureReason), Never>()
 
-  private let downloadStallTimeout: TimeInterval = 30
+  let downloadStallTimeout: TimeInterval = 30
   private var pendingChunkIndices: [String: Set<Int>] = [:]
   private var uploadTasks: [String: Task<Void, Never>] = [:]
   var uploadBatches: [String: UploadBatch] = [:]
   private var offerTasks: [String: Task<Void, Never>] = [:]
-  private var stallWatchdog: Task<Void, Never>?
+  var stallWatchdog: Task<Void, Never>?
   private var knownPeers: Set<String> = []
   private var cancellables: Set<AnyCancellable> = []
   private var fileHashTasks: [URL: Task<String?, Never>] = [:]
@@ -922,7 +922,7 @@ extension FileTransferService {
     log.info("released source (\(upload.kind))")
   }
 
-  private func failDownload(
+  func failDownload(
     fileId: String,
     from peer: String,
     reason: FileTransferFailureReason,
@@ -942,40 +942,6 @@ extension FileTransferService {
       fileId: fileId,
       reason: reason,
     ))
-  }
-
-  // MARK: Stall Watchdog
-
-  private func startStallWatchdog() {
-    guard stallWatchdog == nil else { return }
-    stallWatchdog = Task { [weak self] in
-      while true {
-        try? await Task.sleep(nanoseconds: 5_000_000_000) // TODO: change this as const
-        if Task.isCancelled { return }
-
-        guard let self else { return }
-        self.sweepStalledDownloads()
-      }
-    }
-  }
-
-  private func stopStallWatchdogIfIdle() {
-    guard activeDownloads.isEmpty else { return }
-    stallWatchdog?.cancel()
-    stallWatchdog = nil
-  }
-
-  private func sweepStalledDownloads() {
-    let now = Date()
-    let stalled = activeDownloads.filter {
-      now.timeIntervalSince($0.lastActivityAt) > downloadStallTimeout
-    }
-    for download in stalled {
-      log.warning("download \(download.id) stalled (\(downloadStallTimeout)s no chunk) — failing")
-      failDownload(fileId: download.id, from: download.fromUser, reason: .stalled, outcome: .stalled, attributes: [
-        "bytes_received": Int(download.receivedSize),
-      ])
-    }
   }
 
   // MARK: Helpers
