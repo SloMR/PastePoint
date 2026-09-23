@@ -1,54 +1,108 @@
 use crate::{
-    CLEANUP_INTERVAL, CONTENT_TYPE_TEXT_PLAIN, ChatServerHandle, SAFE_CHARSET,
-    SESSION_EXPIRATION_TIME, ServerConfig, consts::OUTBOUND_CHANNEL_CAPACITY,
+    CLEANUP_INTERVAL, CONTENT_TYPE_TEXT_PLAIN, ChatServerHandle, SAFE_CHARSET, SESSION_CODE_LENGTH,
+    SESSION_EXPIRATION_TIME, ServerConfig, ServerError,
+    consts::{MAX_SESSIONS, OUTBOUND_CHANNEL_CAPACITY},
     session::WsChatSession,
 };
-use actix_rt::{spawn, task, time};
+use actix_rt::{spawn, time};
 use actix_web::{Error, HttpRequest, HttpResponse, web::Payload};
 use rand::{RngExt, rng};
 use std::{
-    collections::{HashMap, HashSet},
-    sync::{
-        Arc, LockResult, Mutex, MutexGuard,
-        atomic::{AtomicUsize, Ordering},
-    },
+    collections::{HashMap, hash_map::Entry},
+    sync::{Arc, LockResult, Mutex, MutexGuard},
+    time::{Duration, Instant},
 };
 use tokio::sync::mpsc::channel;
 use uuid::Uuid;
 
 /// Stores the session's UUID and whether it's private.
 #[derive(Clone, Copy)]
-pub(crate) struct SessionData {
-    pub(crate) uuid: Uuid,
-    pub(crate) is_private: bool,
+struct SessionData {
+    uuid: Uuid,
+    is_private: bool,
 }
 
-#[derive(Default, Clone)]
+/// When an unused private code stops resolving.
+#[derive(Clone, Copy)]
+struct PrivateExpiration {
+    uuid: Uuid,
+    deadline: Instant,
+}
+
+/// Session keys, client counts and expiry deadlines, changed together under one lock.
+#[derive(Default)]
+struct SessionRegistry {
+    /// Maps a key (host and IP for public, generated code for private sessions)
+    /// to its session data.
+    key_to_session: HashMap<String, SessionData>,
+    /// How many WebSocket clients reference each UUID.
+    client_counts: HashMap<Uuid, usize>,
+    /// Private codes that expire unless a client joins before the deadline.
+    private_expirations: HashMap<String, PrivateExpiration>,
+}
+
+#[derive(Clone)]
 pub struct SessionStore {
     /// Shared room/session state, replacing the former WsChatServer actor.
     pub(crate) chat_server: ChatServerHandle,
-    /// Maps a key (IP for public or generated code for private sessions)
-    /// to its session data.
-    pub(crate) key_to_session: Arc<Mutex<HashMap<String, SessionData>>>,
-    /// Tracks how many WebSocket clients reference each UUID.
-    uuid_client_counts: Arc<Mutex<HashMap<Uuid, AtomicUsize>>>,
-    /// For private sessions, tracks expired codes.
-    expired_private_codes: Arc<Mutex<HashSet<String>>>,
-    /// For private sessions, tracks scheduled expirations.
-    scheduled_expirations: Arc<Mutex<HashMap<String, task::JoinHandle<()>>>>,
+    registry: Arc<Mutex<SessionRegistry>>,
+    /// How long a private code survives with nobody connected.
+    expiration: Duration,
+}
+
+impl Default for SessionStore {
+    fn default() -> Self {
+        Self::with_expiration(SESSION_EXPIRATION_TIME)
+    }
 }
 
 impl SessionStore {
-    /// Returns true if the private session code has been marked expired.
-    fn is_code_expired(&self, key: &str) -> bool {
-        let Some(expired) =
-            Self::lock_or_log(self.expired_private_codes.lock(), "expired_private_codes")
-        else {
-            // Fail closed: if we can't read the expiry set, treat the code as
-            // expired so a poisoned lock can't be used to bypass expiration.
-            return true;
+    /// A store whose private codes expire after `expiration` with nobody connected.
+    pub fn with_expiration(expiration: Duration) -> Self {
+        Self {
+            chat_server: ChatServerHandle::default(),
+            registry: Arc::default(),
+            expiration,
+        }
+    }
+
+    /// Creates a private session under a new code that expires if nobody joins it.
+    pub fn create_private_session(&self) -> Result<String, ServerError> {
+        let mut registry = Self::lock_or_log(self.registry.lock(), "session_registry")
+            .ok_or(ServerError::InternalServerError)?;
+        Self::prune_expired(&mut registry);
+        if registry.key_to_session.len() >= MAX_SESSIONS {
+            log::warn!(
+                target: "Websocket",
+                "Max sessions limit reached ({MAX_SESSIONS}), rejecting session creation"
+            );
+            return Err(ServerError::BadRequest(
+                "Server capacity reached. Try again later.".to_string(),
+            ));
+        }
+
+        let code = loop {
+            let code = Self::generate_random_code(SESSION_CODE_LENGTH);
+            if let Entry::Vacant(entry) = registry.key_to_session.entry(code.clone()) {
+                let uuid = Uuid::new_v4();
+                entry.insert(SessionData {
+                    uuid,
+                    is_private: true,
+                });
+                registry.private_expirations.insert(
+                    code.clone(),
+                    PrivateExpiration {
+                        uuid,
+                        deadline: Instant::now() + self.expiration,
+                    },
+                );
+                break code;
+            }
         };
-        expired.contains(key)
+        drop(registry);
+
+        sentry::logger_info!(kind = "private", "session.created");
+        Ok(code)
     }
 
     /// Looks up (or creates) a session UUID for the given key.
@@ -62,54 +116,37 @@ impl SessionStore {
         strict_mode: bool,
         is_private: bool,
     ) -> Option<Uuid> {
-        // For private sessions, check if the code is expired.
-        if is_private && self.is_code_expired(key) {
-            log::warn!(target: "Websocket", "Rejected private join: session code expired");
-            log::debug!(target: "Websocket", "Private session code {key} is expired");
-            return None;
-        }
+        let mut registry = Self::lock_or_log(self.registry.lock(), "session_registry")?;
+        Self::prune_expired(&mut registry);
 
-        // Make sure to always cancel any scheduled expiration when reconnecting
-        if is_private
-            && let Some(mut scheduled) =
-                Self::lock_or_log(self.scheduled_expirations.lock(), "scheduled_expirations")
-            && let Some(handle) = scheduled.remove(key)
-        {
-            handle.abort();
-            log::debug!("Cancelled scheduled expiration for {key}");
-        }
-
-        {
-            let map = Self::lock_or_log(self.key_to_session.lock(), "key_to_session")?;
-            if let Some(data) = map.get(key) {
-                self.increment_client_count(data.uuid);
-                return Some(data.uuid);
+        if let Some(data) = registry.key_to_session.get(key).copied() {
+            if is_private {
+                registry.private_expirations.remove(key);
             }
+            let count = registry.client_counts.entry(data.uuid).or_default();
+            *count += 1;
+            log::debug!(target: "Websocket", "Session {} now has {count} clients", data.uuid);
+            return Some(data.uuid);
         }
 
         if strict_mode {
             log::warn!(target: "Websocket", "Rejected private join: unknown session code");
             log::debug!(target: "Websocket", "Key '{key}' not found in strict mode");
-
             return None;
         }
 
-        let new_uuid = Uuid::new_v4();
-        let new_data = SessionData {
-            uuid: new_uuid,
-            is_private,
-        };
-        {
-            let mut map = Self::lock_or_log(self.key_to_session.lock(), "key_to_session")?;
-            map.insert(key.to_string(), new_data);
-        }
-        self.increment_client_count(new_uuid);
+        let uuid = Uuid::new_v4();
+        registry
+            .key_to_session
+            .insert(key.to_string(), SessionData { uuid, is_private });
+        registry.client_counts.insert(uuid, 1);
+        drop(registry);
 
         sentry::logger_info!(
             kind = if is_private { "private" } else { "public" },
             "session.created"
         );
-        Some(new_uuid)
+        Some(uuid)
     }
 
     /// Starts a WebSocket session using the stored session UUID.
@@ -147,126 +184,106 @@ impl SessionStore {
                     Err(e)
                 }
             },
-            None => Ok(HttpResponse::NotFound()
-                .content_type(CONTENT_TYPE_TEXT_PLAIN)
-                .body("Unknown session code")),
+            None => Ok(Self::unknown_session_response()),
         }
     }
 
-    /// Spawns a background task that periodically prunes empty sessions.
+    /// The 404 returned for a private code that is malformed, unknown or expired.
+    pub(crate) fn unknown_session_response() -> HttpResponse {
+        HttpResponse::NotFound()
+            .content_type(CONTENT_TYPE_TEXT_PLAIN)
+            .body("Unknown session code")
+    }
+
+    /// Spawns a background task that prunes empty rooms and expired private codes.
     pub fn spawn_cleanup_task(&self) {
-        let chat_server = self.chat_server.clone();
+        let store = self.clone();
         spawn(async move {
-            let mut ticker = time::interval(CLEANUP_INTERVAL);
+            let mut rooms = time::interval(CLEANUP_INTERVAL);
+            let mut expirations = time::interval(store.expiration);
             loop {
-                ticker.tick().await;
-                chat_server.cleanup_stale_sessions();
+                tokio::select! {
+                    _ = rooms.tick() => store.chat_server.cleanup_stale_sessions(),
+                    _ = expirations.tick() => store.prune_expired_now(),
+                }
             }
         });
     }
 
-    /// Increments the client count for the session with the given UUID.
-    fn increment_client_count(&self, uuid: Uuid) {
-        let Some(mut counts) =
-            Self::lock_or_log(self.uuid_client_counts.lock(), "uuid_client_counts")
-        else {
+    /// Decrements the client count. When it reaches zero, a public key is removed
+    /// and a private code expires after the reconnect grace period.
+    pub fn remove_client(&self, uuid: &Uuid) {
+        let Some(mut registry) = Self::lock_or_log(self.registry.lock(), "session_registry") else {
             return;
         };
-        let counter = counts.entry(uuid).or_default();
-        let new_count = counter.fetch_add(1, Ordering::SeqCst) + 1;
-        log::debug!(target: "Websocket", "Session {uuid} now has {new_count} clients");
-    }
-
-    /// Decrements the client count. If it reaches zero for a private session,
-    /// the key is removed and marked as expired.
-    pub(crate) fn remove_client(&self, uuid: &Uuid) {
-        let Some(mut counts) =
-            Self::lock_or_log(self.uuid_client_counts.lock(), "uuid_client_counts")
-        else {
-            return;
-        };
-        if let Some(counter) = counts.get_mut(uuid) {
-            let prev = counter.fetch_sub(1, Ordering::SeqCst);
-            let new_count = prev.saturating_sub(1);
-            log::debug!(
-                target: "Websocket",
-                "Client count for session {uuid} decreased from {prev} to {new_count}"
-            );
-            if new_count == 0 {
-                counts.remove(uuid);
-
-                self.chat_server.cleanup_session(&uuid.to_string());
-                log::debug!(target: "Websocket", "Cleaned up rooms for session {uuid}");
-
-                let Some(map) = Self::lock_or_log(self.key_to_session.lock(), "key_to_session")
-                else {
-                    return;
-                };
-                let keys: Vec<(String, bool)> = map
-                    .iter()
-                    .filter(|(_, data)| data.uuid == *uuid)
-                    .map(|(k, data)| (k.clone(), data.is_private))
-                    .collect();
-                drop(map);
-
-                for (key, is_private) in keys {
-                    if !is_private {
-                        let Some(mut map) =
-                            Self::lock_or_log(self.key_to_session.lock(), "key_to_session")
-                        else {
-                            continue;
-                        };
-                        map.remove(&key);
-                        log::debug!(target: "Websocket", "Public session code {key} removed");
-                    } else {
-                        let store_clone = self.clone();
-                        let key_clone = key.clone();
-
-                        let handle = spawn(async move {
-                            time::sleep(SESSION_EXPIRATION_TIME).await;
-
-                            let Some(mut scheduled) = Self::lock_or_log(
-                                store_clone.scheduled_expirations.lock(),
-                                "scheduled_expirations",
-                            ) else {
-                                return;
-                            };
-
-                            if scheduled.remove(&key_clone).is_some() {
-                                let Some(mut map) = Self::lock_or_log(
-                                    store_clone.key_to_session.lock(),
-                                    "key_to_session",
-                                ) else {
-                                    return;
-                                };
-
-                                if map.remove(&key_clone).is_some() {
-                                    let Some(mut expired) = Self::lock_or_log(
-                                        store_clone.expired_private_codes.lock(),
-                                        "expired_private_codes",
-                                    ) else {
-                                        return;
-                                    };
-                                    expired.insert(key_clone.clone());
-                                    log::debug!("Private session code {key_clone} expired");
-                                }
-                            }
-                        });
-
-                        if let Some(mut scheduled) = Self::lock_or_log(
-                            self.scheduled_expirations.lock(),
-                            "scheduled_expirations",
-                        ) {
-                            scheduled.insert(key.clone(), handle);
-                        }
-                    }
-                }
-            }
-        } else {
+        let Some(count) = registry.client_counts.get_mut(uuid) else {
             log::debug!(
                 target: "Websocket",
                 "Attempted to remove client from unknown session {uuid}"
             );
+            return;
+        };
+        *count = count.saturating_sub(1);
+        log::debug!(target: "Websocket", "Session {uuid} now has {count} clients");
+        if *count > 0 {
+            return;
+        }
+
+        registry.client_counts.remove(uuid);
+        // Inside the lock, so a client rejoining the same key can't have its
+        // rooms removed by this teardown.
+        self.chat_server.cleanup_session(&uuid.to_string());
+        log::debug!(target: "Websocket", "Cleaned up rooms for session {uuid}");
+
+        let deadline = Instant::now() + self.expiration;
+        let keys: Vec<(String, bool)> = registry
+            .key_to_session
+            .iter()
+            .filter(|(_, data)| data.uuid == *uuid)
+            .map(|(key, data)| (key.clone(), data.is_private))
+            .collect();
+        for (key, is_private) in keys {
+            if is_private {
+                registry.private_expirations.insert(
+                    key,
+                    PrivateExpiration {
+                        uuid: *uuid,
+                        deadline,
+                    },
+                );
+            } else {
+                registry.key_to_session.remove(&key);
+                log::debug!(target: "Websocket", "Public session code {key} removed");
+            }
+        }
+    }
+
+    fn prune_expired_now(&self) {
+        if let Some(mut registry) = Self::lock_or_log(self.registry.lock(), "session_registry") {
+            Self::prune_expired(&mut registry);
+        }
+    }
+
+    /// Drops private codes whose deadline passed while no client was connected.
+    fn prune_expired(registry: &mut SessionRegistry) {
+        let now = Instant::now();
+        let expired: Vec<(String, Uuid)> = registry
+            .private_expirations
+            .iter()
+            .filter(|(_, expiration)| expiration.deadline <= now)
+            .map(|(key, expiration)| (key.clone(), expiration.uuid))
+            .collect();
+
+        for (key, uuid) in expired {
+            registry.private_expirations.remove(&key);
+            let is_same_session = registry
+                .key_to_session
+                .get(&key)
+                .is_some_and(|data| data.uuid == uuid);
+            if is_same_session && !registry.client_counts.contains_key(&uuid) {
+                registry.key_to_session.remove(&key);
+                log::debug!(target: "Websocket", "Private session code {key} expired");
+            }
         }
     }
 

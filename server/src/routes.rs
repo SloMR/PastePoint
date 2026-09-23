@@ -1,9 +1,8 @@
 #![allow(unreachable_pub)]
 
 use crate::{
-    CONTENT_TYPE_TEXT_PLAIN, ClientVersionConfig, MIN_USER_AGENT_LENGTH, SESSION_CODE_LENGTH,
-    ServerConfig, ServerError, SessionStore, TurnConfig, consts::MAX_SESSIONS,
-    session_store::SessionData,
+    CONTENT_TYPE_TEXT_PLAIN, ClientVersionConfig, MIN_USER_AGENT_LENGTH, ServerConfig, ServerError,
+    SessionStore, TurnConfig,
 };
 use actix_web::{Error, HttpRequest, HttpResponse, Responder, get, http::header, web};
 use base64::{Engine, engine::general_purpose::STANDARD};
@@ -11,7 +10,6 @@ use hmac::{Hmac, KeyInit, Mac};
 use serde_json::json;
 use sha1::Sha1;
 use std::time::{SystemTime, UNIX_EPOCH};
-use uuid::Uuid;
 
 type HmacSha1 = Hmac<Sha1>;
 
@@ -96,38 +94,7 @@ pub async fn turn_credentials(turn: web::Data<TurnConfig>) -> Result<HttpRespons
 // -----------------------------------------------------
 #[get("/create-session")]
 pub async fn create_session(store: web::Data<SessionStore>) -> Result<HttpResponse, ServerError> {
-    let code = SessionStore::generate_random_code(SESSION_CODE_LENGTH);
-    let new_uuid = Uuid::new_v4();
-    {
-        let mut map = match store.key_to_session.lock() {
-            Ok(guard) => guard,
-            Err(e) => {
-                log::error!(
-                    target: "Websocket",
-                    "Failed to acquire lock on key_to_session: {e:?}"
-                );
-                return Err(ServerError::InternalServerError);
-            }
-        };
-        if map.len() >= MAX_SESSIONS {
-            log::warn!(
-                target: "Websocket",
-                "Max sessions limit reached ({MAX_SESSIONS}), rejecting session creation"
-            );
-            return Err(ServerError::BadRequest(
-                "Server capacity reached. Try again later.".to_string(),
-            ));
-        }
-        map.insert(
-            code.clone(),
-            SessionData {
-                uuid: new_uuid,
-                is_private: true,
-            },
-        );
-    }
-
-    sentry::logger_info!(kind = "private", "session.created");
+    let code = store.create_private_session()?;
     Ok(HttpResponse::Ok()
         .content_type(header::ContentType::json())
         .json(json!({ "code": code })))
