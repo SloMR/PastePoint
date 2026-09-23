@@ -71,7 +71,6 @@ jobs:
 
   build:
     name: Build and Test iOS Client
-    needs: lint
     runs-on: macos-26
     timeout-minutes: 25
 
