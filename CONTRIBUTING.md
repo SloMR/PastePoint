@@ -126,6 +126,7 @@ cd client/ios
 swiftformat .          # Format code
 swiftlint --fix        # Autocorrect lint issues
 swiftlint lint --strict  # Lint code (CI runs this)
+periphery scan         # Find unused code
 xcodebuild test \
   -project PastePoint.xcodeproj \
   -scheme PastePoint \
