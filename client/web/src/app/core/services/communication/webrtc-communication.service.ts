@@ -114,26 +114,9 @@ export class WebRTCCommunicationService {
         this.connectionTimeouts.delete(targetUser);
       }
 
-      const queuedMessages = this.messageQueues.get(targetUser);
-      if (queuedMessages && queuedMessages.length > 0) {
-        this.logger.info(
-          'setupDataChannel',
-          `Sending ${queuedMessages.length} queued messages to ${targetUser}`
-        );
-        queuedMessages.forEach((msg) => channel.send(JSON.stringify(msg)));
-        this.messageQueues.set(targetUser, []);
-      } else {
-        this.logger.info('setupDataChannel', `No queued messages for ${targetUser}`);
-      }
-
+      this.flushQueue(channel, targetUser);
       this.dataChannelOpened$.next(targetUser);
     };
-
-    if (channel.readyState === 'open') {
-      handleOpen();
-    } else {
-      channel.onopen = handleOpen;
-    }
 
     channel.onmessage = (event) => {
       this.handleDataChannelMessage(event.data, targetUser);
@@ -188,6 +171,13 @@ export class WebRTCCommunicationService {
     channel.onbufferedamountlow = () => {
       this.bufferedAmountLow$.next(targetUser);
     };
+
+    // Last, so the handlers above are attached even if opening fails
+    if (channel.readyState === 'open') {
+      handleOpen();
+    } else {
+      channel.onopen = handleOpen;
+    }
   }
 
   /**
@@ -327,14 +317,30 @@ export class WebRTCCommunicationService {
       return;
     }
 
+    this.flushQueue(channel, targetUser);
+  }
+
+  /**
+   * Sends a peer's queued messages. One the channel refuses, such as a paste over its
+   * size limit, is dropped so the rest still go out
+   * @param channel The open channel to the peer
+   * @param targetUser The peer the queue belongs to
+   */
+  private flushQueue(channel: RTCDataChannel, targetUser: string): void {
     const queuedMessages = this.messageQueues.get(targetUser);
-    if (queuedMessages && queuedMessages.length > 0) {
-      this.logger.info(
-        'sendQueuedMessages',
-        `Sending ${queuedMessages.length} queued messages to ${targetUser}`
-      );
-      queuedMessages.forEach((msg) => channel.send(JSON.stringify(msg)));
-      this.messageQueues.set(targetUser, []);
+    if (!queuedMessages || queuedMessages.length === 0) return;
+
+    this.messageQueues.set(targetUser, []);
+    this.logger.info(
+      'flushQueue',
+      `Sending ${queuedMessages.length} queued messages to ${targetUser}`
+    );
+    for (const msg of queuedMessages) {
+      try {
+        channel.send(JSON.stringify(msg));
+      } catch (error) {
+        this.logger.warn('flushQueue', `Dropped a queued message to ${targetUser}: ${error}`);
+      }
     }
   }
 
