@@ -3,7 +3,7 @@
 The PastePoint client is a modern Angular application with Server-Side Rendering (SSR) support, providing an intuitive interface for file sharing and communication on local networks. Features WebRTC file transfer capabilities, real-time chat, and comprehensive user experience enhancements.
 
 [![Angular](https://img.shields.io/badge/Angular-22-red)](https://angular.io/)
-[![Tailwind](https://img.shields.io/badge/Tailwind-3.4-blue)](https://tailwindcss.com/)
+[![Tailwind](https://img.shields.io/badge/Tailwind-4.3-blue)](https://tailwindcss.com/)
 [![Flowbite](https://img.shields.io/badge/Flowbite-3.1-cyan)](https://flowbite.com/)
 
 ## Tech Stack
@@ -44,14 +44,14 @@ web/
 │   ├── environments/           # Build-specific configuration
 │   ├── main.ts                 # Browser entry point
 │   ├── server.ts               # SSR entry point
-│   └── styles.css              # Global styles
+│   └── styles.css              # Global styles and Tailwind theme
 ├── public/
 │   ├── assets/                 # Logos and app icons
 │   ├── fonts/                  # Custom fonts
 │   └── icons/                  # SVG icons
 ├── angular.json                # Angular workspace configuration
 ├── package.json                # Scripts and dependencies
-├── tailwind.config.js          # Tailwind configuration
+├── .postcssrc.json             # PostCSS config that runs Tailwind
 ├── tsconfig.json               # TypeScript configuration
 ├── Dockerfile                  # Container build
 └── README.md
@@ -183,7 +183,7 @@ npm run format
 
 ### Tailwind CSS Configuration
 
-The project uses a custom Tailwind configuration with:
+The Tailwind theme lives in `src/styles.css` (Tailwind 4 has no JS config) and provides:
 
 - **Custom color palette**: Brand-specific colors
 - **Dark mode**: Class-based dark mode switching

@@ -29,7 +29,7 @@
   <!-- MARK: - Settings Panel Backdrop (small screens only) -->
   @if (isMenuOpen) {
     <div
-      class="fixed inset-0 bg-black/40 z-[9999] backdrop-blur-[1px] md:hidden"
+      class="fixed inset-0 bg-black/40 z-9999 backdrop-blur-[1px] md:hidden"
       (click)="isMenuOpen = false"
     ></div>
   }
@@ -48,7 +48,7 @@
       <!-- MARK: - Drag & Drop Overlay (whole chat view) -->
       @if (isDraggingFiles) {
         <div
-          class="pointer-events-none absolute top-16 right-3 bottom-3 left-3 z-40 flex items-center justify-center rounded-2xl border-2 border-dashed bg-black/40 text-white backdrop-blur-sm border-primary-300 dark:border-secondary-400 md:right-6 md:bottom-6 md:left-6"
+          class="pointer-events-none absolute top-16 right-3 bottom-3 left-3 z-40 flex items-center justify-center rounded-2xl border-2 border-dashed bg-black/40 text-white backdrop-blur-xs border-primary-300 dark:border-secondary-400 md:right-6 md:bottom-6 md:left-6"
         >
           <div class="flex flex-col items-center gap-3">
             <svg
@@ -113,9 +113,7 @@
 
     <!-- MARK: - Banners (pinned below the bar; messages scroll behind). -->
     @if (isReconnectingToServer || showConnectionWarning) {
-      <div
-        class="pointer-events-none absolute inset-x-0 top-[var(--chat-bar-h)] z-30 px-4 pt-2 md:px-8"
-      >
+      <div class="pointer-events-none absolute inset-x-0 top-(--chat-bar-h) z-30 px-4 pt-2 md:px-8">
         <div class="pointer-events-auto flex w-full flex-col gap-2">
           <app-server-reconnect />
           @if (!isReconnectingToServer) {
@@ -131,7 +129,7 @@
 
     <!-- MARK: - Frosted Top Bar -->
     <div
-      class="absolute inset-x-0 top-0 z-40 flex items-center h-[var(--chat-bar-h)] px-4 md:px-8 bg-contentArea/10 backdrop-blur-md dark:bg-baseDark/10"
+      class="absolute inset-x-0 top-0 z-40 flex items-center h-(--chat-bar-h) px-4 md:px-8 bg-contentArea/10 backdrop-blur-md dark:bg-baseDark/10"
     >
       <!-- logo (large only) -->
       <a routerLink="/" [replaceUrl]="true" title="Home" class="hidden md:block">

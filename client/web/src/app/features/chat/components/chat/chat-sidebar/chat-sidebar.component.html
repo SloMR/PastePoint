@@ -1,6 +1,6 @@
 <!-- MARK: - Settings Panel (slide-over on small, docked on large) -->
 <aside
-  class="fixed top-0 h-full w-[360px] max-w-[85vw] bg-surface z-[10000] transition-transform ease-in-out border-borderLight dark:bg-surfaceDark dark:border-surfaceDark md:static md:z-auto md:h-screen md:w-[300px] md:max-w-none md:shrink-0 md:translate-x-0 md:border-r"
+  class="fixed top-0 h-full w-[360px] max-w-[85vw] bg-surface z-10000 transition-transform ease-in-out border-borderLight dark:bg-surfaceDark dark:border-surfaceDark md:static md:z-auto md:h-screen md:w-[300px] md:max-w-none md:shrink-0 md:translate-x-0 md:border-r"
   [style.left]="isRTL ? 'auto' : 0"
   [style.right]="isRTL ? 0 : 'auto'"
   [ngClass]="[
@@ -15,7 +15,7 @@
         [current]="currentLanguage"
         [triggerClass]="'flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-content transition-colors hover:bg-inputBackground dark:text-white dark:hover:bg-borderDark'"
         [iconClass]="'h-5 w-5'"
-        [menuClass]="'absolute start-0 top-full mt-2 z-50 min-w-[11rem] max-w-[calc(100vw-1rem)] overflow-hidden rounded-lg border border-borderLight bg-pageBackground py-1 shadow-lg dark:border-borderDark dark:bg-surfaceDark'"
+        [menuClass]="'absolute inset-s-0 top-full mt-2 z-50 min-w-44 max-w-[calc(100vw-1rem)] overflow-hidden rounded-lg border border-borderLight bg-pageBackground py-1 shadow-lg dark:border-borderDark dark:bg-surfaceDark'"
         (languageChange)="switchLanguage.emit($event)"
       />
       <span
@@ -379,7 +379,7 @@
 
     <!-- MARK: - Exit Button -->
     @if (sessionCode.length > 0) {
-      <div class="w-full flex-shrink-0 border-t border-borderLight dark:border-surfaceDark">
+      <div class="w-full shrink-0 border-t border-borderLight dark:border-surfaceDark">
         <div
           class="flex w-full items-center justify-center py-2"
           (click)="endSessionRequested.emit(); isMenuOpenChange.emit(false)"

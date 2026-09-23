@@ -61,7 +61,7 @@
       [current]="currentLanguage"
       [triggerClass]="'flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-content transition-colors hover:bg-inputBackground dark:text-white dark:hover:bg-surfaceDark'"
       [iconClass]="'h-5 w-5'"
-      [menuClass]="'absolute end-0 top-full mt-2 z-50 min-w-[11rem] max-w-[calc(100vw-1rem)] overflow-hidden rounded-lg border border-borderLight bg-pageBackground py-1 shadow-lg dark:border-borderDark dark:bg-surfaceDark'"
+      [menuClass]="'absolute inset-e-0 top-full mt-2 z-50 min-w-44 max-w-[calc(100vw-1rem)] overflow-hidden rounded-lg border border-borderLight bg-pageBackground py-1 shadow-lg dark:border-borderDark dark:bg-surfaceDark'"
       (languageChange)="switchLanguage.emit($event)"
     />
   </div>

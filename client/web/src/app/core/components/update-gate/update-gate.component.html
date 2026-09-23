@@ -3,7 +3,7 @@
   @if (rec.kind === 'required') {
     <!-- Blocking, non-dismissible gate -->
     <div
-      class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm"
+      class="fixed inset-0 z-100 flex items-center justify-center p-6 bg-black/60 backdrop-blur-xs"
       role="alertdialog"
       aria-modal="true"
     >
@@ -47,7 +47,7 @@
     </div>
   } @else if (rec.kind === 'optional') {
     <!-- Dismissible nudge -->
-    <div class="fixed inset-x-0 top-0 z-[90] flex justify-center p-4">
+    <div class="fixed inset-x-0 top-0 z-90 flex justify-center p-4">
       <div
         class="relative w-full max-w-sm overflow-hidden rounded-2xl border border-borderLight bg-surface/95 shadow-xl backdrop-blur-xl dark:border-borderDark dark:bg-surfaceDark/95"
       >

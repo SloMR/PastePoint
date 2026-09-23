@@ -164,7 +164,7 @@
                                 height="16"
                               />
                               <p
-                                class="flex-1 min-w-0 whitespace-pre-line break-words text-xs leading-5 text-white font-expoArabic"
+                                class="flex-1 min-w-0 whitespace-pre-line wrap-break-word text-xs leading-5 text-white font-expoArabic"
                               >
                                 {{ message.text }}
                               </p>
@@ -358,7 +358,7 @@
                                   </p>
                                 </div>
                               } @else {
-                                <p class="min-w-0 flex-1 break-words">{{ message.text }}</p>
+                                <p class="min-w-0 flex-1 wrap-break-word">{{ message.text }}</p>
                               }
                             </div>
                             @if (message.fileTransfer?.batchId) {

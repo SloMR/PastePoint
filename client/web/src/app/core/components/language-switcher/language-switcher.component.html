@@ -36,7 +36,7 @@
           [attr.aria-checked]="lang.code === current"
           [attr.aria-label]="lang.englishName"
           (click)="select(lang.code)"
-          class="flex w-full items-center justify-between gap-3 px-3 py-1.5 text-sm text-content transition-colors hover:bg-borderLight active:bg-borderLight focus:bg-borderLight focus:outline-none dark:text-contentMuted dark:hover:bg-baseDark dark:active:bg-baseDark dark:focus:bg-baseDark"
+          class="flex w-full items-center justify-between gap-3 px-3 py-1.5 text-sm text-content transition-colors hover:bg-borderLight active:bg-borderLight focus:bg-borderLight focus:outline-hidden dark:text-contentMuted dark:hover:bg-baseDark dark:active:bg-baseDark dark:focus:bg-baseDark"
           [class.text-brand]="lang.code === current"
           [class.dark:text-brandDark]="lang.code === current"
         >
