@@ -35,8 +35,8 @@ bytes = "1.12.1"
 config = "0.15.26"
 dotenvy = "0.15.7"
 url = "2.5.8"
-sentry = { version = "0.48", features = ["log", "logs"] }
-sentry-actix = "0.48"
+sentry = { version = "0.49", features = ["log", "logs"] }
+sentry-actix = "0.49"
 
 [dev-dependencies]
 actix-test = "0.1.5"
