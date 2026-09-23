@@ -6,7 +6,12 @@ import {
   DATA_CHANNEL_MESSAGE_TYPES,
   FILE_TRANSFER_MESSAGE_TYPES,
   MAX_BUFFERED_AMOUNT,
+  MAX_FILE_ID_LENGTH,
+  MAX_PREVIEW_DATA_URL_SIZE,
   MAX_QUEUED_MESSAGES,
+  MIME_TYPE_PATTERN,
+  PREVIEW_DATA_URL_PATTERN,
+  FileOffer,
   ChatMessage,
   ChatMessageType,
   DataChannelMessage,
@@ -34,15 +39,7 @@ export class WebRTCCommunicationService {
   public dataChannelOpened$ = new Subject<string>();
   public dataChannelClosed$ = new Subject<string>();
   public chatMessages$ = new Subject<ChatMessage>();
-  public fileOffers$ = new Subject<{
-    fileName: string;
-    fileSize: number;
-    fromUser: string;
-    fileId: string;
-    fileHash?: string;
-    previewDataUrl?: string;
-    previewMime?: string;
-  }>();
+  public fileOffers$ = new Subject<FileOffer>();
   public fileResponses$ = new Subject<{ accepted: boolean; fromUser: string; fileId: string }>();
   public fileUploadCancelled$ = new Subject<{ fromUser: string; fileId: string }>();
   public fileDownloadCancelled$ = new Subject<{ fromUser: string; fileId: string }>();
@@ -360,11 +357,17 @@ export class WebRTCCommunicationService {
         let message: DataChannelMessage;
         try {
           message = JSON.parse(data);
-        } catch (e) {
-          this.logger.error(
+        } catch {
+          this.logger.warn(
             'handleDataChannelMessage',
-            `Failed to parse data channel message from ${targetUser}: ${e instanceof Error ? e.message : String(e)}`,
-            e
+            `Dropping unparsable message from ${targetUser}`
+          );
+          return;
+        }
+        if (typeof message !== 'object' || message === null) {
+          this.logger.warn(
+            'handleDataChannelMessage',
+            `Dropping malformed message from ${targetUser}`
           );
           return;
         }
@@ -380,23 +383,12 @@ export class WebRTCCommunicationService {
           }
           case FILE_TRANSFER_MESSAGE_TYPES.FILE_OFFER: {
             this.logger.info('handleDataChannelMessage', `Received file offer from ${targetUser}`);
-            const fileOfferPayload = message.payload as {
-              fileId: string;
-              fileName: string;
-              fileSize: number;
-              fileHash?: string;
-              previewDataUrl?: string;
-              previewMime?: string;
-            };
-            this.fileOffers$.next({
-              fileId: fileOfferPayload.fileId,
-              fileName: fileOfferPayload.fileName,
-              fileSize: fileOfferPayload.fileSize,
-              fileHash: fileOfferPayload.fileHash,
-              fromUser: targetUser,
-              previewDataUrl: fileOfferPayload.previewDataUrl,
-              previewMime: fileOfferPayload.previewMime,
-            });
+            const offer = this.parseFileOffer(message.payload, targetUser);
+            if (offer) {
+              this.fileOffers$.next(offer);
+            } else {
+              this.logger.warn('handleDataChannelMessage', 'Dropping malformed file offer');
+            }
             break;
           }
           case FILE_TRANSFER_MESSAGE_TYPES.FILE_ACCEPT: {
@@ -404,12 +396,8 @@ export class WebRTCCommunicationService {
               'handleDataChannelMessage',
               `Received file acceptance from ${targetUser}`
             );
-            const fileAcceptPayload = message.payload as { fileId: string };
-            this.fileResponses$.next({
-              accepted: true,
-              fromUser: targetUser,
-              fileId: fileAcceptPayload.fileId,
-            });
+            const event = this.parseFileEvent(message.payload, targetUser);
+            if (event) this.fileResponses$.next({ accepted: true, ...event });
             break;
           }
           case FILE_TRANSFER_MESSAGE_TYPES.FILE_DECLINE: {
@@ -417,12 +405,8 @@ export class WebRTCCommunicationService {
               'handleDataChannelMessage',
               `Received file decline from ${targetUser}`
             );
-            const fileDeclinePayload = message.payload as { fileId: string };
-            this.fileResponses$.next({
-              accepted: false,
-              fromUser: targetUser,
-              fileId: fileDeclinePayload.fileId,
-            });
+            const event = this.parseFileEvent(message.payload, targetUser);
+            if (event) this.fileResponses$.next({ accepted: false, ...event });
             break;
           }
           case FILE_TRANSFER_MESSAGE_TYPES.FILE_CANCEL_UPLOAD: {
@@ -430,11 +414,8 @@ export class WebRTCCommunicationService {
               'handleDataChannelMessage',
               `Received uploading file cancellation from ${targetUser}`
             );
-            const fileCancelUploadPayload = message.payload as { fileId: string };
-            this.fileUploadCancelled$.next({
-              fromUser: targetUser,
-              fileId: fileCancelUploadPayload.fileId,
-            });
+            const event = this.parseFileEvent(message.payload, targetUser);
+            if (event) this.fileUploadCancelled$.next(event);
             break;
           }
           case FILE_TRANSFER_MESSAGE_TYPES.FILE_CANCEL_DOWNLOAD: {
@@ -442,11 +423,8 @@ export class WebRTCCommunicationService {
               'handleDataChannelMessage',
               `Received downloading file cancellation from ${targetUser}`
             );
-            const fileCancelDownloadPayload = message.payload as { fileId: string };
-            this.fileDownloadCancelled$.next({
-              fromUser: targetUser,
-              fileId: fileCancelDownloadPayload.fileId,
-            });
+            const event = this.parseFileEvent(message.payload, targetUser);
+            if (event) this.fileDownloadCancelled$.next(event);
             break;
           }
           case FILE_TRANSFER_MESSAGE_TYPES.FILE_RECEIVED: {
@@ -454,15 +432,12 @@ export class WebRTCCommunicationService {
               'handleDataChannelMessage',
               `Received file assembly confirmation from ${targetUser}`
             );
-            const fileReceivedPayload = message.payload as { fileId: string };
-            this.fileReceived$.next({
-              fromUser: targetUser,
-              fileId: fileReceivedPayload.fileId,
-            });
+            const event = this.parseFileEvent(message.payload, targetUser);
+            if (event) this.fileReceived$.next(event);
             break;
           }
           default:
-            this.logger.warn('handleDataChannelMessage', `Unknown message type: ${message.type}`);
+            this.logger.warn('handleDataChannelMessage', `Unknown message type from ${targetUser}`);
         }
       } else if (data instanceof ArrayBuffer) {
         const parsed = decodeChunk(data);
@@ -487,7 +462,7 @@ export class WebRTCCommunicationService {
             isValid,
           });
         } else {
-          this.logger.error(
+          this.logger.warn(
             'handleDataChannelMessage',
             `Failed to decode chunk from ${targetUser}, size: ${data.byteLength}`
           );
@@ -519,6 +494,56 @@ export class WebRTCCommunicationService {
       text,
       type: ChatMessageType.TEXT,
       timestamp: Number.isNaN(sentAt.getTime()) ? new Date() : sentAt,
+    };
+  }
+
+  /** The file ID a file message names, if it is a plausible one. */
+  private parseFileId(payload: unknown): string | null {
+    if (typeof payload !== 'object' || payload === null) return null;
+    const { fileId } = payload as { fileId?: unknown };
+    return typeof fileId === 'string' && fileId.length > 0 && fileId.length <= MAX_FILE_ID_LENGTH
+      ? fileId
+      : null;
+  }
+
+  /** A file control message credited to the channel's peer; null when it names no valid file. */
+  private parseFileEvent(
+    payload: unknown,
+    targetUser: string
+  ): { fromUser: string; fileId: string } | null {
+    const fileId = this.parseFileId(payload);
+    if (!fileId) {
+      this.logger.warn('handleDataChannelMessage', 'Dropping malformed file message');
+      return null;
+    }
+    return { fromUser: targetUser, fileId };
+  }
+
+  /** Reads a file offer. A preview that isn't a small PNG or JPEG data URL is left out. */
+  private parseFileOffer(payload: unknown, targetUser: string): FileOffer | null {
+    const fileId = this.parseFileId(payload);
+    if (!fileId) return null;
+    const { fileName, fileSize, fileHash, previewDataUrl, previewMime } = payload as Record<
+      string,
+      unknown
+    >;
+    if (typeof fileName !== 'string' || typeof fileSize !== 'number') return null;
+    if (!Number.isSafeInteger(fileSize) || fileSize < 0) return null;
+
+    const hasPreview =
+      typeof previewDataUrl === 'string' &&
+      previewDataUrl.length <= MAX_PREVIEW_DATA_URL_SIZE &&
+      PREVIEW_DATA_URL_PATTERN.test(previewDataUrl) &&
+      typeof previewMime === 'string' &&
+      MIME_TYPE_PATTERN.test(previewMime);
+    return {
+      fileId,
+      fileName,
+      fileSize,
+      fromUser: targetUser,
+      fileHash: typeof fileHash === 'string' ? fileHash : undefined,
+      previewDataUrl: hasPreview ? previewDataUrl : undefined,
+      previewMime: hasPreview ? previewMime : undefined,
     };
   }
 

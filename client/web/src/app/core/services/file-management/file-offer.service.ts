@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { TelemetryService } from '../monitoring/telemetry.service';
 import {
   FileDownload,
+  FileOffer,
   FILE_TRANSFER_MESSAGE_TYPES,
   MAX_PENDING_OFFERS_PER_PEER,
 } from '../../../utils/constants';
@@ -24,15 +25,7 @@ export class FileOfferService extends FileTransferBaseService {
    * If the fileId already exists, updates it with new fields (preview, hash).
    * This allows instant notification followed by preview update.
    */
-  public async receiveFileOffer(offer: {
-    fileId: string;
-    fileName: string;
-    fileSize: number;
-    fromUser: string;
-    fileHash?: string;
-    previewDataUrl?: string;
-    previewMime?: string;
-  }): Promise<void> {
+  public async receiveFileOffer(offer: FileOffer): Promise<void> {
     const { fromUser, fileId, fileSize, fileHash, previewDataUrl, previewMime } = offer;
     const fileName = this.sanitizeFileName(offer.fileName);
 
