@@ -7,7 +7,7 @@ use crate::{
 };
 use actix_web::{Error, HttpRequest, HttpResponse, Responder, get, http::header, web};
 use base64::{Engine, engine::general_purpose::STANDARD};
-use hmac::{Hmac, Mac};
+use hmac::{Hmac, KeyInit, Mac};
 use serde_json::json;
 use sha1::Sha1;
 use std::time::{SystemTime, UNIX_EPOCH};
