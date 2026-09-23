@@ -9,7 +9,7 @@ use actix_web::{Error, HttpRequest, HttpResponse, web::Payload};
 use rand::{RngExt, rng};
 use std::{
     collections::{HashMap, hash_map::Entry},
-    sync::{Arc, LockResult, Mutex, MutexGuard},
+    sync::{Arc, Mutex, MutexGuard},
     time::{Duration, Instant},
 };
 use tokio::sync::mpsc::channel;
@@ -68,8 +68,7 @@ impl SessionStore {
 
     /// Creates a private session under a new code that expires if nobody joins it.
     pub fn create_private_session(&self) -> Result<String, ServerError> {
-        let mut registry = Self::lock_or_log(self.registry.lock(), "session_registry")
-            .ok_or(ServerError::InternalServerError)?;
+        let mut registry = self.lock_registry();
         Self::prune_expired(&mut registry);
         if registry.key_to_session.len() >= MAX_SESSIONS {
             log::warn!(
@@ -117,7 +116,7 @@ impl SessionStore {
         strict_mode: bool,
         is_private: bool,
     ) -> Option<Uuid> {
-        let mut registry = Self::lock_or_log(self.registry.lock(), "session_registry")?;
+        let mut registry = self.lock_registry();
         Self::prune_expired(&mut registry);
 
         if let Some(data) = registry.key_to_session.get(key).copied() {
@@ -218,9 +217,7 @@ impl SessionStore {
     /// Decrements the client count. When it reaches zero, a public key is removed
     /// and a private code expires after the reconnect grace period.
     pub fn remove_client(&self, uuid: &Uuid) {
-        let Some(mut registry) = Self::lock_or_log(self.registry.lock(), "session_registry") else {
-            return;
-        };
+        let mut registry = self.lock_registry();
         let Some(count) = registry.client_counts.get_mut(uuid) else {
             log::debug!(
                 target: "Websocket",
@@ -264,9 +261,7 @@ impl SessionStore {
     }
 
     fn prune_expired_now(&self) {
-        if let Some(mut registry) = Self::lock_or_log(self.registry.lock(), "session_registry") {
-            Self::prune_expired(&mut registry);
-        }
+        Self::prune_expired(&mut self.lock_registry());
     }
 
     /// Drops private codes whose deadline passed while no client was connected.
@@ -292,18 +287,12 @@ impl SessionStore {
         }
     }
 
-    /// Locks `result`, logging and returning `None` if the mutex is poisoned.
-    fn lock_or_log<'a, T>(
-        result: LockResult<MutexGuard<'a, T>>,
-        name: &str,
-    ) -> Option<MutexGuard<'a, T>> {
-        match result {
-            Ok(guard) => Some(guard),
-            Err(e) => {
-                log::error!(target: "Websocket", "Failed to acquire lock on {name} (poisoned): {e:?}");
-                None
-            }
-        }
+    /// Locks the registry, recovering it if a panic poisoned the mutex, so one
+    /// failed connection can't lock every later client out.
+    fn lock_registry(&self) -> MutexGuard<'_, SessionRegistry> {
+        self.registry
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
     }
 
     /// Generates a random alphanumeric code.
