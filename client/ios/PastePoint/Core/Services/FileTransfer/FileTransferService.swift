@@ -624,6 +624,14 @@ extension FileTransferService {
       return
     }
 
+    if incomingFileOffers.count(where: { $0.fromUser == peer }) >= FileTransferValidation.maxPendingOffersPerPeer {
+      log.warning("declining: too many pending offers from one peer")
+      if let data = try? DataChannelMessage.encodeFileDecline(FileDeclinePayload(fileId: payload.fileId)) {
+        _ = signalingService.send(data, to: peer)
+      }
+      return
+    }
+
     let fileName = FileTransferValidation.sanitizedFileName(payload.fileName)
     let download = FileDownload(
       id: payload.fileId,
