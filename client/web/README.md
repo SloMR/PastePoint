@@ -23,6 +23,7 @@ The PastePoint client is a modern Angular application with Server-Side Rendering
 - **Build Tool**: Angular CLI (`@angular-devkit/build-angular:application`, esbuild-based)
 - **Testing**: Jasmine and Karma for unit tests
 - **Linting**: ESLint with Angular-specific rules
+- **Unused code**: Knip (`knip.jsonc`) for unused files, exports and dependencies
 - **Formatting**: Prettier with custom configuration
 - **Styling**: stylelint for CSS/SCSS validation
 
@@ -51,6 +52,7 @@ web/
 ├── angular.json                # Angular workspace configuration
 ├── package.json                # Scripts and dependencies
 ├── .postcssrc.json             # PostCSS config that runs Tailwind
+├── knip.jsonc                  # Knip configuration
 ├── tsconfig.json               # TypeScript configuration
 ├── Dockerfile                  # Container build
 └── README.md
@@ -106,6 +108,7 @@ npm run test:coverage  # unit tests with coverage report
 npm run test:ci        # headless CI tests with coverage
 npm run lint           # ESLint
 npm run lint:fix       # ESLint with autofix
+npm run knip           # unused files, exports and dependencies (Knip)
 npm run format         # Prettier
 ```
 
