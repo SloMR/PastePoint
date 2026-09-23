@@ -517,8 +517,9 @@ export class FileUploadService extends FileTransferBaseService {
         this.logger.warn('sendFileOffer', `Failed generating preview: ${String(e)}`);
       }
 
-      // Only send update if we have hash or preview to add
-      if (fileHash || previewDataUrl) {
+      // The peer may have declined, or we cancelled, while the hash and preview were made
+      const stillOffered = (await this.getFileTransfers(targetUser))?.has(fileId) ?? false;
+      if (stillOffered && (fileHash || previewDataUrl)) {
         const completeMessage = {
           type: FILE_TRANSFER_MESSAGE_TYPES.FILE_OFFER,
           payload: {
