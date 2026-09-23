@@ -15,6 +15,8 @@ struct SettingsView: View {
 
   @State private var isLeaveSessionSheetPresented: Bool = false
   @State private var isJoinRoomSheetPresented: Bool = false
+
+  // periphery:ignore - the footer reads it through `$safariURL`
   @State private var safariURL: IdentifiableURL?
 
   private var avatar: some View {
