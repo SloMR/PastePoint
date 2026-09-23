@@ -12,6 +12,7 @@ import {
 } from '../../../utils/constants';
 import { HotToastService } from '@ngxpert/hot-toast';
 import { AppUpdateService } from '../update/app-update.service';
+import { isSessionCode } from '../../../utils/session-link.util';
 @Injectable({
   providedIn: 'root',
 })
@@ -152,8 +153,8 @@ export class WebSocketConnectionService implements OnDestroy {
    * Get session code from URL if available
    */
   private getSessionCodeFromUrl(): string | undefined {
-    const urlSegments = window.location.pathname.split('/');
-    return urlSegments.length > 2 ? urlSegments[2] : undefined;
+    const [, route, code] = window.location.pathname.split('/');
+    return route === 'private' && code && isSessionCode(code) ? code : undefined;
   }
 
   /**
@@ -214,8 +215,7 @@ export class WebSocketConnectionService implements OnDestroy {
     this.manualDisconnect = false;
 
     if (!code) {
-      const urlSegments = window.location.pathname.split('/');
-      code = urlSegments.length > 2 ? urlSegments[2] : undefined;
+      code = this.getSessionCodeFromUrl();
     }
 
     this.sessionCode = code;
