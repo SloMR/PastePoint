@@ -111,12 +111,14 @@ struct FileDownload: Identifiable, Sendable {
 }
 
 extension FileDownload {
-  /// True when a chunk fits the accepted offer; the first chunk fixes the count and bytes never exceed the size.
+  /// True when a chunk fits the accepted offer: the first chunk fixes the count, which is bounded by the size,
+  /// no chunk is empty, and bytes never exceed the size.
   func accepts(chunkIndex: Int, totalChunks: Int, byteCount: Int) -> Bool {
     totalChunks >= 1
-      && Int64(totalChunks) <= fileSize
+      && Int64(totalChunks) <= FileTransferValidation.maxChunkCount(forFileSize: fileSize)
       && (self.totalChunks == 0 || totalChunks == self.totalChunks)
       && chunkIndex < totalChunks
+      && byteCount > 0
       && receivedSize + Int64(byteCount) <= fileSize
   }
 }

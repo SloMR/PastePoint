@@ -9,9 +9,15 @@ import ImageIO
 
 enum FileTransferValidation {
   static let maxPendingOffersPerPeer = 100
+  private nonisolated static let minChunkSize: Int64 = 16 * 1024
   private nonisolated static let maxPreviewDataUrlBytes = 150 * 1024
   private nonisolated static let maxPreviewPixelSize = 1024
   private nonisolated static let previewDataUrlPrefixes = ["data:image/png;base64,", "data:image/jpeg;base64,"]
+
+  nonisolated static func maxChunkCount(forFileSize fileSize: Int64) -> Int64 {
+    let whole = fileSize / minChunkSize
+    return max(1, fileSize % minChunkSize == 0 ? whole : whole + 1)
+  }
 
   nonisolated static func previewImageData(from dataUrl: String) -> Data? {
     guard
