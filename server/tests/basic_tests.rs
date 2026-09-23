@@ -1,7 +1,10 @@
 use actix_cors::Cors;
 use actix_web::{App, http::StatusCode, test, web};
 use bytes::Bytes;
-use server::{ServerConfig, SessionStore, WsChatServer, chat_ws, health, index, private_chat_ws};
+use server::{
+    ServerConfig, SessionStore, WsChatServer, chat_ws, create_session, health, index,
+    private_chat_ws,
+};
 use tokio::sync::mpsc::channel;
 
 #[actix_rt::test]
@@ -311,5 +314,29 @@ async fn test_cors_origin_checking() {
     // Test health endpoint
     let req = test::TestRequest::get().uri("/health").to_request();
     let resp = test::call_service(&app, req).await;
+    assert_eq!(resp.status(), StatusCode::OK);
+}
+
+#[actix_rt::test]
+async fn test_create_session_refuses_cross_site_requests() {
+    let app = test::init_service(
+        App::new()
+            .app_data(web::Data::new(SessionStore::default()))
+            .service(create_session),
+    )
+    .await;
+
+    let request = |site: &str| {
+        test::TestRequest::get()
+            .uri("/create-session")
+            .insert_header(("Sec-Fetch-Site", site))
+            .peer_addr("127.0.0.1:12345".parse().unwrap())
+            .to_request()
+    };
+
+    let resp = test::call_service(&app, request("cross-site")).await;
+    assert_eq!(resp.status(), StatusCode::FORBIDDEN);
+
+    let resp = test::call_service(&app, request("same-origin")).await;
     assert_eq!(resp.status(), StatusCode::OK);
 }

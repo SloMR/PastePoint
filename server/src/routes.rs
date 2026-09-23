@@ -94,7 +94,14 @@ pub async fn turn_credentials(turn: web::Data<TurnConfig>) -> Result<HttpRespons
 // Create Session route
 // -----------------------------------------------------
 #[get("/create-session")]
-pub async fn create_session(store: web::Data<SessionStore>) -> Result<HttpResponse, ServerError> {
+pub async fn create_session(
+    req: HttpRequest,
+    store: web::Data<SessionStore>,
+) -> Result<HttpResponse, ServerError> {
+    if is_cross_site_request(&req) {
+        log::warn!(target: "Websocket", "Rejected session creation: cross-site request");
+        return Err(ServerError::Forbidden);
+    }
     let code = store.create_private_session()?;
     Ok(HttpResponse::Ok()
         .content_type(header::ContentType::json())
@@ -199,6 +206,14 @@ fn check_suspicious_connection(req: &HttpRequest, ip_str: &str) -> bool {
         return true;
     }
     false
+}
+
+/// True when a browser says the request came from another site; native clients send no
+/// `Sec-Fetch-Site`, so they are never refused.
+fn is_cross_site_request(req: &HttpRequest) -> bool {
+    req.headers()
+        .get("Sec-Fetch-Site")
+        .is_some_and(|value| value.as_bytes().eq_ignore_ascii_case(b"cross-site"))
 }
 
 /// True for exactly the codes `/create-session` can issue.
