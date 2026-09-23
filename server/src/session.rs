@@ -207,7 +207,8 @@ impl WsChatSession {
 
         let new_id = server.join_room(&self.session_id, room_name, &self.name, tx.clone());
         if new_id == 0 {
-            log::warn!(
+            log::warn!(target: "Websocket", "Join rejected: room limit reached");
+            log::debug!(
                 target: "Websocket",
                 "Join rejected for room '{}'; user '{}' stays in '{}'",
                 room_name,
@@ -284,9 +285,8 @@ impl WsChatSession {
         if msg.len() > MAX_SIGNAL_SIZE {
             log::warn!(
                 target: "Websocket",
-                "Oversize signaling message ({} bytes) from user {}",
-                msg.len(),
-                self.name
+                "Oversize signaling message ({} bytes)",
+                msg.len()
             );
             Self::deliver(
                 tx,

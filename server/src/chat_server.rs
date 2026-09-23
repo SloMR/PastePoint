@@ -252,9 +252,10 @@ impl WsChatServer {
         match target_tx {
             Some(tx) => {
                 if let Err(e) = tx.try_send(message) {
-                    log::error!(
+                    log::error!(target: "Websocket", "Failed to relay signal: {e:?}");
+                    log::debug!(
                         target: "Websocket",
-                        "Failed to relay signal from {from_user} to {to_user}: {e:?}"
+                        "Failed to relay signal from {from_user} to {to_user}"
                     );
                 } else {
                     log::debug!(
