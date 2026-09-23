@@ -4,6 +4,7 @@ mod chat_server;
 mod config;
 mod consts;
 mod error;
+mod rate_limit;
 mod routes;
 mod session;
 mod session_store;
@@ -18,6 +19,7 @@ pub use consts::{
     WS_PREFIX_SYSTEM_ROOMS, WS_PREFIX_USER_COMMAND, WS_PREFIX_USER_DISCONNECTED,
 };
 pub use error::ServerError;
+pub use rate_limit::ClientIpKeyExtractor;
 pub use routes::{
     chat_ws, create_session, health, index, private_chat_ws, turn_credentials, version,
 };

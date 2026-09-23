@@ -9,9 +9,9 @@ use actix_web::{
 };
 use openssl::ssl::{SslAcceptor, SslFiletype, SslMethod};
 use server::{
-    CORS_MAX_AGE, ClientVersionConfig, KEEP_ALIVE_INTERVAL, SentryConfig, ServerConfig,
-    SessionStore, TurnConfig, chat_ws, create_session, health, index, private_chat_ws,
-    turn_credentials, version as version_route,
+    CORS_MAX_AGE, ClientIpKeyExtractor, ClientVersionConfig, KEEP_ALIVE_INTERVAL, SentryConfig,
+    ServerConfig, SessionStore, TurnConfig, chat_ws, create_session, health, index,
+    private_chat_ws, turn_credentials, version as version_route,
 };
 use std::borrow::Cow;
 use std::io::Result;
@@ -123,6 +123,7 @@ async fn main() -> Result<()> {
     let governor_conf = GovernorConfigBuilder::default()
         .requests_per_second(config.rate_limit_per_second)
         .burst_size(config.rate_limit_burst_size)
+        .key_extractor(ClientIpKeyExtractor::new(!ServerConfig::is_dev_env()))
         .use_headers()
         .finish()
         .expect("Invalid rate limit configuration");
