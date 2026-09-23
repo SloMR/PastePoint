@@ -1,4 +1,4 @@
-import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient, withXhr } from '@angular/common/http';
 import { LoggerModule, NgxLoggerLevel, TOKEN_LOGGER_CONFIG } from 'ngx-logger';
 import {
@@ -13,7 +13,7 @@ import { of } from 'rxjs';
 import { HotToastService } from '@ngxpert/hot-toast';
 
 // Mock translate loader - This is still used for the translate service configuration
-export class MockTranslateLoader implements TranslateLoader {
+class MockTranslateLoader implements TranslateLoader {
   getTranslation() {
     return of({
       APP_TITLE: 'PastePoint',
@@ -53,5 +53,3 @@ export const TestProviders = [
     useClass: MockTranslateService,
   },
 ];
-
-export { HttpTestingController };

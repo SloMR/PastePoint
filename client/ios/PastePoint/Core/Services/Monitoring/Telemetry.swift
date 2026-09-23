@@ -33,6 +33,7 @@ struct Telemetry: Sendable {
     return span
   }
 
+  // periphery:ignore:parameters isolation - inherits the caller's actor
   /// Runs `work` inside a span in its own trace; the span ends when it settles.
   func withSpan<T>(
     op: String,

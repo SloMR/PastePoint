@@ -7,7 +7,6 @@ import SwiftUI
 
 struct ConnectView: View {
   @EnvironmentObject private var services: AppServices
-  @EnvironmentObject private var toast: ToastCenter
 
   var onSessionJoin: (() -> Void)?
 

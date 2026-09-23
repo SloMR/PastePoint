@@ -1,0 +1,8 @@
+project: PastePoint.xcodeproj
+schemes:
+  - PastePoint
+build_arguments:
+  - -destination
+  - generic/platform=iOS
+retain_swift_ui_previews: true
+retain_codable_properties: true

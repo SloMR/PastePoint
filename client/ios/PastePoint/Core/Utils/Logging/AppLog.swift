@@ -36,10 +36,6 @@ struct AppLog: Sendable {
     logger(for: file).info("\(msg())", file: file, function: function, line: line)
   }
 
-  nonisolated func notice(_ msg: @autoclosure () -> String, file: String = #fileID, function: String = #function, line: UInt = #line) {
-    logger(for: file).notice("\(msg())", file: file, function: function, line: line)
-  }
-
   nonisolated func warning(_ msg: @autoclosure () -> String, file: String = #fileID, function: String = #function, line: UInt = #line) {
     logger(for: file).warning("\(msg())", file: file, function: function, line: line)
   }
@@ -48,9 +44,6 @@ struct AppLog: Sendable {
     logger(for: file).error("\(msg())", file: file, function: function, line: line)
   }
 
-  nonisolated func critical(_ msg: @autoclosure () -> String, file: String = #fileID, function: String = #function, line: UInt = #line) {
-    logger(for: file).critical("\(msg())", file: file, function: function, line: line)
-  }
 }
 
 extension Error {

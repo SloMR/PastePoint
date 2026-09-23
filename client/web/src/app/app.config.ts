@@ -47,7 +47,7 @@ function createAppErrorHandler(): ErrorHandler {
 }
 
 // Theme initialization function
-export function initializeTheme(themeService: ThemeService): () => Promise<void> {
+function initializeTheme(themeService: ThemeService): () => Promise<void> {
   return () => {
     return new Promise((resolve) => {
       themeService.initializeTheme();
@@ -57,7 +57,7 @@ export function initializeTheme(themeService: ThemeService): () => Promise<void>
 }
 
 // Language initialization function
-export function initializeLanguage(languageService: LanguageService): () => Promise<void> {
+function initializeLanguage(languageService: LanguageService): () => Promise<void> {
   return () => {
     return new Promise((resolve) => {
       languageService.initializeLanguage();

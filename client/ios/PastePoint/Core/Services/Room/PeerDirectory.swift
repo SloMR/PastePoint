@@ -9,7 +9,6 @@ import Foundation
 @MainActor
 final class PeerDirectory: ObservableObject {
   @Published private(set) var peers: [String] = []
-  private var cancellables: Set<AnyCancellable> = []
 
   init(roomService: RoomService, userService: UserService, blockService: BlockService) {
     roomService.$members

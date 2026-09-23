@@ -11,11 +11,12 @@ struct SettingsView: View {
   @EnvironmentObject private var toast: ToastCenter
 
   var onClose: (() -> Void)?
-  var onSessionJoin: (() -> Void)?
   var onBlock: ((String) -> Void)?
 
   @State private var isLeaveSessionSheetPresented: Bool = false
   @State private var isJoinRoomSheetPresented: Bool = false
+
+  // periphery:ignore - the footer reads it through `$safariURL`
   @State private var safariURL: IdentifiableURL?
 
   private var avatar: some View {
@@ -82,8 +83,6 @@ struct SettingsView: View {
           // MARK: - Chat Rooms
 
           SettingsRoomsSection()
-
-          // MARK: - Private Session
 
           // MARK: - Members
 

@@ -1,5 +1,5 @@
 // File transfer constants
-export const KB = 1024;
+const KB = 1024;
 export const MB = 1024 * KB;
 
 // Note: WebRTC SCTP has a ~256KB message limit. Chunk data + protocol header
@@ -33,9 +33,6 @@ export const NAVIGATION_DELAY_MS = 100;
 // Client update check
 export const UPDATE_OPTIONAL_THROTTLE_MS = 12 * 60 * 60 * 1000; // 12h
 
-// Inactivity timeout constants
-export const IDLE_TIMEOUT = 12 * 60 * 60 * 1000; // 12 hours
-export const BACKGROUND_EXPIRY_THRESHOLD = 5 * 60 * 1000; // 5 minutes
 export const CONNECTION_WARNING_DELAY_MS = 25_000; // 25 seconds before showing connection warning
 
 // WebRTC constants
@@ -83,15 +80,6 @@ export const RTC_CONFIGURATION = {
 // WebRTC data channel constants
 export const DATA_CHANNEL_OPTIONS = {
   ordered: true,
-};
-
-// WebRTC signaling message types. Wire format; do not change values.
-export const SIGNAL_MESSAGE_TYPES = {
-  OFFER: 'offer',
-  ANSWER: 'answer',
-  CANDIDATE: 'candidate',
-  FILE_OFFER: 'file-offer',
-  FILE_RESPONSE: 'file-response',
 };
 
 // Wire format; do not change values.
@@ -144,7 +132,7 @@ export enum ChatMessageType {
 export type MemberConnectionState = 'connected' | 'connecting' | 'disconnected';
 
 // Local only; never on the wire.
-export interface FileTransferData {
+interface FileTransferData {
   fileId: string;
   fileName: string;
   fileSize: number;
