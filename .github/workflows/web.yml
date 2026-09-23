@@ -55,7 +55,7 @@ jobs:
 
       - name: Prettier
         working-directory: client/web
-        run: npm run format
+        run: npm run format:check
 
       - name: Third-party acknowledgements
         working-directory: client/web
