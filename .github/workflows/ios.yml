@@ -23,7 +23,6 @@ permissions:
   pull-requests: read
 
 env:
-  DESTINATION: 'generic/platform=iOS Simulator'
   DERIVED_DATA: ${{ github.workspace }}/client/ios/build
   SWIFTLINT_VERSION: '0.65.1'
   SWIFTFORMAT_VERSION: '0.63.0'
@@ -70,9 +69,17 @@ jobs:
         run: python3 scripts/acknowledgements/generate_ios_acknowledgements.py --check
 
   build:
-    name: Build iOS Client
+    name: Build iOS Client (${{ matrix.configuration }})
     runs-on: macos-26
     timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - configuration: Debug
+            destination: 'generic/platform=iOS Simulator'
+          - configuration: Release
+            destination: 'generic/platform=iOS'
 
     steps:
       - name: Checkout code
@@ -103,34 +110,19 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-spm-${{ steps.xcode.outputs.version }}-
 
-      - name: Build Debug
+      - name: Build
         working-directory: client/ios
         run: |
           xcodebuild build \
             -project PastePoint.xcodeproj \
             -scheme PastePoint \
-            -destination '${{ env.DESTINATION }}' \
+            -destination '${{ matrix.destination }}' \
             -derivedDataPath '${{ env.DERIVED_DATA }}' \
-            -configuration Debug \
+            -configuration ${{ matrix.configuration }} \
             -skipMacroValidation \
             -skipPackagePluginValidation \
             ARCHS=arm64 \
             COMPILER_INDEX_STORE_ENABLE=NO \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO
-
-      - name: Build Release
-        if: github.ref == 'refs/heads/main'
-        working-directory: client/ios
-        run: |
-          xcodebuild build \
-            -project PastePoint.xcodeproj \
-            -scheme PastePoint \
-            -destination '${{ env.DESTINATION }}' \
-            -derivedDataPath '${{ env.DERIVED_DATA }}' \
-            -configuration Release \
-            ARCHS=arm64 \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO
