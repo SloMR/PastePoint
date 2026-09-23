@@ -624,9 +624,10 @@ extension FileTransferService {
       return
     }
 
+    let fileName = FileTransferValidation.sanitizedFileName(payload.fileName)
     let download = FileDownload(
       id: payload.fileId,
-      fileName: payload.fileName,
+      fileName: fileName,
       fileSize: payload.fileSize,
       fromUser: peer,
       totalChunks: 0,
@@ -641,7 +642,7 @@ extension FileTransferService {
 
     let fileTransfer = FileTransferData(
       fileId: payload.fileId,
-      fileName: payload.fileName,
+      fileName: fileName,
       fileSize: payload.fileSize,
       fromUser: peer,
       status: .pending,
@@ -650,7 +651,7 @@ extension FileTransferService {
     )
     let message = ChatMessage(
       from: peer,
-      text: payload.fileName,
+      text: fileName,
       type: .attachment,
       fileTransfer: fileTransfer,
     )
@@ -754,7 +755,8 @@ extension FileTransferService {
       let dir = chunkDirectory(for: download.id)
 
       let completedDir = FileManager.default.temporaryDirectory
-        .appendingPathComponent("completed/\(download.id)", isDirectory: true)
+        .appendingPathComponent("completed", isDirectory: true)
+        .appendingPathComponent(FileTransferValidation.directoryName(for: download.id), isDirectory: true)
       try? FileManager.default.createDirectory(at: completedDir, withIntermediateDirectories: true)
       let finalURL = completedDir.appendingPathComponent(download.fileName)
 
@@ -970,11 +972,11 @@ extension FileTransferService {
 
   // MARK: Helpers
 
-  /// Per-file scratch directory for incoming chunks: <tmp>/incoming/<fileId>/.
+  /// Per-file scratch directory for incoming chunks: <tmp>/incoming/<hashed fileId>/.
   private func chunkDirectory(for fileId: String) -> URL {
     // TODO: Change the path name from incoming to something better.
     FileManager.default.temporaryDirectory
       .appendingPathComponent("incoming", isDirectory: true)
-      .appendingPathComponent(fileId, isDirectory: true)
+      .appendingPathComponent(FileTransferValidation.directoryName(for: fileId), isDirectory: true)
   }
 }
