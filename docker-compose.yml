@@ -1,3 +1,9 @@
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: '10m'
+    max-file: '3'
+
 services:
   # ---------- Certificate checker ----------
   cert-checker:
@@ -17,6 +23,7 @@ services:
       '
     volumes:
       - ${CERT_PATH:?CERT_PATH is required (set it in your .env file)}:/etc/ssl/pastepoint:ro
+    logging: *default-logging
     restart: 'no'
 
   # ---------- Server container ----------
@@ -37,6 +44,7 @@ services:
     depends_on:
       cert-checker:
         condition: service_completed_successfully
+    logging: *default-logging
     restart: always
     deploy:
       resources:
@@ -63,6 +71,7 @@ services:
     depends_on:
       server:
         condition: service_healthy
+    logging: *default-logging
     restart: always
     deploy:
       resources:
@@ -93,6 +102,7 @@ services:
     depends_on:
       ssr:
         condition: service_healthy
+    logging: *default-logging
     restart: always
     deploy:
       resources:
