@@ -8,18 +8,21 @@ services:
   # ---------- Certificate checker ----------
   cert-checker:
     image: alpine:3.24
-    user: ${CONTAINER_USER:?CONTAINER_USER is required (set it in your .env file)}
+    user: nobody
+    group_add:
+      - '${TLS_KEY_GID:-1500}'
     container_name: pastepoint-cert-checker
     entrypoint: |
       sh -c '
-      if [ ! -f /etc/ssl/pastepoint/cert.pem ] || [ ! -f /etc/ssl/pastepoint/key.pem ]; then
-        echo "ERROR: Missing SSL certificates!"
+      if [ ! -r /etc/ssl/pastepoint/cert.pem ] || [ ! -r /etc/ssl/pastepoint/key.pem ]; then
+        echo "ERROR: Missing or unreadable SSL certificates!"
         echo "Please create ${CERT_PATH} directory with cert.pem and key.pem files"
         echo "Use generate-certs.sh script to generate self-signed certificates for development or provide your own for production."
+        echo "The containers read key.pem through group ${TLS_KEY_GID:-1500}; see Certificate Management in the README."
         echo "Exiting..."
         exit 1
       fi
-      echo "Certificates exist, continuing..."
+      echo "Certificates are readable, continuing..."
       '
     volumes:
       - ${CERT_PATH:?CERT_PATH is required (set it in your .env file)}:/etc/ssl/pastepoint:ro
