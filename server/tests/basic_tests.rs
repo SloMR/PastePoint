@@ -153,6 +153,41 @@ async fn test_private_ws_rejects_public_session_key() {
 }
 
 #[actix_rt::test]
+async fn test_ws_rejects_cross_site_origin() {
+    let session_manager = web::Data::new(SessionStore::default());
+    let mut config = ServerConfig::load(Some(false)).expect("Failed to load server configuration");
+    config.cors_allowed_origins = "https://pastepoint.com".to_string();
+    let config = web::Data::new(config);
+
+    let app = test::init_service(
+        App::new()
+            .app_data(session_manager.clone())
+            .app_data(config.clone())
+            .service(chat_ws),
+    )
+    .await;
+
+    for (origin, expected) in [
+        ("https://evil.example", StatusCode::FORBIDDEN),
+        ("https://pastepoint.com", StatusCode::SWITCHING_PROTOCOLS),
+    ] {
+        let req = test::TestRequest::get()
+            .uri("/ws")
+            .insert_header(("Origin", origin))
+            .insert_header(("Upgrade", "websocket"))
+            .insert_header(("Connection", "Upgrade"))
+            .insert_header(("Sec-WebSocket-Version", "13"))
+            .insert_header(("Sec-WebSocket-Key", "test_key"))
+            .peer_addr("127.0.0.1:12345".parse().unwrap())
+            .to_request();
+
+        let resp = test::call_service(&app, req).await;
+
+        assert_eq!(resp.status(), expected, "origin {origin}");
+    }
+}
+
+#[actix_rt::test]
 async fn test_session_manager() {
     let manager = SessionStore::default();
     let ip = "127.0.0.1";
@@ -244,7 +279,7 @@ async fn test_cors_origin_checking() {
         &origin
     );
 
-    // Test allowed origin with www subdomain
+    // Test that a subdomain is not allowed
     let domain_only = allowed_domain
         .trim_start_matches("https://")
         .trim_start_matches("http://");
@@ -255,10 +290,7 @@ async fn test_cors_origin_checking() {
         .to_request();
     let resp = test::call_service(&app, req).await;
     assert_eq!(resp.status(), StatusCode::FOUND);
-    assert_eq!(
-        resp.headers().get("Access-Control-Allow-Origin").unwrap(),
-        &origin
-    );
+    assert!(resp.headers().get("Access-Control-Allow-Origin").is_none());
 
     // Test disallowed origin
     let origin = "https://malicious-site.com";

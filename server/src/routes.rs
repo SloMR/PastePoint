@@ -112,6 +112,7 @@ pub async fn chat_ws(
 ) -> Result<HttpResponse, ServerError> {
     // Validate that this is a proper WebSocket connection
     validate_websocket_headers(&req)?;
+    validate_websocket_origin(&req, &config)?;
 
     let is_dev_mode = ServerConfig::is_dev_env();
 
@@ -140,6 +141,7 @@ pub async fn private_chat_ws(
 ) -> Result<HttpResponse, ServerError> {
     // Validate that this is a proper WebSocket connection
     validate_websocket_headers(&req)?;
+    validate_websocket_origin(&req, &config)?;
 
     let code = path.into_inner();
     log::debug!(target: "Websocket", "Received session code: {code}");
@@ -208,6 +210,17 @@ fn check_suspicious_connection(req: &HttpRequest, ip_str: &str) -> bool {
 /// True for exactly the codes `/create-session` can issue.
 fn is_valid_private_code(code: &str) -> bool {
     code.len() == SESSION_CODE_LENGTH && code.bytes().all(|byte| SAFE_CHARSET.contains(&byte))
+}
+
+/// Rejects a browser handshake from another site; native clients send no Origin.
+fn validate_websocket_origin(req: &HttpRequest, config: &ServerConfig) -> Result<(), ServerError> {
+    match req.headers().get(header::ORIGIN) {
+        Some(origin) if !config.check_origin(origin) => {
+            log::warn!(target: "Websocket", "WebSocket connection rejected: disallowed origin");
+            Err(ServerError::Forbidden)
+        }
+        _ => Ok(()),
+    }
 }
 
 // Helper function to validate WebSocket connection headers
