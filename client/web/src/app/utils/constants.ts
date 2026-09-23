@@ -5,6 +5,7 @@ export const MB = 1024 * KB;
 // Note: WebRTC SCTP has a ~256KB message limit. Chunk data + protocol header
 // (~64 bytes) must stay under it, so 192KB is the largest safe chunk.
 export const CHUNK_SIZE = 192 * KB;
+export const MIN_CHUNK_SIZE = 16 * KB;
 export const MAX_BUFFERED_AMOUNT = 16 * MB;
 export const BUFFERED_AMOUNT_LOW_THRESHOLD = 8 * MB;
 export const MAX_QUEUED_MESSAGES = 64;

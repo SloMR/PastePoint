@@ -5,6 +5,7 @@ import {
   FILE_TRANSFER_MESSAGE_TYPES,
   FileDownload,
   FileTransferStatus,
+  MIN_CHUNK_SIZE,
   PREVIEW_MIME_TYPE,
 } from '../../../utils/constants';
 import { FileTransferBaseService } from './file-transfer-base.service';
@@ -177,12 +178,13 @@ export class FileDownloadService extends FileTransferBaseService {
       return;
     }
 
-    // The first chunk fixes the count; every chunk carries at least one byte.
+    // The first chunk fixes the count, at most one chunk per MIN_CHUNK_SIZE bytes; none is empty.
     const fitsOffer =
       totalChunks >= 1 &&
-      totalChunks <= fileDownload.fileSize &&
+      totalChunks <= Math.max(1, Math.ceil(fileDownload.fileSize / MIN_CHUNK_SIZE)) &&
       (fileDownload.totalChunks === 0 || totalChunks === fileDownload.totalChunks) &&
-      chunkIndex < totalChunks;
+      chunkIndex < totalChunks &&
+      chunk.byteLength > 0;
     if (!fitsOffer) {
       await this.rejectInvalidChunk(fileDownload, fromUser, chunkIndex, totalChunks);
       return;
