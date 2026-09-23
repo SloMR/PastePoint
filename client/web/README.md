@@ -61,7 +61,7 @@ web/
 
 ### Prerequisites
 
-- **Node.js**: v24.16.0 (specified in `../../.nvmrc`)
+- **Node.js**: v24.21.0 (specified in `../../.nvmrc`)
 - **npm**: Latest version
 
 ### Development Setup
@@ -266,7 +266,7 @@ this.translate.instant('WELCOME');
    # Use correct Node version
    nvm use
    # Or install the specified version
-   nvm install 24.16.0
+   nvm install 24.21.0
    ```
 
 2. **WebSocket Connection Issues**:

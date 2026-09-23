@@ -101,7 +101,7 @@ cargo test         # Run tests
 
 ### Web (Angular)
 
-Node **v24.16.0** (see `.nvmrc`).
+Node **v24.21.0** (see `.nvmrc`).
 
 ```bash
 cd client/web
