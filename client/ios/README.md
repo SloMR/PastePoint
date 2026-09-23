@@ -27,8 +27,8 @@ The PastePoint iOS client is a native SwiftUI application for peer-to-peer file 
 - **Build Tool**: Xcode 26.6 (pinned in `.xcode-version`), synchronized folder groups
 - **Dependencies**: Swift Package Manager (pinned in `Package.resolved`)
 - **Testing**: XCTest via the `PastePointTests.xctestplan` test plan
-- **Linting**: SwiftLint 0.65.0 (`.swiftlint.yml`, `--strict` in CI)
-- **Formatting**: SwiftFormat 0.61.1 (`.swiftformat`, Swift 6 language mode)
+- **Linting**: SwiftLint 0.65.1 (`.swiftlint.yml`, `--strict` in CI)
+- **Formatting**: SwiftFormat 0.63.0 (`.swiftformat`, Swift 6 language mode)
 
 ## Project Structure
 
@@ -308,8 +308,8 @@ xcrun simctl spawn <UDID> log stream --level debug \
 
    ```bash
    # Match the pinned CI versions
-   swiftlint version      # expect 0.65.0
-   swiftformat --version  # expect 0.61.1
+   swiftlint version      # expect 0.65.1
+   swiftformat --version  # expect 0.63.0
    ```
 
 ## Contributing
