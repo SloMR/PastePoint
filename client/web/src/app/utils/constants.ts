@@ -8,6 +8,7 @@ export const CHUNK_SIZE = 192 * KB;
 export const MAX_BUFFERED_AMOUNT = 16 * MB;
 export const BUFFERED_AMOUNT_LOW_THRESHOLD = 8 * MB;
 export const MAX_QUEUED_MESSAGES = 64;
+export const MAX_PENDING_OFFERS_PER_PEER = 100;
 
 // Heartbeat constants
 export const HEARTBEAT_INTERVAL_DESKTOP_SEC = 60;

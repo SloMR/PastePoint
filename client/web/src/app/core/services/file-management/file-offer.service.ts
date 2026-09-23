@@ -1,6 +1,10 @@
 import { Injectable, inject } from '@angular/core';
 import { TelemetryService } from '../monitoring/telemetry.service';
-import { FileDownload, FILE_TRANSFER_MESSAGE_TYPES } from '../../../utils/constants';
+import {
+  FileDownload,
+  FILE_TRANSFER_MESSAGE_TYPES,
+  MAX_PENDING_OFFERS_PER_PEER,
+} from '../../../utils/constants';
 import { FileTransferBaseService } from './file-transfer-base.service';
 
 @Injectable({
@@ -39,6 +43,15 @@ export class FileOfferService extends FileTransferBaseService {
     }
 
     const existingDownload = fileTransfers.get(fileId);
+    const pendingOffers = [...fileTransfers.values()].filter((download) => !download.isAccepted);
+    if (!existingDownload && pendingOffers.length >= MAX_PENDING_OFFERS_PER_PEER) {
+      this.logger.warn('receiveFileOffer', `Declining: too many pending offers from ${fromUser}`);
+      this.sendData(
+        { type: FILE_TRANSFER_MESSAGE_TYPES.FILE_DECLINE, payload: { fileId } },
+        fromUser
+      );
+      return;
+    }
 
     if (existingDownload) {
       // Update existing entry with new fields (preview/hash came in second message)
