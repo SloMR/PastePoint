@@ -41,6 +41,8 @@ services:
       - TURN_SECRET=${TURN_SECRET:-}
     volumes:
       - ${CERT_PATH}:/etc/ssl/pastepoint:ro
+    group_add:
+      - '${TLS_KEY_GID:-1500}'
     depends_on:
       cert-checker:
         condition: service_completed_successfully
@@ -99,6 +101,8 @@ services:
       - '443:443'
     volumes:
       - ${CERT_PATH}:/etc/ssl/pastepoint:ro
+    group_add:
+      - '${TLS_KEY_GID:-1500}'
     depends_on:
       ssr:
         condition: service_healthy

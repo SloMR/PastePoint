@@ -270,6 +270,14 @@ pastepoint/
 - **Certificate Management**:
   - Replace self-signed certificates with proper SSL certificates in production
   - Keep private keys secure and never commit them to version control
+  - Let only the containers read the private key. The server and nginx containers join group
+    `TLS_KEY_GID` (default 1500), so the key can be `root`-owned with mode 640:
+
+    ```bash
+    sudo groupadd -g 1500 pastepoint-tls
+    sudo chgrp pastepoint-tls /etc/ssl/pastepoint/key.pem
+    sudo chmod 640 /etc/ssl/pastepoint/key.pem
+    ```
 
 - **Data Privacy**:
   - All file transfers are encrypted end-to-end via WebRTC
