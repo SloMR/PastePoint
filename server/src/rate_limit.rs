@@ -1,6 +1,21 @@
 use actix_governor::{KeyExtractor, SimpleKeyExtractionError};
-use actix_web::dev::ServiceRequest;
+use actix_web::{dev::ServiceRequest, http::header::HeaderMap};
 use std::net::IpAddr;
+
+/// The client address nginx sets in `X-Forwarded-For` or `X-Real-IP`. The last value is
+/// nginx's own, because it comes after anything a client could slip into the request.
+pub(crate) fn forwarded_ip(headers: &HeaderMap) -> Option<IpAddr> {
+    let last = |name: &str| {
+        headers
+            .get_all(name)
+            .last()
+            .and_then(|value| value.to_str().ok())
+    };
+    last("X-Forwarded-For")
+        .and_then(|value| value.rsplit(',').next())
+        .or_else(|| last("X-Real-IP"))
+        .and_then(|value| value.trim().parse().ok())
+}
 
 /// Rate-limit key for the client behind nginx, instead of nginx's own address.
 ///
@@ -17,19 +32,6 @@ impl ClientIpKeyExtractor {
             trust_proxy_headers,
         }
     }
-
-    /// The client address nginx sets in `X-Forwarded-For` or `X-Real-IP`.
-    fn forwarded_ip(req: &ServiceRequest) -> Option<IpAddr> {
-        let header = |name| {
-            req.headers()
-                .get(name)
-                .and_then(|value| value.to_str().ok())
-        };
-        header("X-Forwarded-For")
-            .and_then(|value| value.split(',').next())
-            .or_else(|| header("X-Real-IP"))
-            .and_then(|value| value.trim().parse().ok())
-    }
 }
 
 impl KeyExtractor for ClientIpKeyExtractor {
@@ -39,7 +41,7 @@ impl KeyExtractor for ClientIpKeyExtractor {
     fn extract(&self, req: &ServiceRequest) -> Result<Self::Key, Self::KeyExtractionError> {
         let ip = self
             .trust_proxy_headers
-            .then(|| Self::forwarded_ip(req))
+            .then(|| forwarded_ip(req.headers()))
             .flatten()
             .or_else(|| req.peer_addr().map(|addr| addr.ip()))
             .ok_or_else(|| SimpleKeyExtractionError::new("Could not extract client IP address"))?;

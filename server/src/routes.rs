@@ -3,6 +3,7 @@
 use crate::{
     CONTENT_TYPE_TEXT_PLAIN, ClientVersionConfig, MIN_USER_AGENT_LENGTH, SAFE_CHARSET,
     SESSION_CODE_LENGTH, ServerConfig, ServerError, SessionStore, TurnConfig,
+    rate_limit::forwarded_ip,
 };
 use actix_web::{Error, HttpRequest, HttpResponse, Responder, get, http::header, web};
 use base64::{Engine, engine::general_purpose::STANDARD};
@@ -162,14 +163,7 @@ pub async fn private_chat_ws(
 fn get_client_ip(req: &HttpRequest, is_dev_mode: bool) -> Result<String, Error> {
     if !is_dev_mode {
         log::info!(target: "Websocket", "Production mode detected, checking headers for IP");
-        req.headers()
-            .get("X-Forwarded-For")
-            .and_then(|v| v.to_str().ok())
-            .and_then(|s| s.split(',').next().map(str::trim))
-            .or_else(|| req.headers()
-                .get("X-Real-IP")
-                .and_then(|v| v.to_str().ok())
-                .map(str::trim))
+        forwarded_ip(req.headers())
             .map(|ip| ip.to_string())
             .ok_or_else(|| {
                 log::warn!(target: "Websocket", "Production connection attempt without proper headers");
