@@ -147,6 +147,7 @@ final class FileTransferService: ObservableObject {
   func sendStagedFile(_ stagedFile: StagedFile, to peers: [String]) async {
     guard stagedFile.size > 0 else {
       log.warning("skipping empty file")
+      stagedFile.kind.releaseSource(at: stagedFile.url)
       return
     }
 
@@ -178,17 +179,27 @@ final class FileTransferService: ObservableObject {
     )
 
     let hashTask = prewarmFileHash(forFileAt: stagedFile.url)
+    var offeredAny = false
     for peer in peers {
-      await prepareFileForSending(
+      let offered = await prepareFileForSending(
         stagedFile: stagedFile,
         targetUser: peer,
         batchId: batchId,
         hashTask: hashTask,
         preview: preview,
       )
+      if offered {
+        offeredAny = true
+      } else {
+        markBatchOutcome(batchId, success: false)
+      }
     }
     // All peers have consumed the shared hash; drop the cache entry.
     fileHashTasks[stagedFile.url] = nil
+    // No upload holds the file, so none will release it.
+    if !offeredAny {
+      stagedFile.kind.releaseSource(at: stagedFile.url)
+    }
   }
 
   /// Pre-computes a file's BLAKE3 hash so it's ready by send time.
