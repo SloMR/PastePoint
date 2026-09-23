@@ -29,7 +29,7 @@ The PastePoint iOS client is a native SwiftUI application for peer-to-peer file 
 - **Testing**: XCTest via the `PastePointTests.xctestplan` test plan
 - **Linting**: SwiftLint 0.65.1 (`.swiftlint.yml`, `--strict` in CI)
 - **Formatting**: SwiftFormat 0.63.0 (`.swiftformat`, Swift 6 language mode)
-- **Unused code**: Periphery (`.periphery.yml`)
+- **Unused code**: Periphery 3.8.0 (`.periphery.yml`, `--strict` in CI)
 
 ## Project Structure
 
@@ -196,10 +196,10 @@ swiftlint lint --strict     # CI runs this
 swiftlint --fix             # Autocorrect
 swiftformat .               # Format in place
 swiftformat --lint .        # Check only (CI)
-periphery scan              # Unused code
+periphery scan              # Unused code (CI)
 ```
 
-CI pins both tools (see `.github/workflows/ios.yml`); keep local versions in lockstep with `SWIFTLINT_VERSION` and `SWIFTFORMAT_VERSION`.
+CI pins all three tools (see `.github/workflows/ios.yml`); keep local versions in lockstep with `SWIFTLINT_VERSION`, `SWIFTFORMAT_VERSION` and `PERIPHERY_VERSION`.
 
 ## Architecture
 

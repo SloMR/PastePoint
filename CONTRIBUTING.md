@@ -126,7 +126,7 @@ cd client/ios
 swiftformat .          # Format code
 swiftlint --fix        # Autocorrect lint issues
 swiftlint lint --strict  # Lint code (CI runs this)
-periphery scan         # Find unused code
+periphery scan         # Find unused code (CI runs this)
 xcodebuild test \
   -project PastePoint.xcodeproj \
   -scheme PastePoint \
@@ -138,7 +138,7 @@ xcodebuild test \
 - Follow Swift API design guidelines
 - Prefer `async/await` for concurrency
 - Keep UI logic in SwiftUI views and business logic in separate types
-- Match the CI-pinned tool versions — SwiftLint **0.65.1**, SwiftFormat **0.63.0** (see `.github/workflows/ios.yml`); CI asserts the exact versions
+- Match the CI-pinned tool versions — SwiftLint **0.65.1**, SwiftFormat **0.63.0**, Periphery **3.8.0** (see `.github/workflows/ios.yml`); CI asserts the exact versions
 - Localize user-facing strings in `Localizable.xcstrings` using the symbolic `UPPER_SNAKE_CASE` keys shared with the web client
 - Changes to the signaling, data-channel, or chunk protocol must stay wire-compatible with the web client — the two clients interoperate
 

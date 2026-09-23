@@ -26,6 +26,7 @@ env:
   DERIVED_DATA: ${{ github.workspace }}/client/ios/build
   SWIFTLINT_VERSION: '0.65.1'
   SWIFTFORMAT_VERSION: '0.63.0'
+  PERIPHERY_VERSION: '3.8.0'
 
 jobs:
   lint:
@@ -126,3 +127,37 @@ jobs:
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO
+
+  periphery:
+    name: Periphery
+    runs-on: xcode-27
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Read pinned Xcode version
+        id: xcode-pin
+        run: echo "version=$(sed 's/^Xcode //' client/ios/.xcode-version)" >> "$GITHUB_OUTPUT"
+
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: ${{ steps.xcode-pin.outputs.version }}
+
+      - name: Install Periphery
+        run: |
+          mkdir -p "$RUNNER_TEMP/periphery"
+          curl -sfL "https://github.com/peripheryapp/periphery/releases/download/${PERIPHERY_VERSION}/periphery-${PERIPHERY_VERSION}.zip" -o periphery.zip
+          unzip -oq periphery.zip periphery libIndexStore.dylib -d "$RUNNER_TEMP/periphery"
+          echo "$RUNNER_TEMP/periphery" >> "$GITHUB_PATH"
+
+      - name: Verify pinned version
+        run: test "$(periphery version)" = "${PERIPHERY_VERSION}"
+
+      - name: Periphery
+        working-directory: client/ios
+        run: periphery scan --strict --disable-update-check
