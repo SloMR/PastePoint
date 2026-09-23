@@ -79,7 +79,14 @@ export class WebRTCSignalingService {
       this.handlePeerConnected(targetUser);
     });
 
+    let previousUser = '';
     this.userService.user$.subscribe((user) => {
+      // Peers treat a new name as a new member and number their signals from 1 again
+      if (user && previousUser && user !== previousUser) {
+        this.inboundSequences.clear();
+      }
+      if (user) previousUser = user;
+
       if (user && this.pendingSignals.length > 0) {
         const drained = this.pendingSignals;
         this.pendingSignals = [];
