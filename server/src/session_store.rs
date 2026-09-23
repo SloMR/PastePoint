@@ -6,9 +6,13 @@ use crate::{
 };
 use actix_rt::{spawn, time};
 use actix_web::{Error, HttpRequest, HttpResponse, web::Payload};
+use fake::{
+    Fake,
+    faker::name::en::{FirstName, LastName},
+};
 use rand::{RngExt, rng};
 use std::{
-    collections::{HashMap, hash_map::Entry},
+    collections::{HashMap, HashSet, hash_map::Entry},
     sync::{Arc, Mutex, MutexGuard},
     time::{Duration, Instant},
 };
@@ -48,6 +52,8 @@ pub struct SessionStore {
     /// Shared room/session state, replacing the former WsChatServer actor.
     pub(crate) chat_server: ChatServerHandle,
     registry: Arc<Mutex<SessionRegistry>>,
+    /// Display names held by live connections.
+    names: Arc<Mutex<HashSet<String>>>,
     /// How long a private code survives with nobody connected.
     expiration: Duration,
 }
@@ -64,8 +70,35 @@ impl SessionStore {
         Self {
             chat_server: ChatServerHandle::default(),
             registry: Arc::default(),
+            names: Arc::default(),
             expiration,
         }
+    }
+
+    /// Picks a random display name that no live connection holds, and keeps it until released.
+    pub fn reserve_name(&self) -> String {
+        let mut names = self
+            .names
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner());
+        loop {
+            let name = format!(
+                "{} {}",
+                FirstName().fake::<String>(),
+                LastName().fake::<String>()
+            );
+            if names.insert(name.clone()) {
+                return name;
+            }
+        }
+    }
+
+    /// Frees a name taken by [`reserve_name`](Self::reserve_name).
+    pub fn release_name(&self, name: &str) {
+        self.names
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+            .remove(name);
     }
 
     /// Creates a private session under a new code that expires if nobody joins it.

@@ -10,10 +10,6 @@ use crate::{
     error::ServerError,
 };
 use actix_ws::{AggregatedMessage, MessageStream, Session};
-use fake::{
-    Fake,
-    faker::name::{en::FirstName, en::LastName},
-};
 use futures_util::StreamExt;
 use serde_json::Value;
 use std::time::{Duration, Instant};
@@ -59,9 +55,7 @@ impl<'a> UserCommand<'a> {
 
 impl WsChatSession {
     pub(crate) fn new(session_id: &str, auto_join: bool, session_store: SessionStore) -> Self {
-        let first_name = FirstName().fake::<String>();
-        let last_name = LastName().fake::<String>();
-        let name = format!("{first_name} {last_name}");
+        let name = session_store.reserve_name();
 
         WsChatSession {
             session_id: session_id.to_owned(),
@@ -409,6 +403,8 @@ impl WsChatSession {
                 self.room
             );
         }
+
+        self.session_store.release_name(&self.name);
 
         if let Ok(uuid) = uuid::Uuid::parse_str(&self.session_id) {
             log::debug!(target: "Websocket", "Removing client {uuid} from session");

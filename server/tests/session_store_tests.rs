@@ -1,5 +1,5 @@
 use server::{MAX_UNJOINED_CODES_PER_CLIENT, ServerError, SessionStore};
-use std::{thread, time::Duration};
+use std::{collections::HashSet, thread, time::Duration};
 
 const CLIENT: &str = "203.0.113.7";
 
@@ -154,4 +154,12 @@ fn an_expired_code_frees_its_creators_slot() {
     thread::sleep(Duration::from_millis(60));
 
     assert!(store.create_private_session(CLIENT).is_ok());
+}
+
+#[test]
+fn live_names_are_unique() {
+    let store = SessionStore::default();
+    let names: HashSet<String> = (0..5000).map(|_| store.reserve_name()).collect();
+
+    assert_eq!(names.len(), 5000);
 }
