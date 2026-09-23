@@ -102,7 +102,9 @@ pub async fn create_session(
         log::warn!(target: "Websocket", "Rejected session creation: cross-site request");
         return Err(ServerError::Forbidden);
     }
-    let code = store.create_private_session()?;
+    let client =
+        get_client_ip(&req, ServerConfig::is_dev_env()).map_err(|_| ServerError::Forbidden)?;
+    let code = store.create_private_session(&client)?;
     Ok(HttpResponse::Ok()
         .content_type(header::ContentType::json())
         .json(json!({ "code": code })))

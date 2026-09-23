@@ -1,6 +1,6 @@
 use crate::{
-    CLEANUP_INTERVAL, CONTENT_TYPE_TEXT_PLAIN, ChatServerHandle, SAFE_CHARSET, SESSION_CODE_LENGTH,
-    SESSION_EXPIRATION_TIME, ServerConfig, ServerError,
+    CLEANUP_INTERVAL, CONTENT_TYPE_TEXT_PLAIN, ChatServerHandle, MAX_UNJOINED_CODES_PER_CLIENT,
+    SAFE_CHARSET, SESSION_CODE_LENGTH, SESSION_EXPIRATION_TIME, ServerConfig, ServerError,
     consts::{MAX_SESSIONS, OUTBOUND_CHANNEL_CAPACITY},
     session::WsChatSession,
 };
@@ -16,10 +16,10 @@ use tokio::sync::mpsc::channel;
 use uuid::Uuid;
 
 /// Stores the session's UUID and whether it's private.
-#[derive(Clone, Copy)]
 struct SessionData {
     uuid: Uuid,
     is_private: bool,
+    creator: Option<String>,
 }
 
 /// When an unused private code stops resolving.
@@ -39,6 +39,8 @@ struct SessionRegistry {
     client_counts: HashMap<Uuid, usize>,
     /// Private codes that expire unless a client joins before the deadline.
     private_expirations: HashMap<String, PrivateExpiration>,
+    /// How many of each client's private codes nobody has joined yet.
+    unjoined_per_client: HashMap<String, usize>,
 }
 
 #[derive(Clone)]
@@ -67,7 +69,8 @@ impl SessionStore {
     }
 
     /// Creates a private session under a new code that expires if nobody joins it.
-    pub fn create_private_session(&self) -> Result<String, ServerError> {
+    /// `client` is the caller's address; each one may hold only a few unjoined codes.
+    pub fn create_private_session(&self, client: &str) -> Result<String, ServerError> {
         let mut registry = self.lock_registry();
         Self::prune_expired(&mut registry);
         if registry.key_to_session.len() >= MAX_SESSIONS {
@@ -75,9 +78,20 @@ impl SessionStore {
                 target: "Websocket",
                 "Max sessions limit reached ({MAX_SESSIONS}), rejecting session creation"
             );
-            return Err(ServerError::BadRequest(
-                "Server capacity reached. Try again later.".to_string(),
-            ));
+            return Err(ServerError::ServiceUnavailable);
+        }
+        if registry
+            .unjoined_per_client
+            .get(client)
+            .copied()
+            .unwrap_or(0)
+            >= MAX_UNJOINED_CODES_PER_CLIENT
+        {
+            log::warn!(
+                target: "Websocket",
+                "Rejected session creation: too many unjoined codes from one client"
+            );
+            return Err(ServerError::TooManyRequests);
         }
 
         let code = loop {
@@ -87,6 +101,7 @@ impl SessionStore {
                 entry.insert(SessionData {
                     uuid,
                     is_private: true,
+                    creator: Some(client.to_owned()),
                 });
                 registry.private_expirations.insert(
                     code.clone(),
@@ -95,6 +110,10 @@ impl SessionStore {
                         deadline: Instant::now() + self.expiration,
                     },
                 );
+                *registry
+                    .unjoined_per_client
+                    .entry(client.to_owned())
+                    .or_default() += 1;
                 break code;
             }
         };
@@ -119,18 +138,22 @@ impl SessionStore {
         let mut registry = self.lock_registry();
         Self::prune_expired(&mut registry);
 
-        if let Some(data) = registry.key_to_session.get(key).copied() {
+        if let Some(data) = registry.key_to_session.get_mut(key) {
             if data.is_private != is_private {
                 log::warn!(target: "Websocket", "Rejected join: session type mismatch");
                 return None;
             }
+            let uuid = data.uuid;
+            if let Some(creator) = data.creator.take() {
+                Self::release_unjoined_slot(&mut registry, &creator);
+            }
             if is_private {
                 registry.private_expirations.remove(key);
             }
-            let count = registry.client_counts.entry(data.uuid).or_default();
+            let count = registry.client_counts.entry(uuid).or_default();
             *count += 1;
-            log::debug!(target: "Websocket", "Session {} now has {count} clients", data.uuid);
-            return Some(data.uuid);
+            log::debug!(target: "Websocket", "Session {uuid} now has {count} clients");
+            return Some(uuid);
         }
 
         if strict_mode {
@@ -140,9 +163,14 @@ impl SessionStore {
         }
 
         let uuid = Uuid::new_v4();
-        registry
-            .key_to_session
-            .insert(key.to_string(), SessionData { uuid, is_private });
+        registry.key_to_session.insert(
+            key.to_string(),
+            SessionData {
+                uuid,
+                is_private,
+                creator: None,
+            },
+        );
         registry.client_counts.insert(uuid, 1);
         drop(registry);
 
@@ -281,9 +309,26 @@ impl SessionStore {
                 .get(&key)
                 .is_some_and(|data| data.uuid == uuid);
             if is_same_session && !registry.client_counts.contains_key(&uuid) {
-                registry.key_to_session.remove(&key);
+                let creator = registry
+                    .key_to_session
+                    .remove(&key)
+                    .and_then(|data| data.creator);
+                if let Some(creator) = creator {
+                    Self::release_unjoined_slot(registry, &creator);
+                }
                 log::debug!(target: "Websocket", "Private session code {key} expired");
             }
+        }
+    }
+
+    /// Gives `client` back the slot one of its unjoined codes was holding.
+    fn release_unjoined_slot(registry: &mut SessionRegistry, client: &str) {
+        let Some(held) = registry.unjoined_per_client.get_mut(client) else {
+            return;
+        };
+        *held = held.saturating_sub(1);
+        if *held == 0 {
+            registry.unjoined_per_client.remove(client);
         }
     }
 

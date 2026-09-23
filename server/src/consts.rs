@@ -16,6 +16,7 @@ pub(crate) const DEFAULT_ROOM: &str = "main";
 // Security limits
 pub(crate) const MAX_ROOMS_PER_SESSION: usize = 50;
 pub(crate) const MAX_SESSIONS: usize = 100_000;
+pub const MAX_UNJOINED_CODES_PER_CLIENT: usize = 20;
 pub(crate) const MAX_WS_MESSAGES_PER_SEC: usize = 30;
 
 // Timing intervals

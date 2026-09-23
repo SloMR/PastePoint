@@ -1,5 +1,7 @@
-use server::SessionStore;
+use server::{MAX_UNJOINED_CODES_PER_CLIENT, ServerError, SessionStore};
 use std::{thread, time::Duration};
+
+const CLIENT: &str = "203.0.113.7";
 
 #[test]
 fn public_key_cannot_join_through_the_private_route() {
@@ -21,7 +23,9 @@ fn public_key_cannot_join_through_the_private_route() {
 #[test]
 fn private_code_cannot_join_through_the_public_route() {
     let store = SessionStore::default();
-    let code = store.create_private_session().expect("private session");
+    let code = store
+        .create_private_session(CLIENT)
+        .expect("private session");
 
     assert_eq!(store.get_or_create_session_uuid(&code, false, false), None);
 }
@@ -29,7 +33,9 @@ fn private_code_cannot_join_through_the_public_route() {
 #[test]
 fn unjoined_private_code_expires() {
     let store = SessionStore::with_expiration(Duration::from_millis(20));
-    let code = store.create_private_session().expect("private session");
+    let code = store
+        .create_private_session(CLIENT)
+        .expect("private session");
     thread::sleep(Duration::from_millis(60));
 
     assert_eq!(store.get_or_create_session_uuid(&code, true, true), None);
@@ -38,7 +44,9 @@ fn unjoined_private_code_expires() {
 #[test]
 fn rejoining_within_the_grace_period_keeps_the_code() {
     let store = SessionStore::with_expiration(Duration::from_millis(50));
-    let code = store.create_private_session().expect("private session");
+    let code = store
+        .create_private_session(CLIENT)
+        .expect("private session");
     let uuid = store
         .get_or_create_session_uuid(&code, true, true)
         .expect("join");
@@ -59,7 +67,9 @@ fn rejoining_within_the_grace_period_keeps_the_code() {
 #[test]
 fn private_code_expires_after_the_last_client_leaves() {
     let store = SessionStore::with_expiration(Duration::from_millis(50));
-    let code = store.create_private_session().expect("private session");
+    let code = store
+        .create_private_session(CLIENT)
+        .expect("private session");
     let uuid = store
         .get_or_create_session_uuid(&code, true, true)
         .expect("join");
@@ -98,4 +108,50 @@ fn concurrent_joins_and_leaves_keep_counts_consistent() {
             "{key} should have been removed with its last client"
         );
     }
+}
+
+#[test]
+fn a_client_can_hold_only_a_few_unjoined_codes() {
+    let store = SessionStore::default();
+    for _ in 0..MAX_UNJOINED_CODES_PER_CLIENT {
+        store
+            .create_private_session(CLIENT)
+            .expect("private session");
+    }
+
+    assert!(matches!(
+        store.create_private_session(CLIENT),
+        Err(ServerError::TooManyRequests)
+    ));
+    assert!(store.create_private_session("203.0.113.8").is_ok());
+}
+
+#[test]
+fn joining_a_code_frees_its_creators_slot() {
+    let store = SessionStore::default();
+    let codes: Vec<String> = (0..MAX_UNJOINED_CODES_PER_CLIENT)
+        .map(|_| {
+            store
+                .create_private_session(CLIENT)
+                .expect("private session")
+        })
+        .collect();
+    store
+        .get_or_create_session_uuid(&codes[0], true, true)
+        .expect("join");
+
+    assert!(store.create_private_session(CLIENT).is_ok());
+}
+
+#[test]
+fn an_expired_code_frees_its_creators_slot() {
+    let store = SessionStore::with_expiration(Duration::from_millis(20));
+    for _ in 0..MAX_UNJOINED_CODES_PER_CLIENT {
+        store
+            .create_private_session(CLIENT)
+            .expect("private session");
+    }
+    thread::sleep(Duration::from_millis(60));
+
+    assert!(store.create_private_session(CLIENT).is_ok());
 }
