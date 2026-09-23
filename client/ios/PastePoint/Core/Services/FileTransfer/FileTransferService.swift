@@ -559,6 +559,12 @@ extension FileTransferService {
       resolvedPreview = await PreviewGenerator.make(forFileAt: stagedFile.url)
     }
 
+    // The peer may have declined, or we cancelled, while the hash and preview were made.
+    guard activeUploads.contains(where: { $0.id == fileId && $0.targetUser == targetUser }) else {
+      log.info("offer \(fileId) was withdrawn before its hash went out")
+      return
+    }
+
     let enriched = FileOfferPayload(
       fileId: fileId,
       fileName: stagedFile.name,
