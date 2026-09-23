@@ -94,3 +94,7 @@ jobs:
       - name: Production Build
         working-directory: client/web
         run: npm run build -- --configuration=production
+
+      - name: Content Security Policy
+        working-directory: client/web
+        run: npm run csp:check
