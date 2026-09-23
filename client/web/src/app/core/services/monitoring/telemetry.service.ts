@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import * as Sentry from '@sentry/angular';
-import { startNewTrace } from '@sentry/core';
 
 export type TelemetrySpan = Sentry.Span;
 export type TelemetryAttributes = Record<string, string | number | boolean>;
@@ -21,7 +20,7 @@ export class TelemetryService {
    */
   public startSpan(op: string, attributes?: TelemetryAttributes, name = op): TelemetrySpan {
     let span!: TelemetrySpan;
-    startNewTrace(() => {
+    Sentry.startNewTrace(() => {
       span = Sentry.startInactiveSpan({ name, op, attributes });
     });
     return span;
@@ -29,7 +28,7 @@ export class TelemetryService {
 
   /** Runs `work` inside a span in its own trace; the span ends when it settles. */
   public withSpan<T>(op: string, work: (span: TelemetrySpan) => Promise<T>): Promise<T> {
-    return startNewTrace(() => Sentry.startSpan({ name: op, op }, (span) => work(span)));
+    return Sentry.startNewTrace(() => Sentry.startSpan({ name: op, op }, (span) => work(span)));
   }
 
   public setAttributes(span: TelemetrySpan | undefined, attributes: TelemetryAttributes): void {
