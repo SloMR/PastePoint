@@ -35,7 +35,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
   fi
 
 # Stage 2: Create a minimal runtime image
-FROM alpine:3.21
+FROM alpine:3.24
 
 WORKDIR /usr/local/bin
 
