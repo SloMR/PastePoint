@@ -3,7 +3,12 @@ import { BehaviorSubject } from 'rxjs';
 import { TelemetryService } from '../monitoring/telemetry.service';
 import { WebRTCService } from './webrtc.service';
 import { UserService } from '../user-management/user.service';
-import { ChatMessage, ChatMessageType, DATA_CHANNEL_MESSAGE_TYPES } from '../../../utils/constants';
+import {
+  ChatMessage,
+  ChatMessageType,
+  DATA_CHANNEL_MESSAGE_TYPES,
+  MAX_CHAT_MESSAGES,
+} from '../../../utils/constants';
 import { IChatService } from '../../interfaces/chat.interface';
 import { WebSocketConnectionService } from './websocket-connection.service';
 import { NGXLogger } from 'ngx-logger';
@@ -123,6 +128,7 @@ export class ChatService implements IChatService {
 
       this.ngZone.run(() => {
         this.messages.push(chatMsg);
+        this.dropOldestMessages();
         this.messages$.next(this.messages);
       });
       this.logger.info('addMessageToLocal', 'Message added to local chat');
@@ -146,6 +152,7 @@ export class ChatService implements IChatService {
   public replaceMessages(messages: ChatMessage[]): void {
     this.ngZone.run(() => {
       this.messages = messages;
+      this.dropOldestMessages();
       this.messages$.next(this.messages);
     });
   }
@@ -171,8 +178,16 @@ export class ChatService implements IChatService {
     this.telemetry.event('chat.message_received');
     this.ngZone.run(() => {
       this.messages.push(incoming);
+      this.dropOldestMessages();
       this.messages$.next(this.messages);
     });
+  }
+
+  private dropOldestMessages(): void {
+    const excess = this.messages.length - MAX_CHAT_MESSAGES;
+    if (excess > 0) {
+      this.messages.splice(0, excess);
+    }
   }
 
   private handleSystemMessage(message: string): void {
