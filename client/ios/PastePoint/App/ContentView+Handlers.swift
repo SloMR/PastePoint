@@ -8,6 +8,8 @@ import SwiftUI
 // MARK: - Handlers
 
 extension ContentView {
+  static let maxChatMessages = 500
+
   func handleSend(_ text: String) -> Bool {
     let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
     guard !trimmed.isEmpty else { return false }
@@ -37,8 +39,15 @@ extension ContentView {
     }
 
     telemetry.event("chat.message_sent", attributes: ["recipients": services.peerDirectory.peers.count])
-    messages.append(message)
+    appendMessage(message)
     return true
+  }
+
+  func appendMessage(_ message: ChatMessage) {
+    messages.append(message)
+    if messages.count > Self.maxChatMessages {
+      messages.removeFirst(messages.count - Self.maxChatMessages)
+    }
   }
 
   func handleSendFiles(_ files: [StagedFile]) -> Bool {

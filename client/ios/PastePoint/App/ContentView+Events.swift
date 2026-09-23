@@ -48,13 +48,13 @@ private struct ChatEventHandlers: ViewModifier {
         log.debug("Signal: \(sig.payload.typeString) | from: \(sig.from) → to: \(sig.to)")
       }
       .onReceive(owner.services.signalingService.chatMessages) { message in
-        owner.messages.append(message)
+        owner.appendMessage(message)
       }
       .onReceive(owner.services.fileTransferService.attachmentMessages) { message in
-        owner.messages.append(message)
+        owner.appendMessage(message)
       }
       .onReceive(owner.services.fileTransferService.outgoingAttachment) { message in
-        owner.messages.append(message)
+        owner.appendMessage(message)
       }
   }
 
