@@ -60,7 +60,7 @@ async fn test_private_ws_upgrade() {
         ServerConfig::load(Some(false)).expect("Failed to load server configuration"),
     );
 
-    let code = "TESTCODE123";
+    let code = "TestCde234";
     session_manager
         .get_or_create_session_uuid(code, false, true)
         .expect("Failed to create session UUID in non-strict mode first");
@@ -78,7 +78,7 @@ async fn test_private_ws_upgrade() {
     .await;
 
     let req = test::TestRequest::get()
-        .uri("/ws/TESTCODE123")
+        .uri("/ws/TestCde234")
         .insert_header(("Upgrade", "websocket"))
         .insert_header(("Connection", "Upgrade"))
         .insert_header(("Sec-WebSocket-Version", "13"))
@@ -108,6 +108,38 @@ async fn test_private_ws_unknown_code() {
 
     let req = test::TestRequest::get()
         .uri("/ws/unknown_code")
+        .insert_header(("Upgrade", "websocket"))
+        .insert_header(("Connection", "Upgrade"))
+        .insert_header(("Sec-WebSocket-Version", "13"))
+        .insert_header(("Sec-WebSocket-Key", "test_key"))
+        .peer_addr("127.0.0.1:12345".parse().unwrap())
+        .to_request();
+
+    let resp = test::call_service(&app, req).await;
+
+    assert_eq!(resp.status(), StatusCode::NOT_FOUND);
+}
+
+#[actix_rt::test]
+async fn test_private_ws_rejects_public_session_key() {
+    let session_manager = web::Data::new(SessionStore::default());
+    let config = web::Data::new(
+        ServerConfig::load(Some(false)).expect("Failed to load server configuration"),
+    );
+    session_manager
+        .get_or_create_session_uuid("backend_ws:127.0.0.1", false, false)
+        .expect("Failed to create public session");
+
+    let app = test::init_service(
+        App::new()
+            .app_data(session_manager.clone())
+            .app_data(config.clone())
+            .service(private_chat_ws),
+    )
+    .await;
+
+    let req = test::TestRequest::get()
+        .uri("/ws/backend_ws:127.0.0.1")
         .insert_header(("Upgrade", "websocket"))
         .insert_header(("Connection", "Upgrade"))
         .insert_header(("Sec-WebSocket-Version", "13"))

@@ -1,8 +1,8 @@
 #![allow(unreachable_pub)]
 
 use crate::{
-    CONTENT_TYPE_TEXT_PLAIN, ClientVersionConfig, MIN_USER_AGENT_LENGTH, ServerConfig, ServerError,
-    SessionStore, TurnConfig,
+    CONTENT_TYPE_TEXT_PLAIN, ClientVersionConfig, MIN_USER_AGENT_LENGTH, SAFE_CHARSET,
+    SESSION_CODE_LENGTH, ServerConfig, ServerError, SessionStore, TurnConfig,
 };
 use actix_web::{Error, HttpRequest, HttpResponse, Responder, get, http::header, web};
 use base64::{Engine, engine::general_purpose::STANDARD};
@@ -145,11 +145,9 @@ pub async fn private_chat_ws(
 
     let code = path.into_inner();
     log::debug!(target: "Websocket", "Received session code: {code}");
-    if code.trim().is_empty() {
-        log::debug!(target: "Websocket", "Empty code => returning 400");
-        return Err(ServerError::BadRequest(
-            "Session code cannot be empty".to_string(),
-        ));
+    if !is_valid_private_code(&code) {
+        log::warn!(target: "Websocket", "Rejected private join: malformed session code");
+        return Ok(SessionStore::unknown_session_response());
     }
 
     store
@@ -218,6 +216,11 @@ fn check_suspicious_connection(req: &HttpRequest, ip_str: &str) -> bool {
         return true;
     }
     false
+}
+
+/// True for exactly the codes `/create-session` can issue.
+fn is_valid_private_code(code: &str) -> bool {
+    code.len() == SESSION_CODE_LENGTH && code.bytes().all(|byte| SAFE_CHARSET.contains(&byte))
 }
 
 // Helper function to validate WebSocket connection headers

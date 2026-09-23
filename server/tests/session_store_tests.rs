@@ -2,6 +2,31 @@ use server::SessionStore;
 use std::{thread, time::Duration};
 
 #[test]
+fn public_key_cannot_join_through_the_private_route() {
+    let store = SessionStore::default();
+    let public = store
+        .get_or_create_session_uuid("backend_ws:203.0.113.7", false, false)
+        .expect("public session");
+
+    assert_eq!(
+        store.get_or_create_session_uuid("backend_ws:203.0.113.7", true, true),
+        None
+    );
+    assert_eq!(
+        store.get_or_create_session_uuid("backend_ws:203.0.113.7", true, false),
+        Some(public)
+    );
+}
+
+#[test]
+fn private_code_cannot_join_through_the_public_route() {
+    let store = SessionStore::default();
+    let code = store.create_private_session().expect("private session");
+
+    assert_eq!(store.get_or_create_session_uuid(&code, false, false), None);
+}
+
+#[test]
 fn unjoined_private_code_expires() {
     let store = SessionStore::with_expiration(Duration::from_millis(20));
     let code = store.create_private_session().expect("private session");

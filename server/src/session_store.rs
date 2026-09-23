@@ -108,6 +108,7 @@ impl SessionStore {
     /// Looks up (or creates) a session UUID for the given key.
     /// The caller must indicate whether this is a private session.
     /// - If the session exists, its client count is incremented and its UUID returned.
+    /// - If it exists with the other visibility, None is returned.
     /// - If not found and strict_mode is false, a new session is auto‑created.
     /// - If strict_mode is true, None is returned (resulting in a 404).
     pub fn get_or_create_session_uuid(
@@ -120,6 +121,10 @@ impl SessionStore {
         Self::prune_expired(&mut registry);
 
         if let Some(data) = registry.key_to_session.get(key).copied() {
+            if data.is_private != is_private {
+                log::warn!(target: "Websocket", "Rejected join: session type mismatch");
+                return None;
+            }
             if is_private {
                 registry.private_expirations.remove(key);
             }
