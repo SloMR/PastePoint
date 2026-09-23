@@ -297,7 +297,7 @@ impl WsChatSession {
 
         // 2. Parse and validate the message
         let payload = msg.trim_start_matches(WS_PREFIX_SIGNAL_MESSAGE).trim();
-        let value = match serde_json::from_str::<Value>(payload) {
+        let mut value = match serde_json::from_str::<Value>(payload) {
             Ok(v) => v,
             Err(e) => {
                 log::warn!(target: "Websocket", "Invalid signal JSON: {e}");
@@ -310,9 +310,9 @@ impl WsChatSession {
         };
 
         // 3. Validate target user
-        let to_user = match value.get("to").and_then(|v| v.as_str()) {
-            Some(user) => user,
-            None => {
+        let to_user = match value.get("to").and_then(Value::as_str) {
+            Some(user) if !user.is_empty() => user.to_owned(),
+            _ => {
                 log::warn!(target: "Websocket", "Signal missing 'to' field");
                 Self::deliver(
                     tx,
@@ -323,17 +323,25 @@ impl WsChatSession {
         };
 
         // 4. Validate room membership and relay through the shared server.
-        let signal_type = match value.get("type").and_then(|v| v.as_str()) {
-            Some(t @ ("offer" | "answer" | "candidate" | "connection_request")) => t,
+        let signal_type = match value.get("type").and_then(Value::as_str) {
+            Some("offer") => "offer",
+            Some("answer") => "answer",
+            Some("candidate") => "candidate",
+            Some("connection_request") => "connection_request",
             Some(_) => "other",
             None => "unknown",
         };
 
+        // The sender is whoever owns this connection, never what the client claims.
+        if let Some(envelope) = value.as_object_mut() {
+            envelope.insert("from".to_owned(), Value::String(self.name.clone()));
+        }
+
         server.validate_and_relay_signal(
             &self.session_id,
             &self.name,
-            to_user,
-            payload,
+            &to_user,
+            &value.to_string(),
             signal_type,
         );
     }

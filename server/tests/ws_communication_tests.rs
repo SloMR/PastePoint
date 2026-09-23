@@ -148,3 +148,66 @@ async fn test_ws_name_arrives_before_room_join() {
 
     framed.close().await.unwrap();
 }
+
+/// Reads frames until the server announces this connection's name.
+async fn read_name<S>(framed: &mut S) -> String
+where
+    S: futures_util::Stream<Item = Result<Frame, awc::error::WsProtocolError>> + Unpin,
+{
+    loop {
+        let frame = timeout(Duration::from_secs(5), framed.next())
+            .await
+            .expect("No frame received");
+        if let Some(Ok(Frame::Text(text))) = frame {
+            let text_str = std::str::from_utf8(&text).unwrap();
+            if let Some(name) = text_str.strip_prefix("[SystemName] ") {
+                return name.to_owned();
+            }
+        }
+    }
+}
+
+#[actix_rt::test]
+async fn test_ws_signal_sender_is_the_connection_owner() {
+    let srv = init_test_server(true);
+    let url = srv.url("/ws");
+
+    let (_resp, mut alice) = Client::new().ws(&url).connect().await.expect("connect");
+    let alice_name = read_name(&mut alice).await;
+    let (_resp, mut bob) = Client::new().ws(&url).connect().await.expect("connect");
+    let bob_name = read_name(&mut bob).await;
+
+    let forged = serde_json::json!({
+        "type": "offer",
+        "from": "Someone Else",
+        "to": bob_name,
+        "data": { "type": "offer", "sdp": "v=0" },
+        "sequence": 7,
+    });
+    alice
+        .send(Message::Text(format!("[SignalMessage] {forged}").into()))
+        .await
+        .unwrap();
+
+    let relayed = timeout(Duration::from_secs(5), async {
+        while let Some(Ok(frame)) = bob.next().await {
+            if let Frame::Text(text) = frame {
+                let text_str = std::str::from_utf8(&text).unwrap();
+                if let Some(json) = text_str.strip_prefix("[SignalMessage] ") {
+                    return serde_json::from_str::<serde_json::Value>(json).unwrap();
+                }
+            }
+        }
+        panic!("Connection closed before the signal arrived");
+    })
+    .await
+    .expect("Signal was not relayed");
+
+    assert_eq!(relayed["from"], alice_name.as_str());
+    assert_eq!(relayed["to"], bob_name.as_str());
+    assert_eq!(relayed["sequence"], 7);
+    assert_eq!(relayed["data"]["sdp"], "v=0");
+
+    alice.close().await.unwrap();
+    bob.close().await.unwrap();
+}
