@@ -1,5 +1,5 @@
 /** Number of peer avatars bundled as `bottts-00.svg` … `bottts-(N-1).svg`. */
-export const AVATAR_COUNT = 24;
+const AVATAR_COUNT = 24;
 
 const AVATAR_BASE = '/icons/avatars';
 export const SELF_AVATAR = `${AVATAR_BASE}/bottts-self.svg`;

@@ -3,7 +3,7 @@ const CHUNK_LOAD_ERROR =
 
 let reloadTriggered = false;
 
-export function isChunkLoadError(error: unknown): boolean {
+function isChunkLoadError(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error);
   return CHUNK_LOAD_ERROR.test(message);
 }
