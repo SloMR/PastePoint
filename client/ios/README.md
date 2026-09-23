@@ -5,7 +5,7 @@ The PastePoint iOS client is a native SwiftUI application for peer-to-peer file 
 [![Swift](https://img.shields.io/badge/Swift-6.0-orange)](https://swift.org/)
 [![iOS](https://img.shields.io/badge/iOS-17.6%2B-black)](https://developer.apple.com/ios/)
 [![Xcode](https://img.shields.io/badge/Xcode-26.6-blue)](https://developer.apple.com/xcode/)
-[![WebRTC](https://img.shields.io/badge/WebRTC-147.0-green)](https://github.com/stasel/WebRTC)
+[![WebRTC](https://img.shields.io/badge/WebRTC-153.0-green)](https://github.com/stasel/WebRTC)
 
 ## Tech Stack
 

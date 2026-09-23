@@ -97,7 +97,7 @@ PastePoint is a secure, feature-rich file-sharing service designed for local net
 
 [![Swift](https://img.shields.io/badge/Swift-6.0-orange)](https://swift.org/)
 [![iOS](https://img.shields.io/badge/iOS-17.6%2B-black)](https://developer.apple.com/ios/)
-[![WebRTC](https://img.shields.io/badge/WebRTC-147.0-green)](https://github.com/stasel/WebRTC)
+[![WebRTC](https://img.shields.io/badge/WebRTC-153.0-green)](https://github.com/stasel/WebRTC)
 
 - **UI**: Native SwiftUI for iPhone and iPad
 - **Concurrency**: Swift 6 strict concurrency
