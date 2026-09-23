@@ -127,7 +127,7 @@ async fn test_private_ws_rejects_public_session_key() {
         ServerConfig::load(Some(false)).expect("Failed to load server configuration"),
     );
     session_manager
-        .get_or_create_session_uuid("backend_ws:127.0.0.1", false, false)
+        .get_or_create_session_uuid("127.0.0.1", false, false)
         .expect("Failed to create public session");
 
     let app = test::init_service(
@@ -139,7 +139,7 @@ async fn test_private_ws_rejects_public_session_key() {
     .await;
 
     let req = test::TestRequest::get()
-        .uri("/ws/backend_ws:127.0.0.1")
+        .uri("/ws/127.0.0.1")
         .insert_header(("Upgrade", "websocket"))
         .insert_header(("Connection", "Upgrade"))
         .insert_header(("Sec-WebSocket-Version", "13"))

@@ -32,7 +32,7 @@ struct PrivateExpiration {
 /// Session keys, client counts and expiry deadlines, changed together under one lock.
 #[derive(Default)]
 struct SessionRegistry {
-    /// Maps a key (host and IP for public, generated code for private sessions)
+    /// Maps a key (client IP for public, generated code for private sessions)
     /// to its session data.
     key_to_session: HashMap<String, SessionData>,
     /// How many WebSocket clients reference each UUID.

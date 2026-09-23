@@ -121,11 +121,9 @@ pub async fn chat_ws(
         return Err(ServerError::Forbidden);
     }
 
-    let session_key = create_session_key(&req, &ip_str);
-
-    log::debug!(target: "Websocket", "Connection request - IP: {ip_str}, Session Key: {session_key}");
+    log::debug!(target: "Websocket", "Connection request - IP: {ip_str}");
     store
-        .start_websocket(config.get_ref(), &req, stream, &session_key, false, false)
+        .start_websocket(config.get_ref(), &req, stream, &ip_str, false, false)
         .map_err(|e| ServerError::BadRequest(format!("WebSocket connection failed: {e}")))
 }
 
@@ -188,17 +186,6 @@ fn get_client_ip(req: &HttpRequest, is_dev_mode: bool) -> Result<String, Error> 
                 actix_web::error::ErrorBadRequest("Client IP could not be determined")
             })
     }
-}
-
-// Helper function to create a session key
-fn create_session_key(req: &HttpRequest, ip_str: &str) -> String {
-    let host = req
-        .headers()
-        .get("Host")
-        .and_then(|h| h.to_str().ok())
-        .unwrap_or("unknown_host");
-
-    format!("{host}:{ip_str}")
 }
 
 // Helper function to check for suspicious connections

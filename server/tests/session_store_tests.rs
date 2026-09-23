@@ -5,15 +5,15 @@ use std::{thread, time::Duration};
 fn public_key_cannot_join_through_the_private_route() {
     let store = SessionStore::default();
     let public = store
-        .get_or_create_session_uuid("backend_ws:203.0.113.7", false, false)
+        .get_or_create_session_uuid("203.0.113.7", false, false)
         .expect("public session");
 
     assert_eq!(
-        store.get_or_create_session_uuid("backend_ws:203.0.113.7", true, true),
+        store.get_or_create_session_uuid("203.0.113.7", true, true),
         None
     );
     assert_eq!(
-        store.get_or_create_session_uuid("backend_ws:203.0.113.7", true, false),
+        store.get_or_create_session_uuid("203.0.113.7", true, false),
         Some(public)
     );
 }
@@ -77,7 +77,7 @@ fn concurrent_joins_and_leaves_keep_counts_consistent() {
         .map(|worker| {
             let store = store.clone();
             thread::spawn(move || {
-                let key = format!("backend_ws:198.51.100.{}", worker % 2);
+                let key = format!("198.51.100.{}", worker % 2);
                 for _ in 0..500 {
                     let uuid = store
                         .get_or_create_session_uuid(&key, false, false)
@@ -91,7 +91,7 @@ fn concurrent_joins_and_leaves_keep_counts_consistent() {
         worker.join().expect("worker");
     }
 
-    for key in ["backend_ws:198.51.100.0", "backend_ws:198.51.100.1"] {
+    for key in ["198.51.100.0", "198.51.100.1"] {
         assert_eq!(
             store.get_or_create_session_uuid(key, true, false),
             None,
