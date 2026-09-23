@@ -1,4 +1,11 @@
-import { Component, ChangeDetectorRef, PLATFORM_ID, OnInit, inject } from '@angular/core';
+import {
+  Component,
+  ChangeDetectorRef,
+  PLATFORM_ID,
+  OnInit,
+  inject,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
@@ -18,6 +25,7 @@ import { THEME_PREFERENCE_KEY } from '../../utils/constants';
   selector: 'app-privacy-and-terms',
   imports: [CommonModule, RouterLink, TranslateModule, PageHeaderComponent, PageFooterComponent],
   templateUrl: './privacy-and-terms.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './privacy-and-terms.component.css',
 })
 export class PrivacyAndTermsComponent implements OnInit {

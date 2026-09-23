@@ -10,7 +10,7 @@
 
 # PastePoint
 
-PastePoint is a secure, feature-rich file-sharing service designed for local networks. It enables users to share files and communicate efficiently through peer-to-peer WebRTC connections. It combines a Rust signaling server, an Angular 21 web client with SSR, and a native SwiftUI iOS client.
+PastePoint is a secure, feature-rich file-sharing service designed for local networks. It enables users to share files and communicate efficiently through peer-to-peer WebRTC connections. It combines a Rust signaling server, an Angular 22 web client with SSR, and a native SwiftUI iOS client.
 
 ## Usage Disclaimer
 
@@ -80,7 +80,7 @@ PastePoint is a secure, feature-rich file-sharing service designed for local net
 
 #### Web (Angular)
 
-[![Angular](https://img.shields.io/badge/Angular-21-red)](https://angular.io/)
+[![Angular](https://img.shields.io/badge/Angular-22-red)](https://angular.io/)
 [![Tailwind](https://img.shields.io/badge/Tailwind-3.4-blue)](https://tailwindcss.com/)
 [![Flowbite](https://img.shields.io/badge/Flowbite-3.1-cyan)](https://flowbite.com/)
 

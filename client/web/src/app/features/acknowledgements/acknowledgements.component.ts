@@ -1,4 +1,11 @@
-import { Component, ChangeDetectorRef, PLATFORM_ID, OnInit, inject } from '@angular/core';
+import {
+  Component,
+  ChangeDetectorRef,
+  PLATFORM_ID,
+  OnInit,
+  inject,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -25,6 +32,7 @@ export interface Acknowledgement {
   selector: 'app-acknowledgements',
   imports: [CommonModule, RouterLink, TranslateModule, PageHeaderComponent, PageFooterComponent],
   templateUrl: './acknowledgements.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './acknowledgements.component.css',
 })
 export class AcknowledgementsComponent implements OnInit {

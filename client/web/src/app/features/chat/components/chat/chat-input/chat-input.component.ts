@@ -9,6 +9,7 @@ import {
   PLATFORM_ID,
   ViewChild,
   inject,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
@@ -33,6 +34,7 @@ export interface StagedAttachment {
   imports: [CommonModule, FormsModule, TranslateModule, FileSizePipe],
   templateUrl: './chat-input.component.html',
   styleUrl: './chat-input.component.css',
+  changeDetection: ChangeDetectionStrategy.Eager,
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class ChatInputComponent implements OnDestroy {

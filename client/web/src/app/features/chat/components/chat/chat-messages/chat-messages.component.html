@@ -378,8 +378,12 @@
                                       'FILE_SEND_PARTIAL'
                                         | translate
                                           : {
-                                              delivered: message.fileTransfer?.deliveredCount,
-                                              total: message.fileTransfer?.recipientCount,
+                                              delivered: $safeNavigationMigration(
+                                                message.fileTransfer?.deliveredCount
+                                              ),
+                                              total: $safeNavigationMigration(
+                                                message.fileTransfer?.recipientCount
+                                              ),
                                             }
                                     }}
                                   }

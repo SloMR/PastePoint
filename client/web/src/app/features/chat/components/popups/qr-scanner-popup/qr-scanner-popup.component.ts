@@ -11,6 +11,7 @@ import {
   SimpleChanges,
   ViewChild,
   inject,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
@@ -24,6 +25,7 @@ type JsQrFn = typeof import('jsqr').default;
   selector: 'app-qr-scanner-popup',
   imports: [CommonModule, TranslateModule],
   templateUrl: './qr-scanner-popup.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './qr-scanner-popup.component.css',
 })
 export class QrScannerPopupComponent implements OnChanges, OnDestroy {

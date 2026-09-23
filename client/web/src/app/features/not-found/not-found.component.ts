@@ -1,4 +1,11 @@
-import { Component, ChangeDetectorRef, PLATFORM_ID, OnInit, inject } from '@angular/core';
+import {
+  Component,
+  ChangeDetectorRef,
+  PLATFORM_ID,
+  OnInit,
+  inject,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
@@ -18,6 +25,7 @@ import { THEME_PREFERENCE_KEY } from '../../utils/constants';
   imports: [CommonModule, RouterLink, TranslateModule, PageHeaderComponent, PageFooterComponent],
   selector: 'app-not-found',
   templateUrl: './not-found.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './not-found.component.css',
 })
 export class NotFoundComponent implements OnInit {

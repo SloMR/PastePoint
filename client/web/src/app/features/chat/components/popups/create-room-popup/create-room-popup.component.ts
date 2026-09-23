@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
@@ -7,6 +7,7 @@ import { TranslateModule } from '@ngx-translate/core';
   selector: 'app-create-room-popup',
   imports: [CommonModule, FormsModule, TranslateModule],
   templateUrl: './create-room-popup.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './create-room-popup.component.css',
 })
 export class CreateRoomPopupComponent {

@@ -2,7 +2,7 @@
 
 The PastePoint client is a modern Angular application with Server-Side Rendering (SSR) support, providing an intuitive interface for file sharing and communication on local networks. Features WebRTC file transfer capabilities, real-time chat, and comprehensive user experience enhancements.
 
-[![Angular](https://img.shields.io/badge/Angular-21-red)](https://angular.io/)
+[![Angular](https://img.shields.io/badge/Angular-22-red)](https://angular.io/)
 [![Tailwind](https://img.shields.io/badge/Tailwind-3.4-blue)](https://tailwindcss.com/)
 [![Flowbite](https://img.shields.io/badge/Flowbite-3.1-cyan)](https://flowbite.com/)
 

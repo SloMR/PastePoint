@@ -7,6 +7,7 @@ import {
   SecurityContext,
   ViewChild,
   inject,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { DomSanitizer } from '@angular/platform-browser';
@@ -32,6 +33,7 @@ import { BlurredPreviewComponent } from '../blurred-preview/blurred-preview.comp
   ],
   providers: [FileSizePipe],
   templateUrl: './chat-messages.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './chat-messages.component.css',
 })
 export class ChatMessagesComponent {

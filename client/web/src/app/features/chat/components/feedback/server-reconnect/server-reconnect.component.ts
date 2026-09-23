@@ -1,4 +1,11 @@
-import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import {
+  Component,
+  OnDestroy,
+  OnInit,
+  inject,
+  signal,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
@@ -8,6 +15,7 @@ import { WebSocketConnectionService } from '../../../../../core/services/communi
   selector: 'app-server-reconnect',
   imports: [CommonModule, TranslateModule],
   templateUrl: './server-reconnect.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './server-reconnect.component.css',
 })
 export class ServerReconnectComponent implements OnInit, OnDestroy {
