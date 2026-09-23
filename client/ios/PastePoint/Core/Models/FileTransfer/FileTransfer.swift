@@ -108,6 +108,7 @@ struct FileDownload: Identifiable, Sendable {
   var progress: Double
   var expectedHash: String?
   var previewDataUrl: String?
+  var isFinalizing = false
 }
 
 extension FileDownload {

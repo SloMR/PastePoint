@@ -32,7 +32,7 @@ extension FileTransferService {
   private func sweepStalledDownloads() {
     let now = Date()
     let stalled = activeDownloads.filter {
-      now.timeIntervalSince($0.lastActivityAt) > downloadStallTimeout
+      !$0.isFinalizing && now.timeIntervalSince($0.lastActivityAt) > downloadStallTimeout
     }
     for download in stalled {
       log.warning("download \(download.id) stalled (\(downloadStallTimeout)s no chunk) — failing")

@@ -764,6 +764,7 @@ extension FileTransferService {
       let download = activeDownloads[i]
 
       log.info("all \(total) chunks received for \(download.id)")
+      activeDownloads[i].isFinalizing = true
       finalizeDownload(download, from: peer)
     }
   }
