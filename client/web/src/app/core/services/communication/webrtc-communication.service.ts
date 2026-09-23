@@ -8,6 +8,7 @@ import {
   MAX_BUFFERED_AMOUNT,
   MAX_QUEUED_MESSAGES,
   ChatMessage,
+  ChatMessageType,
   DataChannelMessage,
 } from '../../../utils/constants';
 import { NGXLogger } from 'ngx-logger';
@@ -369,9 +370,12 @@ export class WebRTCCommunicationService {
         }
         switch (message.type) {
           case DATA_CHANNEL_MESSAGE_TYPES.CHAT: {
-            let chatMsg = message.payload as ChatMessage;
-            chatMsg.timestamp = new Date(chatMsg.timestamp);
-            this.chatMessages$.next(chatMsg);
+            const chatMsg = this.parseChatMessage(message.payload, targetUser);
+            if (chatMsg) {
+              this.chatMessages$.next(chatMsg);
+            } else {
+              this.logger.warn('handleDataChannelMessage', 'Dropping malformed chat message');
+            }
             break;
           }
           case FILE_TRANSFER_MESSAGE_TYPES.FILE_OFFER: {
@@ -499,6 +503,24 @@ export class WebRTCCommunicationService {
   }
 
   // =============== Helper Methods ===============
+
+  /** Builds a text message credited to the channel's peer, ignoring what the payload claims. */
+  private parseChatMessage(payload: unknown, targetUser: string): ChatMessage | null {
+    if (typeof payload !== 'object' || payload === null) return null;
+    const { text, timestamp } = payload as { text?: unknown; timestamp?: unknown };
+    if (typeof text !== 'string' || !text.trim()) return null;
+
+    const sentAt =
+      typeof timestamp === 'string' || typeof timestamp === 'number'
+        ? new Date(timestamp)
+        : new Date(Number.NaN);
+    return {
+      from: targetUser,
+      text,
+      type: ChatMessageType.TEXT,
+      timestamp: Number.isNaN(sentAt.getTime()) ? new Date() : sentAt,
+    };
+  }
 
   /**
    * Ensures a message queue exists for the target user
