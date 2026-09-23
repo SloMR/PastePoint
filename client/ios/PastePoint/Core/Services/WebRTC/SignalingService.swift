@@ -46,6 +46,7 @@ final class SignalingService: NSObject, ObservableObject {
   private static let baseReconnectDelay: TimeInterval = 2.0 // Seconds
   private static let maxReconnectDelay: TimeInterval = 10.0 // Seconds
   private static let maxPendingMessages = 64
+  private static let maxQueuedCandidates = 128
   static let connectSpanAbandonAfter: TimeInterval = 120.0 // Seconds
 
   var peerConnections: [String: RTCPeerConnection] = [:]
@@ -413,6 +414,10 @@ extension SignalingService {
     let candidate = RTCIceCandidate(sdp: sdpString, sdpMLineIndex: sdpMLineIndex, sdpMid: sdpMid)
 
     guard let pc = peerConnections[message.from], pc.remoteDescription != nil else {
+      guard candidateQueues[message.from, default: []].count < Self.maxQueuedCandidates else {
+        log.warning("dropping ICE candidate: queue is full")
+        return
+      }
       candidateQueues[message.from, default: []].append(candidate)
       log.debug("queued candidate for \(message.from) (queue size: \(candidateQueues[message.from]?.count ?? 0))")
       return
