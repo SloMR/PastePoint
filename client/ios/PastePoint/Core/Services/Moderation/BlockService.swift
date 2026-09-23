@@ -29,11 +29,6 @@ final class BlockService: ObservableObject {
     blockedPeers.insert(peer)
   }
 
-  func unblock(_ peer: String) {
-    log.info("unblocking peer")
-    blockedPeers.remove(peer)
-  }
-
   func isBlocked(_ peer: String) -> Bool {
     blockedPeers.contains(peer)
   }

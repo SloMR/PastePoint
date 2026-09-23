@@ -230,30 +230,6 @@ final class SignalingService: NSObject, ObservableObject {
     return false
   }
 
-  func send(_ text: String, to peer: String) {
-    guard let channel = dataChannels[peer] else {
-      log.warning("no data channel for this peer")
-      return
-    }
-
-    guard channel.readyState == .open else {
-      log.warning("channel not open (state: \(channel.readyState.rawValue))")
-      return
-    }
-
-    let buffer = RTCDataBuffer(data: Data(text.utf8), isBinary: false)
-    channel.sendData(buffer)
-    log.info("sent frame")
-  }
-
-  func isReadyToSend(to peer: String) -> Bool {
-    guard let channel = dataChannels[peer], channel.readyState == .open else {
-      return false
-    }
-
-    return channel.bufferedAmount < WebRTCConfig.maxBufferedAmount
-  }
-
   // MARK: - Mesh Sync
 
   private func syncMesh(peers: [String]) {
