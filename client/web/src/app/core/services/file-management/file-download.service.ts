@@ -601,14 +601,13 @@ export class FileDownloadService extends FileTransferBaseService {
       `File upload from ${fromUser} (fileId=${fileId}) was cancelled`
     );
 
-    this.finishReceiveSpan(fromUser, fileId, 'cancelled', { cancelled_by: 'sender' });
-
     const userMap = await this.getIncomingFileTransfers(fromUser);
-    if (userMap) {
-      userMap.delete(fileId);
-      if (userMap.size === 0) {
-        await this.deleteIncomingFileTransfers(fromUser);
-      }
+    if (!userMap?.has(fileId)) return;
+
+    this.finishReceiveSpan(fromUser, fileId, 'cancelled', { cancelled_by: 'sender' });
+    userMap.delete(fileId);
+    if (userMap.size === 0) {
+      await this.deleteIncomingFileTransfers(fromUser);
     }
 
     await this.updateIncomingFileOffers();
