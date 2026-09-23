@@ -105,6 +105,7 @@ export class FileOfferService extends FileTransferBaseService {
       this.logger.error('acceptFileOffer', `No file with id=${fileId} from ${fromUser} to accept`);
       return;
     }
+    if (fileDownload.isAccepted) return;
 
     fileDownload.isAccepted = true;
     fileDownload.lastActivity = Date.now();
