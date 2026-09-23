@@ -42,6 +42,7 @@ export class WebSocketConnectionService implements OnDestroy {
   private manualDisconnect = false;
   private isConnecting = false;
   private isDisconnectedForUpdate = false;
+  private disconnectedForPageCache = false;
 
   // For bfcache support
   private pageHideListener: (() => void) | undefined;
@@ -125,13 +126,15 @@ export class WebSocketConnectionService implements OnDestroy {
         this.sessionCode = this.sessionCode ?? this.getSessionCodeFromUrl();
         // Temporary disconnect without clearing session code
         this.temporaryDisconnect();
+        this.disconnectedForPageCache = true;
       }
     };
 
     // Handle page show event (page restored from bfcache)
     this.pageShowListener = () => {
       // Check if page was restored from bfcache
-      if (this.sessionCode && !this.isConnected() && !this.isConnecting) {
+      if (this.disconnectedForPageCache && !this.isConnected() && !this.isConnecting) {
+        this.disconnectedForPageCache = false;
         this.logger.info('pageShow', 'Page restored from bfcache, reconnecting WebSocket');
         this.connect(this.sessionCode).catch((err: unknown) => {
           this.logger.error('pageShow', `Failed to reconnect after bfcache: ${err}`);
