@@ -947,7 +947,7 @@ extension SignalingService: RTCDataChannelDelegate {
     switch decoded {
     case .chat(let msg):
       telemetry.event("chat.message_received")
-      chatMessages.send(msg)
+      chatMessages.send(ChatMessage(from: peer, text: msg.text, timestamp: msg.timestamp))
     case .fileOffer(let payload): fileEvent.send(.offer(payload, from: peer))
     case .fileAccept(let payload): fileEvent.send(.accept(payload, from: peer))
     case .fileDecline(let payload): fileEvent.send(.decline(payload, from: peer))
