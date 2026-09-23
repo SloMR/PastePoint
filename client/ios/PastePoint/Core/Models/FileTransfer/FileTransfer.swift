@@ -92,7 +92,6 @@ struct FileUpload: Identifiable, Sendable {
   let displayName: String
   let fileSize: Int64
   let targetUser: String
-  var currentOffset: Int64
   var progress: Double
   var phase: Phase
 }
@@ -107,11 +106,8 @@ struct FileDownload: Identifiable, Sendable {
   var receivedChunkURLs: [Int: URL]
   var lastActivityAt: Date
   var progress: Double
-  var isAccepted: Bool
   var expectedHash: String?
-  var fileURL: URL?
   var previewDataUrl: String?
-  var previewMime: String?
 }
 
 // MARK: Soruce Kind

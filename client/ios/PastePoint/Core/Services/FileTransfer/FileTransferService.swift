@@ -120,7 +120,6 @@ final class FileTransferService: ObservableObject {
         displayName: stagedFile.name,
         fileSize: stagedFile.size,
         targetUser: targetUser,
-        currentOffset: 0,
         progress: 0,
         phase: .sending,
       ),
@@ -285,7 +284,6 @@ final class FileTransferService: ObservableObject {
     }
 
     var download = incomingFileOffers.remove(at: idx)
-    download.isAccepted = true
     download.lastActivityAt = Date()
     activeDownloads.append(download)
     startStallWatchdog()
@@ -501,7 +499,6 @@ extension FileTransferService {
     phase: FileUpload.Phase? = nil,
   ) {
     guard let idx = activeUploads.firstIndex(where: { $0.id == uploadId }) else { return }
-    activeUploads[idx].currentOffset = bytesSent
     activeUploads[idx].progress = min(1.0, Double(bytesSent) / Double(fileSize))
     if let phase { activeUploads[idx].phase = phase }
   }
@@ -601,7 +598,6 @@ extension FileTransferService {
         incomingFileOffers[i].previewDataUrl == nil
       {
         incomingFileOffers[i].previewDataUrl = preview
-        incomingFileOffers[i].previewMime = previewMime
 
         attachmentPreviewUpdated.send((fileId: payload.fileId, previewDataUrl: preview, previewMime: previewMime))
         log.info("merged preview into pending offer \(payload.fileId)")
@@ -621,7 +617,6 @@ extension FileTransferService {
         activeDownloads[i].previewDataUrl == nil
       {
         activeDownloads[i].previewDataUrl = preview
-        activeDownloads[i].previewMime = previewMime
 
         attachmentPreviewUpdated.send((fileId: payload.fileId, previewDataUrl: preview, previewMime: previewMime))
         log.info("merged preview into accepted download \(payload.fileId)")
@@ -639,10 +634,8 @@ extension FileTransferService {
       receivedChunkURLs: [:],
       lastActivityAt: Date(),
       progress: 0,
-      isAccepted: false,
       expectedHash: payload.fileHash,
       previewDataUrl: payload.previewDataUrl,
-      previewMime: payload.previewMime,
     )
     incomingFileOffers.append(download)
 
