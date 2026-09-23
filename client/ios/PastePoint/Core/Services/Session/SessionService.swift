@@ -13,6 +13,8 @@ struct CreateSessionResponse: Decodable {
 
 @MainActor
 final class SessionService: ObservableObject {
+  private static let sessionCodeCharacters = Set("ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789")
+
   private let wsService: WebSocketConnectionService
 
   init(wsService: WebSocketConnectionService) {
@@ -27,7 +29,7 @@ final class SessionService: ObservableObject {
 
   func getNewSessionCode() async throws -> String {
 #if DEBUG
-    if AppBuildInfo.isXcodePreview { return "PREVIEW1AB" }
+    if AppBuildInfo.isXcodePreview { return "Preview2AB" }
 #endif
 
     guard let url = URL(string: AppEnvironment.createSessionUrl) else {
@@ -82,10 +84,10 @@ final class SessionService: ObservableObject {
     return sessionCode(fromURL: trimmed)
   }
 
+  /// True for exactly the codes the server issues: 10 characters from its unambiguous set.
   static func isValidSessionCode(_ code: String) -> Bool {
     let trimmed = code.trimmingCharacters(in: .whitespacesAndNewlines)
-    guard trimmed.count == 10 else { return false }
-    return trimmed.allSatisfy { $0.isLetter || $0.isNumber }
+    return trimmed.count == 10 && trimmed.allSatisfy(sessionCodeCharacters.contains)
   }
 }
 
