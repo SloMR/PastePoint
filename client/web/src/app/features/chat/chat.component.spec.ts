@@ -1,7 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { TestImports, TestProviders } from '../../testing/test-helper';
 import { PLATFORM_ID } from '@angular/core';
-import { FlowbiteService } from '../../core/services/ui/flowbite.service';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 
@@ -13,12 +12,6 @@ describe('ChatComponent', () => {
         { provide: PLATFORM_ID, useValue: 'browser' },
         ...TestProviders,
         provideRouter([]),
-        {
-          provide: FlowbiteService,
-          useValue: {
-            loadFlowbite: jasmine.createSpy('loadFlowbite').and.callFake((cb) => cb({})),
-          },
-        },
         {
           provide: ActivatedRoute,
           useValue: {

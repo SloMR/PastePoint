@@ -29,7 +29,6 @@ import { WebRTCService } from '../../core/services/communication/webrtc.service'
 import { WebSocketConnectionService } from '../../core/services/communication/websocket-connection.service';
 import { UserService } from '../../core/services/user-management/user.service';
 import { FormsModule, NgForm } from '@angular/forms';
-import { FlowbiteService } from '../../core/services/ui/flowbite.service';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   ChatMessage,
@@ -121,7 +120,6 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   private cdr = inject(ChangeDetectorRef);
   private ngZone = inject(NgZone);
   private toaster = inject(HotToastService);
-  private flowbiteService = inject(FlowbiteService);
   private sessionService = inject(SessionService);
   private route = inject(ActivatedRoute);
   private logger = inject(NGXLogger);
@@ -267,11 +265,6 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     } else {
       this.logger.debug('ngOnInit', 'No migration needed');
     }
-
-    // Load Flowbite (if needed)
-    this.flowbiteService.loadFlowbite(() => {
-      this.logger.debug('ngOnInit', `Flowbite loaded`);
-    });
 
     this.subscriptions.push(
       this.wsConnectionService.reconnectState$.subscribe((state) => {

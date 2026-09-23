@@ -82,7 +82,6 @@ PastePoint is a secure, feature-rich file-sharing service designed for local net
 
 [![Angular](https://img.shields.io/badge/Angular-22-red)](https://angular.io/)
 [![Tailwind](https://img.shields.io/badge/Tailwind-4.3-blue)](https://tailwindcss.com/)
-[![Flowbite](https://img.shields.io/badge/Flowbite-3.1-cyan)](https://flowbite.com/)
 
 - **Rendering**: Server-Side Rendering with Angular SSR
 - **State Management**: RxJS observables

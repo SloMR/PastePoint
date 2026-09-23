@@ -4,7 +4,6 @@ The PastePoint client is a modern Angular application with Server-Side Rendering
 
 [![Angular](https://img.shields.io/badge/Angular-22-red)](https://angular.io/)
 [![Tailwind](https://img.shields.io/badge/Tailwind-4.3-blue)](https://tailwindcss.com/)
-[![Flowbite](https://img.shields.io/badge/Flowbite-3.1-cyan)](https://flowbite.com/)
 
 ## Tech Stack
 
@@ -15,7 +14,7 @@ The PastePoint client is a modern Angular application with Server-Side Rendering
 - **File Integrity**: `hash-wasm` for fast client-side file hashing
 - **QR Sharing**: `qrcode` for generation, `jsqr` for camera-based scanning
 - **I18n**: `@ngx-translate/core` (English, Arabic (RTL), Spanish, French, Russian, Simplified Chinese)
-- **Styling**: Tailwind CSS with class-based dark mode + Flowbite components
+- **Styling**: Tailwind CSS with class-based dark mode
 - **Notifications**: Hot-toast (`@ngxpert/hot-toast`) for real-time user feedback
 - **Error Tracking**: `@sentry/angular` with privacy-tight redaction (off by default in dev)
 
@@ -189,16 +188,6 @@ The Tailwind theme lives in `src/styles.css` (Tailwind 4 has no JS config) and p
 - **Dark mode**: Class-based dark mode switching
 - **Custom components**: Reusable component classes
 - **Responsive breakpoints**: Mobile-first design
-
-### Flowbite Integration
-
-Flowbite components are integrated for:
-
-- Navigation components
-- Form elements
-- Modal dialogs
-- Toast notifications
-- Loading indicators
 
 ## Internationalization (i18n)
 

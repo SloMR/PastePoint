@@ -1,9 +1,5 @@
 @import 'tailwindcss';
 
-@plugin 'flowbite/plugin';
-
-@source '../node_modules/flowbite/**/*.js';
-
 @custom-variant dark (&:is(.dark *));
 
 @theme {
@@ -114,15 +110,11 @@
   }
 }
 
-/* Flowbite's field styles use colors v3 never defined: placeholders inherited the text color and focus drew no ring */
+/* Placeholders keep the field's text color, as they did under v3 */
 @layer components {
   input::placeholder,
   textarea::placeholder {
     color: inherit;
-  }
-
-  :is([type='text'], textarea):focus {
-    box-shadow: none;
   }
 }
 
