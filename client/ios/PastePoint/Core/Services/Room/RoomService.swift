@@ -100,17 +100,13 @@ final class RoomService: ObservableObject {
       let list = rest.hasPrefix(prefix) ? String(rest.dropFirst(prefix.count)) : rest
       members = list.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
       log.debug("Members updated: \(members)")
-    } else if message.contains("[SystemJoin]") {
-      guard let range = message.range(of: "\\[SystemJoin]\\s*(\\S+)\\s*$", options: .regularExpression) else {
-        log.warning("failed to parse [SystemJoin] message")
-        return
-      }
-      let parts = String(message[range]).split(separator: " ")
-      guard let last = parts.last else {
+    } else if let marker = message.range(of: "[SystemJoin]") {
+      let room = message[marker.upperBound...].trimmingCharacters(in: .whitespacesAndNewlines)
+      guard !room.isEmpty else {
         log.warning("[SystemJoin] had no room name")
         return
       }
-      currentRoom = String(last)
+      currentRoom = room
       log.info("Joined room")
       clearPendingJoinSpan(outcome: .joined)
       Task { await self.listRooms() }
