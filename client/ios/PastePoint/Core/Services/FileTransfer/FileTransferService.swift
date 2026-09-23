@@ -23,12 +23,12 @@ final class FileTransferService: ObservableObject {
   let fileTransferCancelled = PassthroughSubject<String, Never>()
   let fileTransferFailed = PassthroughSubject<(fileId: String, reason: FileTransferFailureReason), Never>()
 
-  private let downloadStallTimeout: TimeInterval = 30
+  let downloadStallTimeout: TimeInterval = 30
   private var pendingChunkIndices: [String: Set<Int>] = [:]
   private var uploadTasks: [String: Task<Void, Never>] = [:]
   var uploadBatches: [String: UploadBatch] = [:]
   private var offerTasks: [String: Task<Void, Never>] = [:]
-  private var stallWatchdog: Task<Void, Never>?
+  var stallWatchdog: Task<Void, Never>?
   private var knownPeers: Set<String> = []
   private var cancellables: Set<AnyCancellable> = []
   private var fileHashTasks: [URL: Task<String?, Never>] = [:]
@@ -147,6 +147,7 @@ final class FileTransferService: ObservableObject {
   func sendStagedFile(_ stagedFile: StagedFile, to peers: [String]) async {
     guard stagedFile.size > 0 else {
       log.warning("skipping empty file")
+      stagedFile.kind.releaseSource(at: stagedFile.url)
       return
     }
 
@@ -178,17 +179,27 @@ final class FileTransferService: ObservableObject {
     )
 
     let hashTask = prewarmFileHash(forFileAt: stagedFile.url)
+    var offeredAny = false
     for peer in peers {
-      await prepareFileForSending(
+      let offered = await prepareFileForSending(
         stagedFile: stagedFile,
         targetUser: peer,
         batchId: batchId,
         hashTask: hashTask,
         preview: preview,
       )
+      if offered {
+        offeredAny = true
+      } else {
+        markBatchOutcome(batchId, success: false)
+      }
     }
     // All peers have consumed the shared hash; drop the cache entry.
     fileHashTasks[stagedFile.url] = nil
+    // No upload holds the file, so none will release it.
+    if !offeredAny {
+      stagedFile.kind.releaseSource(at: stagedFile.url)
+    }
   }
 
   /// Pre-computes a file's BLAKE3 hash so it's ready by send time.
@@ -371,9 +382,11 @@ extension FileTransferService {
     guard
       let idx = activeUploads.firstIndex(where: {
         $0.targetUser == peer && $0.id == payload.fileId
-      })
+      }),
+      uploadTasks[payload.fileId] == nil,
+      activeUploads[idx].phase != .finalizing
     else {
-      log.warning("file-accept ignored: no upload for \(payload.fileId)")
+      log.warning("file-accept ignored: no upload waiting for \(payload.fileId)")
       return
     }
 
@@ -546,6 +559,12 @@ extension FileTransferService {
       resolvedPreview = await PreviewGenerator.make(forFileAt: stagedFile.url)
     }
 
+    // The peer may have declined, or we cancelled, while the hash and preview were made.
+    guard activeUploads.contains(where: { $0.id == fileId && $0.targetUser == targetUser }) else {
+      log.info("offer \(fileId) was withdrawn before its hash went out")
+      return
+    }
+
     let enriched = FileOfferPayload(
       fileId: fileId,
       fileName: stagedFile.name,
@@ -624,9 +643,18 @@ extension FileTransferService {
       return
     }
 
+    if incomingFileOffers.count(where: { $0.fromUser == peer }) >= FileTransferValidation.maxPendingOffersPerPeer {
+      log.warning("declining: too many pending offers from one peer")
+      if let data = try? DataChannelMessage.encodeFileDecline(FileDeclinePayload(fileId: payload.fileId)) {
+        _ = signalingService.send(data, to: peer)
+      }
+      return
+    }
+
+    let fileName = FileTransferValidation.sanitizedFileName(payload.fileName)
     let download = FileDownload(
       id: payload.fileId,
-      fileName: payload.fileName,
+      fileName: fileName,
       fileSize: payload.fileSize,
       fromUser: peer,
       totalChunks: 0,
@@ -641,7 +669,7 @@ extension FileTransferService {
 
     let fileTransfer = FileTransferData(
       fileId: payload.fileId,
-      fileName: payload.fileName,
+      fileName: fileName,
       fileSize: payload.fileSize,
       fromUser: peer,
       status: .pending,
@@ -650,7 +678,7 @@ extension FileTransferService {
     )
     let message = ChatMessage(
       from: peer,
-      text: payload.fileName,
+      text: fileName,
       type: .attachment,
       fileTransfer: fileTransfer,
     )
@@ -689,8 +717,9 @@ extension FileTransferService {
 
     // Atomic reserve (no await before this returns): skip if already committed
     // or already being written.
-    if activeDownloads[idx].receivedChunkURLs[chunkIndex] != nil { return }
-    if pendingChunkIndices[parsed.fileId]?.contains(chunkIndex) == true { return }
+    let isDuplicate = activeDownloads[idx].receivedChunkURLs[chunkIndex] != nil
+      || pendingChunkIndices[parsed.fileId]?.contains(chunkIndex) == true
+    if isDuplicate { return }
     pendingChunkIndices[parsed.fileId, default: []].insert(chunkIndex)
 
     // Write off the main actor.
@@ -726,9 +755,16 @@ extension FileTransferService {
       return
     }
 
+    // Checked after the write, against the state other in-flight chunks may have changed.
+    let totalChunks = Int(parsed.totalChunks)
+    guard activeDownloads[i].accepts(chunkIndex: chunkIndex, totalChunks: totalChunks, byteCount: data.count) else {
+      failDownload(fileId: parsed.fileId, from: peer, reason: .integrity, outcome: .invalidChunk)
+      return
+    }
+
     // Update download state.
     if activeDownloads[i].totalChunks == 0 {
-      activeDownloads[i].totalChunks = Int(parsed.totalChunks)
+      activeDownloads[i].totalChunks = totalChunks
       startReceiveSpan(for: activeDownloads[i])
     }
     activeDownloads[i].receivedChunkURLs[chunkIndex] = chunkURL
@@ -745,6 +781,7 @@ extension FileTransferService {
       let download = activeDownloads[i]
 
       log.info("all \(total) chunks received for \(download.id)")
+      activeDownloads[i].isFinalizing = true
       finalizeDownload(download, from: peer)
     }
   }
@@ -754,7 +791,8 @@ extension FileTransferService {
       let dir = chunkDirectory(for: download.id)
 
       let completedDir = FileManager.default.temporaryDirectory
-        .appendingPathComponent("completed/\(download.id)", isDirectory: true)
+        .appendingPathComponent("completed", isDirectory: true)
+        .appendingPathComponent(FileTransferValidation.directoryName(for: download.id), isDirectory: true)
       try? FileManager.default.createDirectory(at: completedDir, withIntermediateDirectories: true)
       let finalURL = completedDir.appendingPathComponent(download.fileName)
 
@@ -912,7 +950,7 @@ extension FileTransferService {
     log.info("released source (\(upload.kind))")
   }
 
-  private func failDownload(
+  func failDownload(
     fileId: String,
     from peer: String,
     reason: FileTransferFailureReason,
@@ -934,47 +972,13 @@ extension FileTransferService {
     ))
   }
 
-  // MARK: Stall Watchdog
-
-  private func startStallWatchdog() {
-    guard stallWatchdog == nil else { return }
-    stallWatchdog = Task { [weak self] in
-      while true {
-        try? await Task.sleep(nanoseconds: 5_000_000_000) // TODO: change this as const
-        if Task.isCancelled { return }
-
-        guard let self else { return }
-        self.sweepStalledDownloads()
-      }
-    }
-  }
-
-  private func stopStallWatchdogIfIdle() {
-    guard activeDownloads.isEmpty else { return }
-    stallWatchdog?.cancel()
-    stallWatchdog = nil
-  }
-
-  private func sweepStalledDownloads() {
-    let now = Date()
-    let stalled = activeDownloads.filter {
-      now.timeIntervalSince($0.lastActivityAt) > downloadStallTimeout
-    }
-    for download in stalled {
-      log.warning("download \(download.id) stalled (\(downloadStallTimeout)s no chunk) — failing")
-      failDownload(fileId: download.id, from: download.fromUser, reason: .stalled, outcome: .stalled, attributes: [
-        "bytes_received": Int(download.receivedSize),
-      ])
-    }
-  }
-
   // MARK: Helpers
 
-  /// Per-file scratch directory for incoming chunks: <tmp>/incoming/<fileId>/.
+  /// Per-file scratch directory for incoming chunks: <tmp>/incoming/<hashed fileId>/.
   private func chunkDirectory(for fileId: String) -> URL {
     // TODO: Change the path name from incoming to something better.
     FileManager.default.temporaryDirectory
       .appendingPathComponent("incoming", isDirectory: true)
-      .appendingPathComponent(fileId, isDirectory: true)
+      .appendingPathComponent(FileTransferValidation.directoryName(for: fileId), isDirectory: true)
   }
 }

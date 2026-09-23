@@ -1,7 +1,10 @@
 use actix_cors::Cors;
 use actix_web::{App, http::StatusCode, test, web};
 use bytes::Bytes;
-use server::{ServerConfig, SessionStore, WsChatServer, chat_ws, health, index, private_chat_ws};
+use server::{
+    ServerConfig, SessionStore, WsChatServer, chat_ws, create_session, health, index,
+    private_chat_ws,
+};
 use tokio::sync::mpsc::channel;
 
 #[actix_rt::test]
@@ -60,7 +63,7 @@ async fn test_private_ws_upgrade() {
         ServerConfig::load(Some(false)).expect("Failed to load server configuration"),
     );
 
-    let code = "TESTCODE123";
+    let code = "TestCde234";
     session_manager
         .get_or_create_session_uuid(code, false, true)
         .expect("Failed to create session UUID in non-strict mode first");
@@ -78,7 +81,7 @@ async fn test_private_ws_upgrade() {
     .await;
 
     let req = test::TestRequest::get()
-        .uri("/ws/TESTCODE123")
+        .uri("/ws/TestCde234")
         .insert_header(("Upgrade", "websocket"))
         .insert_header(("Connection", "Upgrade"))
         .insert_header(("Sec-WebSocket-Version", "13"))
@@ -118,6 +121,73 @@ async fn test_private_ws_unknown_code() {
     let resp = test::call_service(&app, req).await;
 
     assert_eq!(resp.status(), StatusCode::NOT_FOUND);
+}
+
+#[actix_rt::test]
+async fn test_private_ws_rejects_public_session_key() {
+    let session_manager = web::Data::new(SessionStore::default());
+    let config = web::Data::new(
+        ServerConfig::load(Some(false)).expect("Failed to load server configuration"),
+    );
+    session_manager
+        .get_or_create_session_uuid("127.0.0.1", false, false)
+        .expect("Failed to create public session");
+
+    let app = test::init_service(
+        App::new()
+            .app_data(session_manager.clone())
+            .app_data(config.clone())
+            .service(private_chat_ws),
+    )
+    .await;
+
+    let req = test::TestRequest::get()
+        .uri("/ws/127.0.0.1")
+        .insert_header(("Upgrade", "websocket"))
+        .insert_header(("Connection", "Upgrade"))
+        .insert_header(("Sec-WebSocket-Version", "13"))
+        .insert_header(("Sec-WebSocket-Key", "test_key"))
+        .peer_addr("127.0.0.1:12345".parse().unwrap())
+        .to_request();
+
+    let resp = test::call_service(&app, req).await;
+
+    assert_eq!(resp.status(), StatusCode::NOT_FOUND);
+}
+
+#[actix_rt::test]
+async fn test_ws_rejects_cross_site_origin() {
+    let session_manager = web::Data::new(SessionStore::default());
+    let mut config = ServerConfig::load(Some(false)).expect("Failed to load server configuration");
+    config.cors_allowed_origins = "https://pastepoint.com".to_string();
+    let config = web::Data::new(config);
+
+    let app = test::init_service(
+        App::new()
+            .app_data(session_manager.clone())
+            .app_data(config.clone())
+            .service(chat_ws),
+    )
+    .await;
+
+    for (origin, expected) in [
+        ("https://evil.example", StatusCode::FORBIDDEN),
+        ("https://pastepoint.com", StatusCode::SWITCHING_PROTOCOLS),
+    ] {
+        let req = test::TestRequest::get()
+            .uri("/ws")
+            .insert_header(("Origin", origin))
+            .insert_header(("Upgrade", "websocket"))
+            .insert_header(("Connection", "Upgrade"))
+            .insert_header(("Sec-WebSocket-Version", "13"))
+            .insert_header(("Sec-WebSocket-Key", "test_key"))
+            .peer_addr("127.0.0.1:12345".parse().unwrap())
+            .to_request();
+
+        let resp = test::call_service(&app, req).await;
+
+        assert_eq!(resp.status(), expected, "origin {origin}");
+    }
 }
 
 #[actix_rt::test]
@@ -212,7 +282,7 @@ async fn test_cors_origin_checking() {
         &origin
     );
 
-    // Test allowed origin with www subdomain
+    // Test that a subdomain is not allowed
     let domain_only = allowed_domain
         .trim_start_matches("https://")
         .trim_start_matches("http://");
@@ -223,10 +293,7 @@ async fn test_cors_origin_checking() {
         .to_request();
     let resp = test::call_service(&app, req).await;
     assert_eq!(resp.status(), StatusCode::FOUND);
-    assert_eq!(
-        resp.headers().get("Access-Control-Allow-Origin").unwrap(),
-        &origin
-    );
+    assert!(resp.headers().get("Access-Control-Allow-Origin").is_none());
 
     // Test disallowed origin
     let origin = "https://malicious-site.com";
@@ -247,5 +314,29 @@ async fn test_cors_origin_checking() {
     // Test health endpoint
     let req = test::TestRequest::get().uri("/health").to_request();
     let resp = test::call_service(&app, req).await;
+    assert_eq!(resp.status(), StatusCode::OK);
+}
+
+#[actix_rt::test]
+async fn test_create_session_refuses_cross_site_requests() {
+    let app = test::init_service(
+        App::new()
+            .app_data(web::Data::new(SessionStore::default()))
+            .service(create_session),
+    )
+    .await;
+
+    let request = |site: &str| {
+        test::TestRequest::get()
+            .uri("/create-session")
+            .insert_header(("Sec-Fetch-Site", site))
+            .peer_addr("127.0.0.1:12345".parse().unwrap())
+            .to_request()
+    };
+
+    let resp = test::call_service(&app, request("cross-site")).await;
+    assert_eq!(resp.status(), StatusCode::FORBIDDEN);
+
+    let resp = test::call_service(&app, request("same-origin")).await;
     assert_eq!(resp.status(), StatusCode::OK);
 }

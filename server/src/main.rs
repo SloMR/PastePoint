@@ -3,14 +3,15 @@ use actix_governor::{Governor, GovernorConfigBuilder};
 use actix_http::KeepAlive;
 use actix_web::{
     App, HttpServer,
+    dev::ServiceRequest,
     middleware::{Condition, Logger},
     web::Data,
 };
 use openssl::ssl::{SslAcceptor, SslFiletype, SslMethod};
 use server::{
-    CORS_MAX_AGE, ClientVersionConfig, KEEP_ALIVE_INTERVAL, SentryConfig, ServerConfig,
-    SessionStore, TurnConfig, chat_ws, create_session, health, index, private_chat_ws,
-    turn_credentials, version as version_route,
+    CORS_MAX_AGE, ClientIpKeyExtractor, ClientVersionConfig, KEEP_ALIVE_INTERVAL, SentryConfig,
+    ServerConfig, SessionStore, TurnConfig, chat_ws, create_session, health, index,
+    private_chat_ws, turn_credentials, version as version_route,
 };
 use std::borrow::Cow;
 use std::io::Result;
@@ -19,6 +20,17 @@ use std::net::{IpAddr, Ipv4Addr};
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 const NAME: &str = env!("CARGO_PKG_NAME");
 const AUTHORS: &str = env!("CARGO_PKG_AUTHORS");
+
+/// Access-log line: the matched route pattern, so a private code never reaches the log.
+const ACCESS_LOG_FORMAT: &str = "%{route}xi %s %b %T";
+
+/// Method plus the route pattern that matched, e.g. `GET /ws/{code}`.
+fn access_log_route(req: &ServiceRequest) -> String {
+    let route = req
+        .match_pattern()
+        .unwrap_or_else(|| "<unmatched>".to_owned());
+    format!("{} {route}", req.method())
+}
 
 fn init_sentry(cfg: &SentryConfig) -> Option<sentry::ClientInitGuard> {
     if !cfg.enabled {
@@ -49,6 +61,7 @@ fn init_sentry(cfg: &SentryConfig) -> Option<sentry::ClientInitGuard> {
             });
             event.server_name = None;
             if let Some(req) = event.request.as_mut() {
+                req.url = None;
                 req.cookies = None;
                 req.headers.clear();
                 req.data = None;
@@ -110,6 +123,7 @@ async fn main() -> Result<()> {
     let governor_conf = GovernorConfigBuilder::default()
         .requests_per_second(config.rate_limit_per_second)
         .burst_size(config.rate_limit_burst_size)
+        .key_extractor(ClientIpKeyExtractor::new(!ServerConfig::is_dev_env()))
         .use_headers()
         .finish()
         .expect("Invalid rate limit configuration");
@@ -159,7 +173,7 @@ async fn main() -> Result<()> {
 
         App::new()
             .wrap(Governor::new(&governor_conf))
-            .wrap(Logger::default())
+            .wrap(Logger::new(ACCESS_LOG_FORMAT).custom_request_replace("route", access_log_route))
             .wrap(cors)
             .wrap(Condition::new(
                 sentry_enabled,

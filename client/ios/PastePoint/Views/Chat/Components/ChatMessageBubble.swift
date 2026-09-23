@@ -258,15 +258,7 @@ struct ChatMessageBubble: View {
   }
 
   private nonisolated static func decodePreviewData(_ dataUrl: String?) -> Data? {
-    guard
-      let dataUrl,
-      let comma = dataUrl.firstIndex(of: ","),
-      let data = Data(base64Encoded: String(dataUrl[dataUrl.index(after: comma)...]))
-    else {
-      return nil
-    }
-
-    return data
+    dataUrl.flatMap(FileTransferValidation.previewImageData(from:))
   }
 
   private func statusLabel(_ status: FileTransferStatus) -> LocalizedStringResource {

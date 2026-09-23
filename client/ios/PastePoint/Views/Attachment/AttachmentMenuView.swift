@@ -72,7 +72,7 @@ struct AttachmentMenu<Content: View>: View {
         Task { await onStaged(await FileStaging.stage(urls: urls)) }
       case .failure(let error):
         // TODO: surface a toast on failure.
-        log.error("fileImporter failed: \(String(describing: error))")
+        log.error("fileImporter failed: \(error.codeDescription)")
       }
     }
     .photosPicker(

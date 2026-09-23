@@ -46,6 +46,7 @@ final class SignalingService: NSObject, ObservableObject {
   private static let baseReconnectDelay: TimeInterval = 2.0 // Seconds
   private static let maxReconnectDelay: TimeInterval = 10.0 // Seconds
   private static let maxPendingMessages = 64
+  private static let maxQueuedCandidates = 128
   static let connectSpanAbandonAfter: TimeInterval = 120.0 // Seconds
 
   var peerConnections: [String: RTCPeerConnection] = [:]
@@ -326,7 +327,7 @@ extension SignalingService {
         return
       } else {
         log.debug("canceling our initiation for \(message.from) (we are the designated callee)")
-        closePeerConnection(message.from)
+        closePeerConnection(message.from, resetReconnectState: false)
       }
     }
 
@@ -413,6 +414,10 @@ extension SignalingService {
     let candidate = RTCIceCandidate(sdp: sdpString, sdpMLineIndex: sdpMLineIndex, sdpMid: sdpMid)
 
     guard let pc = peerConnections[message.from], pc.remoteDescription != nil else {
+      guard candidateQueues[message.from, default: []].count < Self.maxQueuedCandidates else {
+        log.warning("dropping ICE candidate: queue is full")
+        return
+      }
       candidateQueues[message.from, default: []].append(candidate)
       log.debug("queued candidate for \(message.from) (queue size: \(candidateQueues[message.from]?.count ?? 0))")
       return
@@ -933,7 +938,7 @@ extension SignalingService: RTCDataChannelDelegate {
         let decoded = try DataChannelMessage.decode(bytes)
         self.route(decoded, from: peer)
       } catch {
-        log.error("failed to decode data-channel message: \(error)")
+        log.warning("dropping a data-channel message that failed to decode")
       }
     }
   }
@@ -947,14 +952,14 @@ extension SignalingService: RTCDataChannelDelegate {
     switch decoded {
     case .chat(let msg):
       telemetry.event("chat.message_received")
-      chatMessages.send(msg)
+      chatMessages.send(ChatMessage(from: peer, text: msg.text, timestamp: msg.timestamp))
     case .fileOffer(let payload): fileEvent.send(.offer(payload, from: peer))
     case .fileAccept(let payload): fileEvent.send(.accept(payload, from: peer))
     case .fileDecline(let payload): fileEvent.send(.decline(payload, from: peer))
     case .fileCancelUpload(let payload): fileEvent.send(.cancelUpload(payload, from: peer))
     case .fileCancelDownload(let payload): fileEvent.send(.cancelDownload(payload, from: peer))
     case .fileReceived(let payload): fileEvent.send(.received(payload, from: peer))
-    case .unknown(let type): log.warning("unknown data-channel type \(type)")
+    case .unknown: log.warning("dropping a data-channel message of unknown type")
     }
   }
 

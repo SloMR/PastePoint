@@ -173,25 +173,25 @@ impl ServerConfig {
         environment == "development" || environment == "docker-dev"
     }
 
+    /// True when `origin` has the configured origin's scheme, host and port.
     pub fn check_origin(&self, origin: &HeaderValue) -> bool {
-        fn extract_host(input: &str) -> Option<String> {
-            Url::parse(input)
-                .or_else(|_| Url::parse(&format!("https://{input}")))
-                .ok()
-                .and_then(|u| u.host_str().map(|s| s.to_ascii_lowercase()))
-        }
+        let allowed = Url::parse(&self.cors_allowed_origins)
+            .or_else(|_| Url::parse(&format!("https://{}", self.cors_allowed_origins)));
+        let origin = origin
+            .to_str()
+            .ok()
+            .and_then(|value| Url::parse(value).ok());
+        let (Ok(allowed), Some(origin)) = (allowed, origin) else {
+            return false;
+        };
 
-        if let Ok(origin_str) = origin.to_str() {
-            if let (Some(origin_host), Some(allowed_host)) = (
-                extract_host(origin_str),
-                extract_host(&self.cors_allowed_origins),
-            ) {
-                origin_host == allowed_host || origin_host.ends_with(&format!(".{allowed_host}"))
-            } else {
-                false
+        match (origin.host_str(), allowed.host_str()) {
+            (Some(origin_host), Some(allowed_host)) => {
+                origin.scheme() == allowed.scheme()
+                    && origin.port_or_known_default() == allowed.port_or_known_default()
+                    && origin_host.eq_ignore_ascii_case(allowed_host)
             }
-        } else {
-            false
+            _ => false,
         }
     }
 }

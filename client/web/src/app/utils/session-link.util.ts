@@ -1,6 +1,11 @@
 import { environment } from '../../environments/environment';
 
-const SESSION_CODE_PATTERN = /^[a-zA-Z0-9]{10}$/;
+const SESSION_CODE_PATTERN = /^[A-HJ-NP-Za-km-z2-9]{10}$/;
+
+/** True for exactly the codes the server issues: 10 characters from its unambiguous set. */
+export function isSessionCode(code: string): boolean {
+  return SESSION_CODE_PATTERN.test(code);
+}
 
 /** Invite URL → its code. Host-checked, and a bare code is refused. */
 export function extractSessionCodeFromUrl(payload: string): string | null {

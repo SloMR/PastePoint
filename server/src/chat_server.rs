@@ -172,7 +172,11 @@ impl WsChatServer {
 
     fn list_rooms(&self, session_id: &str) -> Vec<String> {
         match self.rooms.get(session_id) {
-            Some(rooms_map) => rooms_map.keys().cloned().collect(),
+            Some(rooms_map) => {
+                let mut rooms: Vec<String> = rooms_map.keys().cloned().collect();
+                rooms.sort_unstable();
+                rooms
+            }
             None => {
                 log::debug!(target: "Websocket", "No rooms found for session {session_id}");
                 Vec::new()
@@ -252,9 +256,10 @@ impl WsChatServer {
         match target_tx {
             Some(tx) => {
                 if let Err(e) = tx.try_send(message) {
-                    log::error!(
+                    log::error!(target: "Websocket", "Failed to relay signal: {e:?}");
+                    log::debug!(
                         target: "Websocket",
-                        "Failed to relay signal from {from_user} to {to_user}: {e:?}"
+                        "Failed to relay signal from {from_user} to {to_user}"
                     );
                 } else {
                     log::debug!(
@@ -355,7 +360,9 @@ impl WsChatServer {
 
     fn broadcast_room_list(&self, session_id: &str) {
         if let Some(users) = self.rooms.get(session_id) {
-            let room_list = users.keys().cloned().collect::<Vec<String>>().join(", ");
+            let mut rooms: Vec<&str> = users.keys().map(String::as_str).collect();
+            rooms.sort_unstable();
+            let room_list = rooms.join(", ");
             let message = format!("{WS_PREFIX_SYSTEM_ROOMS} {room_list}");
             Self::send_to_clients(users.values().flat_map(|room| room.values()), &message);
         }
@@ -365,10 +372,11 @@ impl WsChatServer {
         if let Some(users) = self.rooms.get(session_id)
             && let Some(room) = users.get(room_name)
         {
-            let member_list: Vec<String> = room
+            let mut member_list: Vec<String> = room
                 .values()
                 .map(|client_metadata| client_metadata.name.clone())
                 .collect();
+            member_list.sort_unstable();
             log::debug!(
                 target: "Websocket",
                 "Broadcasting members of room {}: {:?}",

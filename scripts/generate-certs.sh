@@ -26,3 +26,13 @@ chown "$OWNER_USER:$OWNER_GROUP" "$CERT_DIR/key.pem" "$CERT_DIR/cert.pem"
 # Secure permissions: private key should not be world-readable
 chmod 600 "$CERT_DIR/key.pem"
 chmod 644 "$CERT_DIR/cert.pem"
+
+# The containers read the key through group TLS_KEY_GID (see docker-compose.yml).
+# Docker Desktop doesn't enforce file modes, but a Linux host does.
+TLS_KEY_GID="${TLS_KEY_GID:-1500}"
+if chgrp "$TLS_KEY_GID" "$CERT_DIR/key.pem" 2>/dev/null; then
+    chmod 640 "$CERT_DIR/key.pem"
+elif [ "$(uname -s)" = "Linux" ]; then
+    echo "The containers can't read certs/key.pem yet. Run:"
+    echo "  sudo chgrp $TLS_KEY_GID certs/key.pem && sudo chmod 640 certs/key.pem"
+fi

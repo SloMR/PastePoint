@@ -2,7 +2,7 @@ import { environment } from '../../environments/environment';
 import { extractSessionCode, extractSessionCodeFromUrl } from './session-link.util';
 
 describe('session-link.util', () => {
-  const code = 'AbCd123456';
+  const code = 'AbCd234567';
   const inviteUrl = `https://${environment.webUrl}/private/${code}`;
   const foreignUrl = `https://evil.example.com/private/${code}`;
 
@@ -51,6 +51,11 @@ describe('session-link.util', () => {
     it('rejects a code of the wrong length', () => {
       expect(extractSessionCode('ABC')).toBeNull();
       expect(extractSessionCode(`${code}XYZ`)).toBeNull();
+    });
+
+    it('rejects characters the server never issues', () => {
+      expect(extractSessionCode('AbCd23456O')).toBeNull();
+      expect(extractSessionCode('AbCd23456l')).toBeNull();
     });
 
     it('rejects empty input', () => {

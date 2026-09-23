@@ -20,6 +20,7 @@ import {
   CONNECTION_REQUEST_TIMEOUT,
   CONNECTION_ESTABLISH_TIMEOUT,
   CONNECT_SPAN_CEILING,
+  MAX_QUEUED_CANDIDATES,
 } from '../../../utils/constants';
 import { TranslateService } from '@ngx-translate/core';
 import { NGXLogger } from 'ngx-logger';
@@ -78,7 +79,14 @@ export class WebRTCSignalingService {
       this.handlePeerConnected(targetUser);
     });
 
+    let previousUser = '';
     this.userService.user$.subscribe((user) => {
+      // Peers treat a new name as a new member and number their signals from 1 again
+      if (user && previousUser && user !== previousUser) {
+        this.inboundSequences.clear();
+      }
+      if (user) previousUser = user;
+
       if (user && this.pendingSignals.length > 0) {
         const drained = this.pendingSignals;
         this.pendingSignals = [];
@@ -1267,10 +1275,15 @@ export class WebRTCSignalingService {
    */
   private queueCandidate(targetUser: string, candidate: RTCIceCandidateInit): void {
     const queue = this.candidateQueues.get(targetUser);
-    if (queue) {
+    if (!queue) {
+      this.candidateQueues.set(targetUser, [candidate]);
+    } else if (queue.length < MAX_QUEUED_CANDIDATES) {
       queue.push(candidate);
     } else {
-      this.candidateQueues.set(targetUser, [candidate]);
+      this.logger.warn(
+        'queueCandidate',
+        `Dropping ICE candidate from ${targetUser}: queue is full`
+      );
     }
   }
 

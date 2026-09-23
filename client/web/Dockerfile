@@ -68,7 +68,7 @@ COPY --from=builder /usr/src/app/dist/web/browser/sitemap.xml /usr/share/nginx/h
 COPY --from=builder /usr/src/app/dist/web/browser/.well-known/apple-app-site-association /usr/share/nginx/html/browser/.well-known/apple-app-site-association
 
 # Copy nginx config files
-COPY nginx/nginx.conf /etc/nginx/conf.d/default.conf.template
+COPY nginx/nginx.conf /etc/nginx/templates/default.conf.template
 COPY nginx/locations.conf /etc/nginx/locations.conf
 COPY nginx/security/ /etc/nginx/security/
 COPY nginx/includes/ /etc/nginx/includes/
@@ -76,14 +76,12 @@ COPY nginx/includes/ /etc/nginx/includes/
 # Copy the entrypoint script and make it executable
 COPY docker-entrypoint.sh /
 
-# Set permissions and create directories
+# Set permissions and create directories. The script, template and static files stay
+# root-owned, so nginx can read them but not change them; it writes only conf.d/default.conf.
 RUN chmod +x /docker-entrypoint.sh && \
-    chown nginx:nginx /docker-entrypoint.sh && \
-    chown nginx:nginx /etc/nginx/conf.d/default.conf.template && \
     mkdir -p /var/cache/nginx/web_temp /var/run/nginx /var/log/nginx && \
     touch /var/run/nginx.pid && \
-    chown -R nginx:nginx /var/cache/nginx /var/log/nginx /var/run/nginx \
-      /usr/share/nginx/html /etc/nginx/conf.d && \
+    chown -R nginx:nginx /var/cache/nginx /var/log/nginx /var/run/nginx /etc/nginx/conf.d && \
     chown nginx:nginx /var/run/nginx.pid && \
     chmod 644 /var/run/nginx.pid
 

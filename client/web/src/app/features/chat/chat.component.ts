@@ -1427,13 +1427,13 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   public async acceptIncomingFile(message: ChatMessage): Promise<void> {
     if (!message.fileTransfer) return;
 
+    // Update the status first so the buttons hide before a second tap can send again
+    this.updateFileTransferMessageStatus(message.fileTransfer.fileId, FileTransferStatus.ACCEPTED);
+
     await this.fileTransferService.acceptFileOffer(
       message.fileTransfer.fromUser,
       message.fileTransfer.fileId
     );
-
-    // Update the message status and text
-    this.updateFileTransferMessageStatus(message.fileTransfer.fileId, FileTransferStatus.ACCEPTED);
   }
 
   /**
@@ -1445,13 +1445,13 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   public async declineIncomingFile(message: ChatMessage): Promise<void> {
     if (!message.fileTransfer) return;
 
+    // Update the status first so the buttons hide before a second tap can send again
+    this.updateFileTransferMessageStatus(message.fileTransfer.fileId, FileTransferStatus.DECLINED);
+
     await this.fileTransferService.declineFileOffer(
       message.fileTransfer.fromUser,
       message.fileTransfer.fileId
     );
-
-    // Update the message status and text
-    this.updateFileTransferMessageStatus(message.fileTransfer.fileId, FileTransferStatus.DECLINED);
   }
 
   /**

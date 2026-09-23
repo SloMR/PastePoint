@@ -1,6 +1,11 @@
 import { Injectable, inject } from '@angular/core';
 import { TelemetryService } from '../monitoring/telemetry.service';
-import { FileDownload, FILE_TRANSFER_MESSAGE_TYPES } from '../../../utils/constants';
+import {
+  FileDownload,
+  FileOffer,
+  FILE_TRANSFER_MESSAGE_TYPES,
+  MAX_PENDING_OFFERS_PER_PEER,
+} from '../../../utils/constants';
 import { FileTransferBaseService } from './file-transfer-base.service';
 
 @Injectable({
@@ -20,15 +25,7 @@ export class FileOfferService extends FileTransferBaseService {
    * If the fileId already exists, updates it with new fields (preview, hash).
    * This allows instant notification followed by preview update.
    */
-  public async receiveFileOffer(offer: {
-    fileId: string;
-    fileName: string;
-    fileSize: number;
-    fromUser: string;
-    fileHash?: string;
-    previewDataUrl?: string;
-    previewMime?: string;
-  }): Promise<void> {
+  public async receiveFileOffer(offer: FileOffer): Promise<void> {
     const { fromUser, fileId, fileSize, fileHash, previewDataUrl, previewMime } = offer;
     const fileName = this.sanitizeFileName(offer.fileName);
 
@@ -39,6 +36,15 @@ export class FileOfferService extends FileTransferBaseService {
     }
 
     const existingDownload = fileTransfers.get(fileId);
+    const pendingOffers = [...fileTransfers.values()].filter((download) => !download.isAccepted);
+    if (!existingDownload && pendingOffers.length >= MAX_PENDING_OFFERS_PER_PEER) {
+      this.logger.warn('receiveFileOffer', `Declining: too many pending offers from ${fromUser}`);
+      this.sendData(
+        { type: FILE_TRANSFER_MESSAGE_TYPES.FILE_DECLINE, payload: { fileId } },
+        fromUser
+      );
+      return;
+    }
 
     if (existingDownload) {
       // Update existing entry with new fields (preview/hash came in second message)
@@ -92,6 +98,7 @@ export class FileOfferService extends FileTransferBaseService {
       this.logger.error('acceptFileOffer', `No file with id=${fileId} from ${fromUser} to accept`);
       return;
     }
+    if (fileDownload.isAccepted) return;
 
     fileDownload.isAccepted = true;
     fileDownload.lastActivity = Date.now();

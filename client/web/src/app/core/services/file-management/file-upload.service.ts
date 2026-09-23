@@ -139,21 +139,15 @@ export class FileUploadService extends FileTransferBaseService {
       `File send started: ${fileId.substring(0, 8)}... to ${targetUser}`
     );
 
+    const userMap = await this.getFileTransfers(targetUser);
+    const fileTransfer = userMap?.get(fileId);
+    if (!userMap || !fileTransfer) {
+      this.logger.debug('startSendingFile', `No upload ${fileId} waiting for ${targetUser}`);
+      return;
+    }
+
     const transferId = this.getOrCreateStatusKey(targetUser, fileId);
     await this.setFileTransferStatus(transferId, FileTransferStatus.ACCEPTED);
-
-    const userMap = await this.getFileTransfers(targetUser);
-    if (!userMap) {
-      this.logger.error('startSendingFile', `No fileTransfers map for user: ${targetUser}`);
-      return;
-    }
-
-    const fileTransfer = userMap.get(fileId);
-    if (!fileTransfer) {
-      this.logger.error('startSendingFile', `No fileId=${fileId} for ${targetUser}`);
-      this.toaster.error(this.translate.instant('NO_FILE_TO_SEND'));
-      return;
-    }
 
     const offerKey = this.getOrCreateStatusKey(targetUser, fileId);
     await this.offerReady.get(offerKey);
@@ -332,7 +326,7 @@ export class FileUploadService extends FileTransferBaseService {
         this.sendData(message, targetUser);
       }
     } else {
-      this.logger.error(
+      this.logger.debug(
         'stopFileUpload',
         `No file transfer found for ${targetUser} and fileId=${fileId}`
       );
@@ -523,8 +517,9 @@ export class FileUploadService extends FileTransferBaseService {
         this.logger.warn('sendFileOffer', `Failed generating preview: ${String(e)}`);
       }
 
-      // Only send update if we have hash or preview to add
-      if (fileHash || previewDataUrl) {
+      // The peer may have declined, or we cancelled, while the hash and preview were made
+      const stillOffered = (await this.getFileTransfers(targetUser))?.has(fileId) ?? false;
+      if (stillOffered && (fileHash || previewDataUrl)) {
         const completeMessage = {
           type: FILE_TRANSFER_MESSAGE_TYPES.FILE_OFFER,
           payload: {

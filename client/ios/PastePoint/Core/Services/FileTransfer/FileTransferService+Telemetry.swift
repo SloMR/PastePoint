@@ -14,6 +14,7 @@ extension FileTransferService {
   enum ReceiveOutcome: String {
     case completed
     case crcFailed = "crc_failed"
+    case invalidChunk = "invalid_chunk"
     case noHash = "no_hash"
     case hashMismatch = "hash_mismatch"
     case missingChunks = "missing_chunks"

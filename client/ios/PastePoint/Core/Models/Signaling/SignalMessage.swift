@@ -53,7 +53,7 @@ enum SignalPayload {
 
       let rawSdpMid = dict["sdpMid"] as? String
       let sdpMid = (rawSdpMid?.isEmpty == false) ? rawSdpMid : nil
-      let sdpMLineIndex = Int32((dict["sdpMLineIndex"] as? Int) ?? 0)
+      guard let sdpMLineIndex = Int32(exactly: (dict["sdpMLineIndex"] as? Int) ?? 0) else { return nil }
       self = .candidate(sdp: sdp, sdpMid: sdpMid, sdpMLineIndex: sdpMLineIndex)
     case "connection_request":
       self = .connectionRequest

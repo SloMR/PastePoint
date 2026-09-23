@@ -10,10 +10,6 @@ use crate::{
     error::ServerError,
 };
 use actix_ws::{AggregatedMessage, MessageStream, Session};
-use fake::{
-    Fake,
-    faker::name::{en::FirstName, en::LastName},
-};
 use futures_util::StreamExt;
 use serde_json::Value;
 use std::time::{Duration, Instant};
@@ -59,9 +55,7 @@ impl<'a> UserCommand<'a> {
 
 impl WsChatSession {
     pub(crate) fn new(session_id: &str, auto_join: bool, session_store: SessionStore) -> Self {
-        let first_name = FirstName().fake::<String>();
-        let last_name = LastName().fake::<String>();
-        let name = format!("{first_name} {last_name}");
+        let name = session_store.reserve_name();
 
         WsChatSession {
             session_id: session_id.to_owned(),
@@ -207,7 +201,8 @@ impl WsChatSession {
 
         let new_id = server.join_room(&self.session_id, room_name, &self.name, tx.clone());
         if new_id == 0 {
-            log::warn!(
+            log::warn!(target: "Websocket", "Join rejected: room limit reached");
+            log::debug!(
                 target: "Websocket",
                 "Join rejected for room '{}'; user '{}' stays in '{}'",
                 room_name,
@@ -284,9 +279,8 @@ impl WsChatSession {
         if msg.len() > MAX_SIGNAL_SIZE {
             log::warn!(
                 target: "Websocket",
-                "Oversize signaling message ({} bytes) from user {}",
-                msg.len(),
-                self.name
+                "Oversize signaling message ({} bytes)",
+                msg.len()
             );
             Self::deliver(
                 tx,
@@ -297,7 +291,7 @@ impl WsChatSession {
 
         // 2. Parse and validate the message
         let payload = msg.trim_start_matches(WS_PREFIX_SIGNAL_MESSAGE).trim();
-        let value = match serde_json::from_str::<Value>(payload) {
+        let mut value = match serde_json::from_str::<Value>(payload) {
             Ok(v) => v,
             Err(e) => {
                 log::warn!(target: "Websocket", "Invalid signal JSON: {e}");
@@ -310,9 +304,9 @@ impl WsChatSession {
         };
 
         // 3. Validate target user
-        let to_user = match value.get("to").and_then(|v| v.as_str()) {
-            Some(user) => user,
-            None => {
+        let to_user = match value.get("to").and_then(Value::as_str) {
+            Some(user) if !user.is_empty() => user.to_owned(),
+            _ => {
                 log::warn!(target: "Websocket", "Signal missing 'to' field");
                 Self::deliver(
                     tx,
@@ -323,17 +317,25 @@ impl WsChatSession {
         };
 
         // 4. Validate room membership and relay through the shared server.
-        let signal_type = match value.get("type").and_then(|v| v.as_str()) {
-            Some(t @ ("offer" | "answer" | "candidate" | "connection_request")) => t,
+        let signal_type = match value.get("type").and_then(Value::as_str) {
+            Some("offer") => "offer",
+            Some("answer") => "answer",
+            Some("candidate") => "candidate",
+            Some("connection_request") => "connection_request",
             Some(_) => "other",
             None => "unknown",
         };
 
+        // The sender is whoever owns this connection, never what the client claims.
+        if let Some(envelope) = value.as_object_mut() {
+            envelope.insert("from".to_owned(), Value::String(self.name.clone()));
+        }
+
         server.validate_and_relay_signal(
             &self.session_id,
             &self.name,
-            to_user,
-            payload,
+            &to_user,
+            &value.to_string(),
             signal_type,
         );
     }
@@ -401,6 +403,8 @@ impl WsChatSession {
                 self.room
             );
         }
+
+        self.session_store.release_name(&self.name);
 
         if let Ok(uuid) = uuid::Uuid::parse_str(&self.session_id) {
             log::debug!(target: "Websocket", "Removing client {uuid} from session");

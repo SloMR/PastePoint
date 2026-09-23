@@ -8,6 +8,7 @@ import bootstrap from './main.server';
 import https from 'https';
 import fs from 'fs';
 import { environment } from './environments/environment';
+import { scrubSessionCodes } from './app/core/services/monitoring/sentry-scrubber';
 
 // Helper function to find project root by looking for certs directory
 function findProjectRoot(startPath: string): string {
@@ -65,7 +66,7 @@ export function app(): express.Express {
   });
 
   // All regular routes use the Universal engine
-  server.get('/{*splat}', (req, res, next) => {
+  server.get('/{*splat}', (req, res) => {
     const { protocol, originalUrl, baseUrl, headers } = req;
 
     // Get protocol from X-Forwarded-Proto header when behind a proxy
@@ -80,9 +81,11 @@ export function app(): express.Express {
         providers: [{ provide: APP_BASE_HREF, useValue: baseUrl }],
       })
       .then((html) => res.send(html))
-      .catch((err) => {
-        console.error('Error rendering app:', err);
-        next(err);
+      .catch((err: unknown) => {
+        const detail = err instanceof Error ? (err.stack ?? err.message) : String(err);
+
+        console.error('Error rendering app:', scrubSessionCodes(detail));
+        res.status(500).type('text/plain').send('Internal Server Error');
       });
   });
 

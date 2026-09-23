@@ -1,4 +1,4 @@
-import type { Breadcrumb } from '@sentry/angular';
+import type { Breadcrumb, Event } from '@sentry/angular';
 
 const SESSION_CODE_IN_PATH = /(\/(?:private|ws)\/)[A-Za-z0-9]+/g;
 
@@ -24,4 +24,63 @@ export function scrubBreadcrumb(breadcrumb: Breadcrumb): Breadcrumb {
     }
   }
   return breadcrumb;
+}
+
+/** Redacts session codes from every string value of span or trace data. */
+function scrubData(data: Record<string, unknown> | undefined): void {
+  if (!data) return;
+  for (const [key, value] of Object.entries(data)) {
+    if (typeof value === 'string') {
+      data[key] = scrubSessionCodes(value);
+    }
+  }
+}
+
+/**
+ * Strips identifying request details and session codes from an error or transaction event in place
+ */
+export function scrubEvent<T extends Event>(event: T): T {
+  event.user = { ip_address: '127.0.0.1' };
+  delete event.server_name;
+  if (event.request) {
+    delete event.request.cookies;
+    delete event.request.data;
+    delete event.request.query_string;
+    if (event.request.url) {
+      event.request.url = scrubSessionCodes(event.request.url);
+    }
+    // The referring page can be a private session URL
+    for (const name of Object.keys(event.request.headers ?? {})) {
+      if (name.toLowerCase() === 'referer') {
+        delete event.request.headers?.[name];
+      }
+    }
+  }
+  if (event.transaction) {
+    event.transaction = scrubSessionCodes(event.transaction);
+  }
+  if (event.message) {
+    event.message = scrubSessionCodes(event.message);
+  }
+  for (const exception of event.exception?.values ?? []) {
+    if (exception.value) {
+      exception.value = scrubSessionCodes(exception.value);
+    }
+  }
+  scrubData(event.contexts?.trace?.data);
+  for (const span of event.spans ?? []) {
+    if (span.description) {
+      span.description = scrubSessionCodes(span.description);
+    }
+    scrubData(span.data);
+  }
+  // Browser-derived locale signals
+  if (event.contexts?.['device']) {
+    delete event.contexts['device']['timezone'];
+    delete event.contexts['device']['locale'];
+  }
+  if (event.contexts?.['culture']) {
+    delete event.contexts['culture'];
+  }
+  return event;
 }

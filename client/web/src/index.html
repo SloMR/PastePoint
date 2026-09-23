@@ -81,13 +81,33 @@
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png" />
     <link rel="icon" type="image/png" sizes="96x96" href="/assets/favicon-96x96.png" />
-    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
     <link rel="manifest" href="/site.webmanifest" />
 
     <!-- Preloads -->
     <link rel="preconnect" href="/" />
     <link rel="preload" href="/icons/pastepoint-light.svg" as="image" />
     <link rel="preload" href="/icons/pastepoint-dark.svg" as="image" />
+
+    <!-- Analytics -->
+    <script>
+      window.umamiBeforeSend = function (type, payload) {
+        var redact = function (value) {
+          return typeof value === 'string'
+            ? value.replace(/(\/(?:private|ws)\/)[A-Za-z0-9]+/g, '$1[code]')
+            : value;
+        };
+        payload.url = redact(payload.url);
+        payload.referrer = redact(payload.referrer);
+        return payload;
+      };
+    </script>
+    <script
+      defer
+      src="https://cloud.umami.is/script.js"
+      data-website-id="f4927d26-41d2-4a22-8315-7ff265dfd5e7"
+      data-domains="pastepoint.com"
+      data-before-send="umamiBeforeSend"
+    ></script>
   </head>
   <body class="geopattern">
     <app-root ngSkipHydration></app-root>

@@ -5,9 +5,13 @@ export const MB = 1024 * KB;
 // Note: WebRTC SCTP has a ~256KB message limit. Chunk data + protocol header
 // (~64 bytes) must stay under it, so 192KB is the largest safe chunk.
 export const CHUNK_SIZE = 192 * KB;
+export const MIN_CHUNK_SIZE = 16 * KB;
 export const MAX_BUFFERED_AMOUNT = 16 * MB;
 export const BUFFERED_AMOUNT_LOW_THRESHOLD = 8 * MB;
 export const MAX_QUEUED_MESSAGES = 64;
+export const MAX_CHAT_MESSAGES = 500;
+export const MAX_PENDING_OFFERS_PER_PEER = 100;
+export const MAX_QUEUED_CANDIDATES = 128;
 
 // Heartbeat constants
 export const HEARTBEAT_INTERVAL_DESKTOP_SEC = 60;
@@ -45,6 +49,10 @@ export const TURN_READY_TIMEOUT = 1500;
 export const TURN_RETRY_COOLDOWN = 30_000;
 export const CONNECT_SPAN_CEILING = 120_000; // 2 minutes before a webrtc.connect span is reported as abandoned
 export const MAX_PREVIEW_DATA_URL_SIZE = 150 * KB;
+export const MAX_PREVIEW_PIXEL_SIZE = 1024;
+export const PREVIEW_DATA_URL_PATTERN = /^data:image\/(?:png|jpeg);base64,[A-Za-z0-9+/]+={0,2}$/;
+export const MIME_TYPE_PATTERN = /^[\w.+-]{1,64}\/[\w.+-]{1,64}$/;
+export const MAX_FILE_ID_LENGTH = 128;
 export const PREVIEW_MIME_TYPE = 'image/jpeg';
 export const PREVIEW_QUALITY = 0.7;
 
@@ -191,6 +199,16 @@ export interface FileDownload {
   previewDataUrl?: string;
   previewMime?: string;
   expectedHash?: string;
+}
+
+export interface FileOffer {
+  fileId: string;
+  fileName: string;
+  fileSize: number;
+  fromUser: string;
+  fileHash?: string;
+  previewDataUrl?: string;
+  previewMime?: string;
 }
 
 // Metadata configuration interfaces

@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { environment } from '../../../../environments/environment';
+import { isSessionCode } from '../../../utils/session-link.util';
 
 @Injectable({
   providedIn: 'root',
@@ -27,11 +28,10 @@ export class SessionService {
   }
 
   /**
-   * Validates that the session code is exactly 10 alphanumeric characters.
+   * Validates that the session code is one the server could have issued.
    */
   isValidSessionCode(code: string): boolean {
-    const sessionCodeRegex = /^[a-zA-Z0-9]+$/;
-    return sessionCodeRegex.test(code) && code.length === 10;
+    return isSessionCode(code);
   }
 
   /**

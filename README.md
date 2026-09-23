@@ -21,7 +21,7 @@ PastePoint is a secure, feature-rich file-sharing service designed for local net
 ### Core Features:
 
 - **Local Network Communication**:
-  - Establish WebSocket-based local chat between computers on the same network
+  - Chat peer-to-peer over WebRTC data channels with devices on the same network
   - List available sessions, create new sessions, or join existing ones
   - Multiple rooms within a session — create, list, and switch between rooms
   - QR code session sharing — generate a code from one device and scan it from another to join instantly
@@ -67,7 +67,7 @@ PastePoint is a secure, feature-rich file-sharing service designed for local net
 
 ### Server (Rust)
 
-[![Actix](https://img.shields.io/badge/Actix-4.13-blue)](https://actix.rs/)
+[![Actix](https://img.shields.io/badge/Actix-4.15-blue)](https://actix.rs/)
 [![OpenSSL](https://img.shields.io/badge/OpenSSL-0.10-yellow)](https://www.openssl.org/)
 
 - **Framework**: Actix Web for HTTP/TLS, `actix-ws` for WebSocket signaling (Rust edition 2024, toolchain 1.98.1)
@@ -112,7 +112,7 @@ PastePoint is a secure, feature-rich file-sharing service designed for local net
 
 [![Nginx](https://img.shields.io/badge/Nginx-Reverse_Proxy-green)](https://nginx.org)
 [![Docker](https://img.shields.io/badge/Docker-24.0-blue)](https://www.docker.com)
-[![Express](https://img.shields.io/badge/Express-4.22-purple)](https://expressjs.com/)
+[![Express](https://img.shields.io/badge/Express-5.2-purple)](https://expressjs.com/)
 
 - **Container Orchestration**: Docker Compose with multi-stage builds
 - **Reverse Proxy**: Nginx with enhanced security features
@@ -202,13 +202,7 @@ pastepoint/
    cd pastepoint
    ```
 
-2. Generate SSL certificates (required for HTTPS):
-
-   ```bash
-   ./scripts/generate-certs.sh
-   ```
-
-3. Configure for Local Network (Optional):
+2. Configure for Local Network (Optional):
    If you want to run PastePoint on your local network instead of just localhost:
 
    ```bash
@@ -221,6 +215,14 @@ pastepoint/
 
    ```bash
    cp .env.development.example .env.development
+   ```
+
+3. Generate SSL certificates (required for HTTPS). Pass the local IP from step 2,
+   because the certificate must name the address you open in the browser:
+
+   ```bash
+   ./scripts/generate-certs.sh             # localhost only
+   ./scripts/generate-certs.sh <local-ip>  # also valid on your local network
    ```
 
 4. Build and Start Services:
@@ -261,13 +263,21 @@ pastepoint/
 **Common Issues**:
 
 1. **SSL Certificate Errors**
-   Run: `./scripts/generate-certs.sh`
+   Run: `./scripts/generate-certs.sh <local-ip>` with the address you open in the browser
 
 ## Security Considerations
 
 - **Certificate Management**:
   - Replace self-signed certificates with proper SSL certificates in production
   - Keep private keys secure and never commit them to version control
+  - Let only the containers read the private key. The server and nginx containers join group
+    `TLS_KEY_GID` (default 1500), so the key can be `root`-owned with mode 640:
+
+    ```bash
+    sudo groupadd -g 1500 pastepoint-tls
+    sudo chgrp pastepoint-tls /etc/ssl/pastepoint/key.pem
+    sudo chmod 640 /etc/ssl/pastepoint/key.pem
+    ```
 
 - **Data Privacy**:
   - All file transfers are encrypted end-to-end via WebRTC

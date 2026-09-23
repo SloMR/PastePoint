@@ -7,7 +7,7 @@ import { LANGUAGE_PREFERENCE_KEY } from './app/utils/constants';
 import { environment } from './environments/environment';
 import { name as pkgName, version as pkgVersion } from '../package.json';
 import { reloadOnceForChunkError } from './app/utils/chunk-reload';
-import { scrubBreadcrumb, scrubSessionCodes } from './app/core/services/monitoring/sentry-scrubber';
+import { scrubBreadcrumb, scrubEvent } from './app/core/services/monitoring/sentry-scrubber';
 
 // Background chunk preloads that fail after a deploy reject as unhandled
 // promise rejections, which bypass Angular's ErrorHandler — reload here too.
@@ -71,40 +71,15 @@ if (typeof window !== 'undefined' && environment.sentry?.enabled && environment.
             !(span.op === 'http.client' && span.description?.includes('.js.map'))
         );
       }
-      if (event.contexts?.['device']) {
-        delete event.contexts['device']['timezone'];
-        delete event.contexts['device']['locale'];
-      }
-      if (event.contexts?.['culture']) {
-        delete event.contexts['culture'];
-      }
-      return event;
+      return scrubEvent(event);
     },
     beforeBreadcrumb(breadcrumb) {
       return scrubBreadcrumb(breadcrumb);
     },
     beforeSend(event) {
       // Strip user-identifying data before the event leaves the browser.
-      event.user = { ip_address: '127.0.0.1' };
-      delete event.server_name;
-      if (event.request) {
-        delete event.request.cookies;
-        delete event.request.headers;
-        delete event.request.data;
-        delete event.request.query_string;
-        if (event.request.url) {
-          event.request.url = scrubSessionCodes(event.request.url);
-        }
-      }
-      // Strip browser-derived locale signals from the device / culture contexts
-      if (event.contexts?.['device']) {
-        delete event.contexts['device']['timezone'];
-        delete event.contexts['device']['locale'];
-      }
-      if (event.contexts?.['culture']) {
-        delete event.contexts['culture'];
-      }
-      return event;
+      delete event.request?.headers;
+      return scrubEvent(event);
     },
   });
 }

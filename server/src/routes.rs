@@ -1,9 +1,9 @@
 #![allow(unreachable_pub)]
 
 use crate::{
-    CONTENT_TYPE_TEXT_PLAIN, ClientVersionConfig, MIN_USER_AGENT_LENGTH, SESSION_CODE_LENGTH,
-    ServerConfig, ServerError, SessionStore, TurnConfig, consts::MAX_SESSIONS,
-    session_store::SessionData,
+    CONTENT_TYPE_TEXT_PLAIN, ClientVersionConfig, MIN_USER_AGENT_LENGTH, SAFE_CHARSET,
+    SESSION_CODE_LENGTH, ServerConfig, ServerError, SessionStore, TurnConfig,
+    rate_limit::forwarded_ip,
 };
 use actix_web::{Error, HttpRequest, HttpResponse, Responder, get, http::header, web};
 use base64::{Engine, engine::general_purpose::STANDARD};
@@ -11,7 +11,6 @@ use hmac::{Hmac, KeyInit, Mac};
 use serde_json::json;
 use sha1::Sha1;
 use std::time::{SystemTime, UNIX_EPOCH};
-use uuid::Uuid;
 
 type HmacSha1 = Hmac<Sha1>;
 
@@ -95,39 +94,17 @@ pub async fn turn_credentials(turn: web::Data<TurnConfig>) -> Result<HttpRespons
 // Create Session route
 // -----------------------------------------------------
 #[get("/create-session")]
-pub async fn create_session(store: web::Data<SessionStore>) -> Result<HttpResponse, ServerError> {
-    let code = SessionStore::generate_random_code(SESSION_CODE_LENGTH);
-    let new_uuid = Uuid::new_v4();
-    {
-        let mut map = match store.key_to_session.lock() {
-            Ok(guard) => guard,
-            Err(e) => {
-                log::error!(
-                    target: "Websocket",
-                    "Failed to acquire lock on key_to_session: {e:?}"
-                );
-                return Err(ServerError::InternalServerError);
-            }
-        };
-        if map.len() >= MAX_SESSIONS {
-            log::warn!(
-                target: "Websocket",
-                "Max sessions limit reached ({MAX_SESSIONS}), rejecting session creation"
-            );
-            return Err(ServerError::BadRequest(
-                "Server capacity reached. Try again later.".to_string(),
-            ));
-        }
-        map.insert(
-            code.clone(),
-            SessionData {
-                uuid: new_uuid,
-                is_private: true,
-            },
-        );
+pub async fn create_session(
+    req: HttpRequest,
+    store: web::Data<SessionStore>,
+) -> Result<HttpResponse, ServerError> {
+    if is_cross_site_request(&req) {
+        log::warn!(target: "Websocket", "Rejected session creation: cross-site request");
+        return Err(ServerError::Forbidden);
     }
-
-    sentry::logger_info!(kind = "private", "session.created");
+    let client =
+        get_client_ip(&req, ServerConfig::is_dev_env()).map_err(|_| ServerError::Forbidden)?;
+    let code = store.create_private_session(&client)?;
     Ok(HttpResponse::Ok()
         .content_type(header::ContentType::json())
         .json(json!({ "code": code })))
@@ -145,6 +122,7 @@ pub async fn chat_ws(
 ) -> Result<HttpResponse, ServerError> {
     // Validate that this is a proper WebSocket connection
     validate_websocket_headers(&req)?;
+    validate_websocket_origin(&req, &config)?;
 
     let is_dev_mode = ServerConfig::is_dev_env();
 
@@ -154,11 +132,9 @@ pub async fn chat_ws(
         return Err(ServerError::Forbidden);
     }
 
-    let session_key = create_session_key(&req, &ip_str);
-
-    log::debug!(target: "Websocket", "Connection request - IP: {ip_str}, Session Key: {session_key}");
+    log::debug!(target: "Websocket", "Connection request - IP: {ip_str}");
     store
-        .start_websocket(config.get_ref(), &req, stream, &session_key, false, false)
+        .start_websocket(config.get_ref(), &req, stream, &ip_str, false, false)
         .map_err(|e| ServerError::BadRequest(format!("WebSocket connection failed: {e}")))
 }
 
@@ -175,14 +151,13 @@ pub async fn private_chat_ws(
 ) -> Result<HttpResponse, ServerError> {
     // Validate that this is a proper WebSocket connection
     validate_websocket_headers(&req)?;
+    validate_websocket_origin(&req, &config)?;
 
     let code = path.into_inner();
     log::debug!(target: "Websocket", "Received session code: {code}");
-    if code.trim().is_empty() {
-        log::debug!(target: "Websocket", "Empty code => returning 400");
-        return Err(ServerError::BadRequest(
-            "Session code cannot be empty".to_string(),
-        ));
+    if !is_valid_private_code(&code) {
+        log::warn!(target: "Websocket", "Rejected private join: malformed session code");
+        return Ok(SessionStore::unknown_session_response());
     }
 
     store
@@ -197,14 +172,7 @@ pub async fn private_chat_ws(
 fn get_client_ip(req: &HttpRequest, is_dev_mode: bool) -> Result<String, Error> {
     if !is_dev_mode {
         log::info!(target: "Websocket", "Production mode detected, checking headers for IP");
-        req.headers()
-            .get("X-Forwarded-For")
-            .and_then(|v| v.to_str().ok())
-            .and_then(|s| s.split(',').next().map(str::trim))
-            .or_else(|| req.headers()
-                .get("X-Real-IP")
-                .and_then(|v| v.to_str().ok())
-                .map(str::trim))
+        forwarded_ip(req.headers())
             .map(|ip| ip.to_string())
             .ok_or_else(|| {
                 log::warn!(target: "Websocket", "Production connection attempt without proper headers");
@@ -225,17 +193,6 @@ fn get_client_ip(req: &HttpRequest, is_dev_mode: bool) -> Result<String, Error> 
     }
 }
 
-// Helper function to create a session key
-fn create_session_key(req: &HttpRequest, ip_str: &str) -> String {
-    let host = req
-        .headers()
-        .get("Host")
-        .and_then(|h| h.to_str().ok())
-        .unwrap_or("unknown_host");
-
-    format!("{host}:{ip_str}")
-}
-
 // Helper function to check for suspicious connections
 fn check_suspicious_connection(req: &HttpRequest, ip_str: &str) -> bool {
     let user_agent = req
@@ -251,6 +208,30 @@ fn check_suspicious_connection(req: &HttpRequest, ip_str: &str) -> bool {
         return true;
     }
     false
+}
+
+/// True when a browser says the request came from another site; native clients send no
+/// `Sec-Fetch-Site`, so they are never refused.
+fn is_cross_site_request(req: &HttpRequest) -> bool {
+    req.headers()
+        .get("Sec-Fetch-Site")
+        .is_some_and(|value| value.as_bytes().eq_ignore_ascii_case(b"cross-site"))
+}
+
+/// True for exactly the codes `/create-session` can issue.
+fn is_valid_private_code(code: &str) -> bool {
+    code.len() == SESSION_CODE_LENGTH && code.bytes().all(|byte| SAFE_CHARSET.contains(&byte))
+}
+
+/// Rejects a browser handshake from another site; native clients send no Origin.
+fn validate_websocket_origin(req: &HttpRequest, config: &ServerConfig) -> Result<(), ServerError> {
+    match req.headers().get(header::ORIGIN) {
+        Some(origin) if !config.check_origin(origin) => {
+            log::warn!(target: "Websocket", "WebSocket connection rejected: disallowed origin");
+            Err(ServerError::Forbidden)
+        }
+        _ => Ok(()),
+    }
 }
 
 // Helper function to validate WebSocket connection headers

@@ -5,6 +5,7 @@ import {
   FILE_TRANSFER_MESSAGE_TYPES,
   FileDownload,
   FileTransferStatus,
+  MIN_CHUNK_SIZE,
   PREVIEW_MIME_TYPE,
 } from '../../../utils/constants';
 import { FileTransferBaseService } from './file-transfer-base.service';
@@ -60,6 +61,7 @@ export class FileDownloadService extends FileTransferBaseService {
     outcome:
       | 'completed'
       | 'crc_failed'
+      | 'invalid_chunk'
       | 'missing_chunks'
       | 'hash_mismatch'
       | 'no_hash'
@@ -85,6 +87,7 @@ export class FileDownloadService extends FileTransferBaseService {
     outcome:
       | 'completed'
       | 'crc_failed'
+      | 'invalid_chunk'
       | 'missing_chunks'
       | 'hash_mismatch'
       | 'no_hash'
@@ -97,7 +100,7 @@ export class FileDownloadService extends FileTransferBaseService {
       case 'cancelled':
         return FileTransferStatus.CANCELLED;
       default:
-        // crc_failed | missing_chunks | hash_mismatch | no_hash | stalled
+        // crc_failed | invalid_chunk | missing_chunks | hash_mismatch | no_hash | stalled
         return FileTransferStatus.FAILED;
     }
   }
@@ -175,6 +178,18 @@ export class FileDownloadService extends FileTransferBaseService {
       return;
     }
 
+    // The first chunk fixes the count, at most one chunk per MIN_CHUNK_SIZE bytes; none is empty.
+    const fitsOffer =
+      totalChunks >= 1 &&
+      totalChunks <= Math.max(1, Math.ceil(fileDownload.fileSize / MIN_CHUNK_SIZE)) &&
+      (fileDownload.totalChunks === 0 || totalChunks === fileDownload.totalChunks) &&
+      chunkIndex < totalChunks &&
+      chunk.byteLength > 0;
+    if (!fitsOffer) {
+      await this.rejectInvalidChunk(fileDownload, fromUser, chunkIndex, totalChunks);
+      return;
+    }
+
     // Initialize totalChunks
     if (fileDownload.totalChunks === 0) {
       fileDownload.totalChunks = totalChunks;
@@ -184,6 +199,11 @@ export class FileDownloadService extends FileTransferBaseService {
     // Check for duplicate chunk
     if (fileDownload.receivedChunks.has(chunkIndex)) {
       this.logger.warn('handleDataChunk', `Duplicate chunk ${chunkIndex} for ${fileId}, ignoring`);
+      return;
+    }
+
+    if (fileDownload.receivedSize + chunk.byteLength > fileDownload.fileSize) {
+      await this.rejectInvalidChunk(fileDownload, fromUser, chunkIndex, totalChunks);
       return;
     }
 
@@ -206,7 +226,7 @@ export class FileDownloadService extends FileTransferBaseService {
     await this.updateActiveDownloads();
 
     // Check if all chunks received
-    if (fileDownload.receivedChunks.size >= totalChunks) {
+    if (fileDownload.receivedChunks.size === fileDownload.totalChunks) {
       this.logger.info('handleDataChunk', `All chunks received for fileId=${fileId}`);
       await this.assembleAndDownloadFile(fileDownload, userMap, fromUser);
     } else {
@@ -215,6 +235,31 @@ export class FileDownloadService extends FileTransferBaseService {
         `File ${fileId.substring(0, 8)}... in progress: ${fileDownload.receivedChunks.size}/${totalChunks} chunks`
       );
     }
+  }
+
+  /** Fails a transfer whose chunk doesn't fit the offer's size or chunk count. */
+  private async rejectInvalidChunk(
+    fileDownload: FileDownload,
+    fromUser: string,
+    chunkIndex: number,
+    totalChunks: number
+  ): Promise<void> {
+    this.logger.error(
+      'handleDataChunk',
+      `Chunk ${chunkIndex}/${totalChunks} for ${fileDownload.fileId} does not fit the offer`
+    );
+    this.toaster.error(
+      this.translate.instant('CHUNK_INTEGRITY_ERROR', {
+        chunkIndex: chunkIndex + 1,
+        totalChunks,
+      })
+    );
+    this.finishReceiveSpan(fromUser, fileDownload.fileId, 'invalid_chunk', {
+      chunk_index: chunkIndex,
+      total_chunks: totalChunks,
+      bytes_received: fileDownload.receivedSize,
+    });
+    await this.cleanupAfterDownload(fromUser, fileDownload.fileId);
   }
 
   /**
@@ -556,14 +601,13 @@ export class FileDownloadService extends FileTransferBaseService {
       `File upload from ${fromUser} (fileId=${fileId}) was cancelled`
     );
 
-    this.finishReceiveSpan(fromUser, fileId, 'cancelled', { cancelled_by: 'sender' });
-
     const userMap = await this.getIncomingFileTransfers(fromUser);
-    if (userMap) {
-      userMap.delete(fileId);
-      if (userMap.size === 0) {
-        await this.deleteIncomingFileTransfers(fromUser);
-      }
+    if (!userMap?.has(fileId)) return;
+
+    this.finishReceiveSpan(fromUser, fileId, 'cancelled', { cancelled_by: 'sender' });
+    userMap.delete(fileId);
+    if (userMap.size === 0) {
+      await this.deleteIncomingFileTransfers(fromUser);
     }
 
     await this.updateIncomingFileOffers();

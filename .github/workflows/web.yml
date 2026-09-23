@@ -55,7 +55,7 @@ jobs:
 
       - name: Prettier
         working-directory: client/web
-        run: npm run format
+        run: npm run format:check
 
       - name: Third-party acknowledgements
         working-directory: client/web
@@ -94,3 +94,7 @@ jobs:
       - name: Production Build
         working-directory: client/web
         run: npm run build -- --configuration=production
+
+      - name: Content Security Policy
+        working-directory: client/web
+        run: npm run csp:check

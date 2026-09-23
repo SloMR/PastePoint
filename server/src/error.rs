@@ -12,6 +12,10 @@ pub enum ServerError {
     BadRequest(String),
     #[display("Forbidden")]
     Forbidden,
+    #[display("Too Many Requests")]
+    TooManyRequests,
+    #[display("Service Unavailable")]
+    ServiceUnavailable,
 }
 
 impl ResponseError for ServerError {
@@ -29,6 +33,12 @@ impl ResponseError for ServerError {
             ServerError::Forbidden => HttpResponse::Forbidden()
                 .content_type(CONTENT_TYPE_TEXT_PLAIN)
                 .body("Forbidden"),
+            ServerError::TooManyRequests => HttpResponse::TooManyRequests()
+                .content_type(CONTENT_TYPE_TEXT_PLAIN)
+                .body("Too Many Requests"),
+            ServerError::ServiceUnavailable => HttpResponse::ServiceUnavailable()
+                .content_type(CONTENT_TYPE_TEXT_PLAIN)
+                .body("Service Unavailable"),
         }
     }
 }
