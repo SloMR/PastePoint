@@ -34,11 +34,11 @@ sed_in_place() {
     fi
 }
 
-# Function to update file content
-update_file() {
+# Replace a whole line matching a pattern, whatever its current value, and verify the result
+update_line() {
     local file=$1
-    local old_value=$2
-    local new_value=$3
+    local pattern=$2
+    local new_line=$3
 
     if [ ! -f "$file" ]; then
         echo "Error: Required file not found: $file"
@@ -46,9 +46,9 @@ update_file() {
     fi
 
     local escaped_new
-    escaped_new="$(escape_sed_replacement "$new_value")"
+    escaped_new="$(escape_sed_replacement "$new_line")"
 
-    if ! sed_in_place "s|$old_value|$escaped_new|g" "$file"; then
+    if ! sed_in_place "s|$pattern|$escaped_new|" "$file" || ! grep -Fqx "$new_line" "$file"; then
         echo "Error: Failed to update $file"
         exit 1
     fi
@@ -80,8 +80,8 @@ while ! validate_ip "$local_ip"; do
 done
 
 # Update .env.development
-update_file "$PROJECT_ROOT/.env.development" "SERVER_NAME=127.0.0.1" "SERVER_NAME=$local_ip"
-update_file "$PROJECT_ROOT/.env.development" "HOST=127.0.0.1" "HOST=0.0.0.0"
+update_line "$ENV_FILE" '^SERVER_NAME=.*$' "SERVER_NAME=$local_ip"
+update_line "$ENV_FILE" '^HOST=.*$' 'HOST=0.0.0.0'
 
 # Update client environments
 escaped_ip="$(escape_sed_replacement "$local_ip")"
@@ -103,14 +103,16 @@ sed_in_place "s|static let host = \"[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\.[0-9]
     "$PROJECT_ROOT/client/ios/PastePoint/Core/Config/AppEnvironment.swift"
 echo "Updated AppEnvironment.swift"
 
-# Update server configurations
-update_file "$PROJECT_ROOT/server/config/development.toml" "cors_allowed_origins = \"https://127.0.0.1\"" "cors_allowed_origins = \"https://$local_ip\""
-update_file "$PROJECT_ROOT/server/config/docker-dev.toml" "cors_allowed_origins = \"https://127.0.0.1\"" "cors_allowed_origins = \"https://$local_ip\""
+# Update server configurations; the server rejects WebSocket origins other than this one
+for config in development docker-dev; do
+    update_line "$PROJECT_ROOT/server/config/$config.toml" \
+        '^cors_allowed_origins = "https://[0-9.][0-9.]*"$' "cors_allowed_origins = \"https://$local_ip\""
 
-# Keep the web client's update-policy URL in sync with the host
-update_file "$PROJECT_ROOT/server/config/development.toml" "url = \"https://127.0.0.1\"" "url = \"https://$local_ip\""
-update_file "$PROJECT_ROOT/server/config/docker-dev.toml" "url = \"https://127.0.0.1\"" "url = \"https://$local_ip\""
+    # Keep the web client's update-policy URL in sync with the host
+    update_line "$PROJECT_ROOT/server/config/$config.toml" \
+        '^url = "https://[0-9.][0-9.]*"$' "url = \"https://$local_ip\""
+done
 
 echo "Network configuration completed successfully!"
 echo "Your local IP address ($local_ip) has been set in all configuration files."
-echo "You can now run 'docker compose up --build' to start the application."
+echo "Generate a matching certificate with './scripts/generate-certs.sh $local_ip', then run 'make dev'."
