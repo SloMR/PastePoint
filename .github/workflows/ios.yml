@@ -25,8 +25,8 @@ permissions:
 env:
   DESTINATION: 'platform=iOS Simulator,name=iPhone 17 Pro,arch=arm64'
   DERIVED_DATA: ${{ github.workspace }}/client/ios/build
-  SWIFTLINT_VERSION: '0.65.0'
-  SWIFTFORMAT_VERSION: '0.61.1'
+  SWIFTLINT_VERSION: '0.65.1'
+  SWIFTFORMAT_VERSION: '0.63.0'
 
 jobs:
   lint:
@@ -36,7 +36,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
 
@@ -77,7 +77,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
 
@@ -95,7 +95,7 @@ jobs:
         run: echo "version=$(xcodebuild -version | head -1 | sed 's/Xcode //')" >> "$GITHUB_OUTPUT"
 
       - name: Cache SwiftPM
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ${{ env.DERIVED_DATA }}/SourcePackages

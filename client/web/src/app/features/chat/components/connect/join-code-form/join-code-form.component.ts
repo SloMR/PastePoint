@@ -1,14 +1,14 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { DeviceDetectorService } from 'ngx-device-detector';
 
 import { extractSessionCode } from '../../../../../utils/session-link.util';
 
 @Component({
   selector: 'app-join-code-form',
-  imports: [CommonModule, FormsModule, TranslateModule],
+  imports: [CommonModule, FormsModule, TranslatePipe],
   templateUrl: './join-code-form.component.html',
   styleUrl: './join-code-form.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

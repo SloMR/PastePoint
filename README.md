@@ -10,7 +10,7 @@
 
 # PastePoint
 
-PastePoint is a secure, feature-rich file-sharing service designed for local networks. It enables users to share files and communicate efficiently through peer-to-peer WebRTC connections. It combines a Rust signaling server, an Angular 21 web client with SSR, and a native SwiftUI iOS client.
+PastePoint is a secure, feature-rich file-sharing service designed for local networks. It enables users to share files and communicate efficiently through peer-to-peer WebRTC connections. It combines a Rust signaling server, an Angular 22 web client with SSR, and a native SwiftUI iOS client.
 
 ## Usage Disclaimer
 
@@ -70,7 +70,7 @@ PastePoint is a secure, feature-rich file-sharing service designed for local net
 [![Actix](https://img.shields.io/badge/Actix-4.13-blue)](https://actix.rs/)
 [![OpenSSL](https://img.shields.io/badge/OpenSSL-0.10-yellow)](https://www.openssl.org/)
 
-- **Framework**: Actix Web for HTTP/TLS, `actix-ws` for WebSocket signaling (Rust edition 2024, toolchain 1.98.0)
+- **Framework**: Actix Web for HTTP/TLS, `actix-ws` for WebSocket signaling (Rust edition 2024, toolchain 1.98.1)
 - **Security**: OpenSSL for TLS termination
 - **Utilities**: UUID generation, Serde serialization
 - **Rate Limiting**: Actix-governor for request throttling
@@ -80,9 +80,8 @@ PastePoint is a secure, feature-rich file-sharing service designed for local net
 
 #### Web (Angular)
 
-[![Angular](https://img.shields.io/badge/Angular-21-red)](https://angular.io/)
-[![Tailwind](https://img.shields.io/badge/Tailwind-3.4-blue)](https://tailwindcss.com/)
-[![Flowbite](https://img.shields.io/badge/Flowbite-3.1-cyan)](https://flowbite.com/)
+[![Angular](https://img.shields.io/badge/Angular-22-red)](https://angular.io/)
+[![Tailwind](https://img.shields.io/badge/Tailwind-4.3-blue)](https://tailwindcss.com/)
 
 - **Rendering**: Server-Side Rendering with Angular SSR
 - **State Management**: RxJS observables
@@ -98,7 +97,7 @@ PastePoint is a secure, feature-rich file-sharing service designed for local net
 
 [![Swift](https://img.shields.io/badge/Swift-6.0-orange)](https://swift.org/)
 [![iOS](https://img.shields.io/badge/iOS-17.6%2B-black)](https://developer.apple.com/ios/)
-[![WebRTC](https://img.shields.io/badge/WebRTC-147.0-green)](https://github.com/stasel/WebRTC)
+[![WebRTC](https://img.shields.io/badge/WebRTC-153.0-green)](https://github.com/stasel/WebRTC)
 
 - **UI**: Native SwiftUI for iPhone and iPad
 - **Concurrency**: Swift 6 strict concurrency
@@ -184,8 +183,8 @@ pastepoint/
 ### Prerequisites:
 
 - Docker and Docker Compose
-- Node.js (v24.16.0 as specified in `.nvmrc`)
-- Rust 1.98.0 (specified in `rust-toolchain`, edition 2024)
+- Node.js (v24.21.0 as specified in `.nvmrc`)
+- Rust 1.98.1 (specified in `rust-toolchain`, edition 2024)
 
 #### Windows-Specific Requirements:
 

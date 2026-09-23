@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-blurred-preview',
-  imports: [TranslateModule],
+  imports: [TranslatePipe],
   templateUrl: './blurred-preview.component.html',
   styleUrl: './blurred-preview.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

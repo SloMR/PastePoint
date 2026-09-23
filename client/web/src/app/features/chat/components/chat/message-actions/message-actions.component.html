@@ -7,7 +7,7 @@
     [attr.aria-expanded]="isOpen()"
     aria-haspopup="menu"
     [title]="'MESSAGE_ACTIONS' | translate"
-    class="flex h-6 w-6 items-center justify-center rounded text-gray-400 transition-colors hover:bg-inputBackground hover:text-content dark:text-gray-500 dark:hover:bg-surfaceDark dark:hover:text-white"
+    class="flex h-6 w-6 items-center justify-center rounded-sm text-gray-400 transition-colors hover:bg-inputBackground hover:text-content dark:text-gray-500 dark:hover:bg-surfaceDark dark:hover:text-white"
   >
     <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
       <circle cx="5" cy="12" r="1.6" />
@@ -21,7 +21,7 @@
     <div
       role="menu"
       [attr.aria-label]="'MESSAGE_ACTIONS' | translate"
-      class="absolute start-0 top-full z-50 mt-1 min-w-[11rem] max-w-[calc(100vw-1rem)] overflow-hidden rounded-lg border border-borderLight bg-pageBackground py-1 shadow-lg dark:border-borderDark dark:bg-surfaceDark"
+      class="absolute inset-s-0 top-full z-50 mt-1 min-w-44 max-w-[calc(100vw-1rem)] overflow-hidden rounded-lg border border-borderLight bg-pageBackground py-1 shadow-lg dark:border-borderDark dark:bg-surfaceDark"
     >
       <button
         type="button"

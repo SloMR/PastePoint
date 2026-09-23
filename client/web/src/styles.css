@@ -1,6 +1,122 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  /* Primary colors */
+  --color-primary-100: #e0f2fe;
+  --color-primary-300: #7dd3fc;
+
+  /* Secondary colors */
+  --color-secondary-300: #d1d5db;
+  --color-secondary-400: #9ca3af;
+  --color-secondary-600: #4b5563;
+  --color-secondary-700: #374151;
+  --color-secondary-800: #1f2937;
+  --color-secondary-900: #111827;
+
+  /* Danger color */
+  --color-danger: #d93333;
+
+  /* Custom colors */
+  --color-brand: #3c54f0; /* Primary brand color */
+  --color-brandDark: #6366f1; /* Dark mode brand color */
+
+  --color-surface: #f0f4ff; /* Secondary background surface */
+  --color-surfaceDark: #1f2937; /* Dark mode surface */
+
+  --color-content: #333333; /* Main text/content color */
+  --color-contentMuted: #9ca3af; /* Muted text for dark mode */
+
+  --color-baseDark: #111827; /* Dark mode base background */
+
+  /* Background colors */
+  --color-pageBackground: #f9fafb; /* Light page background */
+  --color-contentArea: #f7f7fc; /* Main content area background */
+  --color-stepCard: #e8edf2; /* Welcome step/feature card background */
+  --color-messageBackground: #f0f2f5; /* Message bubble background (light) */
+  --color-inputBackground: #e5e7eb; /* Input/form backgrounds */
+
+  /* Border colors */
+  --color-borderLight: #eaecf0; /* Light borders */
+  --color-borderButton: #e3e5e8; /* Button borders (light) */
+  --color-borderDark: #374151; /* Dark borders */
+
+  /* Text colors */
+  --color-textMuted: #6b7280; /* Muted text color */
+  --color-textVeryMuted: #9ca3af; /* Very muted text */
+
+  /* Tailwind v3 values for the default-palette shades in use; v4's palette is more saturated */
+  --color-amber-100: #fef3c7;
+  --color-amber-200: #fde68a;
+  --color-amber-300: #fcd34d;
+  --color-amber-400: #fbbf24;
+  --color-amber-500: #f59e0b;
+  --color-amber-600: #d97706;
+  --color-amber-700: #b45309;
+  --color-amber-800: #92400e;
+
+  --color-blue-200: #bfdbfe;
+  --color-blue-400: #60a5fa;
+  --color-blue-500: #3b82f6;
+  --color-blue-600: #2563eb;
+  --color-blue-800: #1e40af;
+
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
+
+  --color-green-500: #22c55e;
+
+  --color-red-500: #ef4444;
+
+  --color-sky-400: #38bdf8;
+  --color-sky-500: #0ea5e9;
+
+  --color-yellow-400: #facc15;
+
+  --font-sans: expo-arabic-book, sans-serif;
+  --font-expoArabic: expo-arabic-book, sans-serif;
+  --font-expoArabicBold: expo-arabic-bold, sans-serif;
+  --font-expoArabicMedium: expo-arabic-medium, sans-serif;
+  --font-expoArabicLight: expo-arabic-light, sans-serif;
+
+  --radius-xl: 1rem;
+
+  --shadow-soft: 0 4px 24px -2px rgb(0 0 0 / 0.1);
+}
+
+@layer base {
+  /* v4 borders default to currentcolor; keep v3's gray-200 */
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+
+  /* v4 no longer gives buttons a pointer cursor */
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+/* Placeholders keep the field's text color, as they did under v3 */
+@layer components {
+  input::placeholder,
+  textarea::placeholder {
+    color: inherit;
+  }
+}
 
 @font-face {
   font-family: expo-arabic-bold;

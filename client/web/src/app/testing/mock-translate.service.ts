@@ -4,7 +4,7 @@ import { Observable, of } from 'rxjs';
 @Injectable()
 export class MockTranslateService {
   public currentLang = 'en';
-  public defaultLang = 'en';
+  public fallbackLang = 'en';
 
   private translations: Record<string, Record<string, string>> = {
     en: {
@@ -60,8 +60,12 @@ export class MockTranslateService {
     return 'en';
   }
 
-  setDefaultLang(lang: string): void {
-    this.defaultLang = lang;
+  getCurrentLang(): string {
+    return this.currentLang;
+  }
+
+  setFallbackLang(lang: string): void {
+    this.fallbackLang = lang;
   }
 
   use(lang: string): Observable<unknown> {
@@ -83,5 +87,5 @@ export class MockTranslateService {
 
   onLangChange = new Observable();
   onTranslationChange = new Observable();
-  onDefaultLangChange = new Observable();
+  onFallbackLangChange = new Observable();
 }

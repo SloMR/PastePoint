@@ -70,14 +70,14 @@
                                 <p
                                   class="truncate text-xs leading-5 text-white font-expoArabic"
                                   dir="ltr"
-                                  [title]="message.fileTransfer?.fileName || ''"
+                                  [title]="message.fileTransfer.fileName || ''"
                                 >
                                   {{
-                                    middleTruncateFilename(message.fileTransfer?.fileName || '', 30)
+                                    middleTruncateFilename(message.fileTransfer.fileName || '', 30)
                                   }}
                                 </p>
                                 <p class="text-[11px] text-white/70 font-expoArabic" dir="ltr">
-                                  {{ message.fileTransfer?.fileSize || 0 | filesize: 2 }}
+                                  {{ message.fileTransfer.fileSize || 0 | filesize: 2 }}
                                 </p>
                                 <p class="mt-1 text-xs font-normal font-expoArabic text-white">
                                   {{ 'WANTS_TO_SEND_FILE' | translate }}
@@ -94,7 +94,7 @@
                                 <app-blurred-preview
                                   class="mb-3"
                                   [src]="message.previewUrl"
-                                  [alt]="message.fileTransfer?.fileName || 'Attachment'"
+                                  [alt]="message.fileTransfer.fileName || 'Attachment'"
                                   [revealed]="isPreviewRevealed(message)"
                                   (revealedChange)="revealPreview(message)"
                                 />
@@ -164,7 +164,7 @@
                                 height="16"
                               />
                               <p
-                                class="flex-1 min-w-0 whitespace-pre-line break-words text-xs leading-5 text-white font-expoArabic"
+                                class="flex-1 min-w-0 whitespace-pre-line wrap-break-word text-xs leading-5 text-white font-expoArabic"
                               >
                                 {{ message.text }}
                               </p>
@@ -279,8 +279,8 @@
                                 <p
                                   class="mb-1 text-sm font-expoArabic text-content dark:text-contentMuted"
                                 >
-                                  {{ message.fileTransfer?.fileName }} ({{
-                                    message.fileTransfer?.fileSize || 0 | filesize: 2
+                                  {{ message.fileTransfer.fileName }} ({{
+                                    message.fileTransfer.fileSize || 0 | filesize: 2
                                   }})
                                 </p>
                                 <p
@@ -358,19 +358,17 @@
                                   </p>
                                 </div>
                               } @else {
-                                <p class="min-w-0 flex-1 break-words">{{ message.text }}</p>
+                                <p class="min-w-0 flex-1 wrap-break-word">{{ message.text }}</p>
                               }
                             </div>
                             @if (message.fileTransfer?.batchId) {
                               <p
                                 class="mt-1 text-xs font-expoArabic text-content/70 dark:text-contentMuted/70"
                               >
-                                @if (
-                                  message.fileTransfer?.status === FileTransferStatus.COMPLETED
-                                ) {
+                                @if (message.fileTransfer.status === FileTransferStatus.COMPLETED) {
                                   @if (
-                                    (message.fileTransfer?.deliveredCount || 0) >=
-                                    (message.fileTransfer?.recipientCount || 0)
+                                    (message.fileTransfer.deliveredCount || 0) >=
+                                    (message.fileTransfer.recipientCount || 0)
                                   ) {
                                     {{ 'FILE_SEND_DELIVERED' | translate }}
                                   } @else {
@@ -378,13 +376,13 @@
                                       'FILE_SEND_PARTIAL'
                                         | translate
                                           : {
-                                              delivered: message.fileTransfer?.deliveredCount,
-                                              total: message.fileTransfer?.recipientCount,
+                                              delivered: message.fileTransfer.deliveredCount,
+                                              total: message.fileTransfer.recipientCount,
                                             }
                                     }}
                                   }
                                 } @else if (
-                                  message.fileTransfer?.status === FileTransferStatus.DECLINED
+                                  message.fileTransfer.status === FileTransferStatus.DECLINED
                                 ) {
                                   {{ 'FILE_SEND_NONE' | translate }}
                                 } @else {

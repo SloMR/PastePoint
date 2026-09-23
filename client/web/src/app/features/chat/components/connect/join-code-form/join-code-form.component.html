@@ -3,14 +3,14 @@
     type="text"
     [(ngModel)]="code"
     (keydown.enter)="submit()"
-    class="min-w-0 flex-1 rounded-lg border bg-transparent px-3 text-base h-[38px] border-inputBackground font-expoArabicMedium text-textMuted outline-none [font-size-adjust:0.4375] dark:border-surfaceDark dark:bg-surfaceDark dark:text-contentMuted"
+    class="min-w-0 flex-1 rounded-lg border bg-transparent px-3 py-2 text-base h-[38px] border-inputBackground focus:border-textMuted font-expoArabicMedium text-textMuted outline-hidden [font-size-adjust:0.4375] dark:border-surfaceDark dark:focus:border-surfaceDark dark:bg-surfaceDark dark:text-contentMuted"
     [placeholder]="'SESSION_CODE_PLACEHOLDER' | translate"
   />
   @if (showScan) {
     <button
       type="button"
       (click)="scanRequested.emit()"
-      class="flex flex-shrink-0 items-center justify-center rounded-lg border w-[38px] h-[38px] border-brand text-brand hover:bg-brand/10 dark:border-brandDark dark:text-brandDark dark:hover:bg-brandDark/10"
+      class="flex shrink-0 items-center justify-center rounded-lg border w-[38px] h-[38px] border-brand text-brand hover:bg-brand/10 dark:border-brandDark dark:text-brandDark dark:hover:bg-brandDark/10"
       [title]="'SCAN_QR_CODE' | translate"
       [attr.aria-label]="'SCAN_QR_CODE' | translate"
     >
@@ -44,7 +44,7 @@
     type="button"
     (click)="submit()"
     [disabled]="!canJoin"
-    class="flex-shrink-0 rounded-lg px-4 text-sm text-white h-[38px] bg-brand font-expoArabicMedium hover:bg-brand/80 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brandDark dark:hover:bg-brandDark/80"
+    class="shrink-0 rounded-lg px-4 text-sm text-white h-[38px] bg-brand font-expoArabicMedium hover:bg-brand/80 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brandDark dark:hover:bg-brandDark/80"
   >
     {{ 'JOIN' | translate }}
   </button>

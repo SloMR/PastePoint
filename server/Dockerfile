@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.5
 # Stage 1: Build the Rust app (Alpine for musl-linked binary)
-FROM rust:1.98.0-alpine AS builder
+FROM rust:1.98.1-alpine AS builder
 WORKDIR /usr/src/app
 
 ARG RUST_BUILD_MODE=release
@@ -35,7 +35,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
   fi
 
 # Stage 2: Create a minimal runtime image
-FROM alpine:3.21
+FROM alpine:3.24
 
 WORKDIR /usr/local/bin
 

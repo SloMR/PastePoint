@@ -50,9 +50,9 @@ export function app(): express.Express {
   server.set('view engine', 'html');
   server.set('views', browserDistFolder);
 
-  // Serve static files from /browser
+  // Serve static files (any path with a dot) from /browser
   server.get(
-    '*.*',
+    /\./,
     express.static(browserDistFolder, {
       maxAge: '1y',
       etag: true,
@@ -60,12 +60,12 @@ export function app(): express.Express {
     })
   );
 
-  server.get('*.*', (req, res) => {
+  server.get(/\./, (req, res) => {
     res.sendStatus(404);
   });
 
   // All regular routes use the Universal engine
-  server.get('*', (req, res, next) => {
+  server.get('/{*splat}', (req, res, next) => {
     const { protocol, originalUrl, baseUrl, headers } = req;
 
     // Get protocol from X-Forwarded-Proto header when behind a proxy
@@ -136,7 +136,10 @@ function run(): void {
 }
 
 function startHttpServer(app: express.Express, port: number, host: string, isDev: boolean): void {
-  app.listen(port, host, () => {
+  app.listen(port, host, (error?: Error) => {
+    if (error) {
+      throw error;
+    }
     const mode = isDev ? '[DEV]' : '';
     console.log(`${mode} HTTP server listening on http://${host}:${port}`);
   });

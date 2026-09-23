@@ -84,7 +84,7 @@ Closes #123"
 
 ### Rust (Server)
 
-Toolchain version **1.98.0** (see `rust-toolchain`), edition 2024.
+Toolchain version **1.98.1** (see `rust-toolchain`), edition 2024.
 
 ```bash
 cd server
@@ -101,7 +101,7 @@ cargo test         # Run tests
 
 ### Web (Angular)
 
-Node **v24.16.0** (see `.nvmrc`).
+Node **v24.21.0** (see `.nvmrc`).
 
 ```bash
 cd client/web
@@ -136,7 +136,7 @@ xcodebuild test \
 - Follow Swift API design guidelines
 - Prefer `async/await` for concurrency
 - Keep UI logic in SwiftUI views and business logic in separate types
-- Match the CI-pinned tool versions — SwiftLint **0.65.0**, SwiftFormat **0.61.1** (see `.github/workflows/ios.yml`); CI asserts the exact versions
+- Match the CI-pinned tool versions — SwiftLint **0.65.1**, SwiftFormat **0.63.0** (see `.github/workflows/ios.yml`); CI asserts the exact versions
 - Localize user-facing strings in `Localizable.xcstrings` using the symbolic `UPPER_SNAKE_CASE` keys shared with the web client
 - Changes to the signaling, data-channel, or chunk protocol must stay wire-compatible with the web client — the two clients interoperate
 

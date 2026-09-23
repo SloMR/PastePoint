@@ -12,8 +12,12 @@ import * as Sentry from '@sentry/angular';
 
 import { routes } from './app.routes';
 import { SelectivePreloadingStrategy } from './core/services/ui/selective-preloading.strategy';
-import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
-import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import {
+  provideClientHydration,
+  withEventReplay,
+  withNoIncrementalHydration,
+} from '@angular/platform-browser';
+import { TranslateLoader, provideTranslateService } from '@ngx-translate/core';
 import { InMemoryTranslateLoader } from './core/i18n/translate-loader';
 import { ThemeService } from './core/services/ui/theme.service';
 import { LanguageService } from './core/services/ui/language.service';
@@ -79,7 +83,7 @@ export const appConfig: ApplicationConfig = {
         reloadOnceForChunkError(e.error);
       })
     ),
-    provideClientHydration(withEventReplay()),
+    provideClientHydration(withEventReplay(), withNoIncrementalHydration()),
     provideHotToastConfig({
       position: 'top-center',
       duration: 2000,
@@ -95,15 +99,15 @@ export const appConfig: ApplicationConfig = {
         wordBreak: 'break-word',
       },
     }),
-    // Initialize translation module with in-memory loader
+    // Initialize translations with the in-memory loader
+    provideTranslateService({
+      fallbackLang: 'en',
+      loader: {
+        provide: TranslateLoader,
+        useClass: InMemoryTranslateLoader,
+      },
+    }),
     importProvidersFrom(
-      TranslateModule.forRoot({
-        fallbackLang: 'en',
-        loader: {
-          provide: TranslateLoader,
-          useClass: InMemoryTranslateLoader,
-        },
-      }),
       LoggerModule.forRoot(
         {
           level: environment.logLevel,

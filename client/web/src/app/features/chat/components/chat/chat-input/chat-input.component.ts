@@ -9,10 +9,11 @@ import {
   PLATFORM_ID,
   ViewChild,
   inject,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import type { EmojiClickEvent } from 'emoji-picker-element/shared';
 import { FileSizePipe } from '../../../../../utils/file-size.pipe';
 import { middleTruncateFilename } from '../../../../../utils/filename.util';
@@ -30,9 +31,10 @@ export interface StagedAttachment {
 
 @Component({
   selector: 'app-chat-input',
-  imports: [CommonModule, FormsModule, TranslateModule, FileSizePipe],
+  imports: [CommonModule, FormsModule, TranslatePipe, FileSizePipe],
   templateUrl: './chat-input.component.html',
   styleUrl: './chat-input.component.css',
+  changeDetection: ChangeDetectionStrategy.Eager,
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class ChatInputComponent implements OnDestroy {

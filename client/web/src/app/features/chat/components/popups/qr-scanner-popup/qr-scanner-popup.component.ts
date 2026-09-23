@@ -11,9 +11,10 @@ import {
   SimpleChanges,
   ViewChild,
   inject,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { NGXLogger } from 'ngx-logger';
 import { extractSessionCodeFromUrl } from '../../../../../utils/session-link.util';
 import { reloadOnceForChunkError } from '../../../../../utils/chunk-reload';
@@ -22,8 +23,9 @@ type JsQrFn = typeof import('jsqr').default;
 
 @Component({
   selector: 'app-qr-scanner-popup',
-  imports: [CommonModule, TranslateModule],
+  imports: [CommonModule, TranslatePipe],
   templateUrl: './qr-scanner-popup.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './qr-scanner-popup.component.css',
 })
 export class QrScannerPopupComponent implements OnChanges, OnDestroy {

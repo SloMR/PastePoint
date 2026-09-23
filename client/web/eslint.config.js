@@ -4,6 +4,11 @@ import parser from '@typescript-eslint/parser';
 import eslint from '@eslint/js';
 import globals from 'globals';
 import templateParser from '@angular-eslint/template-parser';
+import angularEslint from 'angular-eslint';
+
+const angularRecommended = angularEslint.configs.tsRecommended.find(
+  (config) => config.name === 'angular-eslint/ts-recommended'
+).rules;
 
 export default [
   // TypeScript configuration
@@ -27,7 +32,7 @@ export default [
     },
     rules: {
       ...eslint.configs.recommended.rules,
-      ...angular.configs.recommended.rules,
+      ...angularRecommended,
       ...tslint.configs.recommended.rules,
       '@angular-eslint/directive-selector': [
         'error',
@@ -39,6 +44,8 @@ export default [
       ],
       '@typescript-eslint/no-explicit-any': 'off',
       '@angular-eslint/prefer-standalone': 'off',
+      // Warn until the zoneless migration converts the remaining Eager components.
+      '@angular-eslint/prefer-on-push-component-change-detection': 'warn',
       '@typescript-eslint/no-unused-vars': [
         'warn',
         {
@@ -61,7 +68,7 @@ export default [
       parser: templateParser,
     },
     rules: {
-      ...angular.configs.recommended.rules,
+      ...angularRecommended,
     },
   },
   {

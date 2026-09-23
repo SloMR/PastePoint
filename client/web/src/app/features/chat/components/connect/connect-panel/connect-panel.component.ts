@@ -8,7 +8,7 @@ import {
   inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { canWebShare, shareUrl } from '../../../../../utils/web-share.util';
 import { JoinCodeFormComponent } from '../join-code-form/join-code-form.component';
@@ -16,7 +16,7 @@ import { SessionQrCodeComponent } from '../session-qr-code/session-qr-code.compo
 
 @Component({
   selector: 'app-connect-panel',
-  imports: [CommonModule, TranslateModule, JoinCodeFormComponent, SessionQrCodeComponent],
+  imports: [CommonModule, TranslatePipe, JoinCodeFormComponent, SessionQrCodeComponent],
   templateUrl: './connect-panel.component.html',
   styleUrl: './connect-panel.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

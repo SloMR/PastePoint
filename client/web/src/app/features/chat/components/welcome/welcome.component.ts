@@ -8,7 +8,7 @@ import {
   inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { canWebShare, shareUrl } from '../../../../utils/web-share.util';
 
@@ -20,7 +20,7 @@ import { SessionQrCodeComponent } from '../connect/session-qr-code/session-qr-co
   selector: 'app-welcome',
   imports: [
     CommonModule,
-    TranslateModule,
+    TranslatePipe,
     WelcomeCardComponent,
     JoinCodeFormComponent,
     SessionQrCodeComponent,

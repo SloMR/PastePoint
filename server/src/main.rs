@@ -15,7 +15,6 @@ use server::{
 use std::borrow::Cow;
 use std::io::Result;
 use std::net::{IpAddr, Ipv4Addr};
-use std::sync::Arc;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 const NAME: &str = env!("CARGO_PKG_NAME");
@@ -28,21 +27,18 @@ fn init_sentry(cfg: &SentryConfig) -> Option<sentry::ClientInitGuard> {
     let dsn = cfg.dsn.clone().filter(|s| !s.is_empty())?;
 
     let global_traces_rate = cfg.traces_sample_rate;
-    let options = sentry::ClientOptions {
-        release: sentry::release_name!(),
-        environment: cfg.environment.clone().map(Cow::Owned),
-        sample_rate: cfg.sample_rate,
-        traces_sample_rate: cfg.traces_sample_rate,
-        enable_logs: true,
-        server_name: Some(Cow::Borrowed("pastepoint-server")),
-        traces_sampler: Some(Arc::new(move |ctx| match ctx.name() {
+    let mut options = sentry::ClientOptions::new()
+        .maybe_release(sentry::release_name!())
+        .sample_rate(cfg.sample_rate)
+        .traces_sampler(move |ctx| match ctx.name() {
             name if name.starts_with("GET /ws") => 0.0,
             _ => global_traces_rate,
-        })),
-        send_default_pii: false,
-        attach_stacktrace: true,
-        max_breadcrumbs: 50,
-        before_send: Some(Arc::new(|mut event| {
+        })
+        .server_name("pastepoint-server")
+        .send_default_pii(false)
+        .attach_stacktrace(true)
+        .max_breadcrumbs(50)
+        .before_send(|mut event| {
             // Strip anything that could carry user-identifying data before the
             // event leaves the process.
             event.user = Some(sentry::protocol::User {
@@ -59,9 +55,8 @@ fn init_sentry(cfg: &SentryConfig) -> Option<sentry::ClientInitGuard> {
                 req.query_string = None;
             }
             Some(event)
-        })),
-        ..Default::default()
-    };
+        });
+    options.environment = cfg.environment.clone().map(Cow::Owned);
 
     let guard = sentry::init((dsn, options));
     sentry::configure_scope(|scope| {

@@ -126,6 +126,6 @@ if (typeof document !== 'undefined') {
 // Then bootstrap with the correct language
 bootstrapApplication(AppComponent, appConfig).then((appRef) => {
   const translate = appRef.injector.get(TranslateService);
-  translate.setDefaultLang(storedLang);
+  translate.setFallbackLang(storedLang);
   translate.use(storedLang);
 });

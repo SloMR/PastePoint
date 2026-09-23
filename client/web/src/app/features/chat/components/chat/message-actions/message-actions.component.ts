@@ -9,11 +9,11 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-message-actions',
-  imports: [TranslateModule],
+  imports: [TranslatePipe],
   templateUrl: './message-actions.component.html',
   styleUrl: './message-actions.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
