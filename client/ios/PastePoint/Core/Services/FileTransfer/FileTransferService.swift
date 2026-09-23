@@ -690,8 +690,9 @@ extension FileTransferService {
 
     // Atomic reserve (no await before this returns): skip if already committed
     // or already being written.
-    if activeDownloads[idx].receivedChunkURLs[chunkIndex] != nil { return }
-    if pendingChunkIndices[parsed.fileId]?.contains(chunkIndex) == true { return }
+    let isDuplicate = activeDownloads[idx].receivedChunkURLs[chunkIndex] != nil
+      || pendingChunkIndices[parsed.fileId]?.contains(chunkIndex) == true
+    if isDuplicate { return }
     pendingChunkIndices[parsed.fileId, default: []].insert(chunkIndex)
 
     // Write off the main actor.
@@ -727,9 +728,16 @@ extension FileTransferService {
       return
     }
 
+    // Checked after the write, against the state other in-flight chunks may have changed.
+    let totalChunks = Int(parsed.totalChunks)
+    guard activeDownloads[i].accepts(chunkIndex: chunkIndex, totalChunks: totalChunks, byteCount: data.count) else {
+      failDownload(fileId: parsed.fileId, from: peer, reason: .integrity, outcome: .invalidChunk)
+      return
+    }
+
     // Update download state.
     if activeDownloads[i].totalChunks == 0 {
-      activeDownloads[i].totalChunks = Int(parsed.totalChunks)
+      activeDownloads[i].totalChunks = totalChunks
       startReceiveSpan(for: activeDownloads[i])
     }
     activeDownloads[i].receivedChunkURLs[chunkIndex] = chunkURL

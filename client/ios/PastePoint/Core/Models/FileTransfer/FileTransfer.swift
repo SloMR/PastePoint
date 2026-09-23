@@ -110,6 +110,17 @@ struct FileDownload: Identifiable, Sendable {
   var previewDataUrl: String?
 }
 
+extension FileDownload {
+  /// True when a chunk fits the accepted offer; the first chunk fixes the count and bytes never exceed the size.
+  func accepts(chunkIndex: Int, totalChunks: Int, byteCount: Int) -> Bool {
+    totalChunks >= 1
+      && Int64(totalChunks) <= fileSize
+      && (self.totalChunks == 0 || totalChunks == self.totalChunks)
+      && chunkIndex < totalChunks
+      && receivedSize + Int64(byteCount) <= fileSize
+  }
+}
+
 // MARK: Soruce Kind
 
 enum FileSourceKind: Sendable, Equatable {
