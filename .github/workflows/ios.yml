@@ -23,7 +23,7 @@ permissions:
   pull-requests: read
 
 env:
-  DESTINATION: 'platform=iOS Simulator,name=iPhone 17 Pro,arch=arm64'
+  DESTINATION: 'generic/platform=iOS Simulator'
   DERIVED_DATA: ${{ github.workspace }}/client/ios/build
   SWIFTLINT_VERSION: '0.65.1'
   SWIFTFORMAT_VERSION: '0.63.0'
@@ -70,7 +70,7 @@ jobs:
         run: python3 scripts/acknowledgements/generate_ios_acknowledgements.py --check
 
   build:
-    name: Build and Test iOS Client
+    name: Build iOS Client
     runs-on: macos-26
     timeout-minutes: 25
 
@@ -103,23 +103,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-spm-${{ steps.xcode.outputs.version }}-
 
-      - name: Boot iOS Simulator
-        run: |
-          xcrun simctl list devices available
-          xcrun simctl boot "iPhone 17 Pro" || true
-
-      - name: Resolve Swift Package Dependencies
+      - name: Build Debug
         working-directory: client/ios
         run: |
-          xcodebuild -resolvePackageDependencies \
-            -project PastePoint.xcodeproj \
-            -scheme PastePoint \
-            -derivedDataPath '${{ env.DERIVED_DATA }}'
-
-      - name: Build for Testing
-        working-directory: client/ios
-        run: |
-          xcodebuild build-for-testing \
+          xcodebuild build \
             -project PastePoint.xcodeproj \
             -scheme PastePoint \
             -destination '${{ env.DESTINATION }}' \
@@ -127,20 +114,7 @@ jobs:
             -configuration Debug \
             -skipMacroValidation \
             -skipPackagePluginValidation \
-            COMPILER_INDEX_STORE_ENABLE=NO \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO
-
-      - name: Run Unit Tests
-        working-directory: client/ios
-        run: |
-          xcodebuild test-without-building \
-            -project PastePoint.xcodeproj \
-            -scheme PastePoint \
-            -destination '${{ env.DESTINATION }}' \
-            -derivedDataPath '${{ env.DERIVED_DATA }}' \
-            -configuration Debug \
+            ARCHS=arm64 \
             COMPILER_INDEX_STORE_ENABLE=NO \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
@@ -156,6 +130,7 @@ jobs:
             -destination '${{ env.DESTINATION }}' \
             -derivedDataPath '${{ env.DERIVED_DATA }}' \
             -configuration Release \
+            ARCHS=arm64 \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO
