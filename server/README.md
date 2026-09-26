@@ -278,27 +278,6 @@ Telemetry carries counts and kinds only:
 | `sessions.active` | Log, hourly | `count`                                                    |
 | `signaling.relay` | Transaction | Tag `signal.type`                                          |
 
-## Code layout
-
-The package builds a library crate, `server` (`src/lib.rs`), and a binary, `server_bin` (`src/main.rs`).
-
-| File                   | Contents                                                                                       |
-| ---------------------- | ---------------------------------------------------------------------------------------------- |
-| `src/main.rs`          | Startup: config, logging, Sentry, TLS, rate limiter, CORS, access log and route registration.  |
-| `src/lib.rs`           | The public API that `main.rs` and the tests use.                                               |
-| `src/routes.rs`        | HTTP handlers and the WebSocket handshake checks.                                              |
-| `src/session.rs`       | `WsChatSession`, one task per connection: frame parsing, commands, signal relay and heartbeat. |
-| `src/session_store.rs` | `SessionStore`: session keys, client counts, code expiry, unjoined-code caps and unique names. |
-| `src/chat_server.rs`   | `WsChatServer` behind `ChatServerHandle`: rooms, members and broadcasts.                       |
-| `src/config.rs`        | Loading of the TOML tables, and the origin check.                                              |
-| `src/rate_limit.rs`    | `ClientIpKeyExtractor` and the forwarded-address parser.                                       |
-| `src/consts.rs`        | Limits, timings, the code alphabet and the message prefixes.                                   |
-| `src/error.rs`         | `ServerError` and its plain-text HTTP responses.                                               |
-
-- There are no actors. Shared state sits behind mutexes: the `SessionStore` registry, the set of live names, and the rooms in `ChatServerHandle`.
-- Lock order: take the registry before the rooms, never the reverse. `SessionStore::remove_client` holds both.
-- A new route needs its handler in `routes.rs`, an export in `lib.rs` and a `.service(...)` call in `main.rs`. For Docker, also add a `location` to `nginx/locations.conf`; otherwise nginx sends the request to the web app.
-
 ## Tests
 
 - Tests live in `server/tests/` and use only the public API of the `server` crate. There are no inline `#[cfg(test)]` modules. Add a test to the file for its area, or create a new file.

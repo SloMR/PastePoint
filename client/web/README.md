@@ -128,49 +128,6 @@ Run them from `client/web/`. For the checks to run before you push, see [CONTRIB
 
 `serve:ssr:web` listens on `HOST` and `PORT`, by default `127.0.0.1:443`. A development build serves HTTPS with the certificate in `certs/`. A production build serves plain HTTP.
 
-## Layout
-
-```text
-client/web/
-├── src/
-│   ├── index.html                  # page shell: theme script, Umami tag
-│   ├── main.ts                     # browser entry, starts Sentry
-│   ├── main.server.ts              # SSR bootstrap
-│   ├── server.ts                   # Express server for SSR
-│   ├── styles.css                  # Tailwind CSS theme and global styles
-│   ├── environments/               # one file per build configuration
-│   └── app/
-│       ├── app.config.ts           # application providers
-│       ├── app.routes.ts           # routes
-│       ├── core/
-│       │   ├── components/         # layout, splash, update gate, language switcher
-│       │   ├── i18n/               # languages.ts and localizations/*.json
-│       │   ├── interfaces/         # shared types
-│       │   └── services/           # WebSocket, WebRTC, files, rooms, session, monitoring, UI
-│       ├── features/
-│       │   ├── chat/               # main screen: / and /private/:code
-│       │   │   └── components/
-│       │   │       ├── chat/       # messages, input, sidebar
-│       │   │       ├── connect/    # connect panel, join form, QR code
-│       │   │       ├── welcome/    # welcome screen
-│       │   │       ├── feedback/   # connection banners
-│       │   │       └── popups/     # create-room, end-session and QR scanner dialogs
-│       │   ├── acknowledgements/   # /acknowledgements
-│       │   ├── privacy-and-terms/  # /privacy
-│       │   └── not-found/          # /404
-│       ├── testing/                # test helpers and mocks
-│       └── utils/                  # helpers and constants
-└── public/
-    ├── .well-known/                # apple-app-site-association, served by nginx
-    ├── legal/                      # acknowledgements.json (generated)
-    ├── assets/                     # logos, favicons, social images
-    ├── fonts/
-    ├── icons/                      # SVG icons and avatars
-    ├── robots.txt
-    ├── sitemap.xml
-    └── site.webmanifest
-```
-
 ## Rules
 
 ### Translations

@@ -30,19 +30,6 @@ PastePoint sends chat messages and files between devices, peer to peer over WebR
 - **Languages**: English, Arabic (right to left), Spanish, French, Russian and Simplified Chinese.
 - **Clients**: a web app with server-side rendering and an app for iPhone and iPad, both with light and dark themes. An Android app is planned.
 
-## Repository layout
-
-| Path                             | Contents                                                                  | Docs                                    |
-| -------------------------------- | ------------------------------------------------------------------------- | --------------------------------------- |
-| `server/`                        | Signaling server: Rust, Actix Web, `actix-ws`                             | [Server readme](server/README.md)       |
-| `client/web/`                    | Web client: Angular, server-side rendering on Express, Tailwind CSS       | [Web readme](client/web/README.md)      |
-| `client/ios/`                    | iPhone and iPad app: SwiftUI, `stasel/WebRTC`                             | [iOS readme](client/ios/README.md)      |
-| `nginx/`                         | Reverse proxy: server template, routes, security headers, rate limits     |                                         |
-| `scripts/`                       | Network and certificate setup, acknowledgements, CSP check, release notes |                                         |
-| `docker-compose.yml`, `Makefile` | The container stack and its shortcuts                                     | [Run locally](#run-locally-with-docker) |
-
-Toolchain versions are pinned in `.nvmrc` (Node.js), `rust-toolchain` (Rust) and `client/ios/.xcode-version` (Xcode).
-
 ## Run locally with Docker
 
 ### Prerequisites
@@ -51,7 +38,7 @@ Toolchain versions are pinned in `.nvmrc` (Node.js), `rust-toolchain` (Rust) and
 - `make`, `bash` and `openssl`
 - On Windows: Docker Desktop with WSL2. Run every command below in a WSL2 shell.
 
-Node.js and Rust are needed only to run a component outside Docker, and Xcode only for the iOS app. See each component's readme.
+Node.js and Rust are needed only to run a component outside Docker, and Xcode only for the iOS app. See the [server](server/README.md), [web](client/web/README.md) and [iOS](client/ios/README.md) readmes. Toolchain versions are pinned in `.nvmrc` (Node.js), `rust-toolchain` (Rust) and `client/ios/.xcode-version` (Xcode).
 
 ### Use it on this computer
 
