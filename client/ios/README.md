@@ -1,330 +1,133 @@
 # PastePoint Client (iOS)
 
-The PastePoint iOS client is a native SwiftUI application for peer-to-peer file sharing and real-time chat over local networks. Features WebRTC mesh connections, chunked file transfer with integrity verification, QR-based private sessions, and full localization.
+The SwiftUI client for iPhone and iPad.
+It uses the same signaling and data-channel protocol as the web client, so iOS and web devices can share with each other.
+For what PastePoint does and how to start the whole stack, see the [root readme](../../README.md).
 
-[![Swift](https://img.shields.io/badge/Swift-6.0-orange)](https://swift.org/)
-[![iOS](https://img.shields.io/badge/iOS-17.6%2B-black)](https://developer.apple.com/ios/)
-[![Xcode](https://img.shields.io/badge/Xcode-27.0-blue)](https://developer.apple.com/xcode/)
-[![WebRTC](https://img.shields.io/badge/WebRTC-153.0-green)](https://github.com/stasel/WebRTC)
+## Requirements
 
-## Tech Stack
+- Xcode 27.0. It is pinned in `.xcode-version`, and CI builds with the same version.
+- iOS 17.6 or later, on iPhone and iPad (`IPHONEOS_DEPLOYMENT_TARGET` in the Xcode project).
+- A PastePoint server. Run it with Docker Compose (see the [root readme](../../README.md)) or with `cargo run` (see the [server readme](../../server/README.md)).
 
-### Core Features
+### Swift packages
 
-- **UI**: SwiftUI with a `NavigationStack` toolbar chat shell, iPad docked settings panel, and Liquid Glass toolbar items on iOS 26
-- **WebRTC**: [`stasel/WebRTC`](https://github.com/stasel/WebRTC) binary distribution for peer-to-peer data channels
-- **Concurrency**: Swift 6 strict concurrency — services are `@MainActor`, WebRTC delegates are `nonisolated`
-- **Transport**: `URLSessionWebSocketTask` for signaling, WebRTC data channels for chat and file payloads
-- **File Integrity**: BLAKE3-256 whole-file hashing (via the [`BlakeHash`](https://github.com/trancee/blake-hash) package) plus per-chunk CRC32, byte-identical to the web chunk protocol
-- **Previews**: ImageIO/PDFKit thumbnail generation for file offers (`PreviewGenerator`)
-- **QR Sharing**: AVFoundation camera scanning, Core Image generation for private-session invites
-- **Universal Links**: `applinks:pastepoint.com` — invite URLs open the app when installed
-- **I18n**: String Catalogs (English, Arabic (RTL), Spanish, French, Russian, Simplified Chinese)
-- **Logging**: [`swift-log`](https://github.com/apple/swift-log) bridged to `os.Logger` under subsystem `com.pastepoint`
+Xcode resolves these when you open the project.
+Their versions are pinned in `PastePoint.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved`.
 
-### Development Tools
+| Package                                                   | Used for                                    |
+| --------------------------------------------------------- | ------------------------------------------- |
+| [WebRTC](https://github.com/stasel/WebRTC)                | Peer connections and data channels          |
+| [BlakeHash](https://github.com/trancee/blake-hash)        | BLAKE3 file hashes                          |
+| [swift-log](https://github.com/apple/swift-log)           | The API behind the global `log`             |
+| [sentry-cocoa](https://github.com/getsentry/sentry-cocoa) | Error and performance reports, Release only |
 
-- **Build Tool**: Xcode 27.0 (pinned in `.xcode-version`), synchronized folder groups
-- **Dependencies**: Swift Package Manager (pinned in `Package.resolved`)
-- **Testing**: XCTest via the `PastePointTests.xctestplan` test plan
-- **Linting**: SwiftLint 0.65.1 (`.swiftlint.yml`, `--strict` in CI)
-- **Formatting**: SwiftFormat 0.63.0 (`.swiftformat`, Swift 6 language mode)
-- **Unused code**: Periphery 3.8.0 (`.periphery.yml`, `--strict` in CI)
+The Settings app lists the packages' licenses from `PastePoint/Resources/Settings.bundle/Acknowledgements.plist`.
+`scripts/acknowledgements/generate_ios_acknowledgements.py` generates that file.
+Regenerate it when you add, update or remove a package (see [CONTRIBUTING.md](../../CONTRIBUTING.md)). CI fails when it is out of date.
 
-## Project Structure
+## Run the app
 
-```
-ios/
-├── PastePoint/
-│   ├── App/                        # App entry point and root composition
-│   ├── Core/
-│   │   ├── Config/                 # Environment and networking config
-│   │   ├── Legal/                  # Consent storage
-│   │   ├── Models/                 # Chat, signaling, and transfer models
-│   │   ├── Permissions/            # Camera and Local Network helpers
-│   │   ├── Services/               # App, transport, room, and transfer logic
-│   │   └── Utils/                  # Logging, colors, avatars, and toasts
-│   ├── Views/
-│   │   ├── Chat/                   # Chat screen and components
-│   │   ├── Settings/               # Settings sections and sheets
-│   │   ├── Components/             # Shared UI components
-│   │   ├── Attachment/             # File, photo, and camera pickers
-│   │   ├── Welcome/                # Onboarding
-│   │   ├── Splash/                 # Animated launch handoff
-│   │   ├── Legal/                  # EULA gate
-│   │   ├── Moderation/             # Reporting UI
-│   │   └── Update/                 # Version gate
-│   └── Resources/
-│       ├── Assets.xcassets         # Colors, icons, avatars, and app icon
-│       ├── Fonts/                  # Expo Arabic family
-│       ├── Localization/           # String Catalogs
-│       ├── Info.plist              # Permissions and app metadata
-│       └── PastePoint.entitlements # Associated domains
-├── PastePointTests/                # Unit tests
-├── PastePointUITests/              # UI tests
-├── PastePoint.xcodeproj            # Xcode project
-├── .periphery.yml                  # Periphery configuration
-├── .swiftlint.yml                  # SwiftLint configuration
-├── .swiftformat                    # SwiftFormat configuration
-├── .xcode-version                  # Pinned Xcode version
-└── README.md
-```
+### Point the app at a server
 
-> **Note:** The project uses Xcode **synchronized groups** — the folder structure *is* the group structure. Moving files with `git mv` is safe and requires no `.pbxproj` edits.
+Set the two `DEBUG` constants, `host` and `wsPort`, in `PastePoint/Core/Config/AppEnvironment.swift`.
 
-## Quick Start
+| Server                   | `wsPort`                                                                |
+| ------------------------ | ----------------------------------------------------------------------- |
+| Docker Compose           | `nil`: the app uses port 443, and the server's port 9000 stays internal |
+| `cargo run` in `server/` | `9000`                                                                  |
 
-### Prerequisites
+- Set `host` to the Mac running the server. The simulator reaches it at `127.0.0.1`, the committed default.
+- A device needs the Mac's LAN IP. `scripts/configure-network.sh` asks for it and writes it into `host` and the web and server development configs. It does not change `wsPort`.
+- Debug builds trust any server certificate (`InsecureSession`), so the development server's self-signed certificate works. Release builds connect to `pastepoint.com` with normal certificate checks.
+- Keep these edits local. Don't commit them.
 
-- **macOS**: Tahoe 26.6 or later
-- **Xcode**: 27.0 (specified in `.xcode-version`)
-- **iOS Deployment Target**: 17.6+ (iPhone and iPad)
-- **Backend**: A running PastePoint server (see the [server readme](../../server/README.md) or `make dev` at the repository root)
+### Simulator
 
-### Development Setup
+Open `PastePoint.xcodeproj`, choose the `PastePoint` scheme and a simulator, and press ⌘R.
+Chat and transfers need a second peer: another simulator, a device, or the web client.
 
-1. **Open the project**:
+### Device
 
-   ```bash
-   open client/ios/PastePoint.xcodeproj
-   ```
+1. Select the `PastePoint` target and open **Signing & Capabilities**.
+2. Choose your own **Team**.
+3. Change the bundle identifier from `com.pastepoint.ios` to one your team can use.
+4. On a free Personal Team, remove the **Associated Domains** capability (`applinks:pastepoint.com` in `PastePoint/Resources/PastePoint.entitlements`). Personal Teams can't sign it.
+5. Don't commit any of these changes.
 
-2. **Resolve dependencies**:
+- Allow Local Network access when the app asks on first launch. Without it, the app can't reach a server on your LAN.
+- Universal links open only builds signed as `KH5NHCFH44.com.pastepoint.ios`, the app ID in `client/web/public/.well-known/apple-app-site-association`.
 
-   Xcode resolves Swift packages automatically on first open. To do it from the command line:
+## Before you push
 
-   ```bash
-   cd client/ios
-   xcodebuild -resolvePackageDependencies -project PastePoint.xcodeproj -scheme PastePoint
-   ```
+Run the checks listed in [CONTRIBUTING.md](../../CONTRIBUTING.md).
+CI (`.github/workflows/ios.yml`) runs the lint, Periphery and acknowledgements checks and builds Debug and Release. It runs no tests.
 
-3. **Point the app at your server**:
+## Conventions
 
-   Edit the `DEBUG` host in `PastePoint/Core/Config/AppEnvironment.swift` (see [Configuration](#configuration)).
+### Concurrency
 
-4. **Build and run** with ⌘R against a simulator or a connected device.
+- The app target uses Swift 6 language mode with `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor` and `SWIFT_APPROACHABLE_CONCURRENCY = YES`.
+- So types and functions in the app default to the main actor. Mark code `nonisolated` to opt out.
+- WebRTC calls its delegate methods off the main thread. Mark them `nonisolated`, copy out the values you need, then hop back with `Task { @MainActor in ... }`. `SignalingService` shows the pattern.
+- To carry a non-`Sendable` WebRTC object across that hop, wrap it in `UnsafeSendable` (`Core/Utils/Concurrency/`).
 
-### Command Line
+### Logging and Sentry
 
-```bash
-cd client/ios
-
-# Build for the simulator
-xcodebuild build \
-  -project PastePoint.xcodeproj \
-  -scheme PastePoint \
-  -destination 'platform=iOS Simulator,name=iPhone 17'
-
-# Run tests
-xcodebuild test \
-  -project PastePoint.xcodeproj \
-  -scheme PastePoint \
-  -destination 'platform=iOS Simulator,name=iPhone 17'
-
-# Lint and format
-swiftlint lint --strict
-swiftformat --lint .
-```
-
-## Configuration
-
-### AppEnvironment
-
-All hosts and endpoints live in `PastePoint/Core/Config/AppEnvironment.swift`, split by build configuration:
+Log with the global `log` from `Core/Utils/Logging/AppLog.swift`. It needs no import, and the log category is the calling file's name.
 
 ```swift
-#if DEBUG
-  private static let host = "127.0.0.1"
-  private static let wsPort: Int? = 9000
-#else
-  private static let host = "pastepoint.com"
-  private static let wsPort: Int? = nil
-#endif
+log.debug("Offer sent to \(peer)")
+log.warning("Upload failed: \(error.codeDescription)")
 ```
 
-It derives the app's endpoints and local-network probe settings from those two values:
+- Debug builds write all four levels to the unified log, subsystem `com.pastepoint`.
+- Release builds write nothing locally and drop `debug`. They send `info` to Sentry as a breadcrumb, `warning` as a log, and `error` as an issue.
+- So anything at `info` or above can leave the device. Keep usernames, chat text, filenames, room names, session codes, SDP and ICE payloads, and IP addresses at `debug`.
+- Log an error with `error.codeDescription` (domain and code). Its `localizedDescription` can contain a filename.
+- Sentry starts only in Release builds (`AppEnvironment.sentryEnabled`). Only `Core/Services/Monitoring/` imports `Sentry`; other code uses the global `telemetry`.
 
-| Property                | Purpose                                      |
-| ----------------------- | -------------------------------------------- |
-| `webSocketUrl(_:)`      | Signaling WebSocket (`wss://…/ws[/code]`)    |
-| `createSessionUrl`      | Private session creation                     |
-| `versionUrl`            | Launch-time update policy check              |
-| `turnCredentialsUrl`    | Short-lived TURN relay credentials           |
-| `privateSessionUrl(_:)` | QR/invite universal link                     |
-| `legalUrl`              | Privacy and terms pages                      |
-| `localNetworkProbeHost` | Local Network permission probe host          |
-| `localNetworkProbePort` | Local Network permission probe port          |
-| `supportEmail`          | Destination for content reports              |
-
-> **Note:** `wsPort` selects how the server is reached in development. Use `9000` for a standalone `cargo run` server, and `nil` when running the Docker stack, where only nginx is published on 443. Host and port changes are local-only — do not commit them.
-
-To test against a server on your LAN, replace the `DEBUG` host with your machine's IP. `scripts/configure-network.sh` at the repository root can update it automatically.
-
-### Entitlements and Permissions
-
-- `PastePoint.entitlements`: `applinks:pastepoint.com` for universal links
-- `NSLocalNetworkUsageDescription` + `NSBonjourServices` (`_pastepoint._tcp`): prompted once on first launch
-- `NSCameraUsageDescription`: QR scanning and photo/video capture
-- `NSMicrophoneUsageDescription`: recording audio with captured video
-- `NSPhotoLibraryAddUsageDescription`: saving received media
-
-Dev builds point at a LAN IP, so universal links only resolve against the production domain.
-
-## Testing
-
-Tests run through the `PastePointTests.xctestplan` test plan (unit tests enabled, UI tests disabled by default).
+To stream debug messages from the booted simulator:
 
 ```bash
-# All tests
-xcodebuild test -project PastePoint.xcodeproj -scheme PastePoint \
-  -destination 'platform=iOS Simulator,name=iPhone 17'
-
-# Single test
-xcodebuild test -project PastePoint.xcodeproj -scheme PastePoint \
-  -destination 'platform=iOS Simulator,name=iPhone 17' \
-  -only-testing:PastePointTests/PastePointTests/testExample
+xcrun simctl spawn booted log stream --level debug --predicate 'subsystem == "com.pastepoint"'
 ```
 
-### Two-device testing
+### Localized strings
 
-Peer-to-peer flows need two peers. Run two simulators or a simulator plus a device against the same server.
+- `PastePoint/Resources/Localization/Localizable.xcstrings` holds the UI strings. `InfoPlist.xcstrings` holds the permission prompts.
+- Every key has `en` (the source), `ar`, `es`, `fr`, `ru` and `zh-Hans`.
+- Keys are symbolic, in `UPPER_SNAKE_CASE`. If the web client already has the string, reuse its key from `client/web/src/app/core/i18n/localizations/en.json`.
 
-### Linting and Formatting
+To add a string:
 
-```bash
-swiftlint lint --strict     # CI runs this
-swiftlint --fix             # Autocorrect
-swiftformat .               # Format in place
-swiftformat --lint .        # Check only (CI)
-periphery scan              # Unused code (CI)
-```
-
-CI pins all three tools (see `.github/workflows/ios.yml`); keep local versions in lockstep with `SWIFTLINT_VERSION`, `SWIFTFORMAT_VERSION` and `PERIPHERY_VERSION`.
-
-## Architecture
-
-Mesh topology — one `RTCPeerConnection` per remote peer, no SFU. The signaling server relays messages without inspecting SDP or ICE content.
-
-```
-UI (SwiftUI Views)
-  ↓
-Orchestration  ← SignalingService
-  ↓
-Signaling      ← SDP/ICE exchange, glare resolution, reconnect
-Data Channels  ← RTCDataChannelDelegate
-  ↓
-Transport      ← WebSocketConnectionService
-Room State     ← RoomService + PeerDirectory
-```
-
-Key protocol invariants:
-
-- **Role decision**: the lexicographically smaller username is the caller (plain `<` byte comparison)
-- **Sequence counters**: per-peer, monotonic, with separate inbound and outbound maps
-- **Data channel**: label `"data"`, `ordered: true`
-- **Back-pressure**: gates binary chunks only, never control messages
-- **Ephemeral identity**: the server assigns a fresh random username on every connection — there is no persisted client identity
-
-Any change touching `SignalingService`, `BinaryChunk`, `DataChannelMessage`, or `WebRTCConfig` must preserve wire compatibility with existing peers.
-
-## Internationalization (i18n)
-
-### Supported Languages
-
-- English (default)
-- Arabic (RTL)
-- Spanish
-- French
-- Russian
-- Simplified Chinese
-
-### String Catalogs
-
-```
-PastePoint/Resources/Localization/
-├── Localizable.xcstrings    # UI strings
-└── InfoPlist.xcstrings      # Permission usage descriptions
-```
-
-Keys use symbolic `UPPER_SNAKE_CASE` names so Xcode can generate consistent Swift symbols.
-
-### Usage
-
-Entries are marked `manual`, so Xcode generates `LocalizedStringResource` symbols (`UPPER_SNAKE_CASE` → `lowerCamelCase`):
+1. Add the key in Xcode's String Catalog editor, with a comment and all six translations.
+2. For a plural, fill in each language's forms. `ROOMS_COUNT` has six in Arabic, four in Russian, two in English, Spanish and French, and one in Chinese.
+3. Build. Xcode generates a symbol for each key (`STRING_CATALOG_GENERATE_SYMBOLS`): `SETTINGS` becomes `.settings`, and `ROOMS_COUNT` becomes `.roomsCount(_:)`.
+4. Use the symbol. Use `String(localized:)` where an API takes a `String`.
 
 ```swift
-Text(.privateRoom)         // no-arg key -> static var
-Text(.roomsCount(count))   // format key -> static func
-String(localized: .joinRoom)  // for TextField placeholders
-```
-
-> **Note:** Generated symbols only exist after a build — SourceKit reports false "no member" errors on newly added keys until then.
-
-## Development Guide
-
-### Code Standards
-
-- **Swift 6**: strict concurrency, language mode 6
-- **Naming**: standalone screens end in `…View`, embedded sub-sections end in `…Section`
-- **Shared components**: reuse `Views/Components/` (`.pill` buttons, `.sheetContainer`, `LabeledInputField`, `StatusBanner`) rather than re-inlining markup
-- **Logging**: `os.Logger` with subsystem `com.pastepoint`; log messages stay in English
-- **Commits**: `iOS:` + imperative subject, `-` bullet body explaining what and why (see the [Git history](../../CONTRIBUTING.md))
-
-### Debug Logging
-
-The simulator has a known bug (FB5342358) where debug-level messages do not appear in Console.app. Stream them from the terminal instead:
-
-```bash
-xcrun simctl spawn <UDID> log stream --level debug \
-  --predicate 'subsystem == "com.pastepoint"'
+Text(.settings)
+Text(.roomsCount(services.roomService.rooms.count))
+Label(String(localized: .blockUser), systemImage: "hand.raised")
 ```
 
 ## Troubleshooting
 
-### Common Issues
+- **The app can't reach your local server.** Check `host` and `wsPort` against [Point the app at a server](#point-the-app-at-a-server). On a device, use the Mac's LAN IP and allow Local Network access in Settings > Privacy & Security > Local Network.
+- **A fresh install stays offline.** The app connects only after you accept the terms screen (**Agree & Continue**). The answer is stored in `UserDefaults` under `legal.acceptedVersion`. Delete the app to see the screen again.
+- **A full-screen update prompt blocks the app, and it won't connect.** The app's `MARKETING_VERSION` is below `minimum` in the server's `[client_version.ios]` policy. `cargo run` reads `server/config/development.toml`. Docker Compose reads `server/config/docker-dev.toml` (`SERVER_ENV` in `.env.development`) and bakes it into the image, so run `make dev` again after editing it. The `GET /version` response is cached for five minutes (`Cache-Control: max-age=300`), even across app launches, so wait or delete the app. A `minimum` above `latest` is ignored.
+- **Xcode reports "no member" for a new string symbol.** Build once (⌘B). The symbols are generated at build time.
+- **A peer that dropped off the network still appears.** The server keeps the dead connection until its heartbeat times out, about 20 seconds (`server/src/consts.rs`).
+- **Lint passes locally but fails in CI.** Match your SwiftLint, SwiftFormat and Periphery versions to the pins in `.github/workflows/ios.yml`.
 
-1. **Cannot connect to the server**:
-   - Verify the host and `wsPort` in `AppEnvironment.swift` match how the server is running (standalone `cargo run` uses `:9000`; the Docker stack publishes only nginx on 443)
-   - Self-signed development certificates are accepted through `InsecureSession` in `DEBUG` builds only
-   - On a device, confirm the Local Network permission prompt was accepted
+## Related docs
 
-2. **Peers never connect**:
-   - Both clients must reach the same signaling server
-   - Check for phantom members after a network drop — stale sessions are reaped by the server heartbeat within ~20s
-
-3. **"No member" errors on localization symbols**:
-
-   ```bash
-   # Symbols are generated at build time
-   xcodebuild build -project PastePoint.xcodeproj -scheme PastePoint \
-     -destination 'platform=iOS Simulator,name=iPhone 17'
-   ```
-
-4. **Swift package resolution failures**:
-
-   ```bash
-   rm -rf ~/Library/Caches/org.swift.swiftpm
-   xcodebuild -resolvePackageDependencies -project PastePoint.xcodeproj -scheme PastePoint
-   ```
-
-5. **Build succeeds locally but fails CI lint**:
-
-   ```bash
-   # Match the pinned CI versions
-   swiftlint version      # expect 0.65.1
-   swiftformat --version  # expect 0.63.0
-   ```
-
-## Contributing
-
-- [Contributing](../../CONTRIBUTING.md)
+- [Root readme](../../README.md): what PastePoint is, and the Docker Compose quick start
+- [CONTRIBUTING.md](../../CONTRIBUTING.md): workflow, commit messages, and the checks to run before you push
+- [Server readme](../../server/README.md): running the server with `cargo run`
+- [Web client readme](../web/README.md)
 
 ## License
 
-This project is licensed under the GPL-3.0 License. See the [LICENSE](../../LICENSE) file for details.
-
-## Related Documentation
-
-- [Main project readme](../../README.md)
-- [Server readme](../../server/README.md)
-- [Docker Compose setup](../../docker-compose.yml)
+GPL-3.0. See [LICENSE](../../LICENSE).
