@@ -152,7 +152,7 @@ Web: Hide the Accept and Decline buttons as soon as one is tapped
 
 ## Security
 
-Report security problems to [support@pastepoint.com](mailto:support@pastepoint.com). Don't report them in a public issue.
+Report security problems in [GitHub Issues](https://github.com/SloMR/PastePoint/issues), or by email to [support@pastepoint.com](mailto:support@pastepoint.com).
 
 ## License
 
