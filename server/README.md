@@ -167,7 +167,7 @@ TURN credentials use the TURN REST scheme: `username` is `<Unix expiry time>:pas
 - A session holds rooms. The room `main` stays even when empty. Other rooms are removed when their last member leaves.
 - Each connection gets a random first and last name, unique among live connections. A reconnect gets a new name. There are no accounts.
 - A public session ends when its last client leaves. A private session keeps its code for 60 seconds after its last client leaves, so its clients can reconnect.
-- `[SystemName]` is the first frame on every connection, before the auto-join. Peers can address a client as soon as it joins a room, so its name must arrive first. `test_ws_name_arrives_before_room_join` keeps this order.
+- `[SystemName]` is the first frame on every connection, before the auto-join. Peers can address a client as soon as it joins a room, so its name must arrive first. `name_arrives_before_the_room_join` in `ws_messages_tests.rs` keeps this order.
 
 ### Handshake
 
@@ -282,18 +282,19 @@ Telemetry carries counts and kinds only:
 
 - Tests live in `server/tests/` and use only the public API of the `server` crate. There are no inline `#[cfg(test)]` modules. Add a test to the file for its area, or create a new file.
 - When a test needs a knob, add a small public one. `SessionStore::with_expiration` is an example: it lets `session_store_tests.rs` expire codes in milliseconds.
-- `tests/common.rs` provides `init_test_server(auto_join)`, an in-process server with the `/ws` route.
+- `tests/common/mod.rs` provides `init_test_server(auto_join)`, an in-process server with the `/ws` route, and helpers that connect, send text and wait for a frame.
+- Name each test as a sentence that says what it checks, such as `private_socket_refuses_an_unknown_code`.
 - Tests load the config with `ServerConfig::load`, so leave `RUN_ENV` unset. In production mode, the WebSocket tests fail for lack of forwarding headers.
 
-| File                        | Covers                                                                                                            |
-| --------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `basic_tests.rs`            | `/`, `/health`, WebSocket upgrades, unknown codes, origin and CORS checks, the `/create-session` cross-site check |
-| `ws_communication_tests.rs` | Name first, `/list`, `/join`, the relayed `from`                                                                  |
-| `session_store_tests.rs`    | Code expiry, the reconnect grace period, unjoined-code caps, unique names                                         |
-| `rate_limit_tests.rs`       | Per-client rate-limit keys                                                                                        |
-| `origin_check_tests.rs`     | `ServerConfig::check_origin`                                                                                      |
-| `command_handling_tests.rs` | Unknown commands, text without a prefix, malformed signals                                                        |
-| `advanced_ws_tests.rs`      | Several clients in one room, rejoining a room, binary frames                                                      |
+| File                     | Covers                                                                                                             |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| `http_routes_tests.rs`   | `/`, `/health`, CORS, the `/create-session` cross-site check                                                       |
+| `ws_handshake_tests.rs`  | Public and private upgrades, unknown codes, a public key on the private route, cross-site origins                  |
+| `ws_messages_tests.rs`   | Name first, `/name`, `/list`, `/join`, several clients, the relayed `from`, errors for bad messages, binary frames |
+| `session_store_tests.rs` | Public session keys, code expiry, the reconnect grace period, unjoined-code caps, unique names                     |
+| `chat_server_tests.rs`   | Room membership                                                                                                    |
+| `rate_limit_tests.rs`    | Per-client rate-limit keys                                                                                         |
+| `origin_check_tests.rs`  | `ServerConfig::check_origin`                                                                                       |
 
 Run one file with `cargo test --test session_store_tests`, or the tests whose names contain a word with `cargo test <word>`. The checks to run before you push are in [CONTRIBUTING.md](../CONTRIBUTING.md).
 

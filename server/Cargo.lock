@@ -2656,6 +2656,7 @@ dependencies = [
 name = "server"
 version = "0.12.2"
 dependencies = [
+ "actix-codec",
  "actix-cors",
  "actix-governor",
  "actix-http",

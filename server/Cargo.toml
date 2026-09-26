@@ -39,6 +39,7 @@ sentry = { version = "0.49", features = ["log", "logs"] }
 sentry-actix = "0.49"
 
 [dev-dependencies]
+actix-codec = "0.5.4"
 actix-test = "0.1.5"
 awc = "3.8.2"
 
