@@ -1,20 +1,27 @@
 ---
 name: Feature request
-about: Suggest an idea for this project
+about: Suggest a new feature or a change
 title: ''
-labels: ''
+labels: enhancement
 assignees: ''
-
 ---
 
-**Is your feature request related to a problem? Please describe.**
-A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+<!--
+The web and iOS clients mirror each other, so a client feature usually has to work on both.
+PastePoint has no accounts and gives every connection a new random name by design. Features that need a lasting identity don't fit that model.
+-->
 
-**Describe the solution you'd like**
-A clear and concise description of what you want to happen.
+### Problem
 
-**Describe alternatives you've considered**
-A clear and concise description of any alternative solutions or features you've considered.
+<!-- What are you trying to do, and what gets in the way? -->
 
-**Additional context**
-Add any other context or screenshots about the feature request here.
+### Proposed change
+
+### Alternatives you considered
+
+### Affected parts
+
+- [ ] Web app
+- [ ] iOS app
+- [ ] Server
+- [ ] Self-hosting (Docker Compose, nginx)
