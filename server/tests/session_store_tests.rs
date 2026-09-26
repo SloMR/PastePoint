@@ -4,6 +4,23 @@ use std::{collections::HashSet, thread, time::Duration};
 const CLIENT: &str = "203.0.113.7";
 
 #[test]
+fn public_sessions_are_keyed_by_client_address() {
+    let store = SessionStore::default();
+    let uuid = store
+        .get_or_create_session_uuid(CLIENT, false, false)
+        .expect("public session");
+
+    assert_eq!(
+        store.get_or_create_session_uuid(CLIENT, true, false),
+        Some(uuid)
+    );
+    assert_ne!(
+        store.get_or_create_session_uuid("203.0.113.8", false, false),
+        Some(uuid)
+    );
+}
+
+#[test]
 fn public_key_cannot_join_through_the_private_route() {
     let store = SessionStore::default();
     let public = store

@@ -1,282 +1,202 @@
-# PastePoint Client (Angular Frontend)
+# PastePoint web client
 
-The PastePoint client is a modern Angular application with Server-Side Rendering (SSR) support, providing an intuitive interface for file sharing and communication on local networks. Features WebRTC file transfer capabilities, real-time chat, and comprehensive user experience enhancements.
+The Angular client for PastePoint, with server-side rendering (SSR).
+It exchanges signaling messages with the Rust server over a WebSocket.
+Chat and files go peer-to-peer over WebRTC data channels.
+It speaks the same protocol as the iOS app.
 
-[![Angular](https://img.shields.io/badge/Angular-22-red)](https://angular.io/)
-[![Tailwind](https://img.shields.io/badge/Tailwind-4.3-blue)](https://tailwindcss.com/)
+For the project overview, see the [project readme](../../README.md).
+Dependency versions are in `package.json`.
 
-## Tech Stack
+## Prerequisites
 
-### Core Features
+- Node.js: the version in `.nvmrc` at the repository root. With nvm, run `nvm use`. npm comes with Node.js.
+- OpenSSL, to generate the development certificate.
+- Google Chrome, for the unit tests.
+- A backend: the Rust toolchain for a standalone server (see the [server readme](../../server/README.md)), or Docker for the full stack (see the [project readme](../../README.md)).
 
-- **Rendering**: Server-Side Rendering with Angular SSR (`@angular/ssr` + Express)
-- **WebRTC**: Native WebRTC API for peer-to-peer file transfers
-- **File Integrity**: `hash-wasm` for fast client-side file hashing
-- **QR Sharing**: `qrcode` for generation, `jsqr` for camera-based scanning
-- **I18n**: `@ngx-translate/core` (English, Arabic (RTL), Spanish, French, Russian, Simplified Chinese)
-- **Styling**: Tailwind CSS with class-based dark mode
-- **Notifications**: Hot-toast (`@ngxpert/hot-toast`) for real-time user feedback
-- **Error Tracking**: `@sentry/angular` with privacy-tight redaction (off by default in dev)
+## Run locally
 
-### Development Tools
+### Against a standalone server
 
-- **Build Tool**: Angular CLI (`@angular-devkit/build-angular:application`, esbuild-based)
-- **Testing**: Jasmine and Karma for unit tests
-- **Linting**: ESLint with Angular-specific rules
-- **Unused code**: Knip (`knip.jsonc`) for unused files, exports and dependencies
-- **Formatting**: Prettier with custom configuration
-- **Styling**: stylelint for CSS/SCSS validation
+1. Generate the development certificate, from the repository root:
 
-## Project Structure
+   ```bash
+   ./scripts/generate-certs.sh
+   ```
 
-```
-web/
-├── src/
-│   ├── app/
-│   │   ├── core/
-│   │   │   ├── components/     # Shared layout and UI
-│   │   │   ├── i18n/           # Localization
-│   │   │   ├── interfaces/     # Shared types
-│   │   │   └── services/       # Communication, files, rooms, and UI
-│   │   ├── features/           # Feature UI and flows
-│   │   ├── testing/            # Test utilities
-│   │   └── utils/              # Shared helpers and constants
-│   ├── environments/           # Build-specific configuration
-│   ├── main.ts                 # Browser entry point
-│   ├── server.ts               # SSR entry point
-│   └── styles.css              # Global styles and Tailwind theme
-├── public/
-│   ├── assets/                 # Logos and app icons
-│   ├── fonts/                  # Custom fonts
-│   └── icons/                  # SVG icons
-├── angular.json                # Angular workspace configuration
-├── package.json                # Scripts and dependencies
-├── .postcssrc.json             # PostCSS config that runs Tailwind
-├── knip.jsonc                  # Knip configuration
-├── tsconfig.json               # TypeScript configuration
-├── Dockerfile                  # Container build
-└── README.md
-```
+   It writes `certs/`. The server and the development server both read it.
 
-## Quick Start
+2. Start the server. It listens on port 9000.
 
-### Prerequisites
+   ```bash
+   cd server
+   cargo run
+   ```
 
-- **Node.js**: v24.21.0 (specified in `../../.nvmrc`)
-- **npm**: Latest version
-
-### Development Setup
-
-1. **Navigate to client directory**:
+3. In a second terminal, install and start the client:
 
    ```bash
    cd client/web
-   ```
-
-2. **Install dependencies**:
-
-   ```bash
    npm ci
+   npm run start-local
    ```
 
-3. **Generate the development certificate**:
+4. Open `https://127.0.0.1` and accept the certificate warning.
 
-   ```bash
-   ../../scripts/generate-certs.sh
-   ```
+Use `https://127.0.0.1`, not `https://localhost`. The server accepts a WebSocket only from the exact origin in `cors_allowed_origins` (`server/config/development.toml`). That origin is `https://127.0.0.1`.
 
-4. **Start the development server**:
+`npm run start-local` listens on `0.0.0.0`, so `127.0.0.1` reaches it. `npm start` listens on `localhost` only, which Node.js can resolve to `::1`.
 
-   ```bash
-   npm start
-   ```
+The development server uses port 443. It can't run next to the Docker Compose stack.
 
-5. **Open the browser**:
-   Navigate to `https://localhost`.
+To test peer-to-peer features, open a second tab. Each tab gets its own connection and name.
 
-### Available Scripts
+### On your local network
 
-```bash
-npm start              # dev server (ng serve)
-npm run start-local    # dev server bound to your local network IP
-npm run watch          # rebuild on change (development configuration)
-npm run build:dev      # development build
-npm run build:prod     # production build
-npm run serve:ssr:web  # run the built SSR server locally
-npm run test           # unit tests (Karma/Jasmine)
-npm run test:coverage  # unit tests with coverage report
-npm run test:ci        # headless CI tests with coverage
-npm run lint           # ESLint
-npm run lint:fix       # ESLint with autofix
-npm run knip           # unused files, exports and dependencies (Knip)
-npm run format         # Prettier
-```
+To open the client from a phone or another computer:
+
+1. From the repository root, run `./scripts/configure-network.sh` and enter your LAN IP. It writes the IP into `apiUrl` and `webUrl`, and into the server's `cors_allowed_origins`.
+2. Generate a certificate that covers the IP: `./scripts/generate-certs.sh <ip>`.
+3. Restart the server and `npm run start-local`, then open `https://<ip>`.
+
+These edits are for your machine only. Don't commit them.
+
+### With Docker Compose
+
+Run `make dev` from the repository root. It builds and starts the Docker Compose stack, including the server, the SSR server and nginx.
+
+- The client is built with the `docker-dev` configuration.
+- nginx serves it on port 443. Open `https://127.0.0.1`.
+- The containers don't watch for changes. Run `make dev` again after an edit.
+
+The setup steps are in the [project readme](../../README.md).
 
 ## Configuration
 
-### Environment Files
+### Build configurations
 
-- `src/environments/environment.ts`: Development configuration
-- `src/environments/environment.docker-dev.ts`: Docker development configuration
-- `src/environments/environment.prod.ts`: Production configuration
+`angular.json` defines four build configurations. Each one uses an environment file from `src/environments/`.
 
-Example environment configuration:
+| Configuration | Environment file            | Used by                                                    |
+| ------------- | --------------------------- | ---------------------------------------------------------- |
+| `development` | `environment.ts`            | `npm start`, `npm run start-local`, `npm run build:dev`    |
+| `production`  | `environment.prod.ts`       | `npm run build`, `npm run build:prod`, `npm run watch`, CI |
+| `docker`      | `environment.prod.ts`       | `make prod`                                                |
+| `docker-dev`  | `environment.docker-dev.ts` | `make dev`                                                 |
 
-```typescript
-export const environment = {
-  production: false,
-  apiUrl: '127.0.0.1:9000',
-  webUrl: '127.0.0.1',
-  logLevel: NgxLoggerLevel.DEBUG,
-  enableSourceMaps: true,
-  disableFileDetails: false,
-  disableConsoleLogging: false,
-  sentry: {
-    enabled: false,
-    dsn: '',
-    environment: 'development',
-    tracesSampleRate: 0.25,
-    enableLogs: true,
-  },
-};
-```
+The Docker Compose builds take the configuration name from `NPM_BUILD_CONFIG` in `.env.development` or `.env.production`.
 
-> **Note:** `apiUrl` is host:port without a scheme — the client derives `https`/`wss`
-> at runtime. Sentry is compiled into the bundle from these files; set `sentry.enabled`
-> and `sentry.dsn` here to turn it on.
+### Environment fields
 
-### Angular Configuration
+| Field                          | Meaning                                                                                              |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| `apiUrl`                       | Server host. It includes the port when no nginx is in front. The client adds `https://` or `wss://`. |
+| `webUrl`                       | Host of invite links and QR codes. A scanned link must use this host.                                |
+| `sentry.enabled`, `sentry.dsn` | Turn Sentry on. Both development files ship with it off.                                             |
+| `production`                   | Production mode. The SSR server then serves plain HTTP, because nginx handles TLS.                   |
 
-Key configurations in `angular.json`:
+`logLevel`, `disableConsoleLogging`, `enableSourceMaps` and `disableFileDetails` configure ngx-logger.
 
-- **Build optimization**: Bundle optimization and tree shaking
-- **SSR configuration**: Server-side rendering setup
-- **Asset optimization**: Image and font optimization
+| File                        | `apiUrl`                             | `webUrl`         |
+| --------------------------- | ------------------------------------ | ---------------- |
+| `environment.ts`            | `127.0.0.1:9000` (standalone server) | `127.0.0.1`      |
+| `environment.docker-dev.ts` | `127.0.0.1` (nginx)                  | `127.0.0.1`      |
+| `environment.prod.ts`       | `pastepoint.com`                     | `pastepoint.com` |
 
-## Testing
+## Scripts
 
-### Unit Tests
+Run them from `client/web/`. For the checks to run before you push, see [CONTRIBUTING.md](../../CONTRIBUTING.md).
 
-```bash
-# Run all tests
-npm run test
+| Script                     | What it does                                                                |
+| -------------------------- | --------------------------------------------------------------------------- |
+| `npm start`                | Development server over HTTPS on port 443, on `localhost`                   |
+| `npm run start-local`      | The same, on `0.0.0.0`                                                      |
+| `npm run build`            | Production build, the default configuration                                 |
+| `npm run build:dev`        | Development build                                                           |
+| `npm run build:prod`       | Production build                                                            |
+| `npm run watch`            | Production build that rebuilds on change                                    |
+| `npm run serve:ssr:web`    | Runs the built SSR server                                                   |
+| `npm test`                 | Unit tests in Chrome, rerun on change                                       |
+| `npm run test:coverage`    | Unit tests with a coverage report in `coverage/`                            |
+| `npm run test:ci`          | One headless test run with coverage                                         |
+| `npm run lint`             | ESLint. `lint:fix` applies the fixes.                                       |
+| `npm run knip`             | Finds unused files, exports and dependencies                                |
+| `npm run format`           | Prettier. `format:check` only checks.                                       |
+| `npm run acknowledgements` | Regenerates the third-party licenses. `acknowledgements:check` only checks. |
+| `npm run csp:check`        | Checks the inline scripts of a build against the CSP                        |
 
-# Run tests with coverage
-npm run test:coverage
+`serve:ssr:web` listens on `HOST` and `PORT`, by default `127.0.0.1:443`. A development build serves HTTPS with the certificate in `certs/`. A production build serves plain HTTP.
 
-# Run tests in CI mode
-npm run test:ci
-```
+## Rules
 
-### Linting and Formatting
+### Translations
 
-```bash
-# Run ESLint
-npm run lint
+- The strings are in `src/app/core/i18n/localizations/`: `en.json`, `ar.json`, `es.json`, `fr.json`, `ru.json` and `zh-CN.json`.
+- Add every key to all six files. Keys are `UPPER_SNAKE_CASE`.
+- Use the iOS key when the string also exists in the iOS app.
+- Each section starts with a `_*_SECTION` entry. Add a key inside the matching section.
+- Edit the files as text. Parsing and re-serializing a file removes the empty lines between sections.
+- Check `git diff --numstat`. Each file should show one added line per key and no deletions.
+- In a template, add `TranslatePipe` to the component's `imports` and write `{{ 'KEY' | translate }}`.
+- In code, use `inject(TranslateService)` and `instant('KEY')`.
+- A new language needs its JSON file and an entry in `LANGUAGES` in `src/app/core/i18n/languages.ts`. The entry's `direction` sets left-to-right or right-to-left.
 
-# Fix ESLint issues
-npm run lint:fix
+### Content Security Policy
 
-# Run Prettier
-npm run format
-```
+- nginx sends the policy. It is defined in `nginx/security/security_headers.conf`.
+- `$script_src` has no `'unsafe-inline'`. It allows each inline script by its SHA-256 hash.
+- Three scripts are hashed: the theme script and the `umamiBeforeSend` hook in `src/index.html`, and the `ng-event-dispatch-contract` script that Angular adds to the SSR page.
+- After you change an inline script in `src/index.html`, or upgrade Angular, run `npm run build:prod` and then `npm run csp:check`. The check prints each hash to add to `$script_src`.
+- Don't use inline event handlers such as `onclick=`. The policy blocks them, and the check fails on them.
+- Keep `inlineCritical: false` in the `production` and `docker` configurations. Critical CSS inlining loads the style sheet with an `onload` handler.
+- CI runs `csp:check` after its production build.
 
-## Styling and Theming
+### Analytics
 
-### Tailwind CSS Configuration
+- The Umami tag is in `src/index.html`.
+- `data-domains="pastepoint.com"` limits reporting to the production site. Development builds and forks don't report.
+- The `umamiBeforeSend` hook replaces session codes in `/private/<code>` and `/ws/<code>` paths, in both the URL and the referrer.
+- The CSP allows `cloud.umami.is` for the script and `gateway.umami.is` for requests.
+- Changing the hook changes its hash. Update `$script_src` as described above.
 
-The Tailwind theme lives in `src/styles.css` (Tailwind 4 has no JS config) and provides:
+### Tailwind CSS
 
-- **Custom color palette**: Brand-specific colors
-- **Dark mode**: Class-based dark mode switching
-- **Custom components**: Reusable component classes
-- **Responsive breakpoints**: Mobile-first design
+- There is no `tailwind.config.js`. The theme is the `@theme` block in `src/styles.css`.
+- Angular runs Tailwind CSS through PostCSS, configured in `.postcssrc.json`. Keep that file JSON: Angular reads only `.postcssrc.json` and `postcss.config.json`.
+- Dark mode is class-based. The `dark` variant applies under the `dark` class, which the theme script in `src/index.html` sets on `<html>`.
+- The default-palette shades in use are pinned to their Tailwind CSS v3 values in `@theme`. A shade that isn't pinned renders in the newer, more saturated palette. Pin any shade you start using.
+- The `@layer base` rules keep two v3 defaults: gray-200 borders and a pointer cursor on buttons.
 
-## Internationalization (i18n)
+### Telemetry
 
-### Supported Languages
+- Sentry starts in `src/main.ts`. `src/app/app.config.ts` adds the error handler and tracing.
+- Only those two files and `src/app/core/services/monitoring/` import `@sentry/*`. Other code injects `TelemetryService` from that folder.
+- Sentry starts only when the environment file sets `sentry.enabled` and a `sentry.dsn`. It never starts during SSR.
+- When Sentry is on, ngx-logger output reaches it: `info` as a breadcrumb, `warn` as a log and a breadcrumb, `error` as an issue.
+- Keep chat text, filenames, room names, session codes, signaling payloads and IP addresses at `debug`.
+- `sentry-scrubber.ts` redacts session codes in `/private/<code>` and `/ws/<code>` paths.
+- The Sentry release is `web@<version>`, from `package.json`. The update gate compares the same `version` with the server's `GET /version` policy.
 
-- English (default)
-- Arabic (RTL)
-- Spanish
-- French
-- Russian
-- Simplified Chinese
+### Acknowledgements
 
-### Translation Files
-
-```
-src/app/core/i18n/localizations/
-├── en.json
-├── ar.json
-├── es.json
-├── fr.json
-├── ru.json
-└── zh-CN.json
-```
-
-### Usage
-
-```typescript
-// In components
-constructor(private translate: TranslateService) {}
-
-// Get translation
-this.translate.instant('WELCOME');
-```
-
-## Development Guide
-
-### Adding New Features
-
-1. **Generate component**:
-
-   ```bash
-   ng generate component features/feature-name
-   ```
-
-2. **Generate service**:
-
-   ```bash
-   ng generate service core/services/service-name
-   ```
-
-### Code Standards
-
-- **TypeScript**: Strict mode enabled
-- **ESLint**: Angular-specific rules
-- **Prettier**: Consistent code formatting
-- **Conventional Commits**: Standardized commit messages
+- `public/legal/acknowledgements.json` lists the licenses of the production dependencies. The `/acknowledgements` page shows it.
+- `npm run acknowledgements` generates it from `package-lock.json`. Regenerate and commit it after any dependency change.
+- CI runs `npm run acknowledgements:check`, which fails when the file is stale.
 
 ## Troubleshooting
 
-### Common Issues
+- **The server logs `WebSocket connection rejected: disallowed origin`.** The page's origin must equal `cors_allowed_origins` in `server/config/development.toml`, with the same scheme, host and port. Open `https://127.0.0.1`, or run `./scripts/configure-network.sh` for a LAN IP.
+- **The page loads, but the WebSocket to port 9000 fails.** The browser may not trust the certificate on that port. Open `https://127.0.0.1:9000/health` once and accept it.
+- **`https://127.0.0.1` doesn't load after `npm start`.** `npm start` listens on `localhost`, which Node.js can resolve to `::1`. Use `npm run start-local`.
+- **The development server says port 443 is already in use.** The Docker Compose stack or another development server holds it. `make down` stops the stack.
+- **`csp:check` says there is no build output.** Run `npm run build:prod` first.
+- **`csp:check` asks you to add a hash.** Add it to `$script_src` in `nginx/security/security_headers.conf`.
 
-1. **Node Version Mismatch**:
+## Related documentation
 
-   ```bash
-   # Use correct Node version
-   nvm use
-   # Or install the specified version
-   nvm install 24.21.0
-   ```
-
-2. **WebSocket Connection Issues**:
-   - Check backend server is running
-   - Verify SSL certificates are valid
-   - Check CORS configuration
-
-## Contributing
-
-- [Contributing](../../CONTRIBUTING.md)
-
-## License
-
-This project is licensed under the GPL-3.0 License. See the [LICENSE](../../LICENSE) file for details.
-
-## Related Documentation
-
-- [Main project readme](../../README.md)
-- [iOS client readme](../ios/README.md)
+- [Project readme](../../README.md): overview and Docker Compose setup
+- [CONTRIBUTING.md](../../CONTRIBUTING.md): checks to run before you push, and commit conventions
 - [Server readme](../../server/README.md)
-- [Docker Compose setup](../../docker-compose.yml)
+- [iOS client readme](../ios/README.md)
+- [License](../../LICENSE): GPL-3.0

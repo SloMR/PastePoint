@@ -2,7 +2,7 @@ use actix_http::header::HeaderValue;
 use server::ServerConfig;
 
 #[test]
-fn test_check_origin_allowed() {
+fn allows_the_configured_origin() {
     let mut config_https = ServerConfig::load(Some(false)).expect("load config");
     config_https.cors_allowed_origins = "https://pastepoint.com".to_string();
     let origin_https = HeaderValue::from_str("https://pastepoint.com").unwrap();
@@ -15,7 +15,7 @@ fn test_check_origin_allowed() {
 }
 
 #[test]
-fn test_check_origin_allowed_www() {
+fn allows_a_configured_www_origin() {
     let mut config_https = ServerConfig::load(Some(false)).expect("load config");
     config_https.cors_allowed_origins = "https://www.pastepoint.com".to_string();
     let origin_https = HeaderValue::from_str("https://www.pastepoint.com").unwrap();
@@ -28,7 +28,7 @@ fn test_check_origin_allowed_www() {
 }
 
 #[test]
-fn test_check_origin_rejects_subdomain() {
+fn refuses_a_subdomain() {
     let mut config_https = ServerConfig::load(Some(false)).expect("load config");
     config_https.cors_allowed_origins = "https://pastepoint.com".to_string();
     let origin_https = HeaderValue::from_str("https://sub.pastepoint.com").unwrap();
@@ -41,7 +41,7 @@ fn test_check_origin_rejects_subdomain() {
 }
 
 #[test]
-fn test_check_origin_matches_scheme_and_port() {
+fn requires_the_same_scheme_and_port() {
     let mut config = ServerConfig::load(Some(false)).expect("load config");
     config.cors_allowed_origins = "https://pastepoint.com".to_string();
 
@@ -62,7 +62,7 @@ fn test_check_origin_matches_scheme_and_port() {
 }
 
 #[test]
-fn test_check_origin_spoofed() {
+fn refuses_an_origin_that_only_starts_like_the_allowed_one() {
     let mut config_https = ServerConfig::load(Some(false)).expect("load config");
     config_https.cors_allowed_origins = "https://pastepoint.com".to_string();
     let origin_https = HeaderValue::from_str("https://pastepoint.com.evil.com").unwrap();

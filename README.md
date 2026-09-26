@@ -1,293 +1,181 @@
 <div align="center">
-  <img src="client/web/public/assets/pastepoint-light.svg" alt="PastePoint Logo" style="width: 250px; height: 250px"/>
+  <img src="client/web/public/assets/pastepoint-light.svg" alt="PastePoint Logo" width="250"/>
 
 <br>
 <br>
 
-![Docker](https://img.shields.io/badge/Docker-Containers-blue) ![Rust](https://img.shields.io/badge/Rust-Backend-orange) ![Angular](https://img.shields.io/badge/Angular-Frontend-red) [![iOS](https://img.shields.io/badge/iOS-17.6%2B-black)](https://developer.apple.com/ios/) [![Nginx](https://img.shields.io/badge/Nginx-Reverse_Proxy-green)](https://nginx.org)
+![Docker](https://img.shields.io/badge/Docker-Containers-blue) ![Rust](https://img.shields.io/badge/Rust-Backend-orange) ![Angular](https://img.shields.io/badge/Angular-Frontend-red) [![iOS](https://img.shields.io/badge/iOS-SwiftUI-black)](https://developer.apple.com/ios/) [![Nginx](https://img.shields.io/badge/Nginx-Reverse_Proxy-green)](https://nginx.org)
 
 </div>
 
 # PastePoint
 
-PastePoint is a secure, feature-rich file-sharing service designed for local networks. It enables users to share files and communicate efficiently through peer-to-peer WebRTC connections. It combines a Rust signaling server, an Angular 22 web client with SSR, and a native SwiftUI iOS client.
+PastePoint sends chat messages and files between devices, peer to peer over WebRTC. Use it in a browser at [pastepoint.com](https://pastepoint.com) or in the iOS app. There are no accounts, and the server never sees your messages or files.
 
-## Usage Disclaimer
+## How it works
 
-- [Disclaimer](DISCLAIMER.md)
+- The Rust server gives each connection a random name, keeps rooms in memory and relays WebRTC setup messages (offers, answers and ICE candidates) between room members.
+- Each client opens a WebRTC data channel to every other member. Chat and files travel over these encrypted channels, directly or through a TURN relay when a direct path fails.
+- Devices that reach the server from the same IP address, usually the same Wi-Fi, share a room automatically. Devices on other networks join an invite-only room with a 10-character code, a QR code or an invite link.
+- The web and iOS clients speak the same protocol, so they chat and share files with each other.
 
 ## Features
 
-### Core Features:
+- **Same Wi-Fi**: devices on one network find each other with no setup.
+- **Any network**: create an invite-only room and share its code, QR code or link. Invite links open the iOS app when it is installed.
+- **Rooms**: create, list and switch rooms within a session.
+- **Files**: send to the whole room or to one member. The receiver accepts or declines each file, both sides see progress and either side can cancel. The web client accepts drag and drop.
+- **Integrity**: every file is checked against a BLAKE3 hash before it is saved.
+- **Moderation**: incoming image previews stay blurred until revealed. You can block a member for the session, or report and block them by email.
+- **Languages**: English, Arabic (right to left), Spanish, French, Russian and Simplified Chinese.
+- **Clients**: a web app with server-side rendering and an app for iPhone and iPad, both with light and dark themes. An Android app is planned.
 
-- **Local Network Communication**:
-  - Chat peer-to-peer over WebRTC data channels with devices on the same network
-  - List available sessions, create new sessions, or join existing ones
-  - Multiple rooms within a session — create, list, and switch between rooms
-  - QR code session sharing — generate a code from one device and scan it from another to join instantly
-  - Real-time messaging with emoji support and dark/light theme
-  - Resilient WebSocket signaling with automatic reconnect, heartbeat, and bfcache support
+## Run locally with Docker
 
-- **File Sharing**:
-  - Peer-to-peer WebRTC connections for secure file transfers
-  - Drag & drop file upload with real-time progress tracking
-  - File offer system with accept/decline options
-  - Chunk-based file transfer with progress tracking and cancellation support
+### Prerequisites
 
-- **Security**:
-  - End-to-end encryption for all file transfers via WebRTC
-  - SSL/TLS encryption for WebSocket signaling
-  - Self-signed certificate generation included
-  - Input validation and rate limiting
+- Docker with Docker Compose v2 (the `docker compose` command)
+- `make`, `bash` and `openssl`
+- On Windows: Docker Desktop with WSL2. Run every command below in a WSL2 shell.
 
-- **Observability**:
-  - Optional Sentry-based error tracking (EU-hosted, off by default in dev)
-  - Privacy-tight defaults: no IPs, no geo, no request bodies, no user identifiers
-  - Configured per-environment in committed files: server `config/*.toml` `[sentry]` (`enabled` + `dsn`), web `client/web/src/environments/environment.*.ts`, iOS `AppEnvironment.swift` (DSNs are public ingest addresses, not secrets)
+Node.js and Rust are needed only to run a component outside Docker, and Xcode only for the iOS app. See the [server](server/README.md), [web](client/web/README.md) and [iOS](client/ios/README.md) readmes. Toolchain versions are pinned in `.nvmrc` (Node.js), `rust-toolchain` (Rust) and `client/ios/.xcode-version` (Xcode).
 
-- **Cross-Platform Compatibility**:
-  - Runs seamlessly on Linux, macOS, and Windows with Dockerized support
-  - Responsive design for mobile and desktop
+### Use it on this computer
 
-### Developer Experience
-
-- Full Docker integration
-- Isolated microservices architecture
-- Configurable environments (dev/prod)
-- Comprehensive test suites
-
-### Performance & SEO
-
-- Server-Side Rendering (SSR) for improved initial load time
-- Complete SEO optimization with metadata, sitemap, and robots.txt
-- Response compression for faster page loads
-- Static asset optimization with proper caching headers
-
-## Tech Stack
-
-### Server (Rust)
-
-[![Actix](https://img.shields.io/badge/Actix-4.15-blue)](https://actix.rs/)
-[![OpenSSL](https://img.shields.io/badge/OpenSSL-0.10-yellow)](https://www.openssl.org/)
-
-- **Framework**: Actix Web for HTTP/TLS, `actix-ws` for WebSocket signaling (Rust edition 2024, toolchain 1.98.1)
-- **Security**: OpenSSL for TLS termination
-- **Utilities**: UUID generation, Serde serialization
-- **Rate Limiting**: Actix-governor for request throttling
-- **Error Tracking**: `sentry` + `sentry-actix` with privacy-tight redaction
-
-### Clients
-
-#### Web (Angular)
-
-[![Angular](https://img.shields.io/badge/Angular-22-red)](https://angular.io/)
-[![Tailwind](https://img.shields.io/badge/Tailwind-4.3-blue)](https://tailwindcss.com/)
-
-- **Rendering**: Server-Side Rendering with Angular SSR
-- **State Management**: RxJS observables
-- **Styling**: Tailwind CSS with dark mode
-- **I18n**: ngx-translate integration (English, Arabic with RTL, Spanish, French, Russian, Simplified Chinese)
-- **WebRTC**: Native WebRTC API for file transfers
-- **QR Sharing**: `qrcode` for generation, `jsqr` for camera-based scanning
-- **Integrity**: `hash-wasm` for fast file hashing
-- **Notifications**: Hot-toast for real-time feedback
-- **Error Tracking**: `@sentry/angular` with privacy-tight redaction
-
-#### iOS (SwiftUI)
-
-[![Swift](https://img.shields.io/badge/Swift-6.0-orange)](https://swift.org/)
-[![iOS](https://img.shields.io/badge/iOS-17.6%2B-black)](https://developer.apple.com/ios/)
-[![WebRTC](https://img.shields.io/badge/WebRTC-153.0-green)](https://github.com/stasel/WebRTC)
-
-- **UI**: Native SwiftUI for iPhone and iPad
-- **Concurrency**: Swift 6 strict concurrency
-- **WebRTC**: `stasel/WebRTC` binary distribution, same mesh protocol as the web client
-- **I18n**: String Catalogs (English, Arabic with RTL, Spanish, French, Russian, Simplified Chinese)
-- **QR Sharing**: AVFoundation scanning, Core Image generation
-- **Universal Links**: Invite URLs open the app when installed
-- **Integrity**: BLAKE3 file hashing with per-chunk CRC32
-- **Error Tracking**: `sentry-cocoa` with privacy-tight redaction, Release builds only
-
-### Infrastructure
-
-[![Nginx](https://img.shields.io/badge/Nginx-Reverse_Proxy-green)](https://nginx.org)
-[![Docker](https://img.shields.io/badge/Docker-24.0-blue)](https://www.docker.com)
-[![Express](https://img.shields.io/badge/Express-5.2-purple)](https://expressjs.com/)
-
-- **Container Orchestration**: Docker Compose with multi-stage builds
-- **Reverse Proxy**: Nginx with enhanced security features
-- **SSL/TLS**: Automated certificate management
-- **Health Monitoring**: Built-in health check endpoints
-- **SSR Server**: Express.js with compression middleware
-
-## Directory Structure
-
-```
-pastepoint/
-├── client/                         # Frontend clients
-│   ├── web/                        # Angular SSR frontend
-│   └── ios/                        # SwiftUI iOS client
-├── server/                         # Rust backend with WebSockets
-├── nginx/                          # Reverse proxy & SSL termination
-├── scripts/                        # Development & deployment scripts
-├── docker-compose.yml              # Multi-container orchestration
-├── .nvmrc                          # Node.js version specification
-├── rust-toolchain                  # Rust toolchain specification
-├── Makefile                        # Makefile for development
-└── README.md                       # Project documentation
+```bash
+git clone https://github.com/SloMR/PastePoint.git
+cd PastePoint
+cp .env.development.example .env.development
+./scripts/generate-certs.sh
+make dev
 ```
 
-#### Server (Rust):
+Open `https://127.0.0.1` and accept the browser warning about the self-signed certificate. Don't use `localhost`: the server refuses browsers whose origin differs from `cors_allowed_origins` in `server/config/docker-dev.toml`.
 
-- [Server readme](server/README.md)
+On Linux, if `generate-certs.sh` prints a `sudo chgrp` command, run it so the containers can read the key (see [Certificate Management](#certificate-management)).
 
-#### Clients:
+### Use it from other devices on your network
 
-##### Web (Angular):
+```bash
+./scripts/configure-network.sh          # asks for this machine's local IP address
+./scripts/generate-certs.sh <local-ip>
+make dev
+```
 
-- [Web readme](client/web/README.md)
+Then open `https://<local-ip>` on every device, this one included. `https://127.0.0.1` stops working because the allowed origin changes.
 
-##### iOS (SwiftUI):
+`configure-network.sh` writes the IP into `.env.development` and into five tracked files. Don't commit those changes:
 
-- [iOS readme](client/ios/README.md)
+- `client/web/src/environments/environment.ts`
+- `client/web/src/environments/environment.docker-dev.ts`
+- `client/ios/PastePoint/Core/Config/AppEnvironment.swift`
+- `server/config/development.toml`
+- `server/config/docker-dev.toml`
 
-##### Android:
+To point the iOS app at this stack, see the [iOS readme](client/ios/README.md).
 
-- Planned
+### Make targets
 
-#### Deployment:
+| Command      | Effect                                            |
+| ------------ | ------------------------------------------------- |
+| `make dev`   | Build and start the stack with `.env.development` |
+| `make prod`  | Build and start the stack with `.env.production`  |
+| `make logs`  | Follow the container logs                         |
+| `make stop`  | Stop the containers                               |
+| `make down`  | Stop and remove the containers                    |
+| `make certs` | Run `generate-certs.sh` for this machine only     |
+| `make help`  | List the targets                                  |
 
-- `docker-compose.yml`: Manages containers for:
-  - Backend service (Rust)
-  - Frontend SSR service (Angular + Express)
-  - Certificate checker service
-  - Nginx reverse proxy
-- `scripts/generate-certs.sh`: Script to generate self-signed certificates
-- `scripts/configure-network.sh`: Script to configure the domain name for the local network (optional)
-- `nginx/nginx.conf`: Main Nginx configuration
-- `nginx/locations.conf`: Location block configurations including SEO routes
-- `nginx/security/`: Security-related configurations
-  - `security_settings.conf`: Security and rate limiting settings
-  - `security_headers.conf`: Security headers configuration
-- `nginx/includes/`: Reusable configuration snippets
-  - `common_proxy_ssr.conf`: SSR proxy settings
-  - `common_proxy_ws.conf`: WebSocket proxy settings
-  - `common_cache_busting.conf`: No-cache headers
-  - `common_rate_limiting.conf`: Rate limiting status codes
-  - `common_ssl.conf`: SSL/TLS settings
+`make` with no target runs `make prod`. `logs`, `stop` and `down` use `.env.development` when it exists and `.env.production` otherwise. To pick one, pass it: `make logs ENV_FILE=.env.production`.
 
-## Development Guide
+## Deploy to production
 
-### Quick Start
+These steps run the stack on a server. The committed production settings are for pastepoint.com. [Your own domain](#your-own-domain) lists what to change for another domain.
 
-### Prerequisites:
+### Environment file
 
-- Docker and Docker Compose
-- Node.js (v24.21.0 as specified in `.nvmrc`)
-- Rust 1.98.1 (specified in `rust-toolchain`, edition 2024)
+```bash
+cp .env.production.example .env.production
+chmod 600 .env.production
+```
 
-#### Windows-Specific Requirements:
+| Variable      | Value                                                                              |
+| ------------- | ---------------------------------------------------------------------------------- |
+| `SERVER_NAME` | Your domain. nginx serves it and redirects `www.` to it.                           |
+| `CERT_PATH`   | Host directory that holds `cert.pem` and `key.pem` (default `/etc/ssl/pastepoint`) |
+| `TLS_KEY_GID` | Group allowed to read `key.pem` (default 1500)                                     |
+| `TURN_SECRET` | Shared secret of your TURN server. Leave it empty to run without one.              |
 
-- Windows 10/11 with WSL2 enabled
-- Docker Desktop for Windows
-- Git Bash or PowerShell 7+ for running scripts
-- OpenSSL installed via `winget install OpenSSL`
+The other variables already hold production values. `.env.production` is gitignored; never commit it.
 
-### Steps:
+### Certificate Management
 
-1. Clone the repository:
+Put the certificate and private key for your domain in `CERT_PATH` as `cert.pem` and `key.pem`. The self-signed certificate from `generate-certs.sh` is for development only.
 
-   ```bash
-   git clone https://github.com/SloMR/pastepoint.git
-   cd pastepoint
-   ```
+The server and nginx containers run as non-root users and read the key through the group `TLS_KEY_GID`. The key can then stay owned by root and unreadable by other users on the host:
 
-2. Configure for Local Network (Optional):
-   If you want to run PastePoint on your local network instead of just localhost:
+```bash
+sudo groupadd -g 1500 pastepoint-tls
+sudo chgrp pastepoint-tls /etc/ssl/pastepoint/key.pem
+sudo chmod 640 /etc/ssl/pastepoint/key.pem
+```
 
-   ```bash
-   ./scripts/configure-network.sh
-   ```
+- If group ID 1500 is taken, pick a free one and set `TLS_KEY_GID` to it.
+- Apply the group and mode again after every certificate renewal.
+- The `cert-checker` container runs first. If either file is missing or unreadable, it exits and the other containers don't start.
+- Keep private keys out of Git. Files in `certs/` are gitignored.
 
-   The script will create `.env.development` from the committed template if it
-   doesn't already exist, then prompt for your local IP and update all
-   necessary configuration files. To bootstrap the environment manually:
+### Your own domain
 
-   ```bash
-   cp .env.development.example .env.development
-   ```
+The server config and the web environment are built into the images. `make prod` rebuilds them on every run.
 
-3. Generate SSL certificates (required for HTTPS). Pass the local IP from step 2,
-   because the certificate must name the address you open in the browser:
+- `server/config/production.toml`
+  - `cors_allowed_origins`: your origin, such as `https://example.com`. The server refuses browsers from any other origin.
+  - `url` under `[client_version.web]`: where the web update prompt sends users.
+  - `[sentry]`: set `enabled = false` or your own `dsn`. By default, errors go to PastePoint's Sentry project.
+  - `urls` under `[turn]`: your TURN server.
+- `client/web/src/environments/environment.prod.ts`
+  - `apiUrl` and `webUrl`: your domain, without `https://`. The client connects to `apiUrl` and builds invite links on `webUrl`.
+  - `sentry`: same as `[sentry]` above.
+- `client/web/src/app/utils/constants.ts`: `SUPPORT_EMAIL`, where "Report and Block" sends reports.
+- Optional: `client/web/src/index.html`, `client/web/public/robots.txt`, `client/web/public/sitemap.xml` and `client/web/src/app/core/services/ui/meta*.service.ts` use pastepoint.com in canonical and social-preview URLs. The Umami analytics tag in `index.html` reports only on pastepoint.com.
+- The iOS app's host, Sentry DSN and support address are in `client/ios/PastePoint/Core/Config/AppEnvironment.swift`.
 
-   ```bash
-   ./scripts/generate-certs.sh             # localhost only
-   ./scripts/generate-certs.sh <local-ip>  # also valid on your local network
-   ```
+### TURN relay
 
-4. Build and Start Services:
+Devices on different networks sometimes can't reach each other directly and need a TURN relay. PastePoint doesn't include one. Run a TURN server that accepts time-limited credentials derived from a shared secret (coturn's `use-auth-secret`). List its URLs under `[turn]` and put the secret in `TURN_SECRET`. With `TURN_SECRET` empty, `GET /turn-credentials` returns 204 and clients use STUN only.
 
-   ```bash
-   make dev   # uses .env.development (gitignored, machine-local)
-   make prod  # uses .env.production (gitignored, host-local — see below)
-   ```
+### Ports
 
-   For production deploys, one-time setup:
+| Port | Service                                        | Published                 |
+| ---- | ---------------------------------------------- | ------------------------- |
+| 443  | nginx: the web app, `/ws` and the API routes   | Yes                       |
+| 80   | nginx: redirects to HTTPS and serves `/health` | Yes                       |
+| 9000 | Signaling server, over TLS                     | No, internal network only |
+| 4000 | Server-side rendering (Express)                | No, internal network only |
 
-   ```bash
-   cp .env.production.example .env.production
-   chmod 600 .env.production
-   # edit .env.production: SERVER_NAME, TURN_SECRET, etc.
-   ```
+### Start
 
-   Real DSNs and host-specific values live only in the gitignored
-   `.env.development` / `.env.production` files. The committed `.example`
-   templates document which variables exist.
+```bash
+make prod
+```
 
-5. Access PastePoint:
-   - Frontend:
-     - Localhost: [https://localhost](https://localhost)
-     - Local Network: `https://<your-local-ip>`
-   - WebSocket signaling:
-     - Localhost: `wss://localhost/ws`
-     - Local Network: `wss://<your-local-ip>/ws`
-
-   A standalone `cargo run` server uses port 9000 instead of nginx on 443.
-
-## Contributing
-
-- [Contributing](CONTRIBUTING.md)
+Open ports 80 and 443 in the firewall. Follow the logs with `make logs`.
 
 ## Troubleshooting
 
-**Common Issues**:
+- **The browser warns about the certificate.** This is expected with a self-signed certificate: accept it. For a LAN address, generate the certificate with that address: `./scripts/generate-certs.sh <local-ip>`.
+- **The page loads but never connects.** Open the exact address from your config: `https://127.0.0.1`, or the IP you gave `configure-network.sh`. `make logs` shows `disallowed origin` when the server refuses the page.
+- **`cert-checker` exits with "Missing or unreadable SSL certificates".** Generate the certificate, or give the key to the `TLS_KEY_GID` group. See [Certificate Management](#certificate-management).
+- **nginx returns 502 Bad Gateway.** Set `HOST=0.0.0.0` in your env file. Older copies of `.env.development.example` had `127.0.0.1`, which nginx can't reach.
 
-1. **SSL Certificate Errors**
-   Run: `./scripts/generate-certs.sh <local-ip>` with the address you open in the browser
+## Privacy and security
 
-## Security Considerations
+Chat and files travel between devices over encrypted WebRTC data channels; the server relays only connection setup and stores neither. Production builds send error reports to Sentry. [DISCLAIMER.md](DISCLAIMER.md) covers what is logged and what those reports contain.
 
-- **Certificate Management**:
-  - Replace self-signed certificates with proper SSL certificates in production
-  - Keep private keys secure and never commit them to version control
-  - Let only the containers read the private key. The server and nginx containers join group
-    `TLS_KEY_GID` (default 1500), so the key can be `root`-owned with mode 640:
+## Contributing
 
-    ```bash
-    sudo groupadd -g 1500 pastepoint-tls
-    sudo chgrp pastepoint-tls /etc/ssl/pastepoint/key.pem
-    sudo chmod 640 /etc/ssl/pastepoint/key.pem
-    ```
-
-- **Data Privacy**:
-  - All file transfers are encrypted end-to-end via WebRTC
-  - No data is stored permanently on servers
-  - Session data is cleared on server restart or leaving the session
-
-- **Error Diagnostics (Sentry)**:
-  - Server, web and iOS SDKs scrub: user identifiers, IP addresses, geo,
-    request bodies, headers, cookies, query strings, locale, timezone
-  - iOS declares the collected diagnostics in `PrivacyInfo.xcprivacy` (not linked, not tracking)
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the workflow, commit conventions and the checks to run before you push.
 
 ## License
 

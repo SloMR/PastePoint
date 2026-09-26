@@ -1,197 +1,159 @@
 # Contributing to PastePoint
 
-Thank you for your interest in contributing to PastePoint! This guide covers the essential workflow and standards for contributing.
+Setup instructions live in the readmes: [project](README.md), [server](server/README.md), [web](client/web/README.md) and [iOS](client/ios/README.md). This guide covers the checks CI runs, the commit and pull request conventions, and the project rules that are easy to miss.
 
-## Quick Guide
+## Workflow
 
-1. **Fork & Clone** the repository
-2. **Create a branch** following our [naming conventions](#branch-naming)
-3. **Make changes** following our [code standards](#code-standards)
-4. **Write tests** and ensure they pass
-5. **Commit** using our [commit conventions](#commit-messages)
-6. **Submit a Pull Request**
+1. Fork the repository on GitHub and clone your fork.
+2. Add the upstream remote:
 
-## Development Workflow
+   ```bash
+   git remote add upstream https://github.com/SloMR/PastePoint.git
+   ```
 
-```bash
-# 1. Sync with upstream
-git checkout main
-git pull upstream main
+3. Branch from the latest `main`. Use a `feat/`, `fix/`, `chore/`, `ci/` or `docs/` prefix, optionally followed by the component, as in `fix/ios/photos-save-date`:
 
-# 2. Create feature branch
-git checkout -b feat/your-feature-name
+   ```bash
+   git fetch upstream
+   git switch -c fix/short-description upstream/main
+   ```
 
-# 3. Make changes and test
-# ... your development work ...
+4. Make your change and run the checks below for every component you touched.
+5. Open a pull request against `main`.
 
-# 4. Commit changes
-git commit -m "Web: your change description"
+## Before you push
 
-# 5. Push and create PR
-git push origin feat/your-feature-name
-```
+These are the commands CI runs. CI adds flags that don't change the result, such as `--verbose` and GitHub report formats.
 
-## Branch Naming
+Use the pinned toolchains: `rust-toolchain` for Rust, `.nvmrc` for Node.js and `client/ios/.xcode-version` for Xcode.
 
-Use descriptive branch names with these prefixes:
+### Server
 
-| Prefix      | Purpose           | Example                       |
-| ----------- | ----------------- | ----------------------------- |
-| `feat/`     | New features      | `feat/file-compression`       |
-| `fix/`      | Bugfixes          | `fix/websocket-connection`    |
-| `docs/`     | Documentation     | `docs/api-endpoints`          |
-| `style/`    | Code formatting   | `style/rust-clippy-fixes`     |
-| `refactor/` | Code refactoring  | `refactor/session-management` |
-| `test/`     | Adding tests      | `test/websocket-handlers`     |
-| `chore/`    | Maintenance tasks | `chore/update-dependencies`   |
-
-## Commit Messages
-
-```
-Scope: <description>
-
-[optional body]
-
-[optional footer]
-```
-
-### Scopes
-
-| Scope Options                                                                  | Example                     |
-| ----------------------------------------------------------------------------- | --------------------------- |
-| `Web`, `Server`, `iOS`, `Android`, `Desktop`, `Nginx`, `Docker`, `Scripts`, `Docs` | `Web: add dark mode toggle` |
-
-### Examples
-
-```bash
-# Simple commits
-git commit -m "Web: implement file drag and drop"
-git commit -m "Server: handle websocket disconnection gracefully"
-git commit -m "iOS: fix file picker"
-git commit -m "Docs: update troubleshooting section"
-
-# Detailed commit with body
-git commit -m "Web: add real-time file transfer progress
-
-- Implement progress bar component
-- Add transfer speed calculation
-- Update UI to show transfer status
-
-Closes #123"
-```
-
-## Code Standards
-
-### Rust (Server)
-
-Toolchain version **1.98.1** (see `rust-toolchain`), edition 2024.
+From `.github/workflows/server.yml`:
 
 ```bash
 cd server
-cargo fmt          # Format code
-cargo clippy       # Check for issues
-cargo test         # Run tests
+cargo fmt -- --check
+cargo clippy --all-targets --all-features -- -D warnings
+cargo test --all
+cargo build --release
 ```
 
-**Requirements:**
+### Web
 
-- Address all `clippy` warnings (CI runs with warnings as errors)
-- Write tests for new features
-- Add documentation comments for public APIs
-
-### Web (Angular)
-
-Node **v24.21.0** (see `.nvmrc`).
+From `.github/workflows/web.yml`:
 
 ```bash
 cd client/web
-npm run format     # Format code
-npm run lint:fix   # Lint code
-npm run knip       # Find unused code (CI runs this)
-npm run test:ci    # Run tests
+npm ci
+npm run lint
+npm run knip
+npm run format:check
+npm run acknowledgements:check
+npm run test:ci
+npm run build -- --configuration=production
+npm run csp:check
 ```
 
-**Requirements:**
+- `test:ci` runs the tests in headless Chrome, so Chrome must be installed.
+- `csp:check` reads the production build, so run it after the build.
+- `npm run format` and `npm run lint:fix` fix most formatting and lint problems.
 
-- Follow the Angular style guide
-- Use TypeScript strict mode
-- Use reactive programming with RxJS
+### iOS
 
-### iOS (SwiftUI)
-
-Requires macOS Tahoe 26.6+ and Xcode **27.0** (see `client/ios/.xcode-version`). Deployment target iOS 17.6+, Swift 6 language mode.
+From `.github/workflows/ios.yml`:
 
 ```bash
 cd client/ios
-swiftformat .          # Format code
-swiftlint --fix        # Autocorrect lint issues
-swiftlint lint --strict  # Lint code (CI runs this)
-periphery scan         # Find unused code (CI runs this)
-xcodebuild test \
+swiftlint lint --strict
+swiftformat --lint .
+periphery scan --strict
+xcodebuild build \
   -project PastePoint.xcodeproj \
   -scheme PastePoint \
-  -destination 'platform=iOS Simulator,name=iPhone 17'  # Run tests
+  -configuration Debug \
+  -destination 'generic/platform=iOS Simulator' \
+  -skipMacroValidation \
+  -skipPackagePluginValidation \
+  ARCHS=arm64 \
+  CODE_SIGN_IDENTITY="" \
+  CODE_SIGNING_REQUIRED=NO \
+  CODE_SIGNING_ALLOWED=NO
+cd ../..
+python3 scripts/acknowledgements/generate_ios_acknowledgements.py --check
 ```
 
-**Requirements:**
+- CI also builds Release for devices. Repeat the `xcodebuild` command with `-configuration Release -destination 'generic/platform=iOS'`.
+- CI checks the exact SwiftLint, SwiftFormat and Periphery versions set in `ios.yml` (`SWIFTLINT_VERSION`, `SWIFTFORMAT_VERSION`, `PERIPHERY_VERSION`). Install the same versions.
+- `--strict` turns warnings into errors, so the warning limits in `.swiftlint.yml` are hard limits.
+- There are no iOS unit tests yet. `PastePointTests` is still Xcode's template, so CI only builds.
 
-- Follow Swift API design guidelines
-- Prefer `async/await` for concurrency
-- Keep UI logic in SwiftUI views and business logic in separate types
-- Match the CI-pinned tool versions — SwiftLint **0.65.1**, SwiftFormat **0.63.0**, Periphery **3.8.0** (see `.github/workflows/ios.yml`); CI asserts the exact versions
-- Localize user-facing strings in `Localizable.xcstrings` using the symbolic `UPPER_SNAKE_CASE` keys shared with the web client
-- Changes to the signaling, data-channel, or chunk protocol must stay wire-compatible with the web client — the two clients interoperate
+### Whole repository
 
-**Running against a server:** the app needs a signaling server to do anything useful. Start one with `make dev` (Docker stack, reachable on 443) or `cd server && cargo run` (standalone, port 9000), then point the `DEBUG` host and `wsPort` in `PastePoint/Core/Config/AppEnvironment.swift` at it. Those are local-only values — do not commit them.
+- super-linter (`.github/workflows/linter.yml`) runs on every push and pull request and lints the whole repository. It checks every language it supports, except the validators that file turns off. That includes shell scripts, Python, Dockerfiles, YAML and GitHub Actions workflows.
+- Markdown goes through a terminology check (textlint). Write names exactly: GitHub, Node.js, npm, Xcode, Wi-Fi.
+- CI builds none of the Docker images and never loads the nginx config. After changing `nginx/`, a Dockerfile or `docker-compose.yml`, run `make dev` and check that `server`, `ssr` and `nginx` report healthy in `docker compose --env-file .env.development ps`.
 
-**Testing peer-to-peer flows** needs two peers: run two simulators, a simulator plus a device, or one simulator plus the web client in a browser. Web ↔ iOS is a valid pair, and it is the fastest way to catch a protocol regression.
+## Commits
 
-### General Guidelines
+The subject is `Scope: Imperative sentence`.
 
-- **Files**: kebab-case (`user-service.ts`) in Web, snake_case (`user_name.rs`) in Server, PascalCase (`UserService.swift`) on iOS, PascalCase (`UserService.kt`) on Android.
-- **Variables**: camelCase (`userName`) in TypeScript, Swift, and Kotlin; snake_case (`user_name`) in Server
-- **Constants**: UPPER_SNAKE_CASE in TypeScript, Rust, and Kotlin; lowerCamelCase in Swift
-- **Comments**: Explain "why", not "what"
-- **Error handling**: Always handle errors gracefully
+- Scopes: `Server`, `Web`, `iOS`, `Nginx`, `Docker`, `Scripts`, `CI`, `Docs`.
 
-## Building
+Subjects from the history:
 
-```bash
-# Web build
-cd client/web && npm run build:dev
-
-# Server build
-cd server && cargo build
-
-# iOS build
-cd client/ios && xcodebuild build \
-  -project PastePoint.xcodeproj \
-  -scheme PastePoint \
-  -destination 'platform=iOS Simulator,name=iPhone 17'
-
-# Full stack via Docker Compose
-make dev
+```text
+Server: Refuse cross-site requests to create a session
+Nginx: Stop forwarding Referer to the backend
+CI: Run Periphery in the iOS workflow
 ```
 
-## Adding a Dependency
+A commit with a body:
 
-Both clients ship their dependencies' licenses, from committed artifacts. After
-adding, removing, or upgrading a dependency, regenerate and commit them:
+```text
+Web: Hide the Accept and Decline buttons as soon as one is tapped
 
-```bash
-# Web
-cd client/web && npm run acknowledgements
+- The buttons stayed until the accept was sent, so a second tap could send a second `file-accept`
 
-# iOS (build in Xcode once first, so the SPM checkouts exist)
-python3 scripts/acknowledgements/generate_ios_acknowledgements.py
+- `acceptFileOffer` also ignores a file that is already accepted
 ```
 
-CI fails when these are stale.
+## Pull requests
 
-## Need Help?
+- Target `main`.
+- The title is a commit subject, such as `iOS: Fix Xcode 27 errors`. When the pull request spans components, use a plain sentence instead, such as `Harden security and privacy across the server, web, iOS and nginx`.
+- The body has two sections:
 
-- Check [existing issues](https://github.com/SloMR/pastepoint/issues)
-- Read the project readme files
-- Contact the maintainers
+  ```markdown
+  ### Summary
 
-Thank you for contributing!
+  A few plain sentences on what the change does and what it replaces.
+
+  ### What changed
+
+  - One line per change
+  ```
+
+- Pull requests are merged with a merge commit, so every commit lands on `main` as you wrote it.
+
+## Project rules
+
+- **Wire compatibility.** The web and iOS clients speak the same protocol. A change to signaling, data-channel messages or the file chunk format must land on both clients. Test it with one web peer and one iOS peer.
+- **New server routes.** Add a `location` block to `nginx/locations.conf`, or nginx sends the request to the SSR server. If its configuration includes a host, make `scripts/configure-network.sh` rewrite that host too.
+- **Inline scripts.** The Content Security Policy allows inline scripts by hash. After changing an inline `<script>` in `client/web/src/index.html`, run `npm run csp:check` and add the hash it prints to `$script_src` in `nginx/security/security_headers.conf`.
+- **Web strings.** Add every key to all six files in `client/web/src/app/core/i18n/localizations/`. Edit them as text: writing a file back through a JSON serializer drops the empty lines before the `_*_SECTION` keys.
+- **iOS strings.** Add them to `client/ios/PastePoint/Resources/Localization/Localizable.xcstrings` in Xcode, using the same key as the web client.
+- **Dependencies.** After adding, removing or upgrading one, regenerate the acknowledgements and commit them. CI fails when they are stale.
+  - Web: run `npm run acknowledgements` in `client/web`.
+  - iOS: build the app in Xcode once, so the package checkouts exist, then run `python3 scripts/acknowledgements/generate_ios_acknowledgements.py`.
+- **Prettier.** `client/web/package.json` pins Prettier to the version super-linter bundles. Upgrade the two together, or super-linter and `npm run format:check` disagree.
+- **Server tests** go in `server/tests/`, not in inline `#[cfg(test)]` modules.
+- **Local-only changes.** `scripts/configure-network.sh` writes your local IP address into `client/web/src/environments/environment.ts`, `environment.docker-dev.ts`, `client/ios/PastePoint/Core/Config/AppEnvironment.swift`, `server/config/development.toml` and `docker-dev.toml`. Don't commit those edits. The same goes for the iOS `wsPort` value: `nil` for Docker Compose, `9000` for `cargo run`.
+
+## Security
+
+Report security problems in [GitHub Issues](https://github.com/SloMR/PastePoint/issues), or by email to [support@pastepoint.com](mailto:support@pastepoint.com).
+
+## License
+
+PastePoint is licensed under GPL-3.0-only (see [LICENSE](LICENSE)). Contributions are accepted under the same license. Swift files start with a copyright and `SPDX-License-Identifier: GPL-3.0-only` header. Copy it into new Swift files.

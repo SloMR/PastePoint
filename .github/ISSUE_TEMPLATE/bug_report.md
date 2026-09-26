@@ -1,38 +1,33 @@
 ---
 name: Bug report
-about: Create a report to help us improve
+about: Report something in PastePoint that doesn't work
 title: ''
-labels: ''
+labels: bug
 assignees: ''
-
 ---
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+### What happened
 
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+### Steps to reproduce
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+1.
+2.
+3.
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+### What you expected
 
-**Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
+### Setup
 
-**Mobile phone (please complete the following information):**
- - Device: [e.g. iPhone6]
- - OS: [e.g. iOS8.1]
- - Browser [e.g. stock browser, safari]
- - Version [e.g. 22]
+- Client and version (shown at the bottom of Settings): web app / iOS app
+- Browser and version, or iOS or iPadOS version and device:
+- The other device (client, and browser or iOS version):
+- Room: On this Wi-Fi (public) / Invite-only (private)
+- Network: both devices on the same Wi-Fi / different networks
+- Server: pastepoint.com / self-hosted (which release or commit)
+- For a file transfer, the file type and size:
 
-**Additional context**
-Add any other context about the problem here.
+### Logs
+
+<!-- Paste the browser console or Xcode console output if you have it. Remove session codes, IP addresses, filenames and chat text first. -->
+
+### Screenshots
