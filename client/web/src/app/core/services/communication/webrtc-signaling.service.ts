@@ -723,6 +723,14 @@ export class WebRTCSignalingService {
       }
     }, ICE_GATHERING_TIMEOUT);
 
+    peerConnection.onicecandidateerror = (event) => {
+      if (!event.url.startsWith('turn')) return;
+      this.logger.warn(
+        'ICE',
+        `Relay candidate failed for ${targetUser}: ${event.errorCode} ${event.errorText} (${event.url})`
+      );
+    };
+
     peerConnection.ondatachannel = (event) => {
       const dataChannel = event.channel;
       this.communicationService.setupDataChannel(dataChannel, targetUser);
