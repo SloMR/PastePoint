@@ -45,6 +45,7 @@ export const RECONNECT_DELAY = 2000;
 export const ICE_GATHERING_TIMEOUT = 30000;
 export const CONNECTION_REQUEST_TIMEOUT = 15000;
 export const CONNECTION_ESTABLISH_TIMEOUT = 8000;
+export const CONNECTION_ESTABLISH_CEILING = 30_000;
 export const TURN_READY_TIMEOUT = 1500;
 export const TURN_RETRY_COOLDOWN = 30_000;
 export const CONNECT_SPAN_CEILING = 120_000; // 2 minutes before a webrtc.connect span is reported as abandoned

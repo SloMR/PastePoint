@@ -40,7 +40,7 @@ import {
   MB,
   NAVIGATION_DELAY_MS,
   CONNECTION_WARNING_DELAY_MS,
-  CONNECTION_ESTABLISH_TIMEOUT,
+  CONNECTION_ESTABLISH_CEILING,
   RECONNECT_DELAY,
   SESSION_CODE_KEY,
   THEME_PREFERENCE_KEY,
@@ -1821,7 +1821,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
    */
   private async waitForFileTransferConnection(member: string): Promise<boolean> {
     // One full establish-and-retry cycle: a file can be sent to a connecting peer.
-    const deadline = Date.now() + CONNECTION_ESTABLISH_TIMEOUT + RECONNECT_DELAY;
+    const deadline = Date.now() + CONNECTION_ESTABLISH_CEILING + RECONNECT_DELAY;
 
     while (Date.now() < deadline) {
       if (this.webrtcService.isReadyForFileTransfer(member)) {

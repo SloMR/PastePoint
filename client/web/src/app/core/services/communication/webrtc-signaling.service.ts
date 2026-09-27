@@ -19,6 +19,7 @@ import {
   ICE_GATHERING_TIMEOUT,
   CONNECTION_REQUEST_TIMEOUT,
   CONNECTION_ESTABLISH_TIMEOUT,
+  CONNECTION_ESTABLISH_CEILING,
   CONNECT_SPAN_CEILING,
   MAX_QUEUED_CANDIDATES,
 } from '../../../utils/constants';
@@ -897,14 +898,23 @@ export class WebRTCSignalingService {
   }
 
   /**
-   * Retries the connection if it doesn't fully establish (data channel open)
-   * within CONNECTION_ESTABLISH_TIMEOUT, catching connections that hang without
-   * ever emitting a `failed` event.
+   * Retries the connection if it doesn't fully establish (data channel open),
+   * catching connections that hang without ever emitting a `failed` event.
    * @param targetUser The user whose connection to watch
    */
   private startEstablishmentWatchdog(targetUser: string): void {
     this.clearEstablishmentWatchdog(targetUser);
+    this.armEstablishmentWatchdog(targetUser, CONNECTION_ESTABLISH_TIMEOUT, true);
+  }
 
+  /**
+   * Fires after `delay`. ICE that has started gets until CONNECTION_ESTABLISH_CEILING,
+   * because relayed and cross-network checks can outlast CONNECTION_ESTABLISH_TIMEOUT.
+   * @param targetUser The user whose connection to watch
+   * @param delay How long to wait before checking
+   * @param canExtend Whether a connection still checking may get more time
+   */
+  private armEstablishmentWatchdog(targetUser: string, delay: number, canExtend: boolean): void {
     const timeoutId = setTimeout(() => {
       this.establishmentTimeouts.delete(targetUser);
 
@@ -913,12 +923,21 @@ export class WebRTCSignalingService {
         return;
       }
 
+      const iceState = this.peerConnections.get(targetUser)?.iceConnectionState;
+      const iceStarted =
+        iceState === 'checking' || iceState === 'connected' || iceState === 'completed';
+      if (canExtend && iceStarted) {
+        const remaining = CONNECTION_ESTABLISH_CEILING - CONNECTION_ESTABLISH_TIMEOUT;
+        this.armEstablishmentWatchdog(targetUser, remaining, false);
+        return;
+      }
+
       this.logger.warn(
         'startEstablishmentWatchdog',
         `Connection with ${targetUser} did not establish in time; retrying`
       );
       this.handleDisconnection(targetUser);
-    }, CONNECTION_ESTABLISH_TIMEOUT);
+    }, delay);
 
     this.establishmentTimeouts.set(targetUser, timeoutId);
   }
