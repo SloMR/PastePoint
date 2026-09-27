@@ -19,6 +19,7 @@ import {
   ICE_GATHERING_TIMEOUT,
   CONNECTION_REQUEST_TIMEOUT,
   CONNECTION_ESTABLISH_TIMEOUT,
+  CONNECTION_ESTABLISH_CEILING,
   CONNECT_SPAN_CEILING,
   MAX_QUEUED_CANDIDATES,
 } from '../../../utils/constants';
@@ -360,6 +361,7 @@ export class WebRTCSignalingService {
 
     this.connectionLocks.add(targetUser);
     this.connectingPeers.add(targetUser);
+    this.cancelScheduledReconnect(targetUser);
     this.recordAttempt(targetUser, span);
     const attemptId = this.startAttempt(targetUser);
 
@@ -524,6 +526,7 @@ export class WebRTCSignalingService {
 
     this.clearEstablishmentWatchdog(targetUser);
     this.connectingPeers.delete(targetUser);
+    this.connectionLocks.delete(targetUser);
 
     if (force) {
       this.candidateQueues.delete(targetUser);
@@ -720,6 +723,14 @@ export class WebRTCSignalingService {
       }
     }, ICE_GATHERING_TIMEOUT);
 
+    peerConnection.onicecandidateerror = (event) => {
+      if (!event.url.startsWith('turn')) return;
+      this.logger.warn(
+        'ICE',
+        `Relay candidate failed for ${targetUser}: ${event.errorCode} ${event.errorText} (${event.url})`
+      );
+    };
+
     peerConnection.ondatachannel = (event) => {
       const dataChannel = event.channel;
       this.communicationService.setupDataChannel(dataChannel, targetUser);
@@ -897,14 +908,23 @@ export class WebRTCSignalingService {
   }
 
   /**
-   * Retries the connection if it doesn't fully establish (data channel open)
-   * within CONNECTION_ESTABLISH_TIMEOUT, catching connections that hang without
-   * ever emitting a `failed` event.
+   * Retries the connection if it doesn't fully establish (data channel open),
+   * catching connections that hang without ever emitting a `failed` event.
    * @param targetUser The user whose connection to watch
    */
   private startEstablishmentWatchdog(targetUser: string): void {
     this.clearEstablishmentWatchdog(targetUser);
+    this.armEstablishmentWatchdog(targetUser, CONNECTION_ESTABLISH_TIMEOUT, true);
+  }
 
+  /**
+   * Fires after `delay`. ICE that has started gets until CONNECTION_ESTABLISH_CEILING,
+   * because relayed and cross-network checks can outlast CONNECTION_ESTABLISH_TIMEOUT.
+   * @param targetUser The user whose connection to watch
+   * @param delay How long to wait before checking
+   * @param canExtend Whether a connection still checking may get more time
+   */
+  private armEstablishmentWatchdog(targetUser: string, delay: number, canExtend: boolean): void {
     const timeoutId = setTimeout(() => {
       this.establishmentTimeouts.delete(targetUser);
 
@@ -913,14 +933,35 @@ export class WebRTCSignalingService {
         return;
       }
 
+      const iceState = this.peerConnections.get(targetUser)?.iceConnectionState;
+      const iceStarted =
+        iceState === 'checking' || iceState === 'connected' || iceState === 'completed';
+      if (canExtend && iceStarted) {
+        const remaining = CONNECTION_ESTABLISH_CEILING - CONNECTION_ESTABLISH_TIMEOUT;
+        this.armEstablishmentWatchdog(targetUser, remaining, false);
+        return;
+      }
+
       this.logger.warn(
         'startEstablishmentWatchdog',
         `Connection with ${targetUser} did not establish in time; retrying`
       );
       this.handleDisconnection(targetUser);
-    }, CONNECTION_ESTABLISH_TIMEOUT);
+    }, delay);
 
     this.establishmentTimeouts.set(targetUser, timeoutId);
+  }
+
+  /**
+   * Drops a retry scheduled for an earlier attempt, so it can't tear down the one starting now
+   * @param targetUser The user the attempt is for
+   */
+  private cancelScheduledReconnect(targetUser: string): void {
+    const timeoutId = this.reconnectionTimeouts.get(targetUser);
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      this.reconnectionTimeouts.delete(targetUser);
+    }
   }
 
   /**
@@ -1075,13 +1116,13 @@ export class WebRTCSignalingService {
           `Canceling our initiation for ${targetUser} (we are the designated callee)`
         );
         this.closePeerConnection(targetUser, false);
-        this.connectionLocks.delete(targetUser);
       }
     }
 
     // Set lock while processing offer to prevent concurrent connection attempts
     this.connectionLocks.add(targetUser);
     this.connectingPeers.add(targetUser);
+    this.cancelScheduledReconnect(targetUser);
     const attemptId = this.startAttempt(targetUser);
 
     await this.turnCredentials.ready();
@@ -1415,6 +1456,7 @@ export class WebRTCSignalingService {
     // Temporarily bypass role checking and initiate connection
     this.connectionLocks.add(targetUser);
     this.connectingPeers.add(targetUser);
+    this.cancelScheduledReconnect(targetUser);
     const span = this.activeConnectSpans.get(targetUser);
     if (span) this.recordAttempt(targetUser, span);
     const attemptId = this.startAttempt(targetUser);

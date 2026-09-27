@@ -11,13 +11,13 @@ cors_allowed_origins = "https://127.0.0.1"
 # Client update policy (GET /version). minimum = force floor, latest = soft nudge.
 # Raise these only AFTER the build is live on the store/web, or you soft-brick users.
 [client_version.ios]
-minimum = "0.15.0"
-latest = "0.15.0"
+minimum = "0.15.1"
+latest = "0.15.1"
 url = "https://apps.apple.com/app/id6788860511"
 
 [client_version.web]
-minimum = "0.26.1"
-latest = "0.26.1"
+minimum = "0.26.2"
+latest = "0.26.2"
 url = "https://127.0.0.1"
 
 [sentry]
@@ -30,5 +30,5 @@ traces_sample_rate = 1.0
 # TURN relay for GET /turn-credentials. urls are the fixed public relay (same in
 # every env); the shared secret comes from the TURN_SECRET env var, never here.
 [turn]
-urls = ["turn:turn.pastepoint.com:3478", "turns:turn.pastepoint.com:5349"]
+urls = ["turn:turn.pastepoint.com:3478?transport=udp", "turn:turn.pastepoint.com:3478?transport=tcp", "turns:turn.pastepoint.com:443?transport=tcp"]
 ttl_seconds = 1800

@@ -41,6 +41,7 @@ final class SignalingService: NSObject, ObservableObject {
   private var cancellables: Set<AnyCancellable> = []
 
   private static let connectionTimeout: TimeInterval = 8.0 // Seconds
+  private static let connectionCeiling: TimeInterval = 30.0 // Seconds
   private static let connectionRequestTimeout: TimeInterval = 15.0 // Seconds
   private static let maxReconnectAttempts = 5
   private static let baseReconnectDelay: TimeInterval = 2.0 // Seconds
@@ -154,6 +155,7 @@ final class SignalingService: NSObject, ObservableObject {
 
     connectionLocks.insert(peer)
     connectingPeers.insert(peer)
+    cancelScheduledReconnect(for: peer)
     recordConnectAttempt(peer)
     startConnectionTimeout(for: peer)
 
@@ -333,6 +335,7 @@ extension SignalingService {
 
     connectionLocks.insert(message.from)
     connectingPeers.insert(message.from)
+    cancelScheduledReconnect(for: message.from)
     startConnectionTimeout(for: message.from)
 
     guard case .offer(let sdpString) = message.payload else {
@@ -536,6 +539,10 @@ extension SignalingService {
     connectionTimeouts[peer] = Task { [weak self] in
       try? await Task.sleep(nanoseconds: UInt64(Self.connectionTimeout * 1_000_000_000))
 
+      if let state = self?.peerConnections[peer]?.iceConnectionState, [.checking, .connected, .completed].contains(state) {
+        try? await Task.sleep(nanoseconds: UInt64((Self.connectionCeiling - Self.connectionTimeout) * 1_000_000_000))
+      }
+
       guard let self else { return }
       if Task.isCancelled { return }
       self.connectionTimeouts[peer] = nil
@@ -543,7 +550,7 @@ extension SignalingService {
       // Check if we already connected then don't do anything
       if self.connectedPeers.contains(peer) { return }
 
-      log.warning("connectionTimeout: peer did not reach connected in \(Self.connectionTimeout)s, treating as failure")
+      log.warning("connectionTimeout: peer did not connect in time, treating as failure")
       self.logConnectionDiagnostics(for: peer)
       self.scheduleReconnect(to: peer)
     }
@@ -552,6 +559,12 @@ extension SignalingService {
   private func clearConnectionTimeout(for peer: String) {
     connectionTimeouts[peer]?.cancel()
     connectionTimeouts[peer] = nil
+  }
+
+  /// Drops a retry scheduled for an earlier attempt, so it can't tear down the one starting now.
+  private func cancelScheduledReconnect(for peer: String) {
+    reconnectTasks[peer]?.cancel()
+    reconnectTasks[peer] = nil
   }
 
   /// Watchdog for the non-caller: if the designated caller never re-offers within
@@ -752,6 +765,11 @@ extension SignalingService: RTCPeerConnectionDelegate {
   nonisolated func peerConnection(_ peerConnection: RTCPeerConnection, didRemove stream: RTCMediaStream) {}
   nonisolated func peerConnection(_ peerConnection: RTCPeerConnection, didRemove candidates: [RTCIceCandidate]) {}
   nonisolated func peerConnectionShouldNegotiate(_ peerConnection: RTCPeerConnection) {}
+
+  nonisolated func peerConnection(_ peerConnection: RTCPeerConnection, didFailToGatherIceCandidate event: RTCIceCandidateErrorEvent) {
+    guard event.url.hasPrefix("turn") else { return }
+    log.warning("relay candidate failed: \(event.errorCode) \(event.errorText) (\(event.url))")
+  }
 
   nonisolated func peerConnection(_ peerConnection: RTCPeerConnection, didChange newState: RTCIceGatheringState) {
     guard newState == .complete else { return }

@@ -27,7 +27,6 @@ enum WebRTCConfig {
     config.sdpSemantics = .unifiedPlan
     config.bundlePolicy = .maxBundle
     config.rtcpMuxPolicy = .require
-    config.iceCandidatePoolSize = 10
     return config
   }
 
