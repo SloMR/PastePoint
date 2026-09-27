@@ -41,6 +41,7 @@ final class SignalingService: NSObject, ObservableObject {
   private var cancellables: Set<AnyCancellable> = []
 
   private static let connectionTimeout: TimeInterval = 8.0 // Seconds
+  private static let connectionCeiling: TimeInterval = 30.0 // Seconds
   private static let connectionRequestTimeout: TimeInterval = 15.0 // Seconds
   private static let maxReconnectAttempts = 5
   private static let baseReconnectDelay: TimeInterval = 2.0 // Seconds
@@ -536,6 +537,10 @@ extension SignalingService {
     connectionTimeouts[peer] = Task { [weak self] in
       try? await Task.sleep(nanoseconds: UInt64(Self.connectionTimeout * 1_000_000_000))
 
+      if let state = self?.peerConnections[peer]?.iceConnectionState, [.checking, .connected, .completed].contains(state) {
+        try? await Task.sleep(nanoseconds: UInt64((Self.connectionCeiling - Self.connectionTimeout) * 1_000_000_000))
+      }
+
       guard let self else { return }
       if Task.isCancelled { return }
       self.connectionTimeouts[peer] = nil
@@ -543,7 +548,7 @@ extension SignalingService {
       // Check if we already connected then don't do anything
       if self.connectedPeers.contains(peer) { return }
 
-      log.warning("connectionTimeout: peer did not reach connected in \(Self.connectionTimeout)s, treating as failure")
+      log.warning("connectionTimeout: peer did not connect in time, treating as failure")
       self.logConnectionDiagnostics(for: peer)
       self.scheduleReconnect(to: peer)
     }
