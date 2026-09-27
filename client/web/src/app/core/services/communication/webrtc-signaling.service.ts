@@ -361,6 +361,7 @@ export class WebRTCSignalingService {
 
     this.connectionLocks.add(targetUser);
     this.connectingPeers.add(targetUser);
+    this.cancelScheduledReconnect(targetUser);
     this.recordAttempt(targetUser, span);
     const attemptId = this.startAttempt(targetUser);
 
@@ -944,6 +945,18 @@ export class WebRTCSignalingService {
   }
 
   /**
+   * Drops a retry scheduled for an earlier attempt, so it can't tear down the one starting now
+   * @param targetUser The user the attempt is for
+   */
+  private cancelScheduledReconnect(targetUser: string): void {
+    const timeoutId = this.reconnectionTimeouts.get(targetUser);
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      this.reconnectionTimeouts.delete(targetUser);
+    }
+  }
+
+  /**
    * Clears the establishment watchdog for a target user, if any.
    * @param targetUser The user whose watchdog to clear
    */
@@ -1101,6 +1114,7 @@ export class WebRTCSignalingService {
     // Set lock while processing offer to prevent concurrent connection attempts
     this.connectionLocks.add(targetUser);
     this.connectingPeers.add(targetUser);
+    this.cancelScheduledReconnect(targetUser);
     const attemptId = this.startAttempt(targetUser);
 
     await this.turnCredentials.ready();
@@ -1434,6 +1448,7 @@ export class WebRTCSignalingService {
     // Temporarily bypass role checking and initiate connection
     this.connectionLocks.add(targetUser);
     this.connectingPeers.add(targetUser);
+    this.cancelScheduledReconnect(targetUser);
     const span = this.activeConnectSpans.get(targetUser);
     if (span) this.recordAttempt(targetUser, span);
     const attemptId = this.startAttempt(targetUser);
