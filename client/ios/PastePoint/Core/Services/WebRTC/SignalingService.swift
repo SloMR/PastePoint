@@ -766,6 +766,11 @@ extension SignalingService: RTCPeerConnectionDelegate {
   nonisolated func peerConnection(_ peerConnection: RTCPeerConnection, didRemove candidates: [RTCIceCandidate]) {}
   nonisolated func peerConnectionShouldNegotiate(_ peerConnection: RTCPeerConnection) {}
 
+  nonisolated func peerConnection(_ peerConnection: RTCPeerConnection, didFailToGatherIceCandidate event: RTCIceCandidateErrorEvent) {
+    guard event.url.hasPrefix("turn") else { return }
+    log.warning("relay candidate failed: \(event.errorCode) \(event.errorText) (\(event.url))")
+  }
+
   nonisolated func peerConnection(_ peerConnection: RTCPeerConnection, didChange newState: RTCIceGatheringState) {
     guard newState == .complete else { return }
     let peerConnectionID = ObjectIdentifier(peerConnection)
