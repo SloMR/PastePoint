@@ -82,7 +82,6 @@ export const RTC_CONFIGURATION = {
   iceTransportPolicy: 'all' as RTCIceTransportPolicy,
   bundlePolicy: 'max-bundle' as RTCBundlePolicy,
   rtcpMuxPolicy: 'require' as RTCRtcpMuxPolicy,
-  iceCandidatePoolSize: 10,
 };
 
 // WebRTC data channel constants
