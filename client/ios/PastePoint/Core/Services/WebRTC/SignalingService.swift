@@ -155,6 +155,7 @@ final class SignalingService: NSObject, ObservableObject {
 
     connectionLocks.insert(peer)
     connectingPeers.insert(peer)
+    cancelScheduledReconnect(for: peer)
     recordConnectAttempt(peer)
     startConnectionTimeout(for: peer)
 
@@ -334,6 +335,7 @@ extension SignalingService {
 
     connectionLocks.insert(message.from)
     connectingPeers.insert(message.from)
+    cancelScheduledReconnect(for: message.from)
     startConnectionTimeout(for: message.from)
 
     guard case .offer(let sdpString) = message.payload else {
@@ -557,6 +559,12 @@ extension SignalingService {
   private func clearConnectionTimeout(for peer: String) {
     connectionTimeouts[peer]?.cancel()
     connectionTimeouts[peer] = nil
+  }
+
+  /// Drops a retry scheduled for an earlier attempt, so it can't tear down the one starting now.
+  private func cancelScheduledReconnect(for peer: String) {
+    reconnectTasks[peer]?.cancel()
+    reconnectTasks[peer] = nil
   }
 
   /// Watchdog for the non-caller: if the designated caller never re-offers within
