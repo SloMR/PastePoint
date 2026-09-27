@@ -525,6 +525,7 @@ export class WebRTCSignalingService {
 
     this.clearEstablishmentWatchdog(targetUser);
     this.connectingPeers.delete(targetUser);
+    this.connectionLocks.delete(targetUser);
 
     if (force) {
       this.candidateQueues.delete(targetUser);
@@ -1094,7 +1095,6 @@ export class WebRTCSignalingService {
           `Canceling our initiation for ${targetUser} (we are the designated callee)`
         );
         this.closePeerConnection(targetUser, false);
-        this.connectionLocks.delete(targetUser);
       }
     }
 
