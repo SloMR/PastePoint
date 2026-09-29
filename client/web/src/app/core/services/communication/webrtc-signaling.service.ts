@@ -52,7 +52,6 @@ export class WebRTCSignalingService {
   private reconnectAttempts = new Map<string, number>();
   private connectionLocks = new Set<string>();
   private connectingPeers = new Set<string>();
-  private outboundSequences = new Map<string, number>();
   private pendingSignals: SignalMessage[] = [];
   private candidateQueues = new Map<string, RTCIceCandidateInit[]>();
   private connectionRequests = new Map<string, ReturnType<typeof setTimeout>>();
@@ -408,7 +407,6 @@ export class WebRTCSignalingService {
             type: SignalMessageType.OFFER,
             data: peerConnection.localDescription,
             to: targetUser,
-            sequence: this.getNextSequence(targetUser),
           });
         })
         .catch((error: unknown) => {
@@ -478,7 +476,6 @@ export class WebRTCSignalingService {
     this.connectingPeers.delete(targetUser);
     this.latestAttemptId.delete(targetUser);
     this.reconnectAttempts.delete(targetUser);
-    this.outboundSequences.delete(targetUser);
 
     const reconnectionTimeout = this.reconnectionTimeouts.get(targetUser);
     if (reconnectionTimeout) {
@@ -549,7 +546,6 @@ export class WebRTCSignalingService {
     this.connectingPeers.clear();
     this.latestAttemptId.clear();
     this.reconnectAttempts.clear();
-    this.outboundSequences.clear();
     this.pendingSignals = [];
     this.candidateQueues.clear();
     this.collectedCandidates.clear();
@@ -1359,7 +1355,6 @@ export class WebRTCSignalingService {
     this.wsService.sendSignalMessage({
       ...message,
       from: this.userService.user,
-      sequence: this.getNextSequence(message.to),
     });
   }
 
@@ -1390,7 +1385,6 @@ export class WebRTCSignalingService {
       data: null,
       from: this.userService.user,
       to: targetUser,
-      sequence: this.getNextSequence(targetUser),
     };
     this.wsService.sendSignalMessage(message);
     this.logger.info('sendConnectionRequest', `Sent connection request to ${targetUser}`);
@@ -1483,7 +1477,6 @@ export class WebRTCSignalingService {
             type: SignalMessageType.OFFER,
             data: peerConnection.localDescription,
             to: targetUser,
-            sequence: this.getNextSequence(targetUser),
           });
         })
         .catch((error: unknown) => {
@@ -1529,16 +1522,6 @@ export class WebRTCSignalingService {
    */
   private isCurrentAttempt(targetUser: string, attemptId: string): boolean {
     return `${this.meshEpoch}:${this.latestAttemptId.get(targetUser) ?? 0}` === attemptId;
-  }
-
-  /**
-   * Gets the next sequence number for a target user
-   * @param targetUser The user to get the sequence for
-   */
-  private getNextSequence(targetUser: string): number {
-    const next = (this.outboundSequences.get(targetUser) ?? 0) + 1;
-    this.outboundSequences.set(targetUser, next);
-    return next;
   }
 
   /**

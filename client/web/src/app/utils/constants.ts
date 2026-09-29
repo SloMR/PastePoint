@@ -104,7 +104,6 @@ export interface SignalMessage {
   data: unknown;
   from: string;
   to: string;
-  sequence?: number;
 }
 
 // Wire format; do not rename fields.
