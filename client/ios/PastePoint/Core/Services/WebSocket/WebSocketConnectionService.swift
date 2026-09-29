@@ -28,7 +28,6 @@ final class WebSocketConnectionService: ObservableObject {
   let systemMessage = PassthroughSubject<String, Never>()
   let signalMessage = PassthroughSubject<SignalMessage, Never>()
   let didConnect = PassthroughSubject<Void, Never>()
-  let didReconnect = PassthroughSubject<Void, Never>()
   let sessionRejected = PassthroughSubject<Void, Never>()
 
   // MARK: - Properties
@@ -43,7 +42,6 @@ final class WebSocketConnectionService: ObservableObject {
   var currentSessionCode: String? { sessionCode }
 
   private var manualDisconnect = false
-  private var hasConnectedOnce = false
   private var reconnectAttempts = 0
   private var reconnectTask: Task<Void, Never>?
   private let maxReconnectAttempts = 5
@@ -157,10 +155,6 @@ final class WebSocketConnectionService: ObservableObject {
       if priorAttempts > 0 {
         telemetry.event("ws.reconnected", attributes: ["attempts": priorAttempts])
       }
-      if hasConnectedOnce {
-        didReconnect.send()
-      }
-      hasConnectedOnce = true
       return
     }
 

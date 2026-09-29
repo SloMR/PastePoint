@@ -106,16 +106,6 @@ final class SignalingService: NSObject, ObservableObject {
         self?.syncMesh(peers: peers)
       }
       .store(in: &cancellables)
-
-    wsService.didReconnect
-      .receive(on: DispatchQueue.main)
-      .sink { [weak self] in
-        Task { @MainActor in
-          await self?.userService.waitForUsername()
-          self?.resetMesh()
-        }
-      }
-      .store(in: &cancellables)
   }
 
   // MARK: - Public API
@@ -263,18 +253,6 @@ final class SignalingService: NSObject, ObservableObject {
         pendingOpens.remove(peer)
       }
     }
-  }
-
-  private func resetMesh() {
-    for peer in Array(connectSpans.keys) {
-      finishConnectSpan(peer, ok: false, outcome: .cancelled, message: "closeAll")
-    }
-    for peer in Set(peerConnections.keys).union(connectionLocks) {
-      closePeerConnection(peer)
-    }
-    pendingOpens.removeAll()
-
-    syncMesh(peers: peerDirectory.peers)
   }
 }
 
