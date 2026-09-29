@@ -40,7 +40,7 @@ final class AppServices: ObservableObject {
   private var lastPathStatus: NWPath.Status = .satisfied
   private var cancellables = Set<AnyCancellable>()
 
-  private static let backgroundGraceInterval: Duration = .seconds(10)
+  private static let backgroundGraceInterval: Duration = .seconds(25)
   private var backgroundGraceTask: Task<Void, Never>?
   private var backgroundTaskID: UIBackgroundTaskIdentifier = .invalid
 

@@ -55,8 +55,6 @@ final class SignalingService: NSObject, ObservableObject {
   private var candidateQueues: [String: [RTCIceCandidate]] = [:]
   var collectedCandidates: [String: [String]] = [:]
   private var connectionLocks: Set<String> = []
-  private var outboundSequences: [String: Int] = [:]
-  private var inboundSequences: [String: Int] = [:]
 
   private var reconnectAttempts: [String: Int] = [:]
   private var reconnectTasks: [String: Task<Void, Never>] = [:]
@@ -106,16 +104,6 @@ final class SignalingService: NSObject, ObservableObject {
         self?.syncMesh(peers: peers)
       }
       .store(in: &cancellables)
-
-    wsService.didReconnect
-      .receive(on: DispatchQueue.main)
-      .sink { [weak self] in
-        Task { @MainActor in
-          await self?.userService.waitForUsername()
-          self?.resetMesh()
-        }
-      }
-      .store(in: &cancellables)
   }
 
   // MARK: - Public API
@@ -143,7 +131,6 @@ final class SignalingService: NSObject, ObservableObject {
         payload: .connectionRequest,
         from: userService.user,
         to: peer,
-        sequence: nextSequence(for: peer),
       )
       await wsService.sendSignal(request)
       connectingPeers.insert(peer)
@@ -205,7 +192,6 @@ final class SignalingService: NSObject, ObservableObject {
       payload: .offer(sdp: pc.localDescription?.sdp ?? ""),
       from: userService.user,
       to: peer,
-      sequence: nextSequence(for: peer),
     )
     await wsService.sendSignal(offerMessage)
     log.info("offer sent")
@@ -264,18 +250,6 @@ final class SignalingService: NSObject, ObservableObject {
       }
     }
   }
-
-  private func resetMesh() {
-    for peer in Array(connectSpans.keys) {
-      finishConnectSpan(peer, ok: false, outcome: .cancelled, message: "closeAll")
-    }
-    for peer in Set(peerConnections.keys).union(connectionLocks) {
-      closePeerConnection(peer)
-    }
-    pendingOpens.removeAll()
-
-    syncMesh(peers: peerDirectory.peers)
-  }
 }
 
 // MARK: - Inbound Signal Handling
@@ -316,11 +290,6 @@ extension SignalingService {
 
   private func handleOffer(_ message: SignalMessage) async {
     await userService.waitForUsername()
-
-    if isDuplicate(message.from, sequence: message.sequence) {
-      log.debug("ignoring duplicate sequence from \(message.from)")
-      return
-    }
 
     if connectionLocks.contains(message.from) {
       log.warning("offer collision, resolving by role")
@@ -373,18 +342,12 @@ extension SignalingService {
       payload: .answer(sdp: pc.localDescription?.sdp ?? ""),
       from: userService.user,
       to: message.from,
-      sequence: nextSequence(for: message.from),
     )
     await wsService.sendSignal(response)
     log.info("answer sent")
   }
 
   private func handleAnswer(_ message: SignalMessage) async {
-    if isDuplicate(message.from, sequence: message.sequence) {
-      log.debug("ignoring duplicate sequence from \(message.from)")
-      return
-    }
-
     guard let pc = peerConnections[message.from] else {
       log.warning("no peer connection for this peer")
       return
@@ -439,11 +402,6 @@ extension SignalingService {
   }
 
   private func handleConnectionRequest(_ message: SignalMessage) async {
-    if isDuplicate(message.from, sequence: message.sequence) {
-      log.debug("ignoring duplicate sequence from \(message.from)")
-      return
-    }
-
     log.info("peer is asking us to initiate")
     await initiateConnection(to: message.from)
   }
@@ -598,8 +556,6 @@ extension SignalingService {
       reconnectTasks[peer]?.cancel()
       reconnectTasks[peer] = nil
       reconnectAttempts[peer] = nil
-      outboundSequences[peer] = nil
-      inboundSequences[peer] = nil
       pendingMessages[peer] = nil
     }
 
@@ -726,20 +682,6 @@ extension SignalingService {
 
 extension SignalingService {
 
-  private func nextSequence(for peer: String) -> Int {
-    let next = (outboundSequences[peer] ?? 0) + 1
-    outboundSequences[peer] = next
-    return next
-  }
-
-  private func isDuplicate(_ peer: String, sequence: Int?) -> Bool {
-    guard let sequence else { return false }
-    let last = inboundSequences[peer] ?? 0
-    if sequence <= last { return true }
-    inboundSequences[peer] = sequence
-    return false
-  }
-
   // Glare resolution: the lexicographically smaller username is the caller.
   // Plain `<` is byte/code-unit comparison — locale-independent, so iOS and web
   // agree on roles regardless of either device's system locale.
@@ -845,7 +787,6 @@ extension SignalingService: RTCPeerConnectionDelegate {
         payload: .candidate(sdp: sdp, sdpMid: sdpMid, sdpMLineIndex: sdpMLineIndex),
         from: self.userService.user,
         to: peer,
-        sequence: self.nextSequence(for: peer),
       )
       await self.wsService.sendSignal(candidateMessage)
     }

@@ -68,7 +68,6 @@ struct SignalMessage {
   let payload: SignalPayload
   let from: String
   let to: String
-  let sequence: Int?
 
   init?(from dict: [String: Any]) {
     guard
@@ -81,25 +80,20 @@ struct SignalMessage {
     self.payload = payload
     self.from = fromRaw
     self.to = toRaw
-    self.sequence = dict["sequence"] as? Int
   }
 
-  init(payload: SignalPayload, from: String, to: String, sequence: Int? = nil) {
+  init(payload: SignalPayload, from: String, to: String) {
     self.payload = payload
     self.from = from
     self.to = to
-    self.sequence = sequence
   }
 
   func toDict() -> [String: Any] {
-    var dict: [String: Any] = [
+    [
       "type": payload.typeString,
       "data": payload.dataDict,
       "from": from,
       "to": to,
     ]
-
-    if let sequence { dict["sequence"] = sequence }
-    return dict
   }
 }

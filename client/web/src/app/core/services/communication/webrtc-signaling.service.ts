@@ -52,8 +52,6 @@ export class WebRTCSignalingService {
   private reconnectAttempts = new Map<string, number>();
   private connectionLocks = new Set<string>();
   private connectingPeers = new Set<string>();
-  private outboundSequences = new Map<string, number>();
-  private inboundSequences = new Map<string, number>();
   private pendingSignals: SignalMessage[] = [];
   private candidateQueues = new Map<string, RTCIceCandidateInit[]>();
   private connectionRequests = new Map<string, ReturnType<typeof setTimeout>>();
@@ -80,14 +78,7 @@ export class WebRTCSignalingService {
       this.handlePeerConnected(targetUser);
     });
 
-    let previousUser = '';
     this.userService.user$.subscribe((user) => {
-      // Peers treat a new name as a new member and number their signals from 1 again
-      if (user && previousUser && user !== previousUser) {
-        this.inboundSequences.clear();
-      }
-      if (user) previousUser = user;
-
       if (user && this.pendingSignals.length > 0) {
         const drained = this.pendingSignals;
         this.pendingSignals = [];
@@ -416,7 +407,6 @@ export class WebRTCSignalingService {
             type: SignalMessageType.OFFER,
             data: peerConnection.localDescription,
             to: targetUser,
-            sequence: this.getNextSequence(targetUser),
           });
         })
         .catch((error: unknown) => {
@@ -486,8 +476,6 @@ export class WebRTCSignalingService {
     this.connectingPeers.delete(targetUser);
     this.latestAttemptId.delete(targetUser);
     this.reconnectAttempts.delete(targetUser);
-    this.inboundSequences.delete(targetUser);
-    this.outboundSequences.delete(targetUser);
 
     const reconnectionTimeout = this.reconnectionTimeouts.get(targetUser);
     if (reconnectionTimeout) {
@@ -558,8 +546,6 @@ export class WebRTCSignalingService {
     this.connectingPeers.clear();
     this.latestAttemptId.clear();
     this.reconnectAttempts.clear();
-    this.inboundSequences.clear();
-    this.outboundSequences.clear();
     this.pendingSignals = [];
     this.candidateQueues.clear();
     this.collectedCandidates.clear();
@@ -1057,14 +1043,6 @@ export class WebRTCSignalingService {
   private handleConnectionRequest(message: SignalMessage): void {
     const targetUser = message.from;
     this.logger.info('handleConnectionRequest', `Received connection request from ${targetUser}`);
-    if (this.isDuplicateMessage(targetUser, message.sequence)) {
-      this.logger.warn(
-        'handleConnectionRequest',
-        `Duplicate connection request from ${targetUser}`
-      );
-      return;
-    }
-
     if (this.shouldInitiateConnection(targetUser)) {
       this.logger.debug(
         'handleConnectionRequest',
@@ -1195,11 +1173,6 @@ export class WebRTCSignalingService {
       return;
     } else {
       this.logger.debug('handleAnswer', `Valid state for answer: ${peerConnection.signalingState}`);
-    }
-
-    if (this.isDuplicateMessage(targetUser, message.sequence)) {
-      this.logger.warn('handleAnswer', `Duplicate answer from ${targetUser}`);
-      return;
     }
 
     const newDescription = new RTCSessionDescription(message.data as RTCSessionDescriptionInit);
@@ -1382,7 +1355,6 @@ export class WebRTCSignalingService {
     this.wsService.sendSignalMessage({
       ...message,
       from: this.userService.user,
-      sequence: this.getNextSequence(message.to),
     });
   }
 
@@ -1413,7 +1385,6 @@ export class WebRTCSignalingService {
       data: null,
       from: this.userService.user,
       to: targetUser,
-      sequence: this.getNextSequence(targetUser),
     };
     this.wsService.sendSignalMessage(message);
     this.logger.info('sendConnectionRequest', `Sent connection request to ${targetUser}`);
@@ -1506,7 +1477,6 @@ export class WebRTCSignalingService {
             type: SignalMessageType.OFFER,
             data: peerConnection.localDescription,
             to: targetUser,
-            sequence: this.getNextSequence(targetUser),
           });
         })
         .catch((error: unknown) => {
@@ -1521,19 +1491,6 @@ export class WebRTCSignalingService {
   }
 
   // =============== Helper Methods ===============
-
-  /**
-   * Checks if a message is a duplicate
-   * @param targetUser The user the message is from
-   * @param sequence The message sequence number
-   */
-  private isDuplicateMessage(targetUser: string, sequence?: number): boolean {
-    if (!sequence) return false;
-    const lastSeq = this.inboundSequences.get(targetUser) ?? 0;
-    if (sequence <= lastSeq) return true;
-    this.inboundSequences.set(targetUser, sequence);
-    return false;
-  }
 
   /**
    * Counts an attempt that is actually starting. Called from the two role
@@ -1565,16 +1522,6 @@ export class WebRTCSignalingService {
    */
   private isCurrentAttempt(targetUser: string, attemptId: string): boolean {
     return `${this.meshEpoch}:${this.latestAttemptId.get(targetUser) ?? 0}` === attemptId;
-  }
-
-  /**
-   * Gets the next sequence number for a target user
-   * @param targetUser The user to get the sequence for
-   */
-  private getNextSequence(targetUser: string): number {
-    const next = (this.outboundSequences.get(targetUser) ?? 0) + 1;
-    this.outboundSequences.set(targetUser, next);
-    return next;
   }
 
   /**
