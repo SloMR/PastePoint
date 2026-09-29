@@ -16,8 +16,8 @@ latest = "0.15.2"
 url = "https://apps.apple.com/app/id6788860511"
 
 [client_version.web]
-minimum = "0.26.2"
-latest = "0.26.2"
+minimum = "0.26.3"
+latest = "0.26.3"
 url = "https://pastepoint.com"
 
 [sentry]
