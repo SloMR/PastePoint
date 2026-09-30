@@ -1763,6 +1763,17 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     );
   }
 
+  /** Copies a chat message's text to the clipboard. */
+  copyMessage(message: ChatMessage): void {
+    navigator.clipboard.writeText(message.text).then(
+      () => this.toaster.success(this.translate.instant('COPY_MESSAGE_SUCCESS')),
+      (err) => {
+        this.logger.warn('copyMessage', 'Failed to copy message:', err);
+        this.toaster.error(this.translate.instant('COPY_MESSAGE_FAILED'));
+      }
+    );
+  }
+
   protected get sessionStatusKey(): string {
     const alone = this.members.length === 0;
     if (this.SessionCode.length > 0) {

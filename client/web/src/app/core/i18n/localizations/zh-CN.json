@@ -206,6 +206,8 @@
   "COPY_SESSION_FAILED": "无法复制代码,请重试。",
   "INFO": "信息",
   "COPY_SESSION_SUCCESS": "代码已成功复制。",
+  "COPY_MESSAGE_FAILED": "无法复制消息,请重试。",
+  "COPY_MESSAGE_SUCCESS": "消息已成功复制。",
   "NO_FILES_SELECTED": "未选择任何文件",
   "ENTER_VALID_ROOM": "请输入有效的聊天室名称",
   "FAILED_TO_SEND_MESSAGE": "无法向 {{member}} 发送消息。",
