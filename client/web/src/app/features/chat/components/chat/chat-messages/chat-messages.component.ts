@@ -46,6 +46,7 @@ export class ChatMessagesComponent {
   @Output() declineFile = new EventEmitter<ChatMessage>();
   @Output() blockRequested = new EventEmitter<string>();
   @Output() reportRequested = new EventEmitter<ChatMessage>();
+  @Output() copyRequested = new EventEmitter<ChatMessage>();
 
   @ViewChild('messageContainer') messageContainer!: ElementRef;
 

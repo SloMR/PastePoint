@@ -206,6 +206,8 @@
   "COPY_SESSION_FAILED": "فشل في نسخ رمز الجلسة",
   "INFO": "معلومة",
   "COPY_SESSION_SUCCESS": "تم نسخ رمز الجلسة بنجاح",
+  "COPY_MESSAGE_FAILED": "فشل في نسخ الرسالة",
+  "COPY_MESSAGE_SUCCESS": "تم نسخ الرسالة بنجاح",
   "NO_FILES_SELECTED": "لم يتم تحديد ملفات",
   "ENTER_VALID_ROOM": "يرجى إدخال اسم غرفة صالح",
   "FAILED_TO_SEND_MESSAGE": "فشل إرسال الرسالة إلى {{member}}.",

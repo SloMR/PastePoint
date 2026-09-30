@@ -206,6 +206,8 @@
   "COPY_SESSION_FAILED": "Couldn’t copy the code. Try again.",
   "INFO": "Info",
   "COPY_SESSION_SUCCESS": "Code copied successfully.",
+  "COPY_MESSAGE_FAILED": "Couldn’t copy the message. Try again.",
+  "COPY_MESSAGE_SUCCESS": "Message copied successfully.",
   "NO_FILES_SELECTED": "No files selected",
   "ENTER_VALID_ROOM": "Enter a valid room name",
   "FAILED_TO_SEND_MESSAGE": "Failed to send message to {{member}}.",
