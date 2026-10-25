@@ -12,7 +12,6 @@ Dependency versions are in `package.json`.
 
 - Node.js: the version in `.nvmrc` at the repository root. With nvm, run `nvm use`. npm comes with Node.js.
 - OpenSSL, to generate the development certificate.
-- Google Chrome, for the unit tests.
 - A backend: the Rust toolchain for a standalone server (see the [server readme](../../server/README.md)), or Docker for the full stack (see the [project readme](../../README.md)).
 
 ## Run locally
@@ -117,9 +116,9 @@ Run them from `client/web/`. For the checks to run before you push, see [CONTRIB
 | `npm run build:prod`       | Production build                                                            |
 | `npm run watch`            | Production build that rebuilds on change                                    |
 | `npm run serve:ssr:web`    | Runs the built SSR server                                                   |
-| `npm test`                 | Unit tests in Chrome, rerun on change                                       |
+| `npm test`                 | Unit tests with Vitest, rerun on change                                     |
 | `npm run test:coverage`    | Unit tests with a coverage report in `coverage/`                            |
-| `npm run test:ci`          | One headless test run with coverage                                         |
+| `npm run test:ci`          | One test run with coverage                                                  |
 | `npm run lint`             | ESLint. `lint:fix` applies the fixes.                                       |
 | `npm run knip`             | Finds unused files, exports and dependencies                                |
 | `npm run format`           | Prettier. `format:check` only checks.                                       |

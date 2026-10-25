@@ -84,9 +84,6 @@ jobs:
         working-directory: client/web
         run: npm ci
 
-      - name: Setup Chrome for testing
-        uses: browser-actions/setup-chrome@latest
-
       - name: Run Tests
         working-directory: client/web
         run: npm run test:ci

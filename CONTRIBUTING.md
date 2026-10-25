@@ -55,7 +55,6 @@ npm run build -- --configuration=production
 npm run csp:check
 ```
 
-- `test:ci` runs the tests in headless Chrome, so Chrome must be installed.
 - `csp:check` reads the production build, so run it after the build.
 - `npm run format` and `npm run lint:fix` fix most formatting and lint problems.
 

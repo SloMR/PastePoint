@@ -1,5 +1,5 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema-jsonc.json",
   "ignoreFiles": ["src/app/**/*.component.css"],
-  "ignoreDependencies": ["@angular-eslint/schematics", "istanbul-lib-instrument"],
+  "ignoreDependencies": ["@angular-eslint/schematics"],
 }
