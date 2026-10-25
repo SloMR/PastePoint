@@ -12,8 +12,15 @@ struct ReconnectState: Equatable {
   let nextAttemptDate: Date
 }
 
+protocol SignalTransport {
+  var signalMessage: PassthroughSubject<SignalMessage, Never> { get }
+  var didConnect: PassthroughSubject<Void, Never> { get }
+  var currentSessionCode: String? { get }
+  func sendSignal(_ message: SignalMessage) async
+}
+
 @MainActor
-final class WebSocketConnectionService: ObservableObject {
+final class WebSocketConnectionService: ObservableObject, SignalTransport {
 
   // MARK: - Connection State
 

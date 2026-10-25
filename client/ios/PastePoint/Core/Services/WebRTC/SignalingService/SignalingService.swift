@@ -34,7 +34,7 @@ final class SignalingService: NSObject, ObservableObject {
   let fileEvent = PassthroughSubject<FileChannelEvent, Never>()
   let chunkReceived = PassthroughSubject<(ParsedChunk, from: String), Never>()
 
-  let wsService: WebSocketConnectionService
+  let wsService: any SignalTransport
   let userService: UserService
   let peerDirectory: PeerDirectory
   let blockService: BlockService
@@ -72,7 +72,7 @@ final class SignalingService: NSObject, ObservableObject {
   // MARK: - Init
 
   init(
-    wsService: WebSocketConnectionService,
+    wsService: any SignalTransport,
     userService: UserService,
     peerDirectory: PeerDirectory,
     blockService: BlockService,
