@@ -79,4 +79,21 @@ struct SignalingServiceTests {
     #expect(fixture.webRTC.liveConnections.count == 1)
     #expect(fixture.webRTC.liveConnections.first === fixture.signaling.peerConnections["bob"])
   }
+
+  @Test("After a peer's connection closes, a retry starts a new one")
+  func retryAfterCloseStartsNewConnection() async throws {
+    let fixture = await SignalingFixture()
+    fixture.setPeers(["bob"])
+    #expect(await fixture.waitUntil { fixture.transport.sent.count == 1 })
+    let channel = try #require(fixture.signaling.dataChannels["bob"])
+
+    fixture.signaling.handleChannelState(.open, onChannel: ObjectIdentifier(channel))
+    fixture.signaling.handleChannelState(.closed, onChannel: ObjectIdentifier(channel))
+
+    await fixture.clock.advance(by: .seconds(2))
+
+    #expect(await fixture.waitUntil { fixture.webRTC.connections.count == 2 })
+    #expect(fixture.signaling.peerConnections["bob"] === fixture.webRTC.connections.last)
+    #expect(fixture.transport.sent.count == 2)
+  }
 }
