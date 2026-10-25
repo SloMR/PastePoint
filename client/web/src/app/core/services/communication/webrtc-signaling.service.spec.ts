@@ -46,4 +46,18 @@ describe('WebRTCSignalingService', () => {
     channel.open();
     expect(channel.sent.map(textOf)).toEqual(['one', 'two', 'three']);
   });
+
+  test('a teardown followed by a new attempt never leaves two live connections', async () => {
+    fixture.turnCredentials.pauseNewConnections();
+    fixture.signaling.initiateConnection('bob');
+    fixture.signaling.closeConnection('bob');
+    fixture.signaling.initiateConnection('bob');
+    expect(fixture.turnCredentials.pausedConnections).toBe(2);
+
+    fixture.turnCredentials.resumeNewConnections();
+    await vitest.advanceTimersByTimeAsync(0);
+
+    expect(fixture.factory.connections).toHaveLength(1);
+    expect(fixture.factory.liveConnections).toHaveLength(1);
+  });
 });
