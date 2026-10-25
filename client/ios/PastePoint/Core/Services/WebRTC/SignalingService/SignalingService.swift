@@ -38,6 +38,7 @@ final class SignalingService: NSObject, ObservableObject {
   let userService: UserService
   let peerDirectory: PeerDirectory
   let blockService: BlockService
+  let turnCredentials: any IceServerSource
   private var cancellables: Set<AnyCancellable> = []
 
   static let connectionTimeout: TimeInterval = 8.0 // Seconds
@@ -68,8 +69,6 @@ final class SignalingService: NSObject, ObservableObject {
   var connectAttemptCounts: [String: Int] = [:]
   var connectSpanAbandonTasks: [String: Task<Void, Never>] = [:]
 
-  let turnCredentials = TurnCredentialsService()
-
   // MARK: - Init
 
   init(
@@ -77,11 +76,13 @@ final class SignalingService: NSObject, ObservableObject {
     userService: UserService,
     peerDirectory: PeerDirectory,
     blockService: BlockService,
+    turnCredentials: any IceServerSource = TurnCredentialsService(),
   ) {
     self.wsService = wsService
     self.userService = userService
     self.peerDirectory = peerDirectory
     self.blockService = blockService
+    self.turnCredentials = turnCredentials
     super.init()
 
     wsService.signalMessage
