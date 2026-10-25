@@ -35,6 +35,9 @@ enum SettingsBundle {
 enum AppBuildInfo {
   /// `true` when running inside Xcode's SwiftUI preview renderer (simulator or in-process).
   static let isXcodePreview = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
+
+  /// `true` when Xcode starts the app to run the tests.
+  static let isRunningTests = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
 }
 
 // MARK: - Logging Bootstrap
