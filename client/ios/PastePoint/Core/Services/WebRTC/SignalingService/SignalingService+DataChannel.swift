@@ -47,7 +47,7 @@ extension SignalingService {
       return false
     }
 
-    WebRTCQueue.send(data, on: channel)
+    webRTC.send(data, on: channel)
     return true
   }
 
@@ -58,7 +58,7 @@ extension SignalingService {
       log.warning("no open channel to peer")
       return false
     }
-    return await WebRTCQueue.sendChunk(data, on: channel)
+    return await webRTC.sendChunk(data, on: channel)
   }
 
   /// Holds a frame for a connecting peer; false once full, so a peer that never

@@ -116,13 +116,13 @@ extension SignalingService: RTCPeerConnectionDelegate {
 
       guard let peer = self.peer(forConnectionID: peerConnectionID) else {
         log.warning("unknown peer connection")
-        WebRTCQueue.close(nil, channel: box.value)
+        self.webRTC.close(nil, channel: box.value)
         return
       }
 
       box.value.delegate = self
       if let previous = self.dataChannels.updateValue(box.value, forKey: peer) {
-        WebRTCQueue.close(nil, channel: previous)
+        self.webRTC.close(nil, channel: previous)
       }
       log.info("data channel attached")
       if isOpen {

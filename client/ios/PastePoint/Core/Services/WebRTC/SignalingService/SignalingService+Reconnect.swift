@@ -77,10 +77,10 @@ extension SignalingService {
     connectionRequestTimeouts[peer]?.cancel()
     connectionRequestTimeouts[peer] = nil
     connectionTimeouts[peer]?.cancel()
-    connectionTimeouts[peer] = Task { [weak self, clock] in
+    connectionTimeouts[peer] = Task { [weak self, clock, webRTC] in
       try? await clock.sleep(for: .seconds(Self.connectionTimeout))
 
-      if let pc = self?.peerConnections[peer], [.checking, .connected, .completed].contains(await WebRTCQueue.states(of: pc).ice) {
+      if let pc = self?.peerConnections[peer], [.checking, .connected, .completed].contains(await webRTC.states(of: pc).ice) {
         try? await clock.sleep(for: .seconds(Self.connectionCeiling - Self.connectionTimeout))
       }
 
@@ -147,7 +147,7 @@ extension SignalingService {
     if let peerConnection {
       describedConnections.remove(ObjectIdentifier(peerConnection))
     }
-    WebRTCQueue.close(peerConnection, channel: dataChannel)
+    webRTC.close(peerConnection, channel: dataChannel)
 
     candidateQueues[peer] = nil
     collectedCandidates[peer] = nil
