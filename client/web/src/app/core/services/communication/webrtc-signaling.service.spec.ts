@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test, vitest } from 'vitest';
 import { SignalingFixture } from '../../../testing/signaling-fixture';
-import { DATA_CHANNEL_MESSAGE_TYPES } from '../../../utils/constants';
+import { DATA_CHANNEL_MESSAGE_TYPES, SignalMessageType } from '../../../utils/constants';
 
 function chat(text: string) {
   return { type: DATA_CHANNEL_MESSAGE_TYPES.CHAT, payload: { text } };
@@ -59,5 +59,22 @@ describe('WebRTCSignalingService', () => {
 
     expect(fixture.factory.connections).toHaveLength(1);
     expect(fixture.factory.liveConnections).toHaveLength(1);
+  });
+
+  test("after a peer's connection closes, a retry starts a new one", async () => {
+    fixture.signaling.initiateConnection('bob');
+    await vitest.advanceTimersByTimeAsync(0);
+    const channel = fixture.factory.lastChannel();
+
+    channel.open();
+    channel.close();
+    await vitest.advanceTimersByTimeAsync(2_000);
+
+    const offers = fixture.transport.sent.filter(
+      (message) => message.type === SignalMessageType.OFFER
+    );
+    expect(fixture.factory.connections).toHaveLength(2);
+    expect(fixture.signaling.getPeerConnection('bob')).toBe(fixture.factory.connections[1]);
+    expect(offers).toHaveLength(2);
   });
 });
