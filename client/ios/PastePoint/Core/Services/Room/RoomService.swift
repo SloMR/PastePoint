@@ -49,7 +49,7 @@ final class RoomService: ObservableObject {
   }
 
   func listRooms() async {
-    await wsService.send("[UserCommand] /list")
+    await wsService.send("\(WebSocketPrefix.userCommand.rawValue) /list")
   }
 
   func joinOrCreateRoom(_ room: String) async {
@@ -66,7 +66,7 @@ final class RoomService: ObservableObject {
     if wsService.isConnected {
       startJoinSpan()
     }
-    await wsService.send("[UserCommand] /join \(room)")
+    await wsService.send("\(WebSocketPrefix.userCommand.rawValue) /join \(room)")
     currentRoom = room
 
 #if DEBUG
@@ -80,27 +80,29 @@ final class RoomService: ObservableObject {
   }
 
   private func handleSystemMessage(_ message: String) {
-    if message.contains("[SystemRooms]") {
-      guard let range = message.range(of: "\\[SystemRooms]\\s*(.*)$", options: .regularExpression) else {
+    if message.contains(WebSocketPrefix.systemRooms.rawValue) {
+      let pattern = NSRegularExpression.escapedPattern(for: WebSocketPrefix.systemRooms.rawValue) + "\\s*(.*)$"
+      guard let range = message.range(of: pattern, options: .regularExpression) else {
         log.warning("failed to parse [SystemRooms] message")
         return
       }
       let rest = String(message[range])
-      let prefix = "[SystemRooms] "
+      let prefix = WebSocketPrefix.systemRooms.rawValue + " "
       let list = rest.hasPrefix(prefix) ? String(rest.dropFirst(prefix.count)) : rest
       rooms = list.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
       log.debug("Rooms updated: \(rooms)")
-    } else if message.contains("[SystemMembers]") {
-      guard let range = message.range(of: "\\[SystemMembers]\\s*(.*)$", options: .regularExpression) else {
+    } else if message.contains(WebSocketPrefix.systemMembers.rawValue) {
+      let pattern = NSRegularExpression.escapedPattern(for: WebSocketPrefix.systemMembers.rawValue) + "\\s*(.*)$"
+      guard let range = message.range(of: pattern, options: .regularExpression) else {
         log.warning("failed to parse [SystemMembers] message")
         return
       }
       let rest = String(message[range])
-      let prefix = "[SystemMembers] "
+      let prefix = WebSocketPrefix.systemMembers.rawValue + " "
       let list = rest.hasPrefix(prefix) ? String(rest.dropFirst(prefix.count)) : rest
       members = list.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
       log.debug("Members updated: \(members)")
-    } else if let marker = message.range(of: "[SystemJoin]") {
+    } else if let marker = message.range(of: WebSocketPrefix.systemJoin.rawValue) {
       let room = message[marker.upperBound...].trimmingCharacters(in: .whitespacesAndNewlines)
       guard !room.isEmpty else {
         log.warning("[SystemJoin] had no room name")

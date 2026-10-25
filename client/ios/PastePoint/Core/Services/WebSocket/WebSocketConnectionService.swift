@@ -233,9 +233,9 @@ final class WebSocketConnectionService: ObservableObject, SignalTransport {
   private func handleIncoming(_ text: String) {
     let msg = text.trimmingCharacters(in: .whitespacesAndNewlines)
 
-    if msg.hasPrefix("[SignalMessage]") {
+    if msg.hasPrefix(WebSocketPrefix.signalMessage.rawValue) {
       let json = msg
-        .replacingOccurrences(of: "[SignalMessage]", with: "")
+        .replacingOccurrences(of: WebSocketPrefix.signalMessage.rawValue, with: "")
         .trimmingCharacters(in: .whitespaces)
       do {
         let obj = try JSONSerialization.jsonObject(with: Data(json.utf8))
@@ -259,11 +259,8 @@ final class WebSocketConnectionService: ObservableObject, SignalTransport {
   }
 
   private func isSystemMessage(_ msg: String) -> Bool {
-    msg.contains("[SystemMessage]") ||
-      msg.contains("[SystemJoin]") ||
-      msg.contains("[SystemRooms]") ||
-      msg.contains("[SystemMembers]") ||
-      msg.contains("[SystemName]")
+    [WebSocketPrefix.systemMessage, .systemJoin, .systemRooms, .systemMembers, .systemName]
+      .contains { msg.contains($0.rawValue) }
   }
 
   // MARK: - Send
@@ -292,7 +289,7 @@ final class WebSocketConnectionService: ObservableObject, SignalTransport {
         log.error("failed to encode JSON as UTF-8 string")
         return
       }
-      await send("[SignalMessage] \(json)")
+      await send("\(WebSocketPrefix.signalMessage.rawValue) \(json)")
     } catch {
       log.error("JSON serialization failed: \(error.localizedDescription)")
     }
