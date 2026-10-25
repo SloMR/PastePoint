@@ -13,7 +13,9 @@ final class UserService: ObservableObject {
 
   private let wsService: WebSocketConnectionService
   private var cancellables = Set<AnyCancellable>()
-  private static let nameRegex = try? NSRegularExpression(pattern: "\\[SystemName]\\s*(.*?)$")
+  private static let nameRegex = try? NSRegularExpression(
+    pattern: NSRegularExpression.escapedPattern(for: WebSocketPrefix.systemName.rawValue) + "\\s*(.*?)$",
+  )
 
   init(wsService: WebSocketConnectionService) {
     self.wsService = wsService
@@ -43,7 +45,7 @@ final class UserService: ObservableObject {
   }
 
   func getUsername() async {
-    await wsService.send("[UserCommand] /name")
+    await wsService.send("\(WebSocketPrefix.userCommand.rawValue) /name")
   }
 
   /// Suspends until `user` is non-empty. Returns immediately if already set.
@@ -57,7 +59,7 @@ final class UserService: ObservableObject {
   }
 
   private func handleSystemMessage(_ message: String) {
-    guard message.contains("[SystemName]") else { return }
+    guard message.contains(WebSocketPrefix.systemName.rawValue) else { return }
     guard let regex = Self.nameRegex else {
       log.error("nameRegex failed to initialize")
       return

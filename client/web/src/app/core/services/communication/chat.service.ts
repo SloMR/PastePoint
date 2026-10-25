@@ -8,7 +8,9 @@ import {
   ChatMessageType,
   DATA_CHANNEL_MESSAGE_TYPES,
   MAX_CHAT_MESSAGES,
+  WebSocketPrefix,
 } from '../../../utils/constants';
+import { escapeRegExp } from '../../../utils/regexp.util';
 import { IChatService } from '../../interfaces/chat.interface';
 import { WebSocketConnectionService } from './websocket-connection.service';
 import { NGXLogger } from 'ngx-logger';
@@ -136,7 +138,7 @@ export class ChatService implements IChatService {
   }
 
   public getUsername(): void {
-    this.wsService.send('[UserCommand] /name');
+    this.wsService.send(`${WebSocketPrefix.USER_COMMAND} /name`);
   }
 
   public clearMessages(): void {
@@ -191,8 +193,10 @@ export class ChatService implements IChatService {
   }
 
   private handleSystemMessage(message: string): void {
-    if (message.includes('[SystemName]')) {
-      const matchName = message.match(/\[SystemName]\s*(.*?)$/);
+    if (message.includes(WebSocketPrefix.SYSTEM_NAME)) {
+      const matchName = message.match(
+        new RegExp(`${escapeRegExp(WebSocketPrefix.SYSTEM_NAME)}\\s*(.*?)$`)
+      );
       if (matchName?.[1]) {
         const userName = matchName[1].trim();
         this.logger.info(

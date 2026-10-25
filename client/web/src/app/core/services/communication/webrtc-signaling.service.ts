@@ -27,6 +27,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { NGXLogger } from 'ngx-logger';
 import { WebRTCCommunicationService } from './webrtc-communication.service';
 import { TurnCredentialsService } from './turn-credentials.service';
+import { PeerConnectionFactory } from './peer-connection-factory.service';
 import { HotToastService } from '@ngxpert/hot-toast';
 import { Subject } from 'rxjs';
 
@@ -42,6 +43,7 @@ export class WebRTCSignalingService {
   private logger = inject(NGXLogger);
   private communicationService = inject(WebRTCCommunicationService);
   private turnCredentials = inject(TurnCredentialsService);
+  private peerConnectionFactory = inject(PeerConnectionFactory);
   private telemetry = inject(TelemetryService);
 
   // =============== Properties ===============
@@ -630,7 +632,7 @@ export class WebRTCSignalingService {
       return;
     }
 
-    if (typeof RTCPeerConnection === 'undefined') {
+    if (!this.peerConnectionFactory.isSupported()) {
       this.logger.error(
         'createPeerConnection',
         'RTCPeerConnection is unavailable in this environment'
@@ -653,7 +655,7 @@ export class WebRTCSignalingService {
       this.peerConnections.delete(targetUser);
     }
 
-    const peerConnection = new RTCPeerConnection({
+    const peerConnection = this.peerConnectionFactory.create({
       ...RTC_CONFIGURATION,
       iceServers: this.turnCredentials.iceServers,
     });
@@ -904,6 +906,7 @@ export class WebRTCSignalingService {
       }
       this.closePeerConnection(targetUser, true);
       this.connectingPeers.delete(targetUser);
+      this.communicationService.deleteMessageQueue(targetUser);
       this.peerDisconnected$.next(targetUser);
     }
   }

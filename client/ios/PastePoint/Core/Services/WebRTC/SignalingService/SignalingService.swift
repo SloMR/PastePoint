@@ -34,10 +34,13 @@ final class SignalingService: NSObject, ObservableObject {
   let fileEvent = PassthroughSubject<FileChannelEvent, Never>()
   let chunkReceived = PassthroughSubject<(ParsedChunk, from: String), Never>()
 
-  let wsService: WebSocketConnectionService
+  let wsService: any SignalTransport
   let userService: UserService
   let peerDirectory: PeerDirectory
   let blockService: BlockService
+  let turnCredentials: any IceServerSource
+  let webRTC: any WebRTCEngine
+  let clock: any Clock<Duration>
   private var cancellables: Set<AnyCancellable> = []
 
   static let connectionTimeout: TimeInterval = 8.0 // Seconds
@@ -68,20 +71,24 @@ final class SignalingService: NSObject, ObservableObject {
   var connectAttemptCounts: [String: Int] = [:]
   var connectSpanAbandonTasks: [String: Task<Void, Never>] = [:]
 
-  let turnCredentials = TurnCredentialsService()
-
   // MARK: - Init
 
   init(
-    wsService: WebSocketConnectionService,
+    wsService: any SignalTransport,
     userService: UserService,
     peerDirectory: PeerDirectory,
     blockService: BlockService,
+    turnCredentials: any IceServerSource = TurnCredentialsService(),
+    webRTC: any WebRTCEngine = DefaultWebRTCEngine(),
+    clock: any Clock<Duration> = SuspendingClock(),
   ) {
     self.wsService = wsService
     self.userService = userService
     self.peerDirectory = peerDirectory
     self.blockService = blockService
+    self.turnCredentials = turnCredentials
+    self.webRTC = webRTC
+    self.clock = clock
     super.init()
 
     wsService.signalMessage
@@ -160,14 +167,14 @@ final class SignalingService: NSObject, ObservableObject {
 
     let offerSdp: String
     do {
-      offerSdp = try await WebRTCQueue.makeLocalDescription(.offer, on: pc)
+      offerSdp = try await webRTC.makeLocalDescription(.offer, on: pc)
     } catch {
       guard peerConnections[peer] === pc else {
         log.debug("offer for \(peer) superseded during SDP setup")
         return
       }
       log.error("SDP offer failed: \(error.localizedDescription)")
-      WebRTCQueue.close(peerConnections.removeValue(forKey: peer), channel: dataChannels.removeValue(forKey: peer))
+      webRTC.close(peerConnections.removeValue(forKey: peer), channel: dataChannels.removeValue(forKey: peer))
       connectionLocks.remove(peer)
       return
     }
@@ -185,17 +192,17 @@ final class SignalingService: NSObject, ObservableObject {
 
   /// Creates and registers the caller's connection and data channel; nil if the attempt ended meanwhile.
   private func makeCallerConnection(for peer: String, iceServers: [RTCIceServer]) async -> RTCPeerConnection? {
-    guard let pc = await PeerConnectionFactory.shared.makePeerConnection(iceServers: iceServers, delegate: self) else {
+    guard let pc = await webRTC.makePeerConnection(iceServers: iceServers, delegate: self) else {
       log.error("factory returned nil")
       connectionLocks.remove(peer)
       return nil
     }
-    let channel = await WebRTCQueue.makeDataChannel(on: pc, label: "data")
+    let channel = await webRTC.makeDataChannel(on: pc, label: "data")
 
     // Same check after these suspensions; a teardown in between also released the lock.
     guard peerConnections[peer] == nil, connectionLocks.contains(peer) else {
       log.debug("attempt for \(peer) superseded while creating its connection")
-      WebRTCQueue.close(pc, channel: channel)
+      webRTC.close(pc, channel: channel)
       return nil
     }
     peerConnections[peer] = pc
@@ -203,7 +210,7 @@ final class SignalingService: NSObject, ObservableObject {
 
     guard let channel else {
       log.error("failed to create data channel")
-      WebRTCQueue.close(peerConnections.removeValue(forKey: peer), channel: nil)
+      webRTC.close(peerConnections.removeValue(forKey: peer), channel: nil)
       connectionLocks.remove(peer)
       return nil
     }

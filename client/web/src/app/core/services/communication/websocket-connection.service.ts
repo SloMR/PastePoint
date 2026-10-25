@@ -7,9 +7,9 @@ import { isPlatformBrowser } from '@angular/common';
 import { TranslateService } from '@ngx-translate/core';
 import {
   SESSION_CODE_KEY,
-  WS_PREFIX_KEEP_ALIVE,
   WS_KEEP_ALIVE_INTERVAL_MS,
   WS_CONNECT_TIMEOUT_MS,
+  WebSocketPrefix,
 } from '../../../utils/constants';
 import { HotToastService } from '@ngxpert/hot-toast';
 import { AppUpdateService } from '../update/app-update.service';
@@ -294,9 +294,11 @@ export class WebSocketConnectionService implements OnDestroy {
           if (typeof ev.data === 'string') {
             const message = ev.data.trim();
 
-            if (message.startsWith('[SignalMessage]')) {
+            if (message.startsWith(WebSocketPrefix.SIGNAL_MESSAGE)) {
               try {
-                const signalMessage = JSON.parse(message.replace('[SignalMessage]', '').trim());
+                const signalMessage = JSON.parse(
+                  message.replace(WebSocketPrefix.SIGNAL_MESSAGE, '').trim()
+                );
                 this.signalMessages$.next(signalMessage);
               } catch (e) {
                 this.logger.error(
@@ -476,7 +478,7 @@ export class WebSocketConnectionService implements OnDestroy {
 
   public sendSignalMessage(message: unknown): void {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-      const signalMessage = `[SignalMessage] ${JSON.stringify(message)}`;
+      const signalMessage = `${WebSocketPrefix.SIGNAL_MESSAGE} ${JSON.stringify(message)}`;
       this.socket.send(signalMessage);
     } else {
       this.logger.warn('sendSignalMessage', 'WebSocket is not open. Message not sent.');
@@ -491,11 +493,11 @@ export class WebSocketConnectionService implements OnDestroy {
    */
   private isSystemMessage(message: string): boolean {
     return (
-      message.includes('[SystemMessage]') ||
-      message.includes('[SystemJoin]') ||
-      message.includes('[SystemRooms]') ||
-      message.includes('[SystemMembers]') ||
-      message.includes('[SystemName]')
+      message.includes(WebSocketPrefix.SYSTEM_MESSAGE) ||
+      message.includes(WebSocketPrefix.SYSTEM_JOIN) ||
+      message.includes(WebSocketPrefix.SYSTEM_ROOMS) ||
+      message.includes(WebSocketPrefix.SYSTEM_MEMBERS) ||
+      message.includes(WebSocketPrefix.SYSTEM_NAME)
     );
   }
 
@@ -510,7 +512,7 @@ export class WebSocketConnectionService implements OnDestroy {
     this.stopKeepAlive();
     this.keepAliveTimer = setInterval(() => {
       if (this.socket?.readyState === WebSocket.OPEN) {
-        this.socket.send(WS_PREFIX_KEEP_ALIVE);
+        this.socket.send(WebSocketPrefix.KEEP_ALIVE);
       }
     }, WS_KEEP_ALIVE_INTERVAL_MS);
   }

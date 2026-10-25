@@ -12,6 +12,7 @@
 		5C3DEB383042070B005BA42C /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = 5C3DEB373042070B005BA42C /* Sentry */; };
 		5C3DEB3A3042070B005BA42C /* SentrySwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = 5C3DEB393042070B005BA42C /* SentrySwiftUI */; };
 		5C44B07D2FB11C120080A2A7 /* WebRTC in Frameworks */ = {isa = PBXBuildFile; productRef = 5C44B07C2FB11C120080A2A7 /* WebRTC */; };
+		5C7D6CFC308E881000B5631E /* Clocks in Frameworks */ = {isa = PBXBuildFile; productRef = 5C7D6CFB308E881000B5631E /* Clocks */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -86,6 +87,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5C7D6CFC308E881000B5631E /* Clocks in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -167,6 +169,7 @@
 			);
 			name = PastePointTests;
 			packageProductDependencies = (
+				5C7D6CFB308E881000B5631E /* Clocks */,
 			);
 			productName = PastePointTests;
 			productReference = 4C23270D2F1ECB1C005FED3A /* PastePointTests.xctest */;
@@ -237,6 +240,7 @@
 				5C44B07B2FB11C120080A2A7 /* XCRemoteSwiftPackageReference "WebRTC" */,
 				5C2FC06A300FC91E003CF5C9 /* XCRemoteSwiftPackageReference "blake-hash" */,
 				5C3DEB363042070B005BA42C /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
+				5C7D6CFA308E881000B5631E /* XCRemoteSwiftPackageReference "swift-clocks" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 4C2327012F1ECB1B005FED3A /* Products */;
@@ -696,6 +700,14 @@
 				minimumVersion = 155.0.0;
 			};
 		};
+		5C7D6CFA308E881000B5631E /* XCRemoteSwiftPackageReference "swift-clocks" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/swift-clocks";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.1.1;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -723,6 +735,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 5C44B07B2FB11C120080A2A7 /* XCRemoteSwiftPackageReference "WebRTC" */;
 			productName = WebRTC;
+		};
+		5C7D6CFB308E881000B5631E /* Clocks */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5C7D6CFA308E881000B5631E /* XCRemoteSwiftPackageReference "swift-clocks" */;
+			productName = Clocks;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

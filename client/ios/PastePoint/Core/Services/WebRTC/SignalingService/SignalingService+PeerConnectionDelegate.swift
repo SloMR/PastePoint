@@ -54,27 +54,30 @@ extension SignalingService: RTCPeerConnectionDelegate {
     let state = newState
 
     Task { @MainActor [weak self] in
-      guard let self else { return }
-      guard let peer = self.peer(forConnectionID: peerConnectionID) else { return }
+      self?.handleIceState(state, onConnection: peerConnectionID)
+    }
+  }
 
-      log.debug("iceConnectionState: \(peer) → \(state.rawValue)")
-      telemetry.breadcrumb(
-        category: "webrtc.ice",
-        message: "ice connection state: \(Self.name(state))",
-        level: state == .failed ? .error : .info,
-      )
-      switch state {
-      case .checking:
-        telemetry.markElapsed("webrtc.ice_checking_ms", on: self.connectSpans[peer])
-      case .connected, .completed:
-        telemetry.markElapsed("webrtc.ice_connected_ms", on: self.connectSpans[peer])
-      case .failed, .disconnected:
-        self.scheduleReconnect(to: peer)
-      case .closed:
-        self.connectedPeers.remove(peer)
-      default:
-        break
-      }
+  func handleIceState(_ state: RTCIceConnectionState, onConnection connectionID: ObjectIdentifier) {
+    guard let peer = self.peer(forConnectionID: connectionID) else { return }
+
+    log.debug("iceConnectionState: \(peer) → \(state.rawValue)")
+    telemetry.breadcrumb(
+      category: "webrtc.ice",
+      message: "ice connection state: \(Self.name(state))",
+      level: state == .failed ? .error : .info,
+    )
+    switch state {
+    case .checking:
+      telemetry.markElapsed("webrtc.ice_checking_ms", on: self.connectSpans[peer])
+    case .connected, .completed:
+      telemetry.markElapsed("webrtc.ice_connected_ms", on: self.connectSpans[peer])
+    case .failed, .disconnected:
+      self.scheduleReconnect(to: peer)
+    case .closed:
+      self.connectedPeers.remove(peer)
+    default:
+      break
     }
   }
 
@@ -116,13 +119,13 @@ extension SignalingService: RTCPeerConnectionDelegate {
 
       guard let peer = self.peer(forConnectionID: peerConnectionID) else {
         log.warning("unknown peer connection")
-        WebRTCQueue.close(nil, channel: box.value)
+        self.webRTC.close(nil, channel: box.value)
         return
       }
 
       box.value.delegate = self
       if let previous = self.dataChannels.updateValue(box.value, forKey: peer) {
-        WebRTCQueue.close(nil, channel: previous)
+        self.webRTC.close(nil, channel: previous)
       }
       log.info("data channel attached")
       if isOpen {

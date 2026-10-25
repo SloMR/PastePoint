@@ -47,7 +47,7 @@ extension SignalingService {
       return false
     }
 
-    WebRTCQueue.send(data, on: channel)
+    webRTC.send(data, on: channel)
     return true
   }
 
@@ -58,7 +58,7 @@ extension SignalingService {
       log.warning("no open channel to peer")
       return false
     }
-    return await WebRTCQueue.sendChunk(data, on: channel)
+    return await webRTC.sendChunk(data, on: channel)
   }
 
   /// Holds a frame for a connecting peer; false once full, so a peer that never
@@ -116,29 +116,30 @@ extension SignalingService: RTCDataChannelDelegate {
     let state = dataChannel.readyState
 
     Task { @MainActor [weak self] in
-      guard let self else { return }
+      self?.handleChannelState(state, onChannel: dataChannelID)
+    }
+  }
 
-      guard let peer = self.peer(forChannelID: dataChannelID) else {
-        log.debug("unknown channel (already closed)")
-        return
-      }
+  func handleChannelState(_ state: RTCDataChannelState, onChannel channelID: ObjectIdentifier) {
+    guard let peer = self.peer(forChannelID: channelID) else {
+      log.debug("unknown channel (already closed)")
+      return
+    }
 
-      switch state {
-      case .open:
-        handleChannelOpened(peer)
-      case .closed:
-        self.connectedPeers.remove(peer)
-        self.connectionLocks.remove(peer)
-        log.info("disconnected from peer")
-        self.scheduleReconnect(to: peer)
-      case .connecting:
-        log.info("connecting to peer")
-      case .closing:
-        log.info("closing connection to peer")
-      @unknown default:
-        break
-      }
-
+    switch state {
+    case .open:
+      handleChannelOpened(peer)
+    case .closed:
+      self.connectedPeers.remove(peer)
+      self.connectionLocks.remove(peer)
+      log.info("disconnected from peer")
+      self.scheduleReconnect(to: peer)
+    case .connecting:
+      log.info("connecting to peer")
+    case .closing:
+      log.info("closing connection to peer")
+    @unknown default:
+      break
     }
   }
 

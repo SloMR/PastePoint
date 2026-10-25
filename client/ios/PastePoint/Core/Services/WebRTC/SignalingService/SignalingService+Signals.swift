@@ -70,7 +70,7 @@ extension SignalingService {
     }
 
     let iceServers = await turnCredentials.iceServers()
-    guard let pc = await PeerConnectionFactory.shared.makePeerConnection(iceServers: iceServers, delegate: self) else {
+    guard let pc = await webRTC.makePeerConnection(iceServers: iceServers, delegate: self) else {
       log.error("factory returned nil")
       connectionLocks.remove(message.from)
       return
@@ -79,21 +79,21 @@ extension SignalingService {
     // A teardown while the connection was being created released the lock.
     guard connectionLocks.contains(message.from) else {
       log.debug("offer from \(message.from) superseded while creating its connection")
-      WebRTCQueue.close(pc, channel: nil)
+      webRTC.close(pc, channel: nil)
       return
     }
     if let replaced = peerConnections.updateValue(pc, forKey: message.from) {
       describedConnections.remove(ObjectIdentifier(replaced))
-      WebRTCQueue.close(replaced, channel: nil)
+      webRTC.close(replaced, channel: nil)
     }
     telemetry.markElapsed("webrtc.pc_created_ms", on: connectSpans[message.from])
 
     let answerSdp: String
     do {
-      try await WebRTCQueue.setRemoteDescription(.offer, sdp: sdpString, on: pc)
+      try await webRTC.setRemoteDescription(.offer, sdp: sdpString, on: pc)
       markRemoteDescriptionSet(on: pc, for: message.from)
       await drainCandidateQueue(for: message.from)
-      answerSdp = try await WebRTCQueue.makeLocalDescription(.answer, on: pc)
+      answerSdp = try await webRTC.makeLocalDescription(.answer, on: pc)
     } catch {
       guard peerConnections[message.from] === pc else {
         log.debug("answer for \(message.from) superseded during SDP setup")
@@ -102,7 +102,7 @@ extension SignalingService {
       log.error("SDP exchange failed: \(error.localizedDescription)")
       peerConnections[message.from] = nil
       describedConnections.remove(ObjectIdentifier(pc))
-      WebRTCQueue.close(pc, channel: nil)
+      webRTC.close(pc, channel: nil)
       connectionLocks.remove(message.from)
       return
     }
@@ -130,7 +130,7 @@ extension SignalingService {
     }
 
     do {
-      try await WebRTCQueue.setRemoteDescription(.answer, sdp: sdpString, on: pc)
+      try await webRTC.setRemoteDescription(.answer, sdp: sdpString, on: pc)
       markRemoteDescriptionSet(on: pc, for: message.from)
       await drainCandidateQueue(for: message.from)
       log.info("remote description set")
@@ -161,7 +161,7 @@ extension SignalingService {
     }
 
     do {
-      try await WebRTCQueue.add(candidate, to: pc)
+      try await webRTC.add(candidate, to: pc)
       log.debug("candidate added for \(message.from)")
     } catch {
       guard peerConnections[message.from] === pc else {
@@ -192,7 +192,7 @@ extension SignalingService {
 
     for candidate in queued {
       do {
-        try await WebRTCQueue.add(candidate, to: pc)
+        try await webRTC.add(candidate, to: pc)
       } catch {
         log.warning("queued candidate add failed")
       }

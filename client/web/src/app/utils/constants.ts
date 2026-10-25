@@ -23,7 +23,6 @@ export const HEARTBEAT_INTERVAL_MOBILE_SEC = 10;
 export const HEARTBEAT_TIMEOUT_MOBILE_SEC = 30;
 
 // WebSocket keepalive — sent every 25 seconds to prevent idle timeouts on the server and intermediate proxies
-export const WS_PREFIX_KEEP_ALIVE = '[KeepAlive]';
 export const WS_KEEP_ALIVE_INTERVAL_MS = 25_000;
 // A handshake still pending after this long counts as failed, so the next retry runs
 export const WS_CONNECT_TIMEOUT_MS = 10_000;
@@ -94,6 +93,18 @@ export const RTC_CONFIGURATION = {
 export const DATA_CHANNEL_OPTIONS = {
   ordered: true,
 };
+
+// Wire format; do not change values.
+export enum WebSocketPrefix {
+  KEEP_ALIVE = '[KeepAlive]',
+  SYSTEM_MESSAGE = '[SystemMessage]',
+  SYSTEM_ROOMS = '[SystemRooms]',
+  SYSTEM_NAME = '[SystemName]',
+  SYSTEM_JOIN = '[SystemJoin]',
+  SYSTEM_MEMBERS = '[SystemMembers]',
+  SIGNAL_MESSAGE = '[SignalMessage]',
+  USER_COMMAND = '[UserCommand]',
+}
 
 // Wire format; do not change values.
 export enum SignalMessageType {

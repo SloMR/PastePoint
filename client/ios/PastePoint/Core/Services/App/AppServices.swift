@@ -169,6 +169,7 @@ final class AppServices: ObservableObject {
       await wsService.connect(sessionCode: sessionCode)
       return true
     }
+    guard !AppBuildInfo.isRunningTests else { return false }
 #endif
 
     if case .required = updateService.recommendation {

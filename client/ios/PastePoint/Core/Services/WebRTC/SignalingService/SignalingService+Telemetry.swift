@@ -27,8 +27,8 @@ extension SignalingService {
     let hasRelay = candidates.contains("relay")
     let hasSrflx = candidates.contains("srflx")
 
-    Task {
-      let states = await WebRTCQueue.states(of: pc)
+    Task { [webRTC] in
+      let states = await webRTC.states(of: pc)
       var report = "Connection FAILED:\n"
       report += "  State: \(states.peer.rawValue) / ICE: \(states.ice.rawValue)\n"
       report += "  Candidates: \(candidates.count) total (relay: \(hasRelay ? "✓" : "✗"), srflx: \(hasSrflx ? "✓" : "✗"))"
@@ -108,8 +108,8 @@ extension SignalingService {
     connectSpans[peer] = telemetry.startSpan(op: "webrtc.connect", attributes: ["role": connectRole(for: peer)])
 
     connectSpanAbandonTasks[peer]?.cancel()
-    connectSpanAbandonTasks[peer] = Task { [weak self] in
-      try? await Task.sleep(nanoseconds: UInt64(Self.connectSpanAbandonAfter * 1_000_000_000))
+    connectSpanAbandonTasks[peer] = Task { [weak self, clock] in
+      try? await clock.sleep(for: .seconds(Self.connectSpanAbandonAfter))
       guard !Task.isCancelled, let self else { return }
       self.connectSpanAbandonTasks[peer] = nil
       self.finishConnectSpanAsFailed(peer, reason: .abandoned)
@@ -156,7 +156,7 @@ extension SignalingService {
 
     // The states are read off the main actor; a new attempt may own the span by the time they arrive.
     Task {
-      let states = await WebRTCQueue.states(of: pc)
+      let states = await webRTC.states(of: pc)
       guard connectSpans[peer] === span else { return }
 
       let state = Self.name(states.peer)
@@ -194,10 +194,10 @@ extension SignalingService {
     clearConnectSpan(peer)
 
     // The states are read off the main actor, so the span ends a moment later.
-    Task { [diagnostics] in
+    Task { [diagnostics, webRTC] in
       var attributes = diagnostics
       if let pc {
-        let states = await WebRTCQueue.states(of: pc)
+        let states = await webRTC.states(of: pc)
         attributes["webrtc.peer_state"] = Self.name(states.peer)
         attributes["webrtc.ice_state"] = Self.name(states.ice)
       }

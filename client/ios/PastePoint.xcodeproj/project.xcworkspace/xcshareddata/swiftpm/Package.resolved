@@ -1,5 +1,5 @@
 {
-  "originHash" : "288a960691dc0b39cfd36bcc21ed1e4e900ee94700e7537922aaaef62e004944",
+  "originHash" : "6417ce1b622b485d83627c72701ba845bede20acba3af3f7bf3d544fc61a0d1b",
   "pins" : [
     {
       "identity" : "blake-hash",
@@ -17,6 +17,33 @@
       "state" : {
         "revision" : "d9df1c4e8d8466c7f8b3c56150378927dadf1b8e",
         "version" : "9.29.0"
+      }
+    },
+    {
+      "identity" : "swift-clocks",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pointfreeco/swift-clocks",
+      "state" : {
+        "revision" : "82440fa0a8b1c381a6d1e8e0fc7bbba53ec63204",
+        "version" : "1.1.1"
+      }
+    },
+    {
+      "identity" : "swift-concurrency-extras",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pointfreeco/swift-concurrency-extras",
+      "state" : {
+        "revision" : "8a4260f7373493435bd21194585c95b72bfdd401",
+        "version" : "1.4.3"
+      }
+    },
+    {
+      "identity" : "swift-issue-reporting",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pointfreeco/swift-issue-reporting",
+      "state" : {
+        "revision" : "b23bb4493c439d3e05152bc167014235ba3d47fc",
+        "version" : "2.1.2"
       }
     },
     {

@@ -6,12 +6,16 @@
 import Foundation
 import WebRTC
 
+protocol IceServerSource {
+  func iceServers() async -> [RTCIceServer]
+}
+
 /// Fetches short-lived TURN credentials from `GET /turn-credentials` and caches
 /// the resulting ICE server list (STUN + relay) until shortly before the
 /// credential expires. Concurrent callers share one in-flight fetch; failures
 /// and a 204 (no relay configured) fall back to STUN-only.
 @MainActor
-final class TurnCredentialsService {
+final class TurnCredentialsService: IceServerSource {
   /// Server response; do not rename fields.
   private struct Response: Decodable {
     let username: String
