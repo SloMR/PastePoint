@@ -4,6 +4,8 @@ import { TelemetryService, TelemetrySpan } from '../monitoring/telemetry.service
 import { WebSocketConnectionService } from '../communication/websocket-connection.service';
 import { NGXLogger } from 'ngx-logger';
 import { IRoomService } from '../../interfaces/room.interface';
+import { WebSocketPrefix } from '../../../utils/constants';
+import { escapeRegExp } from '../../../utils/regexp.util';
 
 @Injectable({
   providedIn: 'root',
@@ -62,7 +64,7 @@ export class RoomService implements IRoomService {
    */
   public listRooms(): void {
     this.logger.info('listRooms', 'Listing rooms');
-    this.wsService.send('[UserCommand] /list');
+    this.wsService.send(`${WebSocketPrefix.USER_COMMAND} /list`);
   }
 
   /**
@@ -101,7 +103,7 @@ export class RoomService implements IRoomService {
       this.logger.warn('joinRoom', 'Join timed out');
       this.clearPendingJoinSpan('timeout', 2);
     }, RoomService.JOIN_SPAN_TIMEOUT_MS);
-    this.wsService.send(`[UserCommand] /join ${sanitizedRoom}`);
+    this.wsService.send(`${WebSocketPrefix.USER_COMMAND} /join ${sanitizedRoom}`);
   }
 
   /**
@@ -111,8 +113,10 @@ export class RoomService implements IRoomService {
    * ==========================================================
    */
   private handleSystemMessage(message: string): void {
-    if (message.includes('[SystemRooms]')) {
-      const matchRooms = message.match(/\[SystemRooms]\s*(.*?)$/);
+    if (message.includes(WebSocketPrefix.SYSTEM_ROOMS)) {
+      const matchRooms = message.match(
+        new RegExp(`${escapeRegExp(WebSocketPrefix.SYSTEM_ROOMS)}\\s*(.*?)$`)
+      );
       if (matchRooms) {
         const rooms = matchRooms[1].split(',').map((room: string) => room.trim());
         this.ngZone.run(() => {
@@ -121,8 +125,10 @@ export class RoomService implements IRoomService {
       } else {
         this.logger.warn('handleSystemMessage', `No rooms found in message: ${message}`);
       }
-    } else if (message.includes('[SystemMembers]')) {
-      const matchMembers = message.match(/\[SystemMembers]\s*(.*?)$/);
+    } else if (message.includes(WebSocketPrefix.SYSTEM_MEMBERS)) {
+      const matchMembers = message.match(
+        new RegExp(`${escapeRegExp(WebSocketPrefix.SYSTEM_MEMBERS)}\\s*(.*?)$`)
+      );
       if (matchMembers) {
         const members = matchMembers[1].split(',').map((member: string) => member.trim());
         this.ngZone.run(() => {
@@ -131,8 +137,10 @@ export class RoomService implements IRoomService {
       } else {
         this.logger.warn('handleSystemMessage', `No members found in message: ${message}`);
       }
-    } else if (message.includes('[SystemJoin]')) {
-      const matchJoin = message.match(/^(.*?)\s*\[SystemJoin]\s*(.*?)$/);
+    } else if (message.includes(WebSocketPrefix.SYSTEM_JOIN)) {
+      const matchJoin = message.match(
+        new RegExp(`^(.*?)\\s*${escapeRegExp(WebSocketPrefix.SYSTEM_JOIN)}\\s*(.*?)$`)
+      );
       if (matchJoin) {
         this.logger.info('handleSystemMessage', `User joined room ${matchJoin[2]}`);
         this.ngZone.run(() => {
