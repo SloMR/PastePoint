@@ -96,4 +96,25 @@ struct SignalingServiceTests {
     #expect(fixture.signaling.peerConnections["bob"] === fixture.webRTC.connections.last)
     #expect(fixture.transport.sent.count == 2)
   }
+
+  @Test("A new attempt cancels any retry an old attempt scheduled")
+  func newAttemptCancelsOldRetry() async throws {
+    let fixture = await SignalingFixture()
+    fixture.setPeers(["bob"])
+    #expect(await fixture.waitUntil { fixture.transport.sent.count == 1 })
+    let channel = try #require(fixture.signaling.dataChannels["bob"])
+
+    fixture.signaling.handleChannelState(.open, onChannel: ObjectIdentifier(channel))
+    fixture.signaling.handleChannelState(.closed, onChannel: ObjectIdentifier(channel))
+    #expect(fixture.signaling.reconnectTasks["bob"] != nil)
+
+    fixture.transport.signalMessage.send(SignalMessage(payload: .offer(sdp: "offer"), from: "bob", to: fixture.me))
+    #expect(await fixture.waitUntil { fixture.webRTC.connections.count == 2 })
+
+    await fixture.clock.advance(by: .seconds(5))
+
+    #expect(fixture.webRTC.connections.count == 2)
+    #expect(fixture.webRTC.liveConnections.count == 1)
+    #expect(fixture.signaling.peerConnections["bob"] === fixture.webRTC.connections.last)
+  }
 }
