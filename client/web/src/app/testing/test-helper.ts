@@ -7,8 +7,8 @@ import {
   TranslateStore,
   provideTranslateService,
 } from '@ngx-translate/core';
-import { MockHotToastService } from './mock-toastr.service';
-import { MockTranslateService } from './mock-translate.service';
+import { MockHotToastService } from './mocks/mock-toastr.service';
+import { MockTranslateService } from './mocks/mock-translate.service';
 import { of } from 'rxjs';
 import { HotToastService } from '@ngxpert/hot-toast';
 
