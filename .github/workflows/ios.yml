@@ -128,6 +128,61 @@ jobs:
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO
 
+  test:
+    name: Unit Tests
+    runs-on: xcode-27
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Read pinned Xcode version
+        id: xcode-pin
+        run: echo "version=$(sed 's/^Xcode //' client/ios/.xcode-version)" >> "$GITHUB_OUTPUT"
+
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: ${{ steps.xcode-pin.outputs.version }}
+
+      - name: Get Xcode version
+        id: xcode
+        run: echo "version=$(xcodebuild -version | head -1 | sed 's/Xcode //')" >> "$GITHUB_OUTPUT"
+
+      - name: Cache SwiftPM
+        uses: actions/cache@v6
+        with:
+          path: |
+            ${{ env.DERIVED_DATA }}/SourcePackages
+            ~/Library/Caches/org.swift.swiftpm
+          key: ${{ runner.os }}-spm-${{ steps.xcode.outputs.version }}-${{ hashFiles('client/ios/PastePoint.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-${{ steps.xcode.outputs.version }}-
+
+      - name: Pick a simulator
+        id: simulator
+        run: |
+          id=$(xcrun simctl list devices available --json | python3 -c 'import json, sys; print(next(d["udid"] for ds in json.load(sys.stdin)["devices"].values() for d in ds if d["name"].startswith("iPhone")))')
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+
+      - name: Test
+        working-directory: client/ios
+        run: |
+          xcodebuild test \
+            -project PastePoint.xcodeproj \
+            -scheme PastePoint \
+            -destination 'id=${{ steps.simulator.outputs.id }}' \
+            -derivedDataPath '${{ env.DERIVED_DATA }}' \
+            -skipMacroValidation \
+            -skipPackagePluginValidation \
+            COMPILER_INDEX_STORE_ENABLE=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+
   periphery:
     name: Periphery
     runs-on: xcode-27
