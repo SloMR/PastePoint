@@ -108,8 +108,8 @@ extension SignalingService {
     connectSpans[peer] = telemetry.startSpan(op: "webrtc.connect", attributes: ["role": connectRole(for: peer)])
 
     connectSpanAbandonTasks[peer]?.cancel()
-    connectSpanAbandonTasks[peer] = Task { [weak self] in
-      try? await Task.sleep(nanoseconds: UInt64(Self.connectSpanAbandonAfter * 1_000_000_000))
+    connectSpanAbandonTasks[peer] = Task { [weak self, clock] in
+      try? await clock.sleep(for: .seconds(Self.connectSpanAbandonAfter))
       guard !Task.isCancelled, let self else { return }
       self.connectSpanAbandonTasks[peer] = nil
       self.finishConnectSpanAsFailed(peer, reason: .abandoned)

@@ -43,8 +43,8 @@ extension SignalingService {
     let delay = min(Self.baseReconnectDelay * pow(1.5, Double(attempts)), Self.maxReconnectDelay)
     log.warning("reconnect attempt \(attempts + 1) in \(delay)s")
 
-    reconnectTasks[peer] = Task { [weak self] in
-      try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+    reconnectTasks[peer] = Task { [weak self, clock] in
+      try? await clock.sleep(for: .seconds(delay))
       if Task.isCancelled { return }
       guard let self else { return }
       self.reconnectTasks[peer] = nil
@@ -77,11 +77,11 @@ extension SignalingService {
     connectionRequestTimeouts[peer]?.cancel()
     connectionRequestTimeouts[peer] = nil
     connectionTimeouts[peer]?.cancel()
-    connectionTimeouts[peer] = Task { [weak self] in
-      try? await Task.sleep(nanoseconds: UInt64(Self.connectionTimeout * 1_000_000_000))
+    connectionTimeouts[peer] = Task { [weak self, clock] in
+      try? await clock.sleep(for: .seconds(Self.connectionTimeout))
 
       if let pc = self?.peerConnections[peer], [.checking, .connected, .completed].contains(await WebRTCQueue.states(of: pc).ice) {
-        try? await Task.sleep(nanoseconds: UInt64((Self.connectionCeiling - Self.connectionTimeout) * 1_000_000_000))
+        try? await clock.sleep(for: .seconds(Self.connectionCeiling - Self.connectionTimeout))
       }
 
       guard let self else { return }
@@ -114,8 +114,8 @@ extension SignalingService {
   /// peer connection attempt begins; cleared in `closePeerConnection`.
   func startConnectionRequestTimeout(for peer: String) {
     connectionRequestTimeouts[peer]?.cancel()
-    connectionRequestTimeouts[peer] = Task { [weak self] in
-      try? await Task.sleep(nanoseconds: UInt64(Self.connectionRequestTimeout * 1_000_000_000))
+    connectionRequestTimeouts[peer] = Task { [weak self, clock] in
+      try? await clock.sleep(for: .seconds(Self.connectionRequestTimeout))
 
       guard !Task.isCancelled, let self else { return }
       self.connectionRequestTimeouts[peer] = nil

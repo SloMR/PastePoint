@@ -39,6 +39,7 @@ final class SignalingService: NSObject, ObservableObject {
   let peerDirectory: PeerDirectory
   let blockService: BlockService
   let turnCredentials: any IceServerSource
+  let clock: any Clock<Duration>
   private var cancellables: Set<AnyCancellable> = []
 
   static let connectionTimeout: TimeInterval = 8.0 // Seconds
@@ -77,12 +78,14 @@ final class SignalingService: NSObject, ObservableObject {
     peerDirectory: PeerDirectory,
     blockService: BlockService,
     turnCredentials: any IceServerSource = TurnCredentialsService(),
+    clock: any Clock<Duration> = SuspendingClock(),
   ) {
     self.wsService = wsService
     self.userService = userService
     self.peerDirectory = peerDirectory
     self.blockService = blockService
     self.turnCredentials = turnCredentials
+    self.clock = clock
     super.init()
 
     wsService.signalMessage
