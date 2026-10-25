@@ -4,6 +4,7 @@
 //
 
 import Clocks
+import Combine
 import Foundation
 import Testing
 @preconcurrency import WebRTC
@@ -57,5 +58,25 @@ struct SignalingServiceTests {
 
     #expect(await fixture.waitUntil { fixture.webRTC.sentFrames.count == 3 })
     #expect(fixture.webRTC.sentFrames == ["one", "two", "three"].map { Data($0.utf8) })
+  }
+
+  @Test("A teardown followed by a new attempt never leaves two live connections")
+  func teardownThenNewAttemptLeavesOneConnection() async {
+    let fixture = await SignalingFixture()
+    fixture.webRTC.pauseNewConnections()
+    fixture.setPeers(["bob"])
+    #expect(await fixture.waitUntil { fixture.webRTC.pausedConnections == 1 })
+
+    fixture.setPeers([])
+    #expect(await fixture.waitUntil { !fixture.signaling.connectionLocks.contains("bob") })
+
+    fixture.transport.signalMessage.send(SignalMessage(payload: .connectionRequest, from: "bob", to: fixture.me))
+    #expect(await fixture.waitUntil { fixture.webRTC.pausedConnections == 2 })
+
+    fixture.webRTC.resumeNewConnections()
+    #expect(await fixture.waitUntil { fixture.webRTC.connections.count == 2 })
+
+    #expect(fixture.webRTC.liveConnections.count == 1)
+    #expect(fixture.webRTC.liveConnections.first === fixture.signaling.peerConnections["bob"])
   }
 }

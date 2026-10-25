@@ -13,13 +13,33 @@ final class MockWebRTCEngine: WebRTCEngine {
   private(set) var connections: [RTCPeerConnection] = []
   private(set) var closed: Set<ObjectIdentifier> = []
   private(set) var sentFrames: [Data] = []
+  private var isPaused = false
+  private var waitingConnections: [CheckedContinuation<Void, Never>] = []
   private let factory = RTCPeerConnectionFactory()
 
   var liveConnections: [RTCPeerConnection] {
     connections.filter { !closed.contains(ObjectIdentifier($0)) }
   }
 
+  var pausedConnections: Int {
+    waitingConnections.count
+  }
+
+  func pauseNewConnections() {
+    isPaused = true
+  }
+
+  func resumeNewConnections() {
+    isPaused = false
+    let waiting = waitingConnections
+    waitingConnections = []
+    waiting.forEach { $0.resume() }
+  }
+
   func makePeerConnection(iceServers: [RTCIceServer], delegate: RTCPeerConnectionDelegate) async -> RTCPeerConnection? {
+    if isPaused {
+      await withCheckedContinuation { waitingConnections.append($0) }
+    }
     guard !failsToConnect else { return nil }
     let constraints = RTCMediaConstraints(mandatoryConstraints: nil, optionalConstraints: nil)
     let pc = factory.peerConnection(with: RTCConfiguration(), constraints: constraints, delegate: nil)

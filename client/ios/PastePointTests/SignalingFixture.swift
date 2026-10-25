@@ -43,6 +43,7 @@ struct SignalingFixture {
     roomService.members = [me] + peers
   }
 
+  /// Lets the app's queued work run, checking `condition` after each turn (at most 1,000 turns).
   func waitUntil(_ condition: () -> Bool) async -> Bool {
     for _ in 0..<1_000 {
       if condition() { return true }
