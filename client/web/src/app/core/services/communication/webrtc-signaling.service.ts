@@ -906,6 +906,7 @@ export class WebRTCSignalingService {
       }
       this.closePeerConnection(targetUser, true);
       this.connectingPeers.delete(targetUser);
+      this.communicationService.deleteMessageQueue(targetUser);
       this.peerDisconnected$.next(targetUser);
     }
   }
