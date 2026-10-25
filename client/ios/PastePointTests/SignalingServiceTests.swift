@@ -6,6 +6,7 @@
 import Clocks
 import Foundation
 import Testing
+@preconcurrency import WebRTC
 @testable import PastePoint
 
 @MainActor
@@ -39,5 +40,22 @@ struct SignalingServiceTests {
     await fixture.clock.advance(by: .seconds(90))
     #expect(await fixture.waitUntil { fixture.signaling.pendingMessages["bob"] == nil })
     #expect(fixture.webRTC.sentFrames.isEmpty)
+  }
+
+  @Test("A frame sent after the channel opens arrives after the frames queued before it")
+  func framesKeepTheirOrderWhenTheChannelOpens() async throws {
+    let fixture = await SignalingFixture()
+    fixture.setPeers(["bob"])
+    #expect(await fixture.waitUntil { fixture.transport.sent.count == 1 })
+    let channel = try #require(fixture.signaling.dataChannels["bob"])
+
+    #expect(fixture.signaling.send(Data("one".utf8), to: "bob"))
+    #expect(fixture.signaling.send(Data("two".utf8), to: "bob"))
+
+    fixture.signaling.handleChannelState(.open, onChannel: ObjectIdentifier(channel))
+    #expect(fixture.signaling.send(Data("three".utf8), to: "bob"))
+
+    #expect(await fixture.waitUntil { fixture.webRTC.sentFrames.count == 3 })
+    #expect(fixture.webRTC.sentFrames == ["one", "two", "three"].map { Data($0.utf8) })
   }
 }
