@@ -40,6 +40,22 @@ describe('WebRTCSignalingService', () => {
     expect(fixture.signaling.isConnecting('bob')).toBe(false);
   });
 
+  test('after the retry budget runs out, no queued frame survives', async () => {
+    fixture.signaling.initiateConnection('bob');
+    await vitest.advanceTimersByTimeAsync(0);
+    fixture.communication.sendData(chat('one'), 'bob');
+    fixture.communication.sendData(chat('two'), 'bob');
+
+    await vitest.advanceTimersByTimeAsync(120_000);
+    expect(fixture.signaling.isConnecting('bob')).toBe(false);
+
+    fixture.signaling.initiateConnection('bob');
+    await vitest.advanceTimersByTimeAsync(0);
+    const channel = fixture.factory.lastChannel();
+    channel.open();
+    expect(channel.sent).toEqual([]);
+  });
+
   test('a frame sent when the peer connects arrives after the frames queued before it', async () => {
     fixture.signaling.initiateConnection('bob');
     await vitest.advanceTimersByTimeAsync(0);
