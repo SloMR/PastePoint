@@ -10,16 +10,24 @@ function textOf(frame: string): string {
   return (JSON.parse(frame) as { payload: { text: string } }).payload.text;
 }
 
+class SessionDescription {
+  constructor(init: RTCSessionDescriptionInit) {
+    Object.assign(this, init);
+  }
+}
+
 describe('WebRTCSignalingService', () => {
   let fixture: SignalingFixture;
 
   beforeEach(() => {
     vitest.useFakeTimers();
+    vitest.stubGlobal('RTCSessionDescription', SessionDescription);
     fixture = new SignalingFixture();
   });
 
   afterEach(() => {
     vitest.useRealTimers();
+    vitest.unstubAllGlobals();
   });
 
   test("after a connection fails to build, the peer isn't left connecting", async () => {
@@ -76,5 +84,28 @@ describe('WebRTCSignalingService', () => {
     expect(fixture.factory.connections).toHaveLength(2);
     expect(fixture.signaling.getPeerConnection('bob')).toBe(fixture.factory.connections[1]);
     expect(offers).toHaveLength(2);
+  });
+
+  test('a new attempt cancels any retry an old attempt scheduled', async () => {
+    fixture.signaling.initiateConnection('bob');
+    await vitest.advanceTimersByTimeAsync(0);
+    const channel = fixture.factory.lastChannel();
+
+    channel.open();
+    channel.close();
+    fixture.transport.signalMessages$.next({
+      type: SignalMessageType.OFFER,
+      data: { type: 'offer', sdp: 'offer' },
+      from: 'bob',
+      to: fixture.me,
+    });
+    await vitest.advanceTimersByTimeAsync(0);
+    expect(fixture.factory.connections).toHaveLength(2);
+
+    await vitest.advanceTimersByTimeAsync(5_000);
+
+    expect(fixture.factory.connections).toHaveLength(2);
+    expect(fixture.factory.liveConnections).toHaveLength(1);
+    expect(fixture.signaling.getPeerConnection('bob')).toBe(fixture.factory.connections[1]);
   });
 });
